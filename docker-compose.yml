@@ -1,0 +1,41 @@
+services:
+  # Pinned Base fork. The cache volume is not an optimisation: a cold quote measured
+  # 8.96 s against a public RPC and 0.01 s once the state is local.
+  anvil:
+    image: ghcr.io/foundry-rs/foundry:latest
+    # The image's ENTRYPOINT is ["/bin/sh","-c"], so command MUST be a single string.
+    command: "anvil --fork-url ${BASE_RPC_URL} --fork-block-number ${FORK_BLOCK:-50614000} --host 0.0.0.0 --port 8545 --compute-units-per-second 200000 --silent"
+    ports: ["8545:8545"]
+    volumes: ["foundry_cache:/root/.foundry/cache"]
+    healthcheck:
+      test: ["CMD","sh","-c","cast block-number --rpc-url http://127.0.0.1:8545 >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  db:
+    image: pgvector/pgvector:pg16       # Postgres + the vector extension in one image
+    environment:
+      POSTGRES_USER: tare
+      POSTGRES_PASSWORD: tare
+      POSTGRES_DB: tare
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U tare"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  queue:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD","redis-cli","ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  foundry_cache:
+  pgdata:

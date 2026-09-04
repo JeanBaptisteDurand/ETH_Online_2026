@@ -1,0 +1,251 @@
+/* base.css — fonts, reset, the type scale, and the six components the page reuses. */
+
+/* Self-hosted. No request ever leaves the origin at runtime: the Google Fonts API is a
+   third-party request on a page whose whole argument is that you should check what runs. */
+@font-face {
+  font-family: "JetBrains Mono Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  src: url("/fonts/jetbrains-mono-latin-wght.woff2") format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Instrument Sans Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400 700;
+  src: url("/fonts/instrument-sans-latin-wght.woff2") format("woff2-variations");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+*, *::before, *::after { box-sizing: border-box; border-radius: 0; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 18px;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, p, figure, ul, ol { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+a { color: inherit; text-decoration: none; }
+a:focus-visible, button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+::selection { background: var(--m-6); color: #08090a; }
+svg { display: block; }
+
+/* ------------------------------------------------------------- type scale */
+
+.hero {
+  font-family: var(--mono);
+  font-weight: 800;
+  font-size: clamp(44px, 9.2vw, 132px);
+  line-height: 0.86;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+}
+.metric-xl {
+  font-family: var(--mono);
+  font-weight: 800;
+  font-size: clamp(72px, 16vw, 240px);
+  line-height: 0.82;
+  letter-spacing: -0.05em;
+}
+.metric {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: clamp(32px, 5vw, 56px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.h2 {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: clamp(28px, 4.2vw, 56px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+}
+.lead {
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: clamp(17px, 1.4vw, 21px);
+  line-height: 1.5;
+  color: var(--ink-2);
+  max-width: 58ch;
+}
+.body {
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.6;
+  max-width: 68ch;
+  color: var(--ink-2);
+}
+.body strong { color: var(--ink); font-weight: 600; }
+.caption {
+  font-size: 11px;
+  line-height: 1.3;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.data { font-size: 13px; line-height: 18px; }
+.data-sm { font-size: 11px; line-height: 16px; letter-spacing: 0.02em; color: var(--ink-3); }
+.data-xs { font-size: 10px; line-height: 14px; letter-spacing: 0.04em; color: var(--ink-3); }
+.label {
+  font-size: 11px;
+  line-height: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.hex { font-feature-settings: "zero" 1; }
+.ink { color: var(--ink); }
+.ink-2 { color: var(--ink-2); }
+.ink-3 { color: var(--ink-3); }
+
+/* --------------------------------------------------------------- skeleton */
+
+.wrap {
+  width: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding-inline: var(--edge);
+}
+.grid12 {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--gutter);
+}
+section { border-top: var(--hair); }
+.band { padding-block: var(--s8); }
+@media (min-width: 1024px) { .band { padding-block: var(--s10); } }
+
+/* the checkerboard. 1-bit texture instead of any gradient, 0 requests, ~120 bytes. */
+.dither {
+  background-image:
+    linear-gradient(45deg, var(--ink) 25%, transparent 25%, transparent 75%, var(--ink) 75%),
+    linear-gradient(45deg, var(--ink) 25%, transparent 25%, transparent 75%, var(--ink) 75%);
+  background-size: 6px 6px;
+  background-position: 0 0, 3px 3px;
+  opacity: 0.04;
+}
+
+/* --------------------------------------------------------- section index */
+
+.sindex { padding-bottom: var(--s4); border-bottom: var(--hair-strong); margin-bottom: var(--s7); }
+.sindex-top { display: flex; align-items: center; gap: var(--s4); margin-bottom: var(--s5); }
+.sindex .n { font-size: 11px; letter-spacing: 0.1em; color: var(--ink-3); font-weight: 500; flex: none; }
+.sindex .rule { flex: 1; height: 1px; background: var(--line); }
+.sindex .count { font-size: 11px; letter-spacing: 0.1em; color: var(--ink-3); text-transform: uppercase; flex: none; }
+
+/* eyebrow: a 1px lead-in rule, then the label. The device from wc26. */
+.eyebrow { display: flex; align-items: center; gap: var(--s3); }
+.eyebrow::before { content: ""; width: 32px; height: 1px; background: var(--line-strong); flex: none; }
+
+/* ------------------------------------------------------------- components */
+
+.panel { border: var(--hair); background: var(--bg-1); }
+.panel-hd {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s4);
+  padding: var(--s3) var(--s4);
+  border-bottom: var(--hair);
+  background: var(--bg-2);
+}
+
+/* the qualitative label. Typographic, never coloured: colouring it would claim a magnitude. */
+.chip {
+  display: inline-block;
+  padding: 2px 6px 1px;
+  border: var(--hair-strong);
+  font-size: 10px;
+  line-height: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+/* the three-storey measurement cell */
+.cell { padding: 6px 10px 8px; box-shadow: inset 3px 0 0 var(--ramp, transparent); }
+.cell .v { font-size: 13px; line-height: 18px; color: var(--ink); }
+.cell .u { font-size: 11px; line-height: 14px; color: var(--ink-cell-2); }
+.cell .p { font-size: 10px; line-height: 13px; color: var(--ink-cell-2); letter-spacing: 0.04em; }
+.m0 { --ramp: var(--m-0); background: color-mix(in srgb, var(--m-0) var(--cell-mix), var(--bg-1)); }
+.m1 { --ramp: var(--m-1); background: color-mix(in srgb, var(--m-1) var(--cell-mix), var(--bg-1)); }
+.m2 { --ramp: var(--m-2); background: color-mix(in srgb, var(--m-2) var(--cell-mix), var(--bg-1)); }
+.m3 { --ramp: var(--m-3); background: color-mix(in srgb, var(--m-3) var(--cell-mix), var(--bg-1)); }
+.m4 { --ramp: var(--m-4); background: color-mix(in srgb, var(--m-4) var(--cell-mix), var(--bg-1)); }
+.m5 { --ramp: var(--m-5); background: color-mix(in srgb, var(--m-5) var(--cell-mix), var(--bg-1)); }
+.m6 { --ramp: var(--m-6); background: color-mix(in srgb, var(--m-6) var(--cell-mix), var(--bg-1)); }
+
+/* the 14 LED register */
+.leds { display: flex; gap: 4px; }
+.led {
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  flex: none;
+}
+.led[data-on="0"] { border-color: var(--line-strong); }
+.led[data-on="1"] { background: var(--m-6); border-color: var(--m-6); }
+/* the single effect family: a hard edge sweeping a register. */
+.leds[data-sweep="pending"] .led { opacity: 0; }
+.leds[data-sweep="run"] .led { animation: sweep 90ms var(--e-enter) both; }
+@keyframes sweep { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: none; } }
+
+/* the only shaped element on the page: a chamfer, not a radius. The edges stay sharp. */
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s3);
+  padding: 14px 20px;
+  background: var(--m-6);
+  color: #08090a;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  transition: filter var(--t-feedback) var(--e-enter);
+}
+.cta:hover { filter: brightness(1.12); }
+
+.link {
+  color: var(--ink-2);
+  border-bottom: 1px solid var(--line-strong);
+  transition: color var(--t-feedback) var(--e-enter), border-color var(--t-feedback) var(--e-enter);
+}
+.link:hover { color: var(--ink); border-color: var(--m-6); }
+
+/* the section reveal — the same sweep, applied to a block instead of a register */
+[data-reveal] { opacity: 0; transition: opacity var(--t-view) var(--e-enter); }
+[data-reveal="in"] { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { [data-reveal] { opacity: 1; } }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}

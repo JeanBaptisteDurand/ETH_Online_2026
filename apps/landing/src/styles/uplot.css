@@ -1,0 +1,61 @@
+/*
+ * uplot.css — uPlot's own stylesheet, vendored and trimmed.
+ *
+ * Source: node_modules/uplot/dist/uPlot.min.css (uPlot 1.6.32)
+ * Licence: MIT — Copyright (c) 2024 Leon Sorokin. Full text in node_modules/uplot/LICENSE
+ *          and reproduced under THIRD-PARTY in this app's README.
+ *
+ * Two deliberate departures from upstream, both of them charter rules rather than taste:
+ *   1. `.u-cursor-pt` ships `border-radius: 50%`. This page is radius 0 everywhere, with no
+ *      exception, so the cursor point is a square. Overriding it downstream would have left a
+ *      non-zero radius in the shipped bytes, and `npm run budget` greps the shipped bytes.
+ *   2. The `.u-legend` block is dropped: the legend on this page is DOM we build ourselves,
+ *      two swatches and a monospace label, so uPlot's table legend never renders.
+ */
+
+.uplot,
+.uplot *,
+.uplot *::before,
+.uplot *::after { box-sizing: border-box; }
+
+.uplot {
+  font-family: var(--mono);
+  line-height: 1.5;
+  width: min-content;
+}
+
+.u-wrap { position: relative; user-select: none; }
+.u-over, .u-under { position: absolute; }
+.u-under { overflow: hidden; }
+.uplot canvas { display: block; position: relative; width: 100%; height: 100%; }
+.u-axis { position: absolute; }
+
+.u-select { background: rgb(0 0 0 / 7%); position: absolute; pointer-events: none; }
+
+.u-cursor-x, .u-cursor-y {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+.u-hz .u-cursor-x, .u-vt .u-cursor-y { height: 100%; border-right: 1px dashed var(--line-strong); }
+.u-hz .u-cursor-y, .u-vt .u-cursor-x { width: 100%; border-bottom: 1px dashed var(--line-strong); }
+
+.u-cursor-pt {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 0;
+  border: 0 solid;
+  pointer-events: none;
+  will-change: transform;
+  /* !important is upstream's: uPlot sets the `background` shorthand inline. */
+  background-clip: padding-box !important;
+}
+
+.u-axis.u-off,
+.u-select.u-off,
+.u-cursor-x.u-off,
+.u-cursor-y.u-off,
+.u-cursor-pt.u-off { display: none; }

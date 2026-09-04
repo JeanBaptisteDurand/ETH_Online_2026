@@ -1,0 +1,93 @@
+/* tokens.css — the whole palette, the whole scale, nothing else.
+   Every value here is justified in DESIGN.md. No colour exists outside this file. */
+
+:root {
+  /* surfaces — depth is a surface step and a 1px rule, never a shadow */
+  --bg: #08090a;
+  --bg-1: #101214;
+  --bg-2: #17191c;
+  --bg-3: #1e2125;
+
+  /* rules */
+  --line: #24272b;
+  --line-strong: #383c42;
+
+  /* inks */
+  --ink: #e8eaed;    /* every measured value. 13.4:1 to 16.5:1 on the surfaces, 9.1:1 on the ramp */
+  --ink-2: #a2a9b0;  /* labels, column heads. 6.8:1 to 8.4:1 */
+  --ink-3: #868d96;  /* units, provenance, captions. 4.8:1 to 5.9:1 — never below AA */
+  --ink-4: #454a50;  /* NON-TEXT ONLY: axis ticks and hairline rules. 2.1:1, so never a glyph */
+  /* Inside a ramp cell the ground is lighter, so the secondary ink steps up with it.
+     The primary value ink does not move — that is the rule, and this is not it. */
+  --ink-cell-2: #aeb4bb;
+
+  /* the measurement ramp — inferno truncated to [0.18;0.90], 7 log steps.
+     This is the ONLY chromatic family on the page. It encodes bps and nothing else. */
+  --m-0: #390963;
+  --m-1: #6a176e;
+  --m-2: #9b2964;
+  --m-3: #ca404a;
+  --m-4: #eb6628;
+  --m-5: #fb9b06;
+  --m-6: #f6d746;
+
+  /* the one non-quantitative colour. Cold, so it can never be read as a magnitude. */
+  --focus: #3376f6;
+
+  /* the counterfactual has no magnitude, so it has no colour */
+  --baseline: #6b7178;
+
+  --cell-mix: 22%;
+
+  /* space — base 4 */
+  --s1: 4px;  --s2: 8px;  --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px;
+  --s7: 48px; --s8: 64px; --s9: 96px; --s10: 128px; --s11: 192px;
+
+  --gutter: 24px;
+  --edge: clamp(16px, 4vw, 64px);
+  --maxw: 1440px;
+
+  --radius: 0;
+  --hair: 1px solid var(--line);
+  --hair-strong: 1px solid var(--line-strong);
+  --focus-ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--focus);
+
+  /* motion — absolute ceiling 400ms, nothing exceeds it */
+  --t-feedback: 90ms;
+  --t-element: 180ms;
+  --t-view: 280ms;
+  --t-data: 320ms;
+  --e-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --e-exit: cubic-bezier(0.4, 0, 1, 1);
+  --e-move: cubic-bezier(0.2, 0, 0, 1);
+
+  --mono: "JetBrains Mono Variable", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --sans: "Instrument Sans Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+:root[data-theme="light"] {
+  --bg: #f7f7f5;
+  --bg-1: #ffffff;
+  --bg-2: #f0f0ed;
+  --bg-3: #e7e7e3;
+  --line: #d9d9d4;
+  --line-strong: #b4b4ae;
+  --ink: #14171a; --ink-cell-2: #4a4f55;
+  --ink-2: #4a4f55;
+  --ink-3: #767c83;
+  --ink-4: #a8adb3;
+  /* YlOrRd [0.05;0.80] — an inverted inferno is unreadable on paper */
+  --m-0: #fff8bb; --m-1: #ffe590; --m-2: #feca66; --m-3: #fea446;
+  --m-4: #fd7435; --m-5: #f23924; --m-6: #d41020;
+  --focus: #1b4fc4;
+  --baseline: #767c83;
+  --cell-mix: 30%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --t-element: 0.01ms;
+    --t-view: 0.01ms;
+    --t-data: 0.01ms;
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "@tare/landing",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "TARE — la page de presentation. Le premier ecran est le verdict.",
+  "license": "Apache-2.0",
+  "scripts": {
+    "facts": "node build/facts.mjs",
+    "dev": "npm run facts && vite",
+    "build": "npm run facts && vite build",
+    "preview": "vite preview --port 4173",
+    "budget": "node build/budget.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "^7.3.6"
+  },
+  "dependencies": {
+    "@fontsource-variable/instrument-sans": "^5.3.0",
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
+    "uplot": "^1.6.32"
+  }
+}

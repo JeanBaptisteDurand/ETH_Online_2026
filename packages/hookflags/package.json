@@ -1,0 +1,7 @@
+{
+  "name": "@tare/hookflags",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "license": "Apache-2.0"
+}

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="fr" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>TARE · instrument</title>
+    <meta
+      name="description"
+      content="Ce qu'un hook Uniswap v4 prend reellement sur un swap. Le meme swap cote deux fois, avec le hook et avec un stub inerte. L'ecart est la mesure."
+    />
+    <style>
+      /* Peint le canevas avant tout octet de JS : pas de flash blanc, pas de prechargeur. */
+      html { background: #08090a; }
+      html[data-theme='light'] { background: #f7f7f5; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>
+      <p style="font-family: monospace; color: #e8eaed; padding: 24px">
+        TARE — instrument. 128 mesures, 4 hooks, 32 pools, Base, bloc 50614000. 60 mesures
+        au-dessus de 1 bps sur des pools dont la commission LP lue on-chain vaut zero.
+        Source brute&nbsp;: docs/measurements-v1.json.
+      </p>
+    </noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

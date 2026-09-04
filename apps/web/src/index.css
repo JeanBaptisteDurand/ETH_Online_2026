@@ -1,0 +1,198 @@
+@import 'tailwindcss';
+
+/* --------------------------------------------------------------------------------------------
+   TARE — jetons de la charte (35-CHARTE-ET-FRONT.md, §4.2 a §4.8).
+   Une seule famille chromatique existe : la rampe de mesure. Elle encode bps, et rien d'autre.
+   -------------------------------------------------------------------------------------------- */
+
+:root {
+  --bg: #08090a;
+  --bg-1: #101214;
+  --bg-2: #17191c;
+  --bg-3: #1e2125;
+
+  --line: #24272b;
+  --line-strong: #383c42;
+
+  --ink: #e8eaed;
+  --ink-2: #a2a9b0;
+  --ink-3: #6b7178;
+  --ink-4: #454a50;
+
+  /* inferno tronquee [0,18 ; 0,90], 7 paliers logarithmiques */
+  --m-0: #390963;
+  --m-1: #6a176e;
+  --m-2: #9b2964;
+  --m-3: #ca404a;
+  --m-4: #eb6628;
+  --m-5: #fb9b06;
+  --m-6: #f6d746;
+
+  --focus: #3376f6;
+  --baseline: #6b7178;
+
+  --mix: 22%;
+
+  --t-feedback: 90ms;
+  --t-element: 180ms;
+  --t-data: 320ms;
+  --e-enter: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --prose: 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;
+
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  --bg: #f7f7f5;
+  --bg-1: #ffffff;
+  --bg-2: #f0f0ed;
+  --bg-3: #e7e7e3;
+  --line: #d9d9d4;
+  --line-strong: #b4b4ae;
+  --ink: #14171a;
+  --ink-2: #4a4f55;
+  --ink-3: #767c83;
+  --ink-4: #a8adb3;
+  /* YlOrRd [0,05 ; 0,80] — inferno inversee serait illisible sur papier */
+  --m-0: #fff8bb;
+  --m-1: #ffe590;
+  --m-2: #feca66;
+  --m-3: #fea446;
+  --m-4: #fd7435;
+  --m-5: #f23924;
+  --m-6: #d41020;
+  --focus: #1b4fc4;
+  --baseline: #767c83;
+  --mix: 30%;
+  color-scheme: light;
+}
+
+* {
+  border-radius: 0 !important; /* §4.5 : PARTOUT, aucune exception. Mesure 6/6 sur les references. */
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 18px;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Toute donnee hexadecimale porte le zero barre : une adresse sans zero barre est un piege. */
+.hex {
+  font-feature-settings: 'zero' 1;
+}
+
+.prose {
+  font-family: var(--prose);
+  font-size: 16px;
+  line-height: 1.6;
+  max-width: 68ch;
+  color: var(--ink-2);
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--bg),
+    0 0 0 4px var(--focus) !important;
+}
+
+::selection {
+  background: var(--focus);
+  color: #fff;
+}
+
+/* Echelle typographique §4.6 — instrument, base 13 px */
+.t-data-xs {
+  font-size: 10px;
+  line-height: 14px;
+  letter-spacing: 0.04em;
+}
+.t-data-sm {
+  font-size: 11px;
+  line-height: 16px;
+  letter-spacing: 0.02em;
+}
+.t-data {
+  font-size: 13px;
+  line-height: 18px;
+}
+.t-data-lg {
+  font-size: 16px;
+  line-height: 22px;
+  letter-spacing: -0.01em;
+}
+.t-label {
+  font-size: 11px;
+  line-height: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.t-title {
+  font-size: 20px;
+  line-height: 24px;
+  letter-spacing: -0.02em;
+}
+.t-title-lg {
+  font-size: 28px;
+  line-height: 32px;
+  letter-spacing: -0.02em;
+}
+.t-metric {
+  font-size: 44px;
+  line-height: 40px;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+}
+
+/* §4.1.4 — une etiquette qualitative n'est JAMAIS coloree. Elle est typographique. */
+.chip {
+  display: inline-block;
+  padding: 1px 5px;
+  border: 1px solid var(--line-strong);
+  color: var(--ink-2);
+  font-size: 10px;
+  line-height: 14px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rule {
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+/* Barres de defilement discretes — l'instrument est dense, il defile souvent. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

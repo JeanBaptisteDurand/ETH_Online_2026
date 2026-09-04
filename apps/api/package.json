@@ -1,0 +1,25 @@
+{
+  "name": "@tare/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "TARE — l'API x402 qui sert les mesures d'extraction des hooks Uniswap v4.",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.14.0",
+    "@x402/hedera": "2.23.0",
+    "@x402/hono": "2.23.0",
+    "hono": "^4.7.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "tsx": "^4.23.13",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7"
+  }
+}

@@ -53,3 +53,17 @@ describe("pools a liquidite", () => {
     }
   });
 });
+
+describe("index pool_id -> PoolKey", () => {
+  it("garde interrogeables les pools du jeu v1 meme quand le jsonl devient la source", async () => {
+    const { loadPoolIndex } = await import("../src/dataset.js");
+    process.env.TARE_JSONL_PATH = FIXTURE;
+    const idx = loadPoolIndex(true);
+    // le pool du jsonl fixture
+    expect(idx.has("0x2222222222222222222222222222222222222222222222222222222222222222")).toBe(true);
+    // et un pool qui n'existe que dans le jeu v1
+    const v1Pool = "0x56d31d0c62315618c2312051ae5d5129a5c45dff4a8c75eb7dc015387f4d0450";
+    expect(idx.has(v1Pool)).toBe(true);
+    expect(idx.get(v1Pool)!.hooks).toBe("0xdda9bc41e324ef379e774ae1f7b062d23ea8aacc");
+  });
+});

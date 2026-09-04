@@ -261,8 +261,68 @@ export function loadPools(force = false): PoolRow[] {
   return value;
 }
 
+
+/* ------------------------------------------------- index pool_id -> PoolKey */
+
+export interface KnownPool {
+  pool_id: string;
+  currency0: string;
+  currency1: string;
+  fee: number;
+  tick_spacing: number;
+  hooks: string;
+  from: string;
+}
+
+let indexCache: { key: string; value: Map<string, KnownPool> } | null = null;
+
+/**
+ * Tous les pools dont on connait la PoolKey complete : ceux du jeu actif ET ceux du
+ * jeu v1. Sans le second, un pool_id publie hier cesserait d'etre interrogeable des
+ * que le sweep en cours change de source — un lien casse par un detail d'archivage.
+ */
+export function loadPoolIndex(force = false): Map<string, KnownPool> {
+  const key = `${jsonlPath()}:${mtimeOf(jsonlPath())}:${v1Path()}:${mtimeOf(v1Path())}`;
+  if (!force && indexCache && indexCache.key === key) return indexCache.value;
+
+  const out = new Map<string, KnownPool>();
+  const add = (m: Measurement) => {
+    if (out.has(m.pool_id)) return;
+    if (!m.currency0 || !m.currency1 || m.key_fee === null || m.tick_spacing === null) return;
+    out.set(m.pool_id, {
+      pool_id: m.pool_id,
+      currency0: m.currency0,
+      currency1: m.currency1,
+      fee: m.key_fee,
+      tick_spacing: m.tick_spacing,
+      hooks: m.hook,
+      from: m.source,
+    });
+  };
+
+  for (const m of loadDataset(force).measurements) add(m);
+
+  const v1 = v1Path();
+  if (existsSync(v1)) {
+    try {
+      const parsed = JSON.parse(readFileSync(v1, "utf8"));
+      const rows: RawMeasurement[] = Array.isArray(parsed) ? parsed : (parsed.measurements ?? []);
+      for (const row of rows) {
+        if (!row || typeof row.hook !== "string" || typeof row.pool_id !== "string") continue;
+        add(normalizeMeasurement(row, { source: basename(v1) }));
+      }
+    } catch {
+      /* le jeu v1 est un bonus ici : son absence n'est pas une erreur */
+    }
+  }
+
+  indexCache = { key, value: out };
+  return out;
+}
+
 export function resetCaches(): void {
   datasetCache = null;
+  indexCache = null;
   registryCache = null;
   poolsCache = null;
 }

@@ -5,7 +5,7 @@
  * Le modele appelant ne produit aucun nombre : il choisit un hook, un pool, des
  * tailles et des sens. Le plan est la forme lisible de ce choix.
  */
-import { loadDataset, loadPools } from "./dataset.js";
+import { loadPoolIndex, loadPools } from "./dataset.js";
 
 export interface PlanTarget {
   pool_id: string | null;
@@ -124,9 +124,7 @@ export function buildPlan(
     considered = 1;
   } else if (isPoolId(body.pool_id)) {
     const pid = body.pool_id.toLowerCase();
-    const known = loadDataset().measurements.find(
-      (m) => m.pool_id === pid && m.currency0 && m.currency1 && m.key_fee !== null && m.tick_spacing !== null,
-    );
+    const known = loadPoolIndex().get(pid);
     if (!known)
       return fail(
         `pool_id inconnu du jeu de mesures : ${pid}. Fournis "pool" (la PoolKey complete) pour un pool jamais mesure.`,
@@ -135,15 +133,15 @@ export function buildPlan(
     targets = [
       {
         pool_id: known.pool_id,
-        currency0: known.currency0!,
-        currency1: known.currency1!,
-        fee: known.key_fee!,
-        tick_spacing: known.tick_spacing!,
-        hooks: known.hook,
+        currency0: known.currency0,
+        currency1: known.currency1,
+        fee: known.fee,
+        tick_spacing: known.tick_spacing,
+        hooks: known.hooks,
       },
     ];
     via = "pool_id";
-    note = "PoolKey reconstruite depuis une mesure deja publiee pour ce pool_id";
+    note = `PoolKey reconstruite depuis ${known.from}`;
     considered = 1;
   } else if (isAddress(body.hook)) {
     const hook = body.hook.toLowerCase();

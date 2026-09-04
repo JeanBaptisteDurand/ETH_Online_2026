@@ -55,11 +55,16 @@ svg { display: block; }
 .hero {
   font-family: var(--mono);
   font-weight: 800;
-  font-size: clamp(44px, 9.2vw, 132px);
+  /* Below 1024 the hero owns the full measure; above it, seven of twelve columns.
+     9 characters of JetBrains Mono at 0.6em advance is what has to fit, so the viewport
+     factor changes at the same breakpoint the grid does. */
+  font-size: clamp(44px, 15vw, 132px);
   line-height: 0.86;
   letter-spacing: -0.045em;
   text-transform: uppercase;
 }
+@media (min-width: 1024px) { .hero { font-size: clamp(44px, 9.2vw, 132px); } }
+
 .metric-xl {
   font-family: var(--mono);
   font-weight: 800;
@@ -115,7 +120,8 @@ svg { display: block; }
   text-transform: uppercase;
   color: var(--ink-2);
 }
-.hex { font-feature-settings: "zero" 1; }
+/* An address is a literal. It is never re-cased by a text-transform, in a label or anywhere. */
+.hex { font-feature-settings: "zero" 1; text-transform: none; }
 .ink { color: var(--ink); }
 .ink-2 { color: var(--ink-2); }
 .ink-3 { color: var(--ink-3); }
@@ -133,7 +139,7 @@ svg { display: block; }
   grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: var(--gutter);
 }
-section { border-top: var(--hair); }
+section { border-top: var(--hair); scroll-margin-top: 44px; }
 .band { padding-block: var(--s8); }
 @media (min-width: 1024px) { .band { padding-block: var(--s10); } }
 
@@ -243,7 +249,11 @@ section { border-top: var(--hair); }
 /* the section reveal — the same sweep, applied to a block instead of a register */
 [data-reveal] { opacity: 0; transition: opacity var(--t-view) var(--e-enter); }
 [data-reveal="in"] { opacity: 1; }
-@media (prefers-reduced-motion: reduce) { [data-reveal] { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  /* Nothing sweeps, so nothing may start hidden: visibility must not depend on a script here. */
+  [data-reveal] { opacity: 1; }
+  .leds[data-sweep="pending"] .led { opacity: 1; }
+}
 
 .sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;

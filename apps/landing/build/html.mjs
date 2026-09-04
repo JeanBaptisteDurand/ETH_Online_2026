@@ -198,10 +198,9 @@ make measure HOOK=${esc(f.hero.hook)} BLOCK=${f.hero.block}</code>
 </section>`;
 
   /* -------------------------------------------------------------- section 1 */
-  const cells = Array.from(
-    { length: f.upstream.hooks_swept },
-    (_, i) => `<i class="hcell" title="hook ${i + 1} of ${f.upstream.hooks_swept} — emits neither event"></i>`,
-  ).join("");
+  /* No per-cell title: the enumeration behind this count is not committed (see the note in the
+     section), so a tooltip could only repeat the caption 84 times and cost 6 kB doing it. */
+  const cells = '<i class="hcell"></i>'.repeat(f.upstream.hooks_swept);
 
   const s1 = `
 <section id="fact" class="band" data-reveal>
@@ -245,7 +244,12 @@ make measure HOOK=${esc(f.hero.hook)} BLOCK=${f.hero.block}</code>
 </section>`;
 
   /* -------------------------------------------------------------- section 2 */
-  const hookRows = f.per_hook
+  /* Capped, and the cap is stated. The sweep keeps finding hooks; the page must not grow past
+     its own critical-document budget without saying that it truncated something. */
+  const HOOK_ROWS = 12;
+  const hookShown = f.per_hook.slice(0, HOOK_ROWS);
+  const hookHidden = f.per_hook.length - hookShown.length;
+  const hookRows = hookShown
     .map(
       (h) => `<tr>
       <td class="hex"><span class="ink">${esc(h.hook)}</span></td>
@@ -255,7 +259,12 @@ make measure HOOK=${esc(f.hero.hook)} BLOCK=${f.hero.block}</code>
       <td>${h.finding ? ledRow(h.hook, f.hook_flags, `leds-${h.hook.slice(2, 8)}`) : '<span class="data-xs">—</span>'}</td>
     </tr>`,
     )
-    .join("");
+    .join("") +
+    (hookHidden
+      ? `<tr class="elide"><td colspan="5"><span class="label">${grp(hookHidden)} MORE HOOKS</span>
+         · sorted by measurements over the threshold, capped at ${HOOK_ROWS} rows here.
+         The whole corpus is <span class="hex">${esc(f.corpus.file)}</span>.</td></tr>`
+      : "");
 
   const s2 = `
 <section id="finding" class="band" data-reveal>
@@ -310,10 +319,19 @@ make measure HOOK=${esc(f.hero.hook)} BLOCK=${f.hero.block}</code>
 </section>`;
 
   /* -------------------------------------------------------------- section 3 */
-  const codeEntry = f.bytecode.hooks[f.hero.hook];
+  /* Whose bytecode this panel shows. The hero's, when it is cached at this block; otherwise
+     the highest-extraction hook that is. The panel names it either way — an anonymous hex dump
+     labelled "real bytecode" would be an illustration, and this page does not use illustrations. */
+  const codeHook =
+    (f.bytecode.hooks[f.hero.hook] && f.hero.hook) ||
+    f.per_hook.map((h) => h.hook).find((h) => f.bytecode.hooks[h]) ||
+    Object.keys(f.bytecode.hooks)[0] ||
+    null;
+  const codeEntry = codeHook ? f.bytecode.hooks[codeHook] : null;
   const realHead = codeEntry
     ? (codeEntry.head_hex.match(/.{1,32}/g) || []).map((l) => `<span>${esc(l)}</span>`).join("")
     : "";
+  const codeIsHero = codeHook === f.hero.hook;
   const stubBody = f.stub.lines
     .map(
       (l) =>
@@ -334,11 +352,17 @@ make measure HOOK=${esc(f.hero.hook)} BLOCK=${f.hero.block}</code>
 
     <div class="swap-panels">
       <div class="panel">
-        <div class="panel-hd"><span class="label">REAL BYTECODE</span>
+        <div class="panel-hd"><span class="label">REAL BYTECODE · <span class="hex">${
+          codeHook ? esc(short(codeHook, 8, 6)) : "NOT MEASURED"
+        }</span></span>
         <span class="data-xs">${codeEntry ? `${grp(codeEntry.len_bytes)} BYTES` : "NOT MEASURED"}</span></div>
-        <pre class="codeblock hex" aria-label="first bytes of the deployed hook">${realHead}</pre>
+        <pre class="codeblock hex" aria-label="first bytes of the deployed hook">${
+          realHead || '<span class="ink-3">NOT MEASURED — no hook bytecode cached for this block</span>'
+        }</pre>
         <div class="panel-ft data-xs hex">${codeEntry ? `keccak256 ${esc(codeEntry.keccak256)}` : NM}<br>
-        first ${f.bytecode._head_bytes} bytes shown — the rest is on chain, not in this repo</div>
+        first ${f.bytecode._head_bytes} bytes shown — the rest is on chain, not in this repo${
+          codeIsHero ? "" : "<br>this is not the hook quoted in 00: its code was not cached at this block"
+        }</div>
       </div>
 
       <div class="between">
@@ -390,7 +414,7 @@ make measure HOOK=${esc(f.hero.hook)} BLOCK=${f.hero.block}</code>
     <div class="s4-in">
       <figure class="chartbox panel" id="chart" data-points='${esc(JSON.stringify(pts))}'>
         <div class="panel-hd">
-          <span class="label">EXTRACTION vs SWAP SIZE · HOOK ${esc(short(f.gate_a3.hook, 8, 6))}</span>
+          <span class="label">EXTRACTION vs SWAP SIZE · <span class="hex">${esc(short(f.gate_a3.hook, 8, 6))}</span></span>
           <span class="data-xs">X LOG · Y ANCHORED AT 0</span>
         </div>
         <div class="chart-host" id="chart-host"></div>

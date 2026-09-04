@@ -1,5 +1,5 @@
 import unittest
-from tare.quote import encode, SELECTOR, NOT_ENOUGH_LIQUIDITY
+from tare.quote import encode, SELECTOR, NOT_ENOUGH_LIQUIDITY, UNEXPECTED_REVERT
 from tare.poolid import PoolKey
 
 K = PoolKey("0x33747ca0945c56315f3e8ae09fc7d4069f1e8c0c",
@@ -45,29 +45,38 @@ class TestQuote(unittest.TestCase):
 class TestTruncationRegression(unittest.TestCase):
     """Regression: rpc.py used to truncate error strings to 200 chars.
 
-    v4 wraps custom errors, so `NotEnoughLiquidity` (0x7a5ed734) appears inside
-    `UnexpectedRevertBytes` (0x6190b2b0) far past that cutoff. Truncating silently disabled the
-    detection and every unquotable pool came back as an opaque failure. This is the fourth time a
-    bounded read produced a false finding in this project; the test exists so it is the last.
-    """
-    REAL_ERROR = (
-        "{'code': 3, 'message': 'execution reverted: custom error 0x6190b2b0: "
-        "00000000000000000000000000000000000000000000000000000000000000200000000000"
-        "0000000000000000000000000000000000000000000000000000247a5ed734706140c978c3"
-        "82cda318ba3d1282368231e580a3d7b13803d09ca3593caca8cf'}"
-    )
+    v4 wraps custom errors, so `NotEnoughLiquidity` (0x7a5ed734) sits inside
+    `UnexpectedRevertBytes` (0x6190b2b0). In the real revert captured from a Base fork the
+    selector *starts* at index 197 and is 8 characters long, so a 200-char cutoff slices it in
+    half and the detection silently never fires — every unquotable pool came back opaque.
 
-    def test_selector_sits_past_200_chars(self):
-        self.assertGreater(self.REAL_ERROR.index("7a5ed734"), 200)
+    This is the fourth false finding this project produced from a bounded read (a `[:3]` slice, a
+    2,000-byte body, a `head -c 220`, and this). The fixture is the real string, not a
+    reconstruction: an earlier version of this test hand-typed an approximation and asserted the
+    wrong thing about it.
+    """
+    @classmethod
+    def setUpClass(cls):
+        import pathlib
+        cls.REAL = pathlib.Path(__file__).parent.joinpath("fixture_revert.txt").read_text()
+
+    def test_fixture_is_the_real_revert(self):
+        self.assertIn(UNEXPECTED_REVERT, self.REAL)
+        self.assertGreater(len(self.REAL), 500)
+
+    def test_selector_is_sliced_by_a_200_char_cutoff(self):
+        i = self.REAL.index(NOT_ENOUGH_LIQUIDITY)
+        self.assertLess(i, 200)              # it starts before the cutoff
+        self.assertGreater(i + 8, 200)       # but ends after it, so the match is destroyed
 
     def test_detection_works_on_full_string(self):
-        self.assertIn(NOT_ENOUGH_LIQUIDITY, self.REAL_ERROR)
+        self.assertIn(NOT_ENOUGH_LIQUIDITY, self.REAL)
 
     def test_detection_fails_on_truncated_string(self):
-        self.assertNotIn(NOT_ENOUGH_LIQUIDITY, self.REAL_ERROR[:200])
+        self.assertNotIn(NOT_ENOUGH_LIQUIDITY, self.REAL[:200])
 
     def test_rpc_does_not_truncate_errors(self):
         import inspect
         from tare import rpc
-        src = inspect.getsource(rpc)
-        self.assertNotIn('[:200]', src, "rpc.py must not truncate error bodies")
+        self.assertNotIn("[:200]", inspect.getsource(rpc),
+                         "rpc.py must not truncate error bodies")

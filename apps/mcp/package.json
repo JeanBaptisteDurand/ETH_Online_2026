@@ -1,0 +1,35 @@
+{
+  "name": "@tare/mcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TARE MCP server \u2014 measures what a Uniswap v4 hook takes from a swap.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": {
+    "tare-mcp": "./dist/src/index.js"
+  },
+  "main": "./dist/src/index.js",
+  "files": [
+    "dist",
+    "SKILL.md",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/src/index.js",
+    "test": "npm run build && node --test dist/test/*.test.js",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "js-sha3": "^0.9.3",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

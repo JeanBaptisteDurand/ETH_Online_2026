@@ -7,12 +7,17 @@ Four things can go wrong in a sweep and none of them announce themselves:
   * it writes a line the rest of the project cannot read (schema);
   * it summarises into a number nobody counted (resume).
 
-A fifth is the one this sweep actually hit on its first real run, and it gets its own class: a
-rate-limited node reported as an empty pool.
+Two more were not hypotheses. Both were found by running this sweep for real against Base at
+block 50,614,000, and both produced wrong numbers rather than errors, so they get their own
+classes: a rate-limited node reported as an empty pool, and two measurers on one fork reading
+each other's stub. TestShards covers the partition that keeps the second one from happening.
 """
+import dataclasses
+import io
 import json
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
 from unittest.mock import patch
 
@@ -21,7 +26,7 @@ from tare.poolid import PoolKey
 from tare.sweep import (LABELS, NON_FLAT_BPS, RPC_UNAVAILABLE, SCHEMA_FIELDS, SIZES,
                         append_jsonl, dedupe, is_infra, is_observation, load_pools,
                         measure_resilient, probe_direction, profile, read_done, read_jsonl,
-                        resume_key, summarise, sweep, sweep_pool)
+                        resume_key, summarise, sweep, sweep_pool, CONCURRENT)
 
 K = PoolKey("0x1111111111111111111111111111111111111111",
             "0x2222222222222222222222222222222222222222",
@@ -263,6 +268,127 @@ class TestGroupement(unittest.TestCase):
             self.assertIsNone(r["stored_lp_fee"], "unknown must not read as zero")
 
 
+class TestCompact(unittest.TestCase):
+    """The append log becomes the dataset: one canonical line per measurement, sorted."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.out = Path(self.tmp.name) / "m.jsonl"
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def _compact(self):
+        from tare.cli import main
+        with redirect_stdout(io.StringIO()):
+            return main(["compact", "--in", str(self.out)])
+
+    def test_a_superseded_failure_is_dropped_and_the_observation_kept(self):
+        append_jsonl(self.out, row(size=10**15, bps=None, label="NOT_MEASURABLE",
+                                   reason=f"{RPC_UNAVAILABLE} empty response"))
+        append_jsonl(self.out, row(size=10**15, bps=100.0))
+        self._compact()
+        rows = read_jsonl(self.out)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["bps"], 100.0)
+
+    def test_lines_are_sorted_by_hook_then_pool_then_size(self):
+        for size in reversed(SIZES):
+            append_jsonl(self.out, row(key=K2, size=size))
+            append_jsonl(self.out, row(key=K, size=size))
+        self._compact()
+        rows = read_jsonl(self.out)
+        self.assertEqual(len(rows), 10)
+        got = [(r["hook"], int(r["amount_in"])) for r in rows]
+        self.assertEqual(got, sorted(got))
+
+    def test_compacting_twice_changes_nothing(self):
+        for size in SIZES:
+            append_jsonl(self.out, row(size=size))
+        self._compact()
+        once = self.out.read_text()
+        self._compact()
+        self.assertEqual(self.out.read_text(), once)
+
+    def test_a_compacted_file_still_resumes(self):
+        for size in SIZES:
+            append_jsonl(self.out, row(size=size))
+        self._compact()
+        self.assertEqual(len(read_done(self.out)), 5)
+
+
+class TestVerify(unittest.TestCase):
+    """`verify` replays lines and compares. It must fail loudly, because it is the only thing
+    standing between a contaminated fork and a published number."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.out = Path(self.tmp.name) / "m.jsonl"
+        key = load_pools()[0][0]
+        self.key = key
+        append_jsonl(self.out, row(key=key, size=10**15, bps=100.0))
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def _run(self, replay_bps, out_with="990"):
+        from tare.cli import main
+        fake = row(key=self.key, size=10**15, bps=replay_bps)
+        fake = dataclasses.replace(fake, out_with=out_with)
+        buf = io.StringIO()
+        with patch("tare.cli.measure_resilient", lambda *a, **k: fake), \
+             redirect_stdout(buf):
+            code = main(["verify", "--in", str(self.out), "--sample", "1"])
+        return code, buf.getvalue()
+
+    def test_an_agreeing_replay_passes(self):
+        code, out = self._run(100.0)
+        self.assertEqual(code, 0)
+        self.assertIn("1 identiques", out)
+
+    def test_a_disagreeing_replay_fails_loudly(self):
+        code, out = self._run(0.0)
+        self.assertEqual(code, 1, "a contaminated fork must not exit 0")
+        self.assertIn("DIFFERENT", out)
+
+    def test_a_matching_bps_with_a_different_output_still_fails(self):
+        """Equal basis points off different absolute outputs is a coincidence, not a match."""
+        code, _ = self._run(100.0, out_with="12345")
+        self.assertEqual(code, 1)
+
+    def test_a_replay_the_fork_refuses_is_counted_apart_from_a_disagreement(self):
+        code, out = self._run(None)
+        self.assertEqual(code, 0, "a fork that would not answer is not evidence of a bad file")
+        self.assertIn("1 non rejouables", out)
+
+
+class TestShards(unittest.TestCase):
+    """One shard per fork, and between them they must cover every pool exactly once."""
+
+    def _shard(self, pools, shard, of):
+        return [p for i, p in enumerate(pools) if i % of == shard]
+
+    def test_shards_partition_the_pools_with_no_gap_and_no_overlap(self):
+        pools = load_pools()
+        seen = []
+        for i in range(4):
+            seen += self._shard(pools, i, 4)
+        ids = [p[0].pool_id() for p in seen]
+        self.assertEqual(len(ids), len(pools))
+        self.assertEqual(len(set(ids)), len({p[0].pool_id() for p in pools}))
+
+    def test_shards_are_within_one_pool_of_each_other(self):
+        pools = load_pools()
+        sizes = [len(self._shard(pools, i, 4)) for i in range(4)]
+        self.assertLessEqual(max(sizes) - min(sizes), 1, "a stride shard is unbalanced")
+
+    def test_an_out_of_range_shard_is_refused_not_silently_empty(self):
+        from tare.cli import main
+        with redirect_stdout(io.StringIO()):
+            self.assertEqual(main(["sweep", "--shard", "4", "--of", "4"]), 2)
+            self.assertEqual(main(["sweep", "--shard", "0", "--of", "0"]), 2)
+
+
 class TestSchema(unittest.TestCase):
     """A line the rest of the project cannot read is not a measurement."""
 
@@ -484,6 +610,32 @@ class TestInstrumentVsSubject(unittest.TestCase):
         for m in rows:
             self.assertEqual(m.label, "NOT_MEASURABLE")
             self.assertTrue(m.reason.startswith(RPC_UNAVAILABLE))
+
+    def test_a_second_measurer_on_the_same_fork_is_refused_not_recorded(self):
+        """`anvil_setCode` is global state. Replaying a row against the anvil a shard was still
+        sweeping turned 100.00 bps into 0.00 — twice out of three. A measurement taken while
+        someone else's stub is installed describes their stub, so it must not be taken."""
+        with patch("tare.sweep.stub_is_installed", lambda *a: True), \
+             patch("tare.sweep.measure", lambda *a, **k: row(bps=0.0)), \
+             patch("tare.sweep.time.sleep", lambda *_: None):
+            m = measure_resilient("http://x", K, True, 10**15, BLOCK)
+        self.assertEqual(m.label, "NOT_MEASURABLE")
+        self.assertTrue(m.reason.startswith(CONCURRENT))
+        self.assertIsNone(m.bps, "a contended reading must never be published as a number")
+
+    def test_a_stub_that_clears_between_attempts_does_not_block_the_measurement(self):
+        states = [True, False]
+        with patch("tare.sweep.stub_is_installed", lambda *a: states.pop(0)), \
+             patch("tare.sweep.measure", lambda *a, **k: row(bps=100.0)), \
+             patch("tare.sweep.time.sleep", lambda *_: None):
+            m = measure_resilient("http://x", K, True, 10**15, BLOCK)
+        self.assertEqual(m.label, "MEASURED")
+        self.assertEqual(m.bps, 100.0)
+
+    def test_a_contended_row_is_retried_by_the_next_run(self):
+        """Like a node failure, contention means we did not look — never a permanent hole."""
+        self.assertFalse(is_observation(
+            row(bps=None, label="NOT_MEASURABLE", reason=f"{CONCURRENT} x").dict()))
 
     def test_summary_surfaces_instrument_failures(self):
         rows = [row(bps=None, label="NOT_MEASURABLE",

@@ -1,6 +1,6 @@
 """The sweep — turning one measurement into coverage.
 
-Three facts about the fork drive every design decision in this file.
+Four facts about the fork drive every design decision in this file.
 
 1. **A pool usually quotes in one direction only.** `V4Quoter` reverts with `NotEnoughLiquidity`
    for the other side, and the first version of this sweep read that revert as "dead pool". It
@@ -20,6 +20,12 @@ Three facts about the fork drive every design decision in this file.
    nothing. The direction is deliberately *not* part of the key; it is a derived observation, not
    an input.
 
+4. **A fork can hold exactly one measurer.** `measure` installs the stub over the hook's code,
+   quotes, and puts the original back — global mutable state on the node. Two processes sharing
+   one anvil interleave and read each other's stub as if it were the hook. Parallelism therefore
+   means several *forks*, one process each (`--shard i --of n`, one `--rpc` per shard), and
+   `stub_is_installed` refuses a reading rather than publishing a contended one.
+
 Nothing here invents a value, and nothing here disappears. A pool that refuses the swap produces
 five lines labelled NOT_QUOTABLE carrying the revert reason; a pool the node could not serve
 produces five lines labelled NOT_MEASURABLE saying so. Never zero lines, and never a zero.
@@ -38,7 +44,8 @@ from . import __version__
 from .measure import Measurement, measure
 from .poolid import PoolKey
 from .quote import first_quotable_direction, quote
-from .stub import digest as stub_digest
+from .rpc import get_code
+from .stub import BYTECODE as STUB, digest as stub_digest
 
 # The five sizes of gate A3, in wei of currency-in: 0.0001 to 1.0 token.
 SIZES = [10**14, 10**15, 10**16, 10**17, 10**18]
@@ -112,6 +119,29 @@ def is_infra(reason) -> bool:
     return any(m in low for m in INFRA_MARKERS)
 
 
+# ------------------------------------------------------------------ one measurer per fork
+#
+# `measure` works by writing the stub over the hook's code with `anvil_setCode`, quoting, then
+# writing the original back. That is global mutable state on the node. Two measurers sharing one
+# anvil interleave: A installs the stub, B quotes "with hook" and gets the stubbed pool, and B
+# records a 0.00 bps hook that in fact takes 100.
+#
+# This was not hypothetical. Replaying three rows of the first dataset against the same anvil a
+# shard was still sweeping reproduced one and destroyed two — 100.00 bps came back as 0.00. The
+# rule is one measuring process per fork, and the guard below makes a violation loud instead of
+# silently numeric.
+
+CONCURRENT = "concurrent_measurer:"
+
+
+def stub_is_installed(url: str, hook: str) -> bool:
+    """True when the hook already wears the stub — i.e. another measurer is mid-measurement."""
+    try:
+        return (get_code(url, hook) or "").lower() == STUB.lower()
+    except Exception:
+        return False        # a node we cannot read is an infra problem, handled elsewhere
+
+
 def unmeasurable(key: PoolKey, zero_for_one: bool, amount_in: int, block: int,
                  reason: str) -> Measurement:
     """A row for a pool we could not look at.
@@ -148,6 +178,15 @@ def measure_resilient(url: str, key: PoolKey, zero_for_one: bool, amount_in: int
     """
     m, raised = None, None
     for i in range(attempts):
+        if stub_is_installed(url, key.hooks):
+            # Someone else is measuring this hook on this node. Anything we quote now describes
+            # their stub, not this hook. Refusing is the only honest answer.
+            time.sleep(backoff * (i + 1))
+            if stub_is_installed(url, key.hooks):
+                return unmeasurable(
+                    key, zero_for_one, amount_in, block,
+                    f"{CONCURRENT} the stub is already installed at {key.hooks} on {url} — "
+                    f"run one measuring process per fork")
         try:
             m = measure(url, key, zero_for_one, amount_in, block)
         except Exception as exc:                      # RpcError, and anything else the node does
@@ -199,15 +238,20 @@ def resume_key(row) -> tuple:
     return (d["pool_id"], int(d["block_number"]), str(d["amount_in"]))
 
 
+# The two reasons that mean "we did not look", as opposed to "we looked and this is what there
+# was". Both must be written down, and neither may ever count as a finished measurement.
+NOT_LOOKED = (RPC_UNAVAILABLE, CONCURRENT)
+
+
 def is_observation(row) -> bool:
     """True when the row records something we actually saw.
 
-    An `rpc_unavailable:` row records the opposite — that the node was down when we looked. It
-    has to be written (a missing row silently shrinks every denominator) but it must not count as
-    done, or a five-minute outage would freeze a permanent hole in the dataset that no later run
-    would ever fill.
+    A row whose reason is `rpc_unavailable:` or `concurrent_measurer:` records the opposite — the
+    node was down, or another process had the stub installed. Such a row has to be written (a
+    missing row silently shrinks every denominator) but it must not count as done, or a
+    five-minute outage would freeze a permanent hole that no later run would ever fill.
     """
-    return not (row.get("reason") or "").startswith(RPC_UNAVAILABLE)
+    return not (row.get("reason") or "").startswith(NOT_LOOKED)
 
 
 def read_done(path) -> set:
@@ -451,7 +495,9 @@ def summarise(rows, block=None) -> dict:
 
     # Instrument health, reported next to the results rather than hidden behind them: a row we
     # could not look at is not a row about the pool, and a run with many of these is a bad run.
-    unavailable = [r for r in rows if (r.get("reason") or "").startswith(RPC_UNAVAILABLE)]
+    # `n_rpc_unavailable` counts both node failures and contended readings — every line in this
+    # file that describes the instrument instead of a pool.
+    unavailable = [r for r in rows if not is_observation(r)]
 
     blocks = sorted({r["block_number"] for r in rows})
     return {

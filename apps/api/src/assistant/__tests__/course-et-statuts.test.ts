@@ -203,17 +203,30 @@ describe("B — les fournisseurs courent ensemble", () => {
   const store = () => getStore();
 
   it("le lent ne fait plus attendre le rapide : le total ne s'additionne plus", async () => {
-    const lent = fake("lent", 900, PLAN_OK);
-    const rapide = fake("rapide", 20, PLAN_2);
+    // Ce test a d'abord affirme « moins de 500 ms ». Une duree ABSOLUE mesure la machine,
+    // pas le code : sous quatre balayages et une charge systeme de 30, la course honnete
+    // mettait 2 595 ms et le test passait au rouge alors que rien n'avait change. Ce qu'il
+    // faut prouver est RELATIF — la course ne serialise pas — et se mesure en comparant
+    // deux passages dans le meme etat de machine.
+    const LENT_MS = 900;
+
+    // Reference : le rapide seul, sur cette machine, maintenant.
     const t0 = Date.now();
-    const p = await makeLlmPlanner([lent, rapide], { budgetMs: 5_000 })(
+    await makeLlmPlanner([fake("rapide", 20, PLAN_2)], { budgetMs: 5_000 })(
       "montre les contradictions",
       store(),
       CTX,
     );
-    const ms = Date.now() - t0;
-    // En serie il aurait fallu 900 ms avant meme de commencer le second.
-    expect(ms).toBeLessThan(500);
+    const seul = Date.now() - t0;
+
+    // Puis les deux ensemble. Si la course serialisait, il faudrait au moins LENT_MS de plus.
+    const t1 = Date.now();
+    const p = await makeLlmPlanner([fake("lent", LENT_MS, PLAN_OK), fake("rapide", 20, PLAN_2)], {
+      budgetMs: 5_000,
+    })("montre les contradictions", store(), CTX);
+    const ensemble = Date.now() - t1;
+
+    expect(ensemble).toBeLessThan(seul + LENT_MS);
     expect(p.intent).toBe("contradictions");
     expect(p.why.join(" ")).toContain("rapide");
   });

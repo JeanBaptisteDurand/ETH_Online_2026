@@ -264,10 +264,27 @@ describe("le moment de la demo", () => {
   it("trace le profil non plat de ClankerHookStaticFeeV2, du plus fort au plus faible", async () => {
     const a = await ask(`trace la courbe de ${CLANKER}`, { sessionId: "s_curve", sessions: fresh() });
     const step = a.data.steps.find((s) => s.action.type === "plotCurve");
-    const d = step?.data as { non_flat: boolean; series: { points: { bps: number | null }[] }[] };
+    const d = step?.data as {
+      non_flat: boolean;
+      series: { direction: string; points: { bps: number | null; label: string }[] }[];
+    };
     expect(d.non_flat).toBe(true);
-    const pts = d.series[0]!.points.map((p) => p.bps);
-    expect(pts[0]).toBeGreaterThan(pts[pts.length - 1]!);
+
+    // Les points NON MESURES ne sont pas des nombres. Une version anterieure prenait
+    // points[0].bps directement ; le corpus a grandi, la plus petite taille est devenue
+    // NOT_QUOTABLE, et le test comparait `null` a un nombre. C'est exactement ce que le
+    // produit interdit — traiter une absence comme une valeur — reproduit dans son test.
+    const chiffres = d.series
+      .flatMap((s) => s.points)
+      .filter((p) => p.label === "MEASURED" && typeof p.bps === "number");
+    expect(chiffres.length).toBeGreaterThan(1);
+    for (const p of d.series.flatMap((s) => s.points))
+      if (p.label !== "MEASURED") expect(p.bps).toBeNull();
+
+    // Le profil decroit avec la taille : le premier point MESURE prend plus que le dernier.
+    const premier = chiffres[0]!.bps as number;
+    const dernier = chiffres[chiffres.length - 1]!.bps as number;
+    expect(premier).toBeGreaterThan(dernier);
     expect(a.narration).toContain("n'est pas plat");
   });
 });

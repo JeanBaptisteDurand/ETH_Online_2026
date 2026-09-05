@@ -13,10 +13,15 @@
 import { describe, it, expect } from "vitest";
 import { ragSearch, DEFAULT_RAG_URL } from "../explain.js";
 
+// Une URL explicite : sous test le defaut est nul EXPRES, pour qu'aucun test n'interroge
+// un service reel. Un test qui veut exercer le chemin RAG dit lequel.
+const FAUX = "http://127.0.0.1:1/search";
+
 describe("le contrat entre le chat et le RAG", () => {
   it("interroge en GET avec q et k dans l'URL", async () => {
     let vue = "";
     await ragSearch("pourquoi 89 octets", {
+      url: FAUX,
       fetchImpl: (async (u: string) => {
         vue = String(u);
         return new Response(JSON.stringify({ status: "OK", n: 0, passages: [] }), {
@@ -32,6 +37,7 @@ describe("le contrat entre le chat et le RAG", () => {
 
   it("un 404 est rapporte comme une panne nommee, jamais comme zero passage pertinent", async () => {
     const r = await ragSearch("x", {
+      url: FAUX,
       fetchImpl: (async () =>
         new Response("nope", { status: 404 })) as unknown as typeof fetch,
     });
@@ -47,6 +53,7 @@ describe("le contrat entre le chat et le RAG", () => {
     // RAG qui marche en RAG « indisponible ».
     let vu = 0;
     await ragSearch("x", {
+      url: FAUX,
       fetchImpl: ((_u: string, init: RequestInit) => {
         const s = init.signal as AbortSignal & { reason?: unknown };
         vu = s ? 1 : 0;
@@ -68,8 +75,22 @@ describe("le contrat entre le chat et le RAG", () => {
     expect(Number(m![1]!.replace(/_/g, ""))).toBeGreaterThanOrEqual(10_000);
   });
 
-  it("l'URL par defaut designe le serveur qui existe vraiment", () => {
-    // engine/tare/rag/serve.py ecoute sur /search. Pointer ailleurs, c'est le bug d'origine.
-    expect(DEFAULT_RAG_URL).toMatch(/\/search$/);
+  it("sous test, le defaut est NUL : un test unitaire n'interroge pas un service", () => {
+    // Quand le defaut s'est mis a designer un serveur qui repond vraiment, quatre tests
+    // d'etat HTTP sont passes de huit secondes a soixante-et-onze, puis au rouge — sans
+    // qu'aucune ligne de leur code n'ait change. Un test qui veut le RAG passe son URL.
+    expect(process.env.VITEST).toBeDefined();
+    expect(DEFAULT_RAG_URL).toBeNull();
+  });
+
+  it("hors test, il designe le chemin que le serveur sert vraiment", async () => {
+    // engine/tare/rag/serve.py ecoute sur /search. Pointer ailleurs etait le bug d'origine,
+    // et il a survecu des jours parce que le repli masquait le 404.
+    const src = await import("node:fs").then((fs) =>
+      fs.readFileSync(new URL("../explain.ts", import.meta.url), "utf8"),
+    );
+    const m = src.match(/SOUS_TEST \? null : "([^"]+)"/);
+    expect(m).not.toBeNull();
+    expect(m![1]).toMatch(/\/search$/);
   });
 });

@@ -904,9 +904,18 @@ export interface RagOptions {
  * « RAG indisponible : HTTP 404 » dans son journal et se rabattait sur les regles, sans que
  * personne le remarque — le repli fonctionnait trop bien. Le RAG etait construit, indexe,
  * mesure, et jamais interroge par la seule surface qui en avait besoin.
+ *
+ * SOUS TEST, le defaut est NUL. Un test unitaire qui interroge un service reel ne teste plus
+ * ce qu'il croit tester : quand cette constante s'est mise a designer un serveur qui repond
+ * vraiment, quatre tests d'etat HTTP sont passes de 8 secondes a soixante-et-onze, puis au
+ * rouge — non parce que le code avait change, mais parce qu'ils attendaient le reseau. Un
+ * test qui veut le RAG passe son URL explicitement.
  */
+const SOUS_TEST =
+  process.env.VITEST !== undefined || process.env.NODE_ENV === "test";
+
 export const DEFAULT_RAG_URL =
-  process.env.TARE_RAG_URL ?? "http://127.0.0.1:8789/search";
+  process.env.TARE_RAG_URL ?? (SOUS_TEST ? null : "http://127.0.0.1:8789/search");
 
 function str(v: unknown): string | null {
   return typeof v === "string" && v.trim() !== "" ? v.trim() : null;

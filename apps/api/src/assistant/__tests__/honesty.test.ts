@@ -166,7 +166,11 @@ describe("le modele ne peut pas inventer un nombre (bout en bout)", () => {
       expect(audit.ok, `${q} -> ${audit.violations.join(",")}`).toBe(true);
       expect(a.degraded, `${q} ne doit pas degrader`).toBeNull();
     }
-  });
+  }, 120_000);
+  // 20 s par defaut ne suffisent plus : ce test traverse TOUTES les intentions sur le jeu
+  // publie, qui est passe de 995 a plus de 90 000 mesures. Il a mis 40 s sous la charge des
+  // balayages et il est tombe — pas parce qu'un nombre manquait sa citation, mais parce que
+  // la machine etait occupee. Le budget suit le travail reel plutot que de le nier.
 
   it("toute citation de mesure porte son bloc, sa taille, son sens et sa commande de rejeu", async () => {
     const a = await ask("les hooks qui prennent plus de 100 bps", {

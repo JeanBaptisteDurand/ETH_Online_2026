@@ -32,7 +32,7 @@ describe("keccak256", () => {
 });
 
 describe("poolId", () => {
-  it("rederive les 199 pool_id du jeu de mesures, sans exception", () => {
+  it("rederive tous les pool_id du jeu de mesures, sans exception", () => {
     const rows = measurements();
     const seen = new Set<string>();
     let checked = 0;
@@ -49,7 +49,10 @@ describe("poolId", () => {
       expect(id, `pool ${r.pool_id}`).toBe(r.pool_id);
       checked++;
     }
-    expect(checked).toBe(199);
+    // Le corpus grandit (199 pools au premier balayage, 371 apres elargissement) : on verifie
+    // que CHAQUE pool distinct se re-derive, pas qu'il y en ait un nombre fige.
+    expect(checked).toBe(seen.size);
+    expect(checked).toBeGreaterThan(150);
   });
 
   it("encode la PoolKey sur exactement 5 mots de 32 octets", () => {

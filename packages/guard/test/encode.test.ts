@@ -46,7 +46,10 @@ describe("encode -> decode", () => {
       expect(leg.amountIn).toBe(r.amount_in);
       n++;
     }
-    expect(n).toBe(199);
+    // Le corpus grandit (199 pools au premier balayage, 366 apres elargissement) : on verifie
+    // que CHAQUE pool distinct se re-derive, pas qu'il y en ait un nombre fige.
+    expect(n).toBe(seen.size);
+    expect(n).toBeGreaterThan(150);
   });
 
   it("produit la meme forme que le calldata reel : 352 octets de params pour un exact-in-single", () => {

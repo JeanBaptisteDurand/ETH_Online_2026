@@ -188,7 +188,7 @@ class TestEnTete(unittest.TestCase):
     def test_hook_absent_du_graphe_ne_fabrique_aucun_fait(self):
         header = GH.render_absent_header(OFFCHAIN_HOOK, 42161, "BunniHook", "arbitrum")
         self.assertIn("ABSENT", header)
-        self.assertIn("INCONNUS, pas nuls", header)
+        self.assertIn("INCONNUS pour lui, pas nuls", header)
         for forbidden in ("pools attaches: 0", "0 jumeau", "0 bps"):
             self.assertNotIn(forbidden, header)
 
@@ -219,10 +219,58 @@ class TestEnTete(unittest.TestCase):
 
     def test_le_morceau_tient_dans_la_fenetre_du_modele(self):
         """granite-embedding:278m lit 512 tokens. Au-dela, la fin est TRONQUEE
-        en silence — le genre d'amputation invisible que HONESTY.md recense."""
+        en silence — le genre d'amputation invisible que HONESTY.md recense.
+
+        La fenetre de contenu est calculee budget MOINS en-tete : un hook a 52
+        pools produit un en-tete de 700 caracteres, et une fenetre fixe de 1600
+        laissait 93 morceaux hors budget. Ce test les a trouves."""
         chunks = K.chunk_corpus(self.gi)
-        longest = max(len(c.text) for c in chunks)
-        self.assertLess(longest, 2600, f"morceau de {longest} caracteres, trop long")
+        big = K.oversize(chunks)
+        self.assertLess(len(big), len(chunks) * 0.01,
+                        f"{len(big)} morceaux sur {len(chunks)} depassent le budget")
+        ok = [c for c in chunks if not c.oversize]
+        self.assertLessEqual(max(len(c.text) for c in ok), K.TEXT_BUDGET)
+
+    def test_un_morceau_hors_budget_le_dit_en_toutes_lettres(self):
+        """Une ligne unique plus longue que le budget est insecable sans casser
+        le rejeu. On ne la coupe pas en silence : on l'annonce en tete."""
+        ch = K.Chunk(id="x", corpus="hook_source", doc_id="d", title="t",
+                     source_file="f.sol", line_start=7, line_end=7,
+                     header="EN-TETE", content="z" * (K.TEXT_BUDGET + 100))
+        self.assertTrue(ch.oversize)
+        self.assertEqual(K.mark_oversize([ch]), 1)
+        self.assertTrue(ch.header.startswith("AVERTISSEMENT"))
+        self.assertIn("n'est PAS dans le vecteur", ch.header)
+        self.assertIn(ch.replay, ch.header)
+
+    def test_les_dependances_recopiees_ne_noient_pas_l_index(self):
+        """provenance.json marque `vendored` les fichiers que le hook n'a pas
+        ecrits. Les indexer ferait remonter SafeERC20.sol treize fois."""
+        sol = next((s for s in C.default_corpus() if s.kind == C.SOLIDITY_DIR), None)
+        if sol is None or not sol.exists():
+            self.skipTest("docs/hooks-source absent (lot P)")
+        counts = C.count_solidity(sol)
+        self.assertGreater(counts["vendored"], 0, "aucun fichier marque vendored")
+        kept = C.read_solidity(sol)
+        self.assertEqual(len(kept), counts["own"])
+        self.assertFalse(any(f["vendored"] for f in kept))
+        with_vendored = C.read_solidity(sol, include_vendored=True)
+        self.assertEqual(len(with_vendored), counts["present"])
+
+    def test_le_source_solidity_porte_sa_provenance(self):
+        sol = next((s for s in C.default_corpus() if s.kind == C.SOLIDITY_DIR), None)
+        if sol is None or not sol.exists():
+            self.skipTest("docs/hooks-source absent (lot P)")
+        chunks = K.chunk_solidity(sol, self.gi)
+        self.assertTrue(chunks)
+        provs = {c.extra["provenance"].get("provider") for c in chunks
+                 if c.extra.get("provenance")}
+        self.assertTrue(provs & {"sourcify", "etherscan"},
+                        "aucun morceau ne dit d'ou vient le source")
+        one = next(c for c in chunks if c.extra.get("provenance", {}).get("provider"))
+        self.assertIn("source verifiee", one.header)
+        self.assertEqual(_sed(REPO / one.source_file, one.line_start, one.line_end),
+                         one.content)
 
 
 # ------------------------------------------------------- le refus de reponse
@@ -361,11 +409,15 @@ class TestIndexPeuple(unittest.TestCase):
         self.assertEqual(s.count(), report["n_chunks"])
         self.assertEqual(s.counts_by_corpus(), report["by_corpus"])
 
-    def test_les_deux_corpus_nommes_sont_presents(self):
+    def test_les_corpus_nommes_sont_presents(self):
         s = _skip_if_no_db(self)
         by = s.counts_by_corpus()
         self.assertGreater(by.get("docs", 0), 0, "aucun document de methode indexe")
         self.assertGreater(by.get("registry", 0), 500, "les fiches du registre manquent")
+        sol = next((x for x in C.default_corpus() if x.kind == C.SOLIDITY_DIR), None)
+        if sol is not None and sol.exists():
+            self.assertGreater(by.get("hook_source", 0), 0,
+                               "docs/hooks-source existe mais rien n'en est indexe")
 
     def test_l_index_hnsw_cosinus_existe(self):
         """Sans lui la recherche marche quand meme — en balayage complet. Le test

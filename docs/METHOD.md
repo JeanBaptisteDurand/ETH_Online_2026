@@ -195,47 +195,106 @@ and the false finding it produced, are in
 
 ## 7. The sweep
 
-The corpus is one measurement repeated. Four facts about the fork drive the design, and all four are
-stated in [`engine/tare/sweep.py:1-32`](../engine/tare/sweep.py):
+The corpus is one measurement repeated. Six facts about the fork drive the design, and all six are
+stated in [`engine/tare/sweep.py:1-46`](../engine/tare/sweep.py):
 
-1. **A pool usually quotes in one direction only.** The direction is *probed*, at every size, before
-   a pool is called unquotable — a pool that cannot move 1e14 can still quote 1e18.
-   [`engine/tare/sweep.py:310-332`](../engine/tare/sweep.py). A rate-limited node encountered during
-   the probe is kept as `infra_reason` and forbids any conclusion about the pool
-   ([`:326-332`](../engine/tare/sweep.py), used at [`:360-364`](../engine/tare/sweep.py)).
+1. **A pool usually quotes in one direction only.** `V4Quoter` reverts with `NotEnoughLiquidity`
+   for the other side, and the first version of this sweep read that revert as "dead pool" — it
+   discarded 77.6% of the pools it touched. The fix was to *probe* for a quotable side
+   ([`engine/tare/sweep.py:358-382`](../engine/tare/sweep.py)); fact 5 replaced the probe with
+   something better.
 2. **The first RPC touch of a pool is expensive, the next ones are free** — anvil backfills the
-   pool's slots once. So the sweep is grouped **by pool**: all five sizes back to back
-   ([`engine/tare/sweep.py:337-368`](../engine/tare/sweep.py)).
+   pool's slots once. So the sweep is grouped **by pool**: every size, both directions, back to
+   back ([`engine/tare/sweep.py:385-426`](../engine/tare/sweep.py)).
 3. **A run gets interrupted.** Output is JSONL, one row per line, `flush` + `fsync` per row
-   ([`engine/tare/sweep.py:282-289`](../engine/tare/sweep.py)). The resume key is
-   `(pool_id, block_number, amount_in)` — direction excluded on purpose, because it is observed, not
-   chosen ([`engine/tare/sweep.py:230-238`](../engine/tare/sweep.py)). A row that only records a node
-   failure does **not** count as done ([`:246-254`](../engine/tare/sweep.py)).
+   ([`engine/tare/sweep.py:330-337`](../engine/tare/sweep.py)). The resume key is
+   `(pool_id, block_number, amount_in, zero_for_one)`
+   ([`engine/tare/sweep.py:269-281`](../engine/tare/sweep.py)). A row that only records a node
+   failure does **not** count as done ([`:294-302`](../engine/tare/sweep.py)).
 4. **A fork holds exactly one measurer.** The stub is global mutable state on the node. Parallelism
    means several *forks*, one process each: `--shard i --of n`, one `--rpc` per shard
-   ([`engine/tare/cli.py:13-22`](../engine/tare/cli.py),
-   [`engine/tare/cli.py:51-55`](../engine/tare/cli.py)). Before each measurement,
+   ([`engine/tare/cli.py:13-22`](../engine/tare/cli.py)). Before each measurement,
    `stub_is_installed` checks whether the hook already wears the stub
-   ([`engine/tare/sweep.py:137-142`](../engine/tare/sweep.py)); if it still does after a backoff the
+   ([`engine/tare/sweep.py:176-181`](../engine/tare/sweep.py)); if it still does after a backoff the
    row is `NOT_MEASURABLE` with reason `concurrent_measurer:` and **no number**
-   ([`:181-189`](../engine/tare/sweep.py)). This is false result #5 in
-   [`HONESTY.md`](HONESTY.md), false result #5.
+   ([`:220-229`](../engine/tare/sweep.py)). This is false result #5 in [`HONESTY.md`](HONESTY.md).
+5. **One direction per pool was a sampling decision, not a fact about the pool.** The probe of
+   fact 1 recovered the pools an earlier sweep had thrown away, but it also meant the corpus could
+   never answer *does this hook take the same cut both ways?* — and it can differ, because
+   `beforeSwap` is handed `zeroForOne`. The sweep now measures **both** directions
+   ([`engine/tare/sweep.py:76`](../engine/tare/sweep.py),
+   [`:385-426`](../engine/tare/sweep.py)) and the direction is part of the resume key: without it
+   `dedupe` would keep one line of the two and a pool that charges differently each way would be
+   published with whichever number was written last.
+6. **A hook can read `tx.origin`.** Through `eth_call`, `from` sets the origin of the whole call.
+   It does *not* reach the hook as `sender` — v4 passes whoever called `PoolManager.swap`, which
+   for a quote is always the quoter — so the only channel from the caller to the hook is
+   `tx.origin`. `sweep_callers` quotes the identical swap from several origins and reports whether
+   the output moves ([`engine/tare/sweep.py:775-818`](../engine/tare/sweep.py)); the verdict rules
+   are [`:830-872`](../engine/tare/sweep.py). Section 7b says what that can and cannot see.
 
-Sizes: `1e14 · 1e15 · 1e16 · 1e17 · 1e18` wei of currency-in
-([`engine/tare/sweep.py:51`](../engine/tare/sweep.py)) — 0.0001 to 1.0 token.
+Sizes: `1e12 · 1e13 · 1e14 · 1e15 · 1e16 · 1e17 · 1e18 · 1e19` wei of currency-in
+([`engine/tare/sweep.py:72`](../engine/tare/sweep.py)) — eight decades, in both directions, so one
+pool is 16 cells. Gate A3 keeps its own five decades on purpose: it reproduces numbers that predate
+this file and must not move when the grid does
+([`engine/tare/gates/a3.py:16`](../engine/tare/gates/a3.py)).
 
-Nothing invents a value and nothing disappears. A pool that refuses the swap produces five
-`NOT_QUOTABLE` lines carrying the revert reason; a pool the node could not serve produces five
-`NOT_MEASURABLE` lines saying so. Never zero lines, and never a zero
-([`engine/tare/sweep.py:145-164`](../engine/tare/sweep.py),
-[`:402-412`](../engine/tare/sweep.py)).
+Nothing invents a value and nothing disappears. Every (pool, size, direction) cell gets exactly one
+line: a pool that refuses the swap gets `NOT_QUOTABLE` carrying the revert reason, a pool the node
+could not serve gets `NOT_MEASURABLE` saying so. Never zero lines, and never a zero
+([`engine/tare/sweep.py:184-203`](../engine/tare/sweep.py),
+[`:478-483`](../engine/tare/sweep.py)).
+
+**An instrument failure is not a pool verdict, and the list of what counts as one is exhaustive or
+it is decorative.** `INFRA_MARKERS` ([`engine/tare/sweep.py:120-145`](../engine/tare/sweep.py))
+knew `failed to get storage` but not the three wordings `rpc.py` raises itself — `transport
+failure`, `empty body`, `HTTP 429`. Widening the size grid made the sweep touch pools cold enough
+that the first quote outlives curl's timeout, and every one of those came back labelled
+`NOT_QUOTABLE`: the instrument's clock published as the pool's answer. Caught on the first real run
+of the wider grid and fixed before publication; the corpus carries none of them, checked line by
+line. Three tests now copy the exact strings from the three `raise` sites in `rpc.py`.
+
+## 7b. The caller axis
+
+A separate file with a separate schema, because it answers a separate — and narrower — question:
+**does the quoted output of the identical swap move when `tx.origin` moves?**
+
+Four origins ([`engine/tare/sweep.py:705-710`](../engine/tare/sweep.py)), two sizes, both
+directions, one line per reading in [`docs/dataset/callers.jsonl`](dataset/callers.jsonl), folded
+into [`docs/dataset/callers-summary.json`](dataset/callers-summary.json). Whether each origin
+carries code is read off the fork at run time and written into the summary rather than assumed.
+
+    ORIGIN_SENSITIVE   at least one cell where the origins disagree — a different amount out, or
+                       one origin quoting where another reverts
+    ORIGIN_INVARIANT   every readable cell gave every origin the same answer
+    NOT_QUOTABLE       no origin got a quote anywhere, and the pool is what said no
+    NOT_MEASURABLE     the node is what said no, so nothing was established
+
+**What this cannot see, stated in the summary itself** (`caveat`): `ORIGIN_INVARIANT` means "does
+not branch on `tx.origin`", *not* "treats every caller alike". A hook can still branch on
+`hookData`, on a router it recognises as `sender`, or on state that only exists inside a real
+transaction. A cell where any origin hit the node instead of the pool is not compared at all —
+comparing an origin that answered against one that could not be read is how a rate limit becomes a
+discrimination finding.
+
+    python3 -m tare.sweep callers --rpc http://127.0.0.1:8600 \
+        --pools docs/dataset/pools-liquides-full.json --block 50614000
 
 The summary is recomputed from the rows every time, never carried over
-([`engine/tare/sweep.py:477-532`](../engine/tare/sweep.py)), after de-duplicating on the resume key —
+([`engine/tare/sweep.py:591-666`](../engine/tare/sweep.py)), after de-duplicating on the resume key —
 overlapping shards would otherwise inflate every figure
-([`engine/tare/sweep.py:458-474`](../engine/tare/sweep.py)). Instrument health is reported *next to*
+([`engine/tare/sweep.py:572-588`](../engine/tare/sweep.py)). Instrument health is reported *next to*
 the results, not behind them: `n_rpc_unavailable` counts every line that describes the instrument
-instead of a pool ([`engine/tare/sweep.py:496-500`](../engine/tare/sweep.py)).
+instead of a pool ([`engine/tare/sweep.py:623`](../engine/tare/sweep.py)).
+
+A pool is now **two curves**, not one. `profile` refuses a mixture of directions and raises rather
+than interleave two series into one invented slope
+([`engine/tare/sweep.py:495-526`](../engine/tare/sweep.py)); `profiles_of` splits on
+`(pool_id, zero_for_one)` ([`:529-534`](../engine/tare/sweep.py)). `asymmetries`
+([`:537-569`](../engine/tare/sweep.py)) differences the two sides **only where both were measured
+at the same size** — one side at 1e12 against the other at 1e19 is not a comparison, it is the size
+curve — and a side that simply does not quote is not listed at all, because that is a liquidity
+fact and it already has its own `NOT_QUOTABLE` rows.
 
 ## 8. The corpus
 

@@ -11,6 +11,11 @@ print(f'engine     {r.testsRun - len(r.failures) - len(r.errors)}/{r.testsRun}')
 test-all:                   ## every suite, one citable line at the end
 	@bash scripts/test-all.sh
 
+.PHONY: readme
+readme:                     ## regenerate the README table from the published dataset
+	@PYTHONPATH=engine python3 -m tare.dataset.stats --write-readme
+	@cd engine && python3 -m unittest tests.test_readme 2>&1 | tail -3
+
 .PHONY: up down
 up:                         ## start the fork, db and queue
 	docker compose up -d

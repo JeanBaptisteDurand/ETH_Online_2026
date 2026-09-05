@@ -1,0 +1,265 @@
+{
+ "built_at": "2026-09-05T07:17:19+00:00",
+ "protocol": "Deux index sur le MEME corpus (les fiches du registre) et le MEME modele. AVEC = en-tete derive du graphe + fiche. SANS = fiche seule. Les bonnes reponses sont calculees par un predicat sur le graphe, jamais choisies.",
+ "corpus": {
+  "source": "docs/hooklist-live-20260905.json",
+  "n_documents": 978,
+  "n_with_graph_node": 978
+ },
+ "embedding": {
+  "provider": "ollama",
+  "model": "granite-embedding:278m",
+  "dim": 768
+ },
+ "embedding_selection": [
+  "ollama: retenu (granite-embedding:278m, 768 dims)"
+ ],
+ "k": 10,
+ "n_questions": 10,
+ "n_scored": 10,
+ "summary": {
+  "mean_hits_at_k_with": 0.0,
+  "mean_hits_at_k_without": 0.0,
+  "mean_recall_at_k_with": 0.0,
+  "mean_recall_at_k_without": 0.0,
+  "mrr_with": 0.0,
+  "mrr_without": 0.0,
+  "questions_improved": 0,
+  "questions_unchanged": 10,
+  "questions_degraded": 0
+ },
+ "questions": [
+  {
+   "key": "mesures",
+   "question": "quels hooks ont ete mesures sur Base, et combien prennent-ils ?",
+   "predicate": "au moins une mesure MEASURED dans le graphe",
+   "with_header": {
+    "n_truth": 10,
+    "hits_at_k": 0,
+    "precision_at_k": 0.0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "without_header": {
+    "n_truth": 10,
+    "hits_at_k": 0,
+    "precision_at_k": 0.0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "delta_hits": 0,
+   "delta_reciprocal_rank": 0.0
+  },
+  {
+   "key": "gros_prelevement",
+   "question": "quel hook retire la plus grosse part d'un echange ?",
+   "predicate": "bps_max >= 500 sur les mesures MEASURED",
+   "with_header": {
+    "n_truth": 2,
+    "hits_at_k": 0,
+    "precision_at_k": 0.0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "without_header": {
+    "n_truth": 2,
+    "hits_at_k": 0,
+    "precision_at_k": 0.0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "delta_hits": 0,
+   "delta_reciprocal_rank": 0.0
+  },
+  {
+   "key": "beaucoup_de_pools",
+   "question": "un hook utilise par des dizaines de paires de jetons",
+   "predicate": "au moins 20 pools attaches",
+   "with_header": {
+    "n_truth": 4,
+    "hits_at_k": 0,
+    "precision_at_k": 0.0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "without_header": {
+    "n_truth": 4,
+    "hits_at_k": 0,
+    "precision_at_k": 0.0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "delta_hits": 0,
+   "delta_reciprocal_rank": 0.0
+  },
+  {
+   "key": "un_pour_cent",
+   "question": "les hooks qui prennent environ un pour cent sur chaque echange",
+   "predicate": "bps median entre 95 et 105",
+   "with_header": {
+    "n_truth": 4,
+    "hits_at_k": 0,
+    "precision_at_k": 0.0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "without_header": {
+    "n_truth": 4,
+    "hits_at_k": 0,
+    "precision_at_k": 0.0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "delta_hits": 0,
+   "delta_reciprocal_rank": 0.0
+  },
+  {
+   "key": "jamais_cote",
+   "question": "les hooks pour lesquels aucune cotation n'a jamais abouti",
+   "predicate": "des mesures existent, aucune n'est MEASURED",
+   "with_header": {
+    "n_truth": 1,
+    "hits_at_k": 0,
+    "precision_at_k": 0.0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "without_header": {
+    "n_truth": 1,
+    "hits_at_k": 0,
+    "precision_at_k": 0.0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "delta_hits": 0,
+   "delta_reciprocal_rank": 0.0
+  },
+  {
+   "key": "clones",
+   "question": "des contrats identiques deployes plusieurs fois",
+   "predicate": "au moins un autre hook au meme code_hash",
+   "with_header": {
+    "n_truth": 6,
+    "hits_at_k": 0,
+    "precision_at_k": 0.0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "without_header": {
+    "n_truth": 6,
+    "hits_at_k": 0,
+    "precision_at_k": 0.0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "delta_hits": 0,
+   "delta_reciprocal_rank": 0.0
+  },
+  {
+   "key": "meme_auteur",
+   "question": "plusieurs hooks ecrits et deployes par la meme equipe",
+   "predicate": "au moins un hook frere par le deployeur",
+   "with_header": {
+    "n_truth": 134,
+    "hits_at_k": 0,
+    "precision_at_k": 0.0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "without_header": {
+    "n_truth": 134,
+    "hits_at_k": 0,
+    "precision_at_k": 0.0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "delta_hits": 0,
+   "delta_reciprocal_rank": 0.0
+  },
+  {
+   "key": "une_seule_paire",
+   "question": "un hook qui ne sert qu'a une seule paire de jetons",
+   "predicate": "exactement un pool attache",
+   "with_header": {
+    "n_truth": 1,
+    "hits_at_k": 0,
+    "precision_at_k": 0.0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "without_header": {
+    "n_truth": 1,
+    "hits_at_k": 0,
+    "precision_at_k": 0.0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "delta_hits": 0,
+   "delta_reciprocal_rank": 0.0
+  },
+  {
+   "key": "sans_prelevement",
+   "question": "des hooks qui ne prennent rien du tout sur l'echange",
+   "predicate": "toutes les mesures MEASURED <= 1 bps",
+   "with_header": {
+    "n_truth": 1,
+    "hits_at_k": 0,
+    "precision_at_k": 0.0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "without_header": {
+    "n_truth": 1,
+    "hits_at_k": 0,
+    "precision_at_k": 0.0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "delta_hits": 0,
+   "delta_reciprocal_rank": 0.0
+  },
+  {
+   "key": "gros_contrat",
+   "question": "un hook dont le code deploye est particulierement volumineux",
+   "predicate": "bytecode d'au moins 20 000 octets",
+   "with_header": {
+    "n_truth": 49,
+    "hits_at_k": 0,
+    "precision_at_k": 0.0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "without_header": {
+    "n_truth": 49,
+    "hits_at_k": 0,
+    "precision_at_k": 0.0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "delta_hits": 0,
+   "delta_reciprocal_rank": 0.0
+  }
+ ],
+ "elapsed_s": 350.34,
+ "replay": "cd engine && python3 -m tare.rag.bench"
+}

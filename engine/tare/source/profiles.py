@@ -49,11 +49,28 @@ def lp_fee_ratio(fee_pips: int, stored_lp_fee_pips: int) -> float:
 #   taken, selling the token afterSwap     output is reduced by `protocolFee/1e6`, minted to the hook
 # Both branches also make the pool charge `fee` as its LP fee for this one swap.
 
+UPSTREAM_PROTOCOL_FEE_NUMERATOR = 200_000     # asserted by a citation on each Clanker profile
+
+
 def clanker_predict(vals: dict, row: dict) -> dict:
-    """Exact-input model for the Clanker/Liquid static-fee hooks."""
+    """Exact-input model for the Clanker/Liquid static-fee hooks.
+
+    The protocol-fee numerator is READ, not assumed. Upstream it is the constant
+    `PROTOCOL_FEE_NUMERATOR = 200_000` (20 % of the LP fee); the cc0strategy fork made it an
+    immutable set at construction, and that deployment sets it to **zero**. Both are public getters,
+    so `declared.py` tries `protocolFeeNumerator()` then `PROTOCOL_FEE_NUMERATOR()` and uses
+    whichever answers. Hard-coding 20 % here would have mispriced a whole hook.
+    """
     stored = int(row["stored_lp_fee"])
     zero_for_one = bool(row["zero_for_one"])
     is_token0 = vals.get("is_token0")
+    numerator = vals.get("protocol_fee_numerator")
+    if numerator is None:
+        numerator = UPSTREAM_PROTOCOL_FEE_NUMERATOR
+        numerator_source = "source constant (no public getter answered)"
+    else:
+        numerator = int(numerator)
+        numerator_source = "read on chain at the measured block"
     branches = []
     if is_token0 is None:
         candidates = [True, False]          # v1 keeps the selector `internal`; both branches priced
@@ -62,28 +79,52 @@ def clanker_predict(vals: dict, row: dict) -> dict:
     for tok0 in candidates:
         swapping_for_token = (zero_for_one != tok0)
         fee = int(vals["paired_fee"]) if swapping_for_token else int(vals["token_fee"])
-        protocol_fee = fee * 200_000 // PIPS
+        protocol_fee = fee * numerator // PIPS
         lp = lp_fee_ratio(fee, stored)
         if swapping_for_token:
             # beforeSwap: input shaved by protocolFee/(1e6+protocolFee), then the LP swap runs.
-            scaled = protocol_fee * 10**18 // (PIPS + protocol_fee)
+            scaled = protocol_fee * 10**18 // (PIPS + protocol_fee) if protocol_fee else 0
             ratio = (1.0 - scaled / 10**18) * lp
+            side = "input"
         else:
             # afterSwap: the LP swap runs, then protocolFee/1e6 of the output is taken.
             ratio = lp * (1.0 - protocol_fee / PIPS)
+            side = "output"
         branches.append({"is_token0": tok0, "fee_pips": fee, "protocol_fee_pips": protocol_fee,
+                         "protocol_fee_numerator": numerator,
+                         "numerator_source": numerator_source,
+                         "stored_lp_fee_pips": stored,
                          "taken_at": "beforeSwap" if swapping_for_token else "afterSwap",
+                         "side": side,
                          "predicted_bps": round(ratio_to_bps(ratio), 4)})
     if len(branches) == 1:
         b = branches[0]
-        return {"predicted_bps": b["predicted_bps"], "detail": b,
-                "note": f"LP fee {b['fee_pips']} pips + protocol fee {b['protocol_fee_pips']} pips "
-                        f"taken in {b['taken_at']}"}
+        return {"predicted_bps": b["predicted_bps"], "detail": b, "side": b["side"],
+                "declared_summary": (f"LP {b['fee_pips']} pips"
+                                     + (f" + carve {b['protocol_fee_pips']} pips"
+                                        if b['protocol_fee_pips'] else " + carve 0")
+                                     + (f" (pool already at {stored} pips)" if stored else "")),
+                "note": f"LP fee {b['fee_pips']} pips against a stored {stored} pips, plus a "
+                        f"protocol carve of {b['protocol_fee_pips']} pips "
+                        f"({numerator} / 1e6 of the LP fee, {numerator_source}), taken in "
+                        f"{b['taken_at']}"}
     lo = min(b["predicted_bps"] for b in branches)
     hi = max(b["predicted_bps"] for b in branches)
+    sides = {b["side"] for b in branches}
     return {"predicted_bps": None, "predicted_bps_range": [lo, hi], "detail": branches,
+            "side": sides.pop() if len(sides) == 1 else "unknown",
+            "declared_summary": f"LP {branches[0]['fee_pips']} pips + carve "
+                                f"{branches[0]['protocol_fee_pips']} pips",
             "note": "the token0/token1 selector is `internal` in this version, so both directional "
                     "branches are priced and the prediction is the interval between them"}
+
+
+PROTOCOL_FEE_NUMERATOR_READ = {
+    "name": "protocol_fee_numerator", "to": "hook",
+    "sigs": ["protocolFeeNumerator()", "PROTOCOL_FEE_NUMERATOR()"],
+    "sig": "PROTOCOL_FEE_NUMERATOR()", "arg": "none", "type": "uint",
+    "optional": True, "fallback": None,
+}
 
 
 CLANKER_V2 = {
@@ -103,6 +144,7 @@ CLANKER_V2 = {
         {"name": "paired_fee", "to": "hook", "sig": "pairedFee(bytes32)", "arg": "pool_id", "type": "uint"},
         {"name": "is_token0", "to": "hook", "sig": "clankerIsToken0(bytes32)", "arg": "pool_id",
          "type": "bool", "optional": True},
+        PROTOCOL_FEE_NUMERATOR_READ,
     ],
     "predict": clanker_predict,
     "citations": [
@@ -131,6 +173,10 @@ CLANKER_V2 = {
          "file": "src/hooks/ClankerHookV2.sol", "anchor": "MAX_LP_FEE = 100_000"},
         {"claim": "a MEV module may raise the fee for the first swaps of a pool's life",
          "file": "src/hooks/ClankerHookV2.sol", "anchor": "MAX_MEV_LP_FEE = 800_000"},
+        {"claim": "one deployment in this corpus is a fork where the 20 % carve is a "
+                  "per-deployment immutable instead of a constant",
+         "file": "src/hooks/ClankerHookV2.sol", "anchor": "uint256 public immutable protocolFeeNumerator",
+         "optional": True},
     ],
 }
 
@@ -150,6 +196,7 @@ CLANKER_V1 = {
         {"name": "paired_fee", "to": "hook", "sig": "pairedFee(bytes32)", "arg": "pool_id", "type": "uint"},
         {"name": "is_token0", "to": "hook", "sig": "clankerIsToken0(bytes32)", "arg": "pool_id",
          "type": "bool", "optional": True},
+        PROTOCOL_FEE_NUMERATOR_READ,
     ],
     "predict": clanker_predict,
     "citations": [
@@ -182,6 +229,7 @@ LIQUID_V2 = {
         {"name": "paired_fee", "to": "hook", "sig": "pairedFee(bytes32)", "arg": "pool_id", "type": "uint"},
         {"name": "is_token0", "to": "hook", "sig": "liquidIsToken0(bytes32)", "arg": "pool_id",
          "type": "bool", "optional": True},
+        PROTOCOL_FEE_NUMERATOR_READ,
     ],
     "predict": clanker_predict,
     "citations": [
@@ -211,8 +259,10 @@ def zora_predict(vals: dict, row: dict) -> dict:
     stored = int(row["stored_lp_fee"])
     fee = int(vals["lp_fee_pips"])
     ratio = lp_fee_ratio(fee, stored)
-    return {"predicted_bps": round(ratio_to_bps(ratio), 4),
-            "detail": {"fee_pips": fee, "taken_at": "beforeSwap (dynamic-fee override)"},
+    return {"predicted_bps": round(ratio_to_bps(ratio), 4), "side": "input",
+            "declared_summary": f"LP_FEE_V4 = {fee} pips (constant)",
+            "detail": {"fee_pips": fee, "stored_lp_fee_pips": stored,
+                       "taken_at": "beforeSwap (dynamic-fee override)", "side": "input"},
             "note": "steady-state fee; the first 10 seconds after a coin is created carry a "
                     "decaying launch fee that starts at 99 %"}
 
@@ -264,17 +314,19 @@ ZORA = {
 # so the number the hook will charge is readable by anyone, before swapping.
 
 def launchhook_predict(vals: dict, row: dict) -> dict:
+    """Exact-input model for LaunchHook. Field names come from the struct parsed out of the source."""
     cfg = vals["pool_config"]
     if not cfg["initialized"]:
-        return {"predicted_bps": 0.0,
+        return {"predicted_bps": 0.0, "side": "none",
+                "declared_summary": "pool not registered (initialized = false)",
                 "detail": {"initialized": False},
                 "note": "the pool is not registered with this hook, so both swap callbacks return "
                         "a zero delta on their first line — the code predicts exactly nothing taken"}
     block_ts = int(vals["block_timestamp"])
-    base = int(cfg["base_fee_bps"])
-    window = int(cfg["anti_snipe_window_seconds"])
-    start_total = int(cfg["anti_snipe_start_total_bps"])
-    launch = int(cfg["launch_time"])
+    base = int(cfg["baseFeeBps"])
+    window = int(cfg["antiSnipeWindowSeconds"])
+    start_total = int(cfg["antiSnipeStartTotalBps"])
+    launch = int(cfg["launchTime"])
     elapsed = block_ts - launch
     if window == 0 or elapsed >= window:
         total = base
@@ -283,10 +335,18 @@ def launchhook_predict(vals: dict, row: dict) -> dict:
         surcharge = (start_total - base) * (window - elapsed) // window
         total = min(base + surcharge, 9_900)
         phase = f"anti-snipe window open, {window - elapsed}s left"
-    return {"predicted_bps": float(total),
+    # Which side the fee lands on decides whether the pool's own price response can hide it.
+    # quoteCurrency = tokenIsCurrency0 ? currency1 : currency0 ; exact input specifies currency0
+    # when zeroForOne. If the quote currency IS the specified one, beforeSwap shaves the input.
+    quote_is_currency0 = not bool(cfg["tokenIsCurrency0"])
+    specified_is_currency0 = bool(row["zero_for_one"])
+    side = "input" if quote_is_currency0 == specified_is_currency0 else "output"
+    return {"predicted_bps": float(total), "side": side,
+            "declared_summary": f"baseFeeBps = {base}" + ("" if total == base else f" -> total {total}"),
             "detail": {"base_fee_bps": base, "total_fee_bps": total, "elapsed_s": elapsed,
-                       "window_s": window, "taken_at": "beforeSwap or afterSwap depending on which "
-                                                       "side is the quote currency"},
+                       "window_s": window, "token_is_currency0": bool(cfg["tokenIsCurrency0"]),
+                       "taken_at": "beforeSwap" if side == "input" else "afterSwap",
+                       "side": side},
             "note": phase}
 
 
@@ -306,7 +366,7 @@ LAUNCHHOOK = {
     "rate_unit": "bps (10 000 = 100 %)",
     "read": [
         {"name": "pool_config", "to": "hook", "sig": "poolConfig(bytes32)", "arg": "pool_id",
-         "type": "launchhook_config"},
+         "type": "struct", "struct": {"file": "src/LaunchHook.sol", "name": "PoolConfig"}},
     ],
     "needs_block_timestamp": True,
     "predict": launchhook_predict,
@@ -365,8 +425,9 @@ def doppler_predict(vals: dict, row: dict) -> dict:
         cur = start_fee - (start_fee - end_fee) * (block_ts - t0) // dur
         why = "mid-decay"
     # Exact input: the fee is taken out of the output, in the unspecified currency.
-    return {"predicted_bps": round(cur / 100.0, 4),
-            "detail": {"current_fee_pips": cur, "start_fee_pips": start_fee,
+    return {"predicted_bps": round(cur / 100.0, 4), "side": "output",
+            "declared_summary": f"endFee = {end_fee} pips" if cur == end_fee else f"fee = {cur} pips",
+            "detail": {"current_fee_pips": cur, "side": "output", "start_fee_pips": start_fee,
                        "end_fee_pips": end_fee, "duration_s": dur,
                        "delegate": vals.get("delegate"), "taken_at": "afterSwap"},
             "note": why}
@@ -435,7 +496,8 @@ DOPPLER = {
 # --------------------------------------------------------------------------------------------
 
 def zero_predict(vals: dict, row: dict) -> dict:
-    return {"predicted_bps": 0.0, "detail": {"swap_callbacks": 0},
+    return {"predicted_bps": 0.0, "side": "none", "detail": {"swap_callbacks": 0},
+            "declared_summary": "no swap callback exists",
             "note": "no swap callback exists in the code, so the code predicts a swap is untouched"}
 
 

@@ -24,6 +24,21 @@ from . import scan as scan_mod
 # rate for a reason the corpus already documents (LIMITS.md §6) and that is not a disagreement.
 TOL_BPS = 0.5
 
+# One unit of output is worth `10_000 / out` bps. A reference row whose rounding noise is a
+# meaningful fraction of the tolerance is not a fair place to hold a rate against a quote, so the
+# smallest size is skipped until the noise is below a tenth of the tolerance. One pool in this
+# corpus quotes 2 458 units of output at 1e14 in — a single wei there is 4 bps.
+QUANT_FRACTION = 0.1
+
+# How much a pool's quote responds to size, measured from the corpus itself:
+#   elasticity = (out(a2)/out(a1) - 1) / (a2/a1 - 1)   on the two smallest measured sizes.
+# A healthy pool sits at ~1.0. A pool whose quote is capped by the liquidity in range sits at ~1e-6:
+# ten times the input buys the same output. On such a pool a fee taken out of the INPUT cannot move
+# the quote at all, so the counterfactual cannot resolve it — that is NOT_RESOLVABLE, not a
+# disagreement with the code. In this corpus the two populations are separated by five orders of
+# magnitude (the highest "saturated" pool is 1.7e-5, the lowest healthy one 0.97).
+SATURATION_ELASTICITY = 0.05
+
 UNREAD = "comportement non lu"
 
 CONCORDANT = "CONCORDANT"
@@ -32,6 +47,7 @@ UNVERIFIED = "UNVERIFIED"
 NOT_MEASURABLE = "NOT_MEASURABLE"
 NO_CODE_RATE = "NO_CODE_RATE"
 PARTIAL = "PARTIAL"
+NOT_RESOLVABLE = "NOT_RESOLVABLE"
 
 
 def load_measurements(path: str) -> dict:
@@ -47,16 +63,49 @@ def load_measurements(path: str) -> dict:
     return by_hook
 
 
+def quantization_bps(row: dict) -> float:
+    """What one unit of output is worth, in bps, at this row's size."""
+    out = int(row["out_without"])
+    return (10_000.0 / out) if out else float("inf")
+
+
+def size_elasticity(rows: list):
+    """How much the pool's quote responds to size, from the two smallest measured rows."""
+    ms = sorted((r for r in rows if r.get("label") == "MEASURED"), key=lambda r: int(r["amount_in"]))
+    if len(ms) < 2:
+        return None
+    a1, a2 = int(ms[0]["amount_in"]), int(ms[1]["amount_in"])
+    o1, o2 = int(ms[0]["out_without"]), int(ms[1]["out_without"])
+    if o1 == 0 or a1 == 0 or a2 == a1:
+        return None
+    return ((o2 / o1) - 1.0) / ((a2 / a1) - 1.0)
+
+
 def reference_rows(rows: list) -> list:
-    """One row per pool: the smallest MEASURED size. Pools with no MEASURED row are skipped."""
-    best = {}
+    """One row per pool: the smallest MEASURED size whose rounding noise is below TOL_BPS/10.
+
+    Smallest-first, because price impact grows with size and the rate is the small-size limit. But
+    not blindly smallest: a pool quoting a few thousand units of output rounds away several bps.
+    If no size is clean enough, the largest is used and the row carries its `quantization_bps` so
+    the report can say so.
+    """
+    by_pool = {}
     for row in rows:
         if row.get("label") != "MEASURED":
             continue
-        key = row["pool_id"]
-        if key not in best or int(row["amount_in"]) < int(best[key]["amount_in"]):
-            best[key] = row
-    return [best[k] for k in sorted(best)]
+        by_pool.setdefault(row["pool_id"], []).append(row)
+    out = []
+    for pool_id in sorted(by_pool):
+        candidates = sorted(by_pool[pool_id], key=lambda r: int(r["amount_in"]))
+        clean = [r for r in candidates if quantization_bps(r) <= TOL_BPS * QUANT_FRACTION]
+        chosen = clean[0] if clean else candidates[-1]
+        chosen = dict(chosen)
+        chosen["_quantization_bps"] = round(quantization_bps(chosen), 4)
+        chosen["_quantization_clean"] = bool(clean)
+        chosen["_size_elasticity"] = size_elasticity(candidates)
+        chosen["_sizes_measured"] = len(candidates)
+        out.append(chosen)
+    return out
 
 
 def read_provenance(hook_dir: str):
@@ -117,6 +166,21 @@ def concordance_for_pool(prediction: dict, row: dict, tol: float = TOL_BPS) -> d
         return rec
     rec["note"] = prediction.get("note")
     rec["detail"] = prediction.get("detail")
+    rec["declared_summary"] = prediction.get("declared_summary")
+    rec["side"] = prediction.get("side")
+    rec["quantization_bps"] = row.get("_quantization_bps")
+    rec["size_elasticity"] = (round(row["_size_elasticity"], 8)
+                              if row.get("_size_elasticity") is not None else None)
+    side = prediction.get("side")
+    elasticity = row.get("_size_elasticity")
+    if side == "input" and elasticity is not None and elasticity < SATURATION_ELASTICITY:
+        # The pool's quote does not respond to size, so shrinking the input cannot move it.
+        rec.update(predicted_bps=prediction.get("predicted_bps"), verdict=NOT_RESOLVABLE,
+                   reason=(f"the quote at this pool is insensitive to size "
+                           f"(elasticity {elasticity:.3g}: ten times the input buys the same "
+                           f"output), and the code takes this fee out of the INPUT — so no "
+                           f"input-side rate can be resolved here"))
+        return rec
     if prediction.get("predicted_bps") is not None:
         pred = float(prediction["predicted_bps"])
         rec.update(predicted_bps=pred, delta_bps=round(measured - pred, 4),
@@ -139,19 +203,22 @@ def summarise(pool_records: list) -> dict:
     n_conc = verdicts.count(CONCORDANT)
     n_div = verdicts.count(DIVERGENT)
     n_unv = verdicts.count(UNVERIFIED)
+    n_nr = verdicts.count(NOT_RESOLVABLE)
+    n_comparable = n_conc + n_div
     if n == 0:
         label = NOT_MEASURABLE
-    elif n_conc == n:
+    elif n_comparable == 0:
+        label = NOT_RESOLVABLE if n_nr else UNVERIFIED
+    elif n_div == 0:
         label = CONCORDANT
-    elif n_conc == 0 and n_div == 0:
-        label = UNVERIFIED
     elif n_conc == 0:
         label = DIVERGENT
     else:
         label = PARTIAL
-    deltas = [abs(r["delta_bps"]) for r in pool_records if r.get("delta_bps") is not None]
+    deltas = [abs(r["delta_bps"]) for r in pool_records
+              if r.get("delta_bps") is not None and r.get("verdict") in (CONCORDANT, DIVERGENT)]
     return {"label": label, "pools": n, "concordant": n_conc, "divergent": n_div,
-            "unverified": n_unv,
+            "unverified": n_unv, "not_resolvable": n_nr, "comparable": n_comparable,
             "max_abs_delta_bps": round(max(deltas), 4) if deltas else None,
             "tolerance_bps": TOL_BPS}
 
@@ -207,7 +274,8 @@ def classify_hook(address: str, rows: list, sources_root: str, chain=None,
             "classification": "READ_UNPROFILED",
             "verdict": "source lu, aucun modele de taux ecrit pour ce hook",
             "concordance": {"label": NO_CODE_RATE, "pools": 0, "concordant": 0,
-                            "divergent": 0, "unverified": 0, "max_abs_delta_bps": None,
+                            "divergent": 0, "unverified": 0, "not_resolvable": 0,
+                            "comparable": 0, "max_abs_delta_bps": None,
                             "tolerance_bps": TOL_BPS},
             "pool_checks": [],
         })
@@ -228,7 +296,8 @@ def classify_hook(address: str, rows: list, sources_root: str, chain=None,
     delegate_dir = None
     if profile.get("predict") is None or not refs:
         base["concordance"] = {"label": NOT_MEASURABLE, "pools": 0, "concordant": 0,
-                               "divergent": 0, "unverified": 0, "max_abs_delta_bps": None,
+                               "divergent": 0, "unverified": 0, "not_resolvable": 0,
+                               "comparable": 0, "max_abs_delta_bps": None,
                                "tolerance_bps": TOL_BPS}
         base["pool_checks"] = []
         base["verdict"] = ("source lu ; aucune ligne MEASURED pour ce hook "
@@ -241,7 +310,7 @@ def classify_hook(address: str, rows: list, sources_root: str, chain=None,
                            "predicted_bps": None, "verdict": UNVERIFIED,
                            "reason": "no RPC was supplied, so no declared rate was read"})
             continue
-        declared = _read_declared(chain, profile, address, row)
+        declared = _read_declared(chain, profile, address, row, hook_dir)
         if not declared["ok"]:
             checks.append({"pool_id": row["pool_id"], "measured_bps": float(row["bps"]),
                            "predicted_bps": None, "verdict": UNVERIFIED,
@@ -266,10 +335,10 @@ def classify_hook(address: str, rows: list, sources_root: str, chain=None,
     return base
 
 
-def _read_declared(chain, profile, address, row):
+def _read_declared(chain, profile, address, row, hook_dir=None):
     from . import declared as declared_mod
     try:
-        return declared_mod.read_declared(chain, profile, address, row)
+        return declared_mod.read_declared(chain, profile, address, row, hook_dir=hook_dir)
     except Exception as exc:                                       # noqa: BLE001
         return {"ok": False, "values": {}, "calls": [],
                 "reason": f"{type(exc).__name__}: {exc}"}

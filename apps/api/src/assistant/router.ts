@@ -26,12 +26,35 @@ export interface AssistantDeps {
   sessions?: SessionStore;
   /** desactive CORS quand l'assistant est monte dans une app qui le gere deja */
   cors?: boolean;
+  /**
+   * Ce qui a ete branche comme planificateur, en clair, pour /health. C'est une
+   * DECLARATION de configuration, jamais une sonde : on n'appelle aucun fournisseur
+   * au demarrage, parce qu'un fournisseur joignable a 8h ne l'est pas forcement a la
+   * question suivante, et annoncer "ok" sur la foi d'une sonde ancienne serait mentir.
+   */
+  plannerInfo?: PlannerInfo;
 }
+
+/** Ce que /health dit du planificateur. Aucun secret n'y passe : des noms de modeles. */
+export interface PlannerInfo {
+  mode: "llm" | "deterministe";
+  providers: string[];
+  budget_ms: number;
+  why: string;
+}
+
+const DETERMINISTIC_INFO: PlannerInfo = {
+  mode: "deterministe",
+  providers: [],
+  budget_ms: 0,
+  why: "aucun planificateur LLM fourni a ce routeur : expressions regulieres seules",
+};
 
 export function createAssistantRouter(deps: AssistantDeps = {}) {
   const app = new Hono();
   const bag = deps.sessions ?? defaultSessions;
   const planner = deps.planner ?? deterministicPlanner;
+  const plannerInfo = deps.plannerInfo ?? DETERMINISTIC_INFO;
   if (deps.cors !== false) app.use("*", cors());
 
   app.get("/", (c) =>
@@ -77,6 +100,7 @@ export function createAssistantRouter(deps: AssistantDeps = {}) {
       graph: graph.stats,
       graph_builds: graphBuildCount(),
       sessions: bag.size(),
+      planner: plannerInfo,
     });
   });
 

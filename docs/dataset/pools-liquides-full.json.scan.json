@@ -1,0 +1,340 @@
+{
+ "block_number": 50614000,
+ "source_logs": "/Users/beorlor/Documents/ethonline/ETH_Online_2026/docs/dataset/init-logs-200k.json",
+ "n_hooked_pools": 18307,
+ "n_readable": 18243,
+ "n_liquid": 7817,
+ "n_zero_liquidity": 10426,
+ "n_unknown": 64,
+ "n_hooks_total": 1559,
+ "n_hooks_with_liquid_pool": 112,
+ "unknown_causes": [
+  [
+   "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB",
+   64
+  ]
+ ],
+ "unknown_pools": [
+  {
+   "pool_id": "0x078adedaebfa23a03c9f89aed695d6f700c19cfd564e9d543786d9ec7c767e69",
+   "hook": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x0611044ba9e158b0401fdd0640bc4cc4ddfd72ce34003a21687a4f4f942f48d1",
+   "hook": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0xd0452f1e0671ed99c9c1944c8b7c8c80b66cd71c9558e29afd1a73e236d3e276",
+   "hook": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x5da5309760d456133fffabc39f5c351d2e14042666aebdb970485c8ba12ad4a9",
+   "hook": "0xbdf938149ac6a781f94faa0ed45e6a0e984c6544",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0xae7abc8cc840177bc0fe93d249f247bca9c294997ff641467e3e763d075b44d6",
+   "hook": "0xbdf938149ac6a781f94faa0ed45e6a0e984c6544",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0xb38a50a3bbf2542830ef5899a2db25db02bc6bc46977f4cf112f0c51c8a2c7b4",
+   "hook": "0xbdf938149ac6a781f94faa0ed45e6a0e984c6544",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0xa710dba75ab3e153d9da890fb4c8ccad535f7f56c7ad660e02c11151423162df",
+   "hook": "0xbdf938149ac6a781f94faa0ed45e6a0e984c6544",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x10e644e0e8798b0a118a901504dfb26d5b6f83b0146cb29d73bdb623fc3bfbe9",
+   "hook": "0xd60d6b218116cfd801e28f78d011a203d2b068cc",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x80a039e247a1d0daf5d60b345eb2b9ebb9e79b38a2b2d785c0551332aa85edf3",
+   "hook": "0x0ae73dfa41f1acacf32ad050924384b295e968cc",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x5446d9f23ed6a0620fb7befd32482b6cde959bbc22c390d4872b0b098d887002",
+   "hook": "0xbdf938149ac6a781f94faa0ed45e6a0e984c6544",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x1f907503db9a77f2b4dd9571b936ece1233051703a5d0b2a5be79d345c6bfc12",
+   "hook": "0xbdf938149ac6a781f94faa0ed45e6a0e984c6544",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0xd65cb7c9364da19cffee671dd947b8f1819c926e90d0140d98f26a3fe7243107",
+   "hook": "0xbdf938149ac6a781f94faa0ed45e6a0e984c6544",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x34153f6b3f2826e8bb4d31c68f516f20429b34230f7aee1702777181ce68057f",
+   "hook": "0xbdf938149ac6a781f94faa0ed45e6a0e984c6544",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x16505b769cdea48e0c2ddbe3b9e922fd3ff089234ba6c79158f25ef30c7c45c5",
+   "hook": "0xbdf938149ac6a781f94faa0ed45e6a0e984c6544",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x390ac9a7d76d8861e428063ba9ed58eb6a761c3089f1099f0bf5a19f0b1b20ed",
+   "hook": "0x985c14baa2a18316ffda0aefb3a632fadfca2acc",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x331a17a5c16cf6ad415675d6b0f964a1e406b419e74538401b4356c74b4dd77b",
+   "hook": "0xbdf938149ac6a781f94faa0ed45e6a0e984c6544",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x5b31eb2b34afd0954ae22cf3e7cce2514cfc28c2ec8bccc03cea0858f9bb81cf",
+   "hook": "0x985c14baa2a18316ffda0aefb3a632fadfca2acc",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0xb74327a40787fe81f3054225b92deda2a30767c487431268476a159ddfb12e7f",
+   "hook": "0xbdf938149ac6a781f94faa0ed45e6a0e984c6544",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0xde8ad9284aefa2d72289a6bced4666e28036319e70442dd9ae1c1780a2bc36ae",
+   "hook": "0xbdf938149ac6a781f94faa0ed45e6a0e984c6544",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x5913c4d61987f2a2019866bbf35f641b7b3598b4a09482c791f04fddec1891e0",
+   "hook": "0xd60d6b218116cfd801e28f78d011a203d2b068cc",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x0a5c4eda346452908c3c07f19b4bc87b86ca7848525b80b03c46fb51f08f563a",
+   "hook": "0x3b2b979df21036cee51b8debb13100e2cb8deacc",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0xb704683efa6ad812f5113148845f97596b9f157695a8107662a098493b26d49c",
+   "hook": "0x985c14baa2a18316ffda0aefb3a632fadfca2acc",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x28dc3d1c55dbaae33e76bbe849dc07f33f689ff5e15c47ac7e38e3073776ceb9",
+   "hook": "0x0469a4bd3724dc86c9542f4694c976da13c450c0",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0xaf3cd5468ac6850fc5fbc1480768d676e618012a4ef4864510309ed810b316cb",
+   "hook": "0x19289590215e5788cd98b764af214ae306148040",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0xa9e55d40485a49898bef268266a3ea5f84f71c9ed5523f50c75c3c9483091240",
+   "hook": "0xbdf938149ac6a781f94faa0ed45e6a0e984c6544",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x72ec70419dd5e2f7213106d703db49c6a763cd10faeea3aae680f08d8def62e8",
+   "hook": "0xd60d6b218116cfd801e28f78d011a203d2b068cc",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x6b410e87a7270ba04eece62cc55ee8af48bc9ede80c9aa1cd361e61dd3dd6282",
+   "hook": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0xa0b2850468abe2118ed3706d2db9d7a2dfeb2aac1e469b3bc4b8e756030cdef7",
+   "hook": "0xbdf938149ac6a781f94faa0ed45e6a0e984c6544",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0xe3f323c7733960d5272b0aafac6064e0bd1d002dd2260903c84e412f0db96989",
+   "hook": "0xbb7784a4d481184283ed89619a3e3ed143e1adc0",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x5e0f077c7bd5439d6e9956cc85c88cce44a301a280220ab38568259cca57adae",
+   "hook": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x948ca60e58ae5980107ee1fd829294f38bbb125efd916d77b50f01f6f9d28983",
+   "hook": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0xe41b4d5eaa25ce4bdf21928a54bde0f0b83a273acd2818bd6fade4a9e976abe4",
+   "hook": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0xfaf4ce54fcd9528960fdb4a2b7543d65f898ae8a2bfa68b1daa34f0a151ecb3e",
+   "hook": "0xbdf938149ac6a781f94faa0ed45e6a0e984c6544",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0xc6ef2cf432f5375b5a4ac66c1a60c2126799c8791e9a27fb74babacc869c08e1",
+   "hook": "0x0469a4bd3724dc86c9542f4694c976da13c450c0",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0xb5ae8fdb792db11cef6a21f4aeda8a79eb84faf4cb908290d1002cfa6c2e762d",
+   "hook": "0x0469a4bd3724dc86c9542f4694c976da13c450c0",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x745278abd427c62e6fce97a665505c00b8b01b7c9f18daaf09a42b2d83139801",
+   "hook": "0xbdf938149ac6a781f94faa0ed45e6a0e984c6544",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x37b11ac9b96886250f5484bb2df3dee4065e67c3dd2dd2b1135f4fae9aa64c5a",
+   "hook": "0xbdf938149ac6a781f94faa0ed45e6a0e984c6544",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x2cd285a312f25c27ec5ca7386c80772f310f0cf7b7cd5e5feb520e960860b224",
+   "hook": "0x89c20ee24b2949039faa713465fb27d3f5ec00cc",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x6640b53c40483d2ba1bf111263e19c5f9ad4c406bafefdedc270a01e2503a310",
+   "hook": "0x23321f11a6d44fd1ab790044fdfde5758c902fdc",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x0c7d544c209e792ef860ba950b5feaca78783d4ca106f49aee88cc9c6da433e9",
+   "hook": "0x1276418761022ec4c87658a15a65e496770300cc",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x04fb18d5a6d1b8cbbb4e639cc6877bbf7cd64026734567775d2815a1d803a3ed",
+   "hook": "0x1aea38f06dece45c252ef1ac5af989d51dc8e8cc",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x10772459dc12ffdb534be128f6d7a023ae59c3744d867765d9a3aeb25e1a520e",
+   "hook": "0x0469a4bd3724dc86c9542f4694c976da13c450c0",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x890b580f7913da979f9874ecef68a66b758456db0054c91d9ca8f8c95be1e9c8",
+   "hook": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x7571ba3ec8cea6edcc9993fd387f032502da7ce3a0177858d27a911df1454b24",
+   "hook": "0x0469a4bd3724dc86c9542f4694c976da13c450c0",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x985739f02290676b905db2e2f972797b212c25a04544380569de196b1fd2757c",
+   "hook": "0x588c683ecc450f8b2aadb13d7f63792b840425dc",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x6d0cbe2ee48221615f3b694ee947014e5025501ead361ee00b5339b7cffe459f",
+   "hook": "0x0469a4bd3724dc86c9542f4694c976da13c450c0",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0xdb3bb31224f5cd28ed0d24c2c09dc4e17473bead4d3245d83561bf976057b862",
+   "hook": "0xbdf938149ac6a781f94faa0ed45e6a0e984c6544",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x9155acb5c23868d53c5ff39c6dc1f8c29171def90845b6c968e3c773cb4abeba",
+   "hook": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x74467603b950e2194f82097518ca24ef0d99a6222294507c3c48ea76e3f7b229",
+   "hook": "0x84bbab8cac69bf6711ba81f9915dc346f4cf2088",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x66bc269b7d886a348c2af417123e8d2d554e6dd2c8f8bd7b8ea12cb579e6a6ba",
+   "hook": "0x2ffefa7824f556c10dedf5c39402f003beef80cc",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x6b503e0fa1d91e18e295c0afa91a83dec502ef2b975c459882512820cb6c15ca",
+   "hook": "0x0469a4bd3724dc86c9542f4694c976da13c450c0",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0xff77131a1a19b5517804be92d89500c38dfcd36972f877e1c7922b7c81b92215",
+   "hook": "0xbdf938149ac6a781f94faa0ed45e6a0e984c6544",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x8cfaa94b5c2447a671880edb30a4fbaa666850822a250e89c01189d01befe09e",
+   "hook": "0xbdf938149ac6a781f94faa0ed45e6a0e984c6544",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x3a558b03c0c1c624e7a463a38b115cb54825af2341759ac3b7a08f5bd4991839",
+   "hook": "0xbdf938149ac6a781f94faa0ed45e6a0e984c6544",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0xd9c20ca74a225d9326c5da4cdc81d19d3615bc4627f3bcdb406eb761875d4071",
+   "hook": "0x0469a4bd3724dc86c9542f4694c976da13c450c0",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x35d5f3f452423afd289b8ae1d7a73ef6b7896bdc5ca61a4659f997954fdf0cd6",
+   "hook": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x12ff7832d08a816d895ecbce4b40a77122aa7edf2b5438b3ff4cc12d79ccd2bd",
+   "hook": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0xa2dd1b001776a4c8b86f230bb1c4f2acf0b64745c267727f1fa55f6ba28c8c99",
+   "hook": "0xbdf938149ac6a781f94faa0ed45e6a0e984c6544",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x0c0fd0542af36e6dd93edc490e29715fc134941f02f7af2829d917e338cd485f",
+   "hook": "0x0469a4bd3724dc86c9542f4694c976da13c450c0",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x4ad5e4b3843c9eacbc2883b3290c7c797b17643b45cc8ebc4bbc6064d5874cd9",
+   "hook": "0x0469a4bd3724dc86c9542f4694c976da13c450c0",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x190675bb60aa56774f2985fee6575d8413b46bd1b2dfcd9e2cf97516474d56ed",
+   "hook": "0x0469a4bd3724dc86c9542f4694c976da13c450c0",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x19bfcf8effe9849e6ee56a48e3adf8fc86eb9c3b97965fc3363f610898092aef",
+   "hook": "0x84bbab8cac69bf6711ba81f9915dc346f4cf2088",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0x3bc2b65d8571b710d8a59da7f0fb491308ad016ac292294f5f74db539449d179",
+   "hook": "0x9811f10cd549c754fa9e5785989c422a762c28cc",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  },
+  {
+   "pool_id": "0xfa1759b14093efead34b6a4989414a94a0c53813d7d088e5c2ca904ffbd234e3",
+   "hook": "0x33ccaf1c84ef14a06c2ac81bd384eb6900368040",
+   "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+  }
+ ],
+ "replay": "python3 -m tare.rescan /Users/beorlor/Documents/ethonline/ETH_Online_2026/docs/dataset/init-logs-200k.json /Users/beorlor/Documents/ethonline/ETH_Online_2026/docs/dataset/pools-liquides-full.json 50614000 12"
+}

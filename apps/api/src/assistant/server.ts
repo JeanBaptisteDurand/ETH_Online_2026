@@ -13,12 +13,24 @@ import { cors } from "hono/cors";
 import { registerAssistant } from "./router.js";
 import { getStore } from "./store.js";
 import { getGraph } from "./graph.js";
+import { plannerFromEnv } from "./llm.js";
 
 const port = Number(process.env.ASSISTANT_PORT ?? 8788);
+
+// LE PLANIFICATEUR REEL. Ollama d'abord (local, gratuit), OpenAI en repli, et le
+// deterministe reste le filet en dessous des deux. On ne sonde aucun fournisseur ici :
+// ce qui est imprime est ce qui est CONFIGURE, pas ce qui est joignable. Chaque question
+// dira elle-meme, dans `degraded`, si elle a du retomber.
+const { planner, mode, providers, budget_ms, why } = plannerFromEnv();
+
 const app = new Hono();
 app.use("*", cors());
 app.get("/", (c) => c.redirect("/assistant"));
-registerAssistant(app, { cors: false });
+registerAssistant(app, {
+  cors: false,
+  planner,
+  plannerInfo: { mode, providers, budget_ms, why },
+});
 
 // On chauffe le modele de lecture et le graphe AU DEMARRAGE, une fois. Les reconstruire
 // a chaque requete serait le bug du RAG COBOL de reference : 102 ms de CPU brules par appel.
@@ -29,6 +41,11 @@ console.log(
     `${graph.stats.pools} pools, ${graph.stats.tokens} tokens, registre: ${store.registry.entries} fiches`,
 );
 if (!store.complete) console.warn(`[assistant] LECTURE PARTIELLE : ${store.incomplete_reason}`);
+console.log(
+  `[assistant] planificateur ${mode}` +
+    (providers.length ? ` — ${providers.join(" puis ")}, budget ${budget_ms} ms` : "") +
+    ` (${why})`,
+);
 console.log(`[assistant] http://127.0.0.1:${port}/assistant`);
 
 serve({ fetch: app.fetch, port });

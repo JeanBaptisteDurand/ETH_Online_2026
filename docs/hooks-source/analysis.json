@@ -8,9 +8,9 @@
     {
       "hook": "0x0469a4bd3724dc86c9542f4694c976da13c450c0",
       "registry_name": "Zora Hook",
-      "rows": 260,
+      "rows": 274,
       "pools": 52,
-      "measured_rows": 255,
+      "measured_rows": 269,
       "measured_bps_median": 100.0,
       "source_status": "FOUND",
       "source_provider": "sourcify",
@@ -192,8 +192,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99941206,
           "predicted_bps": 100.0,
           "delta_bps": -0.0058,
           "verdict": "CONCORDANT",
@@ -208,8 +212,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99960564,
           "predicted_bps": 100.0,
           "delta_bps": -0.0039,
           "verdict": "CONCORDANT",
@@ -224,8 +232,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -240,8 +252,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0009,
+          "size_elasticity": 1.00000003,
           "predicted_bps": 100.0,
           "delta_bps": 0.0004,
           "verdict": "CONCORDANT",
@@ -256,8 +272,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -272,8 +292,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -288,8 +312,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0007,
+          "size_elasticity": 1.00000003,
           "predicted_bps": 100.0,
           "delta_bps": 0.0002,
           "verdict": "CONCORDANT",
@@ -304,8 +332,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99852477,
           "predicted_bps": 100.0,
           "delta_bps": -0.0146,
           "verdict": "CONCORDANT",
@@ -320,8 +352,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -336,8 +372,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -352,8 +392,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -368,8 +412,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -384,8 +432,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -400,8 +452,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -416,8 +472,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -432,8 +492,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -448,8 +512,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -464,8 +532,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -480,8 +552,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -496,8 +572,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -512,8 +592,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -528,8 +612,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -544,8 +632,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99999993,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -560,8 +652,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -576,8 +672,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -592,8 +692,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -608,8 +712,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -624,8 +732,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99999993,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -640,8 +752,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -656,8 +772,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -672,8 +792,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -688,8 +812,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -697,15 +825,19 @@
         },
         {
           "pool_id": "0x9009ff6842e4b0e4d2c615ab3da9b9fff3a07ef4b0dab5be0bf93323181dd9fb",
-          "amount_in": "100000000000000",
+          "amount_in": "1000000000000",
           "zero_for_one": true,
           "stored_lp_fee": 0,
           "measured_bps": 100.0,
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -720,8 +852,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99820654,
           "predicted_bps": 100.0,
           "delta_bps": -0.0178,
           "verdict": "CONCORDANT",
@@ -736,8 +872,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -752,8 +892,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -768,8 +912,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -784,8 +932,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99795105,
           "predicted_bps": 100.0,
           "delta_bps": -0.0203,
           "verdict": "CONCORDANT",
@@ -800,8 +952,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99933712,
           "predicted_bps": 100.0,
           "delta_bps": -0.0066,
           "verdict": "CONCORDANT",
@@ -816,8 +972,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99955541,
           "predicted_bps": 100.0,
           "delta_bps": -0.0044,
           "verdict": "CONCORDANT",
@@ -832,8 +992,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -848,8 +1012,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -864,8 +1032,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -873,15 +1045,19 @@
         },
         {
           "pool_id": "0xc80a36de314b383bc3c1f2ab2ae259d79e9a0c1c28a0990190cae82c8bf4e78f",
-          "amount_in": "100000000000000",
+          "amount_in": "1000000000000",
           "zero_for_one": true,
           "stored_lp_fee": 0,
           "measured_bps": 100.0,
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": null,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -896,8 +1072,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -912,8 +1092,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -928,8 +1112,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -944,8 +1132,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -960,8 +1152,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -976,8 +1172,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -992,8 +1192,12 @@
           "note": "steady-state fee; the first 10 seconds after a coin is created carry a decaying launch fee that starts at 99 %",
           "detail": {
             "fee_pips": 10000,
-            "taken_at": "beforeSwap (dynamic-fee override)"
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap (dynamic-fee override)",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.0,
           "predicted_bps": 100.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -1006,6 +1210,8 @@
         "concordant": 51,
         "divergent": 0,
         "unverified": 0,
+        "not_resolvable": 0,
+        "comparable": 51,
         "max_abs_delta_bps": 0.0203,
         "tolerance_bps": 0.5
       }
@@ -1235,6 +1441,14 @@
           "line": 48,
           "text": "uint24 public constant MAX_MEV_LP_FEE = 800_000; // Max MEV LP fee at 80%",
           "status": "OK"
+        },
+        {
+          "claim": "one deployment in this corpus is a fork where the 20 % carve is a per-deployment immutable instead of a constant",
+          "file": "src/hooks/ClankerHookV2.sol",
+          "anchor": "uint256 public immutable protocolFeeNumerator",
+          "line": 56,
+          "text": "uint256 public immutable protocolFeeNumerator;",
+          "status": "OK"
         }
       ],
       "pool_checks": [
@@ -1244,17 +1458,23 @@
           "zero_for_one": false,
           "stored_lp_fee": 0,
           "measured_bps": 99.9926,
-          "note": "LP fee 10000 pips + protocol fee 2000 pips taken in beforeSwap",
+          "note": "LP fee 10000 pips against a stored 0 pips, plus a protocol carve of 0 pips (0 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
           "detail": {
             "is_token0": true,
             "fee_pips": 10000,
-            "protocol_fee_pips": 2000,
+            "protocol_fee_pips": 0,
+            "protocol_fee_numerator": 0,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 0,
             "taken_at": "beforeSwap",
-            "predicted_bps": 119.7605
+            "side": "input",
+            "predicted_bps": 100.0
           },
-          "predicted_bps": 119.7605,
-          "delta_bps": -19.7679,
-          "verdict": "DIVERGENT",
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99925206,
+          "predicted_bps": 100.0,
+          "delta_bps": -0.0074,
+          "verdict": "CONCORDANT",
           "declared_calls": [
             {
               "name": "token_fee",
@@ -1273,6 +1493,12 @@
               "to": "0x1aea38f06dece45c252ef1ac5af989d51dc8e8cc",
               "sig": "clankerIsToken0(bytes32)",
               "data": "0x07eda3da706140c978c382cda318ba3d1282368231e580a3d7b13803d09ca3593caca8cf"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0x1aea38f06dece45c252ef1ac5af989d51dc8e8cc",
+              "sig": "protocolFeeNumerator()",
+              "data": "0xf5197d58"
             }
           ]
         },
@@ -1282,30 +1508,23 @@
           "zero_for_one": false,
           "stored_lp_fee": 0,
           "measured_bps": 689.9519,
-          "note": "the token0/token1 selector is `internal` in this version, so both directional branches are priced and the prediction is the interval between them",
-          "detail": [
-            {
-              "is_token0": true,
-              "fee_pips": 69000,
-              "protocol_fee_pips": 13800,
-              "taken_at": "beforeSwap",
-              "predicted_bps": 816.7291
-            },
-            {
-              "is_token0": false,
-              "fee_pips": 69000,
-              "protocol_fee_pips": 13800,
-              "taken_at": "afterSwap",
-              "predicted_bps": 818.478
-            }
-          ],
-          "predicted_bps": null,
-          "predicted_bps_range": [
-            816.7291,
-            818.478
-          ],
-          "delta_bps": 126.7772,
-          "verdict": "DIVERGENT",
+          "note": "LP fee 69000 pips against a stored 0 pips, plus a protocol carve of 0 pips (0 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
+          "detail": {
+            "is_token0": true,
+            "fee_pips": 69000,
+            "protocol_fee_pips": 0,
+            "protocol_fee_numerator": 0,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap",
+            "side": "input",
+            "predicted_bps": 690.0
+          },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99925206,
+          "predicted_bps": 690.0,
+          "delta_bps": -0.0481,
+          "verdict": "CONCORDANT",
           "declared_calls": [
             {
               "name": "token_fee",
@@ -1323,18 +1542,26 @@
               "name": "is_token0",
               "to": "0x1aea38f06dece45c252ef1ac5af989d51dc8e8cc",
               "sig": "clankerIsToken0(bytes32)",
-              "unavailable": "RateLimited: HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+              "data": "0x07eda3dad996ff76787c7c520483fe0164699395cc89bfcb6fc4bdba2820771f127fa300"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0x1aea38f06dece45c252ef1ac5af989d51dc8e8cc",
+              "sig": "protocolFeeNumerator()",
+              "data": "0xf5197d58"
             }
           ]
         }
       ],
       "concordance": {
-        "label": "DIVERGENT",
+        "label": "CONCORDANT",
         "pools": 2,
-        "concordant": 0,
-        "divergent": 2,
+        "concordant": 2,
+        "divergent": 0,
         "unverified": 0,
-        "max_abs_delta_bps": 126.7772,
+        "not_resolvable": 0,
+        "comparable": 2,
+        "max_abs_delta_bps": 0.0481,
         "tolerance_bps": 0.5
       }
     },
@@ -1509,10 +1736,33 @@
       "pool_checks": [
         {
           "pool_id": "0x5110f10d5ef39d1e417f35ab690a5f2438c7c31caab3e43fe0398f618505ce12",
+          "amount_in": "100000000000000",
+          "zero_for_one": true,
+          "stored_lp_fee": 0,
           "measured_bps": 0.0007,
-          "predicted_bps": null,
-          "verdict": "UNVERIFIED",
-          "reason": "could not read the block timestamp: HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+          "note": "steady state (anti-snipe window closed)",
+          "detail": {
+            "base_fee_bps": 100,
+            "total_fee_bps": 100,
+            "elapsed_s": 169906,
+            "window_s": 16,
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
+          },
+          "quantization_bps": 0.0,
+          "size_elasticity": 7.3e-07,
+          "predicted_bps": 100.0,
+          "verdict": "NOT_RESOLVABLE",
+          "reason": "the quote at this pool is insensitive to size (elasticity 7.32e-07: ten times the input buys the same output), and the code takes this fee out of the INPUT \u2014 so no input-side rate can be resolved here",
+          "declared_calls": [
+            {
+              "name": "pool_config",
+              "to": "0x3b2b979df21036cee51b8debb13100e2cb8deacc",
+              "sig": "poolConfig(bytes32)",
+              "data": "0x0885f7325110f10d5ef39d1e417f35ab690a5f2438c7c31caab3e43fe0398f618505ce12"
+            }
+          ]
         },
         {
           "pool_id": "0x8ffcf6bbe89c36ab57d5b0d8459e3239e55bb240b458301bc871c9c49096facd",
@@ -1526,11 +1776,15 @@
             "total_fee_bps": 100,
             "elapsed_s": 169340,
             "window_s": 16,
-            "taken_at": "beforeSwap or afterSwap depending on which side is the quote currency"
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 7.3e-07,
           "predicted_bps": 100.0,
-          "delta_bps": -99.9993,
-          "verdict": "DIVERGENT",
+          "verdict": "NOT_RESOLVABLE",
+          "reason": "the quote at this pool is insensitive to size (elasticity 7.32e-07: ten times the input buys the same output), and the code takes this fee out of the INPUT \u2014 so no input-side rate can be resolved here",
           "declared_calls": [
             {
               "name": "pool_config",
@@ -1552,11 +1806,15 @@
             "total_fee_bps": 100,
             "elapsed_s": 170560,
             "window_s": 16,
-            "taken_at": "beforeSwap or afterSwap depending on which side is the quote currency"
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 7.5e-07,
           "predicted_bps": 100.0,
-          "delta_bps": -99.9992,
-          "verdict": "DIVERGENT",
+          "verdict": "NOT_RESOLVABLE",
+          "reason": "the quote at this pool is insensitive to size (elasticity 7.47e-07: ten times the input buys the same output), and the code takes this fee out of the INPUT \u2014 so no input-side rate can be resolved here",
           "declared_calls": [
             {
               "name": "pool_config",
@@ -1578,11 +1836,15 @@
             "total_fee_bps": 100,
             "elapsed_s": 165478,
             "window_s": 16,
-            "taken_at": "beforeSwap or afterSwap depending on which side is the quote currency"
+            "token_is_currency0": true,
+            "taken_at": "beforeSwap",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.84e-06,
           "predicted_bps": 100.0,
-          "delta_bps": -99.9981,
-          "verdict": "DIVERGENT",
+          "verdict": "NOT_RESOLVABLE",
+          "reason": "the quote at this pool is insensitive to size (elasticity 1.84e-06: ten times the input buys the same output), and the code takes this fee out of the INPUT \u2014 so no input-side rate can be resolved here",
           "declared_calls": [
             {
               "name": "pool_config",
@@ -1594,12 +1856,14 @@
         }
       ],
       "concordance": {
-        "label": "DIVERGENT",
+        "label": "NOT_RESOLVABLE",
         "pools": 4,
         "concordant": 0,
-        "divergent": 3,
-        "unverified": 1,
-        "max_abs_delta_bps": 99.9993,
+        "divergent": 0,
+        "unverified": 0,
+        "not_resolvable": 4,
+        "comparable": 0,
+        "max_abs_delta_bps": null,
         "tolerance_bps": 0.5
       }
     },
@@ -1784,14 +2048,20 @@
           "zero_for_one": true,
           "stored_lp_fee": 10000,
           "measured_bps": 19.9583,
-          "note": "LP fee 10000 pips + protocol fee 2000 pips taken in beforeSwap",
+          "note": "LP fee 10000 pips against a stored 10000 pips, plus a protocol carve of 2000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
           "detail": {
             "is_token0": false,
             "fee_pips": 10000,
             "protocol_fee_pips": 2000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 10000,
             "taken_at": "beforeSwap",
+            "side": "input",
             "predicted_bps": 19.9601
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99910121,
           "predicted_bps": 19.9601,
           "delta_bps": -0.0018,
           "verdict": "CONCORDANT",
@@ -1813,26 +2083,38 @@
               "to": "0x9811f10cd549c754fa9e5785989c422a762c28cc",
               "sig": "liquidIsToken0(bytes32)",
               "data": "0xc25274273cfa8fbe43657c466ebb19f6975e3a49c01a2c4d179d8618c8921cbf8786a862"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0x9811f10cd549c754fa9e5785989c422a762c28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
         {
           "pool_id": "0x7a0ae21e99e6959754be1646378f298745aabf3b5e08e65300d9a69394295cd3",
-          "amount_in": "100000000000000",
+          "amount_in": "10000000000000000",
           "zero_for_one": true,
           "stored_lp_fee": 10000,
-          "measured_bps": 16.2734,
-          "note": "LP fee 10000 pips + protocol fee 2000 pips taken in afterSwap",
+          "measured_bps": 19.97,
+          "note": "LP fee 10000 pips against a stored 10000 pips, plus a protocol carve of 2000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in afterSwap",
           "detail": {
             "is_token0": true,
             "fee_pips": 10000,
             "protocol_fee_pips": 2000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 10000,
             "taken_at": "afterSwap",
+            "side": "output",
             "predicted_bps": 20.0
           },
+          "quantization_bps": 0.0407,
+          "size_elasticity": 1.00027122,
           "predicted_bps": 20.0,
-          "delta_bps": -3.7266,
-          "verdict": "DIVERGENT",
+          "delta_bps": -0.03,
+          "verdict": "CONCORDANT",
           "declared_calls": [
             {
               "name": "token_fee",
@@ -1851,26 +2133,38 @@
               "to": "0x9811f10cd549c754fa9e5785989c422a762c28cc",
               "sig": "liquidIsToken0(bytes32)",
               "data": "0xc25274277a0ae21e99e6959754be1646378f298745aabf3b5e08e65300d9a69394295cd3"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0x9811f10cd549c754fa9e5785989c422a762c28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
         {
           "pool_id": "0x9a823bf1b149b67c2a2fadd6e3a06d52c553624d3c8b45549601ce427f8f5523",
-          "amount_in": "100000000000000",
+          "amount_in": "10000000000000000",
           "zero_for_one": true,
           "stored_lp_fee": 10000,
-          "measured_bps": 16.2734,
-          "note": "LP fee 10000 pips + protocol fee 2000 pips taken in afterSwap",
+          "measured_bps": 19.97,
+          "note": "LP fee 10000 pips against a stored 10000 pips, plus a protocol carve of 2000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in afterSwap",
           "detail": {
             "is_token0": true,
             "fee_pips": 10000,
             "protocol_fee_pips": 2000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 10000,
             "taken_at": "afterSwap",
+            "side": "output",
             "predicted_bps": 20.0
           },
+          "quantization_bps": 0.0407,
+          "size_elasticity": 1.00027122,
           "predicted_bps": 20.0,
-          "delta_bps": -3.7266,
-          "verdict": "DIVERGENT",
+          "delta_bps": -0.03,
+          "verdict": "CONCORDANT",
           "declared_calls": [
             {
               "name": "token_fee",
@@ -1889,6 +2183,12 @@
               "to": "0x9811f10cd549c754fa9e5785989c422a762c28cc",
               "sig": "liquidIsToken0(bytes32)",
               "data": "0xc25274279a823bf1b149b67c2a2fadd6e3a06d52c553624d3c8b45549601ce427f8f5523"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0x9811f10cd549c754fa9e5785989c422a762c28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
@@ -1898,14 +2198,20 @@
           "zero_for_one": true,
           "stored_lp_fee": 10000,
           "measured_bps": 19.9583,
-          "note": "LP fee 10000 pips + protocol fee 2000 pips taken in beforeSwap",
+          "note": "LP fee 10000 pips against a stored 10000 pips, plus a protocol carve of 2000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
           "detail": {
             "is_token0": false,
             "fee_pips": 10000,
             "protocol_fee_pips": 2000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 10000,
             "taken_at": "beforeSwap",
+            "side": "input",
             "predicted_bps": 19.9601
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99910121,
           "predicted_bps": 19.9601,
           "delta_bps": -0.0018,
           "verdict": "CONCORDANT",
@@ -1927,17 +2233,25 @@
               "to": "0x9811f10cd549c754fa9e5785989c422a762c28cc",
               "sig": "liquidIsToken0(bytes32)",
               "data": "0xc2527427fb86bb1089cd518b8cb89fca3ff96a1ac93375344d47ff59d84c359779551774"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0x9811f10cd549c754fa9e5785989c422a762c28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         }
       ],
       "concordance": {
-        "label": "PARTIAL",
+        "label": "CONCORDANT",
         "pools": 4,
-        "concordant": 2,
-        "divergent": 2,
+        "concordant": 4,
+        "divergent": 0,
         "unverified": 0,
-        "max_abs_delta_bps": 3.7266,
+        "not_resolvable": 0,
+        "comparable": 4,
+        "max_abs_delta_bps": 0.03,
         "tolerance_bps": 0.5
       }
     },
@@ -2122,8 +2436,12 @@
             "total_fee_bps": 100,
             "elapsed_s": 159154,
             "window_s": 16,
-            "taken_at": "beforeSwap or afterSwap depending on which side is the quote currency"
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99955278,
           "predicted_bps": 100.0,
           "delta_bps": -0.0044,
           "verdict": "CONCORDANT",
@@ -2148,8 +2466,12 @@
             "total_fee_bps": 100,
             "elapsed_s": 150226,
             "window_s": 16,
-            "taken_at": "beforeSwap or afterSwap depending on which side is the quote currency"
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99955504,
           "predicted_bps": 100.0,
           "delta_bps": -0.0044,
           "verdict": "CONCORDANT",
@@ -2174,8 +2496,12 @@
             "total_fee_bps": 100,
             "elapsed_s": 137898,
             "window_s": 16,
-            "taken_at": "beforeSwap or afterSwap depending on which side is the quote currency"
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99955278,
           "predicted_bps": 100.0,
           "delta_bps": -0.0044,
           "verdict": "CONCORDANT",
@@ -2200,8 +2526,12 @@
             "total_fee_bps": 100,
             "elapsed_s": 169708,
             "window_s": 16,
-            "taken_at": "beforeSwap or afterSwap depending on which side is the quote currency"
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99955278,
           "predicted_bps": 100.0,
           "delta_bps": -0.0044,
           "verdict": "CONCORDANT",
@@ -2226,8 +2556,12 @@
             "total_fee_bps": 100,
             "elapsed_s": 159670,
             "window_s": 16,
-            "taken_at": "beforeSwap or afterSwap depending on which side is the quote currency"
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99955278,
           "predicted_bps": 100.0,
           "delta_bps": -0.0044,
           "verdict": "CONCORDANT",
@@ -2252,8 +2586,12 @@
             "total_fee_bps": 100,
             "elapsed_s": 159336,
             "window_s": 16,
-            "taken_at": "beforeSwap or afterSwap depending on which side is the quote currency"
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99955278,
           "predicted_bps": 100.0,
           "delta_bps": -0.0044,
           "verdict": "CONCORDANT",
@@ -2278,8 +2616,12 @@
             "total_fee_bps": 100,
             "elapsed_s": 169822,
             "window_s": 16,
-            "taken_at": "beforeSwap or afterSwap depending on which side is the quote currency"
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99955278,
           "predicted_bps": 100.0,
           "delta_bps": -0.0044,
           "verdict": "CONCORDANT",
@@ -2304,8 +2646,12 @@
             "total_fee_bps": 100,
             "elapsed_s": 158528,
             "window_s": 16,
-            "taken_at": "beforeSwap or afterSwap depending on which side is the quote currency"
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99955278,
           "predicted_bps": 100.0,
           "delta_bps": -0.0044,
           "verdict": "CONCORDANT",
@@ -2330,8 +2676,12 @@
             "total_fee_bps": 100,
             "elapsed_s": 169886,
             "window_s": 16,
-            "taken_at": "beforeSwap or afterSwap depending on which side is the quote currency"
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99955278,
           "predicted_bps": 100.0,
           "delta_bps": -0.0044,
           "verdict": "CONCORDANT",
@@ -2356,8 +2706,12 @@
             "total_fee_bps": 100,
             "elapsed_s": 137994,
             "window_s": 16,
-            "taken_at": "beforeSwap or afterSwap depending on which side is the quote currency"
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99955278,
           "predicted_bps": 100.0,
           "delta_bps": -0.0044,
           "verdict": "CONCORDANT",
@@ -2382,8 +2736,12 @@
             "total_fee_bps": 100,
             "elapsed_s": 138122,
             "window_s": 16,
-            "taken_at": "beforeSwap or afterSwap depending on which side is the quote currency"
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99955278,
           "predicted_bps": 100.0,
           "delta_bps": -0.0044,
           "verdict": "CONCORDANT",
@@ -2408,8 +2766,12 @@
             "total_fee_bps": 100,
             "elapsed_s": 170880,
             "window_s": 16,
-            "taken_at": "beforeSwap or afterSwap depending on which side is the quote currency"
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99955278,
           "predicted_bps": 100.0,
           "delta_bps": -0.0044,
           "verdict": "CONCORDANT",
@@ -2434,8 +2796,12 @@
             "total_fee_bps": 100,
             "elapsed_s": 138126,
             "window_s": 16,
-            "taken_at": "beforeSwap or afterSwap depending on which side is the quote currency"
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99955278,
           "predicted_bps": 100.0,
           "delta_bps": -0.0044,
           "verdict": "CONCORDANT",
@@ -2460,8 +2826,12 @@
             "total_fee_bps": 100,
             "elapsed_s": 170064,
             "window_s": 16,
-            "taken_at": "beforeSwap or afterSwap depending on which side is the quote currency"
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99955278,
           "predicted_bps": 100.0,
           "delta_bps": -0.0044,
           "verdict": "CONCORDANT",
@@ -2486,8 +2856,12 @@
             "total_fee_bps": 100,
             "elapsed_s": 170848,
             "window_s": 16,
-            "taken_at": "beforeSwap or afterSwap depending on which side is the quote currency"
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99955278,
           "predicted_bps": 100.0,
           "delta_bps": -0.0044,
           "verdict": "CONCORDANT",
@@ -2512,8 +2886,12 @@
             "total_fee_bps": 100,
             "elapsed_s": 170524,
             "window_s": 16,
-            "taken_at": "beforeSwap or afterSwap depending on which side is the quote currency"
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99955278,
           "predicted_bps": 100.0,
           "delta_bps": -0.0044,
           "verdict": "CONCORDANT",
@@ -2538,8 +2916,12 @@
             "total_fee_bps": 100,
             "elapsed_s": 169678,
             "window_s": 16,
-            "taken_at": "beforeSwap or afterSwap depending on which side is the quote currency"
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99955278,
           "predicted_bps": 100.0,
           "delta_bps": -0.0044,
           "verdict": "CONCORDANT",
@@ -2554,10 +2936,33 @@
         },
         {
           "pool_id": "0xb8b73a54aff94b04cf5027e2bc78a768bfdb586b5a3ff18a4e97294075523ba8",
+          "amount_in": "100000000000000",
+          "zero_for_one": true,
+          "stored_lp_fee": 0,
           "measured_bps": 99.9956,
-          "predicted_bps": null,
-          "verdict": "UNVERIFIED",
-          "reason": "poolConfig(bytes32) on 0x985c14baa2a18316ffda0aefb3a632fadfca2acc: RateLimited: HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+          "note": "steady state (anti-snipe window closed)",
+          "detail": {
+            "base_fee_bps": 100,
+            "total_fee_bps": 100,
+            "elapsed_s": 170778,
+            "window_s": 16,
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
+          },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99955278,
+          "predicted_bps": 100.0,
+          "delta_bps": -0.0044,
+          "verdict": "CONCORDANT",
+          "declared_calls": [
+            {
+              "name": "pool_config",
+              "to": "0x985c14baa2a18316ffda0aefb3a632fadfca2acc",
+              "sig": "poolConfig(bytes32)",
+              "data": "0x0885f732b8b73a54aff94b04cf5027e2bc78a768bfdb586b5a3ff18a4e97294075523ba8"
+            }
+          ]
         },
         {
           "pool_id": "0xbfe85f5723a47b0dd5f95526e2bb7a050d606499be559f00317ac5850368511e",
@@ -2571,8 +2976,12 @@
             "total_fee_bps": 100,
             "elapsed_s": 137822,
             "window_s": 16,
-            "taken_at": "beforeSwap or afterSwap depending on which side is the quote currency"
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99955278,
           "predicted_bps": 100.0,
           "delta_bps": -0.0044,
           "verdict": "CONCORDANT",
@@ -2597,8 +3006,12 @@
             "total_fee_bps": 100,
             "elapsed_s": 170428,
             "window_s": 16,
-            "taken_at": "beforeSwap or afterSwap depending on which side is the quote currency"
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99955278,
           "predicted_bps": 100.0,
           "delta_bps": -0.0044,
           "verdict": "CONCORDANT",
@@ -2623,8 +3036,12 @@
             "total_fee_bps": 100,
             "elapsed_s": 170078,
             "window_s": 16,
-            "taken_at": "beforeSwap or afterSwap depending on which side is the quote currency"
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99955278,
           "predicted_bps": 100.0,
           "delta_bps": -0.0044,
           "verdict": "CONCORDANT",
@@ -2639,17 +3056,63 @@
         },
         {
           "pool_id": "0xcaf3d68945a557f1f8c7360fdd07b69e0615ff7a8de7c40bdf8d0c3e8696dc1e",
+          "amount_in": "100000000000000",
+          "zero_for_one": true,
+          "stored_lp_fee": 0,
           "measured_bps": 99.9956,
-          "predicted_bps": null,
-          "verdict": "UNVERIFIED",
-          "reason": "poolConfig(bytes32) on 0x985c14baa2a18316ffda0aefb3a632fadfca2acc: RateLimited: HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+          "note": "steady state (anti-snipe window closed)",
+          "detail": {
+            "base_fee_bps": 100,
+            "total_fee_bps": 100,
+            "elapsed_s": 159758,
+            "window_s": 16,
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
+          },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99955278,
+          "predicted_bps": 100.0,
+          "delta_bps": -0.0044,
+          "verdict": "CONCORDANT",
+          "declared_calls": [
+            {
+              "name": "pool_config",
+              "to": "0x985c14baa2a18316ffda0aefb3a632fadfca2acc",
+              "sig": "poolConfig(bytes32)",
+              "data": "0x0885f732caf3d68945a557f1f8c7360fdd07b69e0615ff7a8de7c40bdf8d0c3e8696dc1e"
+            }
+          ]
         },
         {
           "pool_id": "0xd439197d4eb262bf5dbb32beaf0acbb492835821f9d08a7f181976237747594e",
+          "amount_in": "100000000000000",
+          "zero_for_one": true,
+          "stored_lp_fee": 0,
           "measured_bps": 99.9956,
-          "predicted_bps": null,
-          "verdict": "UNVERIFIED",
-          "reason": "poolConfig(bytes32) on 0x985c14baa2a18316ffda0aefb3a632fadfca2acc: RateLimited: HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+          "note": "steady state (anti-snipe window closed)",
+          "detail": {
+            "base_fee_bps": 100,
+            "total_fee_bps": 100,
+            "elapsed_s": 137468,
+            "window_s": 16,
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
+          },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99955278,
+          "predicted_bps": 100.0,
+          "delta_bps": -0.0044,
+          "verdict": "CONCORDANT",
+          "declared_calls": [
+            {
+              "name": "pool_config",
+              "to": "0x985c14baa2a18316ffda0aefb3a632fadfca2acc",
+              "sig": "poolConfig(bytes32)",
+              "data": "0x0885f732d439197d4eb262bf5dbb32beaf0acbb492835821f9d08a7f181976237747594e"
+            }
+          ]
         },
         {
           "pool_id": "0xeb908513f445c9d21b89912f5d9062b9f39df0c4416b738ab496bb3e0b310dd3",
@@ -2663,8 +3126,12 @@
             "total_fee_bps": 100,
             "elapsed_s": 169838,
             "window_s": 16,
-            "taken_at": "beforeSwap or afterSwap depending on which side is the quote currency"
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99955278,
           "predicted_bps": 100.0,
           "delta_bps": -0.0044,
           "verdict": "CONCORDANT",
@@ -2689,8 +3156,12 @@
             "total_fee_bps": 100,
             "elapsed_s": 137902,
             "window_s": 16,
-            "taken_at": "beforeSwap or afterSwap depending on which side is the quote currency"
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99955278,
           "predicted_bps": 100.0,
           "delta_bps": -0.0044,
           "verdict": "CONCORDANT",
@@ -2705,11 +3176,13 @@
         }
       ],
       "concordance": {
-        "label": "PARTIAL",
+        "label": "CONCORDANT",
         "pools": 25,
-        "concordant": 22,
+        "concordant": 25,
         "divergent": 0,
-        "unverified": 3,
+        "unverified": 0,
+        "not_resolvable": 0,
+        "comparable": 25,
         "max_abs_delta_bps": 0.0044,
         "tolerance_bps": 0.5
       }
@@ -2717,9 +3190,9 @@
     {
       "hook": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
       "registry_name": "Clanker Static Fee Hook v2 (Base)",
-      "rows": 155,
+      "rows": 166,
       "pools": 31,
-      "measured_rows": 150,
+      "measured_rows": 156,
       "measured_bps_median": 114.004,
       "source_status": "FOUND",
       "source_provider": "sourcify",
@@ -2934,6 +3407,13 @@
           "line": 48,
           "text": "uint24 public constant MAX_MEV_LP_FEE = 800_000; // Max MEV LP fee at 80%",
           "status": "OK"
+        },
+        {
+          "claim": "one deployment in this corpus is a fork where the 20 % carve is a per-deployment immutable instead of a constant",
+          "file": "src/hooks/ClankerHookV2.sol",
+          "anchor": "uint256 public immutable protocolFeeNumerator",
+          "line": null,
+          "status": "UNRESOLVED"
         }
       ],
       "pool_checks": [
@@ -2943,14 +3423,20 @@
           "zero_for_one": false,
           "stored_lp_fee": 0,
           "measured_bps": 119.7593,
-          "note": "LP fee 10000 pips + protocol fee 2000 pips taken in beforeSwap",
+          "note": "LP fee 10000 pips against a stored 0 pips, plus a protocol carve of 2000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
           "detail": {
             "is_token0": true,
             "fee_pips": 10000,
             "protocol_fee_pips": 2000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 0,
             "taken_at": "beforeSwap",
+            "side": "input",
             "predicted_bps": 119.7605
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99989911,
           "predicted_bps": 119.7605,
           "delta_bps": -0.0012,
           "verdict": "CONCORDANT",
@@ -2972,6 +3458,12 @@
               "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
               "sig": "clankerIsToken0(bytes32)",
               "data": "0x07eda3da0375e335589620f118ffa99c946441b1b62db25493ac0e627be43e753ce23045"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
@@ -2981,14 +3473,20 @@
           "zero_for_one": true,
           "stored_lp_fee": 30000,
           "measured_bps": 59.6076,
-          "note": "LP fee 30000 pips + protocol fee 6000 pips taken in beforeSwap",
+          "note": "LP fee 30000 pips against a stored 30000 pips, plus a protocol carve of 6000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
           "detail": {
             "is_token0": false,
             "fee_pips": 30000,
             "protocol_fee_pips": 6000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 30000,
             "taken_at": "beforeSwap",
+            "side": "input",
             "predicted_bps": 59.6421
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99991007,
           "predicted_bps": 59.6421,
           "delta_bps": -0.0345,
           "verdict": "CONCORDANT",
@@ -3010,29 +3508,164 @@
               "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
               "sig": "clankerIsToken0(bytes32)",
               "data": "0x07eda3da1d2d46ef574876dd93112b4e6290ec933af2b04bfe263c68c700c90973b9bd1a"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
         {
           "pool_id": "0x1e70d50498aefdbef0c48e05a6d09fb939552c347cae716b0a00666235da876e",
+          "amount_in": "100000000000000",
+          "zero_for_one": true,
+          "stored_lp_fee": 30000,
           "measured_bps": 59.6391,
-          "predicted_bps": null,
-          "verdict": "UNVERIFIED",
-          "reason": "pairedFee(bytes32) on 0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc: RateLimited: HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+          "note": "LP fee 30000 pips against a stored 30000 pips, plus a protocol carve of 6000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
+          "detail": {
+            "is_token0": false,
+            "fee_pips": 30000,
+            "protocol_fee_pips": 6000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 30000,
+            "taken_at": "beforeSwap",
+            "side": "input",
+            "predicted_bps": 59.6421
+          },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99948513,
+          "predicted_bps": 59.6421,
+          "delta_bps": -0.003,
+          "verdict": "CONCORDANT",
+          "declared_calls": [
+            {
+              "name": "token_fee",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "clankerFee(bytes32)",
+              "data": "0x2c78f4931e70d50498aefdbef0c48e05a6d09fb939552c347cae716b0a00666235da876e"
+            },
+            {
+              "name": "paired_fee",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "pairedFee(bytes32)",
+              "data": "0xf732b64e1e70d50498aefdbef0c48e05a6d09fb939552c347cae716b0a00666235da876e"
+            },
+            {
+              "name": "is_token0",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "clankerIsToken0(bytes32)",
+              "data": "0x07eda3da1e70d50498aefdbef0c48e05a6d09fb939552c347cae716b0a00666235da876e"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
+            }
+          ]
         },
         {
           "pool_id": "0x250932e936dedcf290d2c435850d761b044769dfc4950ddb285307f1441c71a8",
+          "amount_in": "100000000000000",
+          "zero_for_one": false,
+          "stored_lp_fee": 0,
           "measured_bps": 119.7544,
-          "predicted_bps": null,
-          "verdict": "UNVERIFIED",
-          "reason": "pairedFee(bytes32) on 0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc: RateLimited: HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+          "note": "LP fee 10000 pips against a stored 0 pips, plus a protocol carve of 2000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
+          "detail": {
+            "is_token0": true,
+            "fee_pips": 10000,
+            "protocol_fee_pips": 2000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap",
+            "side": "input",
+            "predicted_bps": 119.7605
+          },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.9994892,
+          "predicted_bps": 119.7605,
+          "delta_bps": -0.0061,
+          "verdict": "CONCORDANT",
+          "declared_calls": [
+            {
+              "name": "token_fee",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "clankerFee(bytes32)",
+              "data": "0x2c78f493250932e936dedcf290d2c435850d761b044769dfc4950ddb285307f1441c71a8"
+            },
+            {
+              "name": "paired_fee",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "pairedFee(bytes32)",
+              "data": "0xf732b64e250932e936dedcf290d2c435850d761b044769dfc4950ddb285307f1441c71a8"
+            },
+            {
+              "name": "is_token0",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "clankerIsToken0(bytes32)",
+              "data": "0x07eda3da250932e936dedcf290d2c435850d761b044769dfc4950ddb285307f1441c71a8"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
+            }
+          ]
         },
         {
           "pool_id": "0x29db9fb37d01ef046be0333bb29cd186ab5288eae16ba44f5883b1bf5f1a5f06",
+          "amount_in": "100000000000000",
+          "zero_for_one": false,
+          "stored_lp_fee": 0,
           "measured_bps": 119.7544,
-          "predicted_bps": null,
-          "verdict": "UNVERIFIED",
-          "reason": "clankerFee(bytes32) on 0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc: RateLimited: HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+          "note": "LP fee 10000 pips against a stored 0 pips, plus a protocol carve of 2000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
+          "detail": {
+            "is_token0": true,
+            "fee_pips": 10000,
+            "protocol_fee_pips": 2000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap",
+            "side": "input",
+            "predicted_bps": 119.7605
+          },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.9994892,
+          "predicted_bps": 119.7605,
+          "delta_bps": -0.0061,
+          "verdict": "CONCORDANT",
+          "declared_calls": [
+            {
+              "name": "token_fee",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "clankerFee(bytes32)",
+              "data": "0x2c78f49329db9fb37d01ef046be0333bb29cd186ab5288eae16ba44f5883b1bf5f1a5f06"
+            },
+            {
+              "name": "paired_fee",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "pairedFee(bytes32)",
+              "data": "0xf732b64e29db9fb37d01ef046be0333bb29cd186ab5288eae16ba44f5883b1bf5f1a5f06"
+            },
+            {
+              "name": "is_token0",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "clankerIsToken0(bytes32)",
+              "data": "0x07eda3da29db9fb37d01ef046be0333bb29cd186ab5288eae16ba44f5883b1bf5f1a5f06"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
+            }
+          ]
         },
         {
           "pool_id": "0x2abbe2e6dba50898d29999ae68debd42985a3ea3858c09aa93f229702a0083b4",
@@ -3040,14 +3673,20 @@
           "zero_for_one": false,
           "stored_lp_fee": 0,
           "measured_bps": 119.7544,
-          "note": "LP fee 10000 pips + protocol fee 2000 pips taken in beforeSwap",
+          "note": "LP fee 10000 pips against a stored 0 pips, plus a protocol carve of 2000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
           "detail": {
             "is_token0": true,
             "fee_pips": 10000,
             "protocol_fee_pips": 2000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 0,
             "taken_at": "beforeSwap",
+            "side": "input",
             "predicted_bps": 119.7605
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.9994892,
           "predicted_bps": 119.7605,
           "delta_bps": -0.0061,
           "verdict": "CONCORDANT",
@@ -3069,25 +3708,37 @@
               "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
               "sig": "clankerIsToken0(bytes32)",
               "data": "0x07eda3da2abbe2e6dba50898d29999ae68debd42985a3ea3858c09aa93f229702a0083b4"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
         {
           "pool_id": "0x34554b906ced4f81ce665dfde07af7df61e59a86892d4c526d876fb214408d31",
-          "amount_in": "100000000000000",
+          "amount_in": "10000000000000000",
           "zero_for_one": true,
           "stored_lp_fee": 30000,
-          "measured_bps": 59.5362,
-          "note": "LP fee 30000 pips + protocol fee 6000 pips taken in afterSwap",
+          "measured_bps": 59.9911,
+          "note": "LP fee 30000 pips against a stored 30000 pips, plus a protocol carve of 6000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in afterSwap",
           "detail": {
             "is_token0": true,
             "fee_pips": 30000,
             "protocol_fee_pips": 6000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 30000,
             "taken_at": "afterSwap",
+            "side": "output",
             "predicted_bps": 60.0
           },
+          "quantization_bps": 0.0104,
+          "size_elasticity": 1.00008124,
           "predicted_bps": 60.0,
-          "delta_bps": -0.4638,
+          "delta_bps": -0.0089,
           "verdict": "CONCORDANT",
           "declared_calls": [
             {
@@ -3107,6 +3758,12 @@
               "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
               "sig": "clankerIsToken0(bytes32)",
               "data": "0x07eda3da34554b906ced4f81ce665dfde07af7df61e59a86892d4c526d876fb214408d31"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
@@ -3116,14 +3773,20 @@
           "zero_for_one": false,
           "stored_lp_fee": 0,
           "measured_bps": 119.7544,
-          "note": "LP fee 10000 pips + protocol fee 2000 pips taken in beforeSwap",
+          "note": "LP fee 10000 pips against a stored 0 pips, plus a protocol carve of 2000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
           "detail": {
             "is_token0": true,
             "fee_pips": 10000,
             "protocol_fee_pips": 2000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 0,
             "taken_at": "beforeSwap",
+            "side": "input",
             "predicted_bps": 119.7605
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.9994892,
           "predicted_bps": 119.7605,
           "delta_bps": -0.0061,
           "verdict": "CONCORDANT",
@@ -3145,6 +3808,12 @@
               "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
               "sig": "clankerIsToken0(bytes32)",
               "data": "0x07eda3da35432f346f1bf238a6cd9b8c22229650f166e8ba4545fed785bab5660f026d8e"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
@@ -3154,14 +3823,20 @@
           "zero_for_one": true,
           "stored_lp_fee": 30000,
           "measured_bps": 59.6391,
-          "note": "LP fee 30000 pips + protocol fee 6000 pips taken in beforeSwap",
+          "note": "LP fee 30000 pips against a stored 30000 pips, plus a protocol carve of 6000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
           "detail": {
             "is_token0": false,
             "fee_pips": 30000,
             "protocol_fee_pips": 6000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 30000,
             "taken_at": "beforeSwap",
+            "side": "input",
             "predicted_bps": 59.6421
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99948513,
           "predicted_bps": 59.6421,
           "delta_bps": -0.003,
           "verdict": "CONCORDANT",
@@ -3183,6 +3858,12 @@
               "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
               "sig": "clankerIsToken0(bytes32)",
               "data": "0x07eda3da3674a68388e610ac670450cf3e1f62e8d64bec12f2f82ef02eba98d3bfada199"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
@@ -3192,14 +3873,20 @@
           "zero_for_one": false,
           "stored_lp_fee": 0,
           "measured_bps": 119.7544,
-          "note": "LP fee 10000 pips + protocol fee 2000 pips taken in beforeSwap",
+          "note": "LP fee 10000 pips against a stored 0 pips, plus a protocol carve of 2000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
           "detail": {
             "is_token0": true,
             "fee_pips": 10000,
             "protocol_fee_pips": 2000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 0,
             "taken_at": "beforeSwap",
+            "side": "input",
             "predicted_bps": 119.7605
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.9994892,
           "predicted_bps": 119.7605,
           "delta_bps": -0.0061,
           "verdict": "CONCORDANT",
@@ -3221,15 +3908,64 @@
               "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
               "sig": "clankerIsToken0(bytes32)",
               "data": "0x07eda3da39642e24cf553043341c7ca213167bcea9f25052dc865f69a86a1d8e797fd4b4"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
         {
           "pool_id": "0x3ba4ba1e9e34530f9c78929213bdc70414233ec591c630e72de59aa2a7f256af",
+          "amount_in": "100000000000000",
+          "zero_for_one": false,
+          "stored_lp_fee": 0,
           "measured_bps": 119.7544,
-          "predicted_bps": null,
-          "verdict": "UNVERIFIED",
-          "reason": "clankerFee(bytes32) on 0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc: RateLimited: HTTP 429 from https://base-mainnet.g.alchemy.com/v2/alch_7NRjkPFHcYQayclNEJpSB"
+          "note": "LP fee 10000 pips against a stored 0 pips, plus a protocol carve of 2000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
+          "detail": {
+            "is_token0": true,
+            "fee_pips": 10000,
+            "protocol_fee_pips": 2000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 0,
+            "taken_at": "beforeSwap",
+            "side": "input",
+            "predicted_bps": 119.7605
+          },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.9994892,
+          "predicted_bps": 119.7605,
+          "delta_bps": -0.0061,
+          "verdict": "CONCORDANT",
+          "declared_calls": [
+            {
+              "name": "token_fee",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "clankerFee(bytes32)",
+              "data": "0x2c78f4933ba4ba1e9e34530f9c78929213bdc70414233ec591c630e72de59aa2a7f256af"
+            },
+            {
+              "name": "paired_fee",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "pairedFee(bytes32)",
+              "data": "0xf732b64e3ba4ba1e9e34530f9c78929213bdc70414233ec591c630e72de59aa2a7f256af"
+            },
+            {
+              "name": "is_token0",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "clankerIsToken0(bytes32)",
+              "data": "0x07eda3da3ba4ba1e9e34530f9c78929213bdc70414233ec591c630e72de59aa2a7f256af"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
+            }
+          ]
         },
         {
           "pool_id": "0x43554963a88cdbae13e0687df8e2f134ea7e5f530fed6c1a08be8eec2c7e4e83",
@@ -3237,14 +3973,20 @@
           "zero_for_one": false,
           "stored_lp_fee": 0,
           "measured_bps": 119.7544,
-          "note": "LP fee 10000 pips + protocol fee 2000 pips taken in beforeSwap",
+          "note": "LP fee 10000 pips against a stored 0 pips, plus a protocol carve of 2000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
           "detail": {
             "is_token0": true,
             "fee_pips": 10000,
             "protocol_fee_pips": 2000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 0,
             "taken_at": "beforeSwap",
+            "side": "input",
             "predicted_bps": 119.7605
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.9994892,
           "predicted_bps": 119.7605,
           "delta_bps": -0.0061,
           "verdict": "CONCORDANT",
@@ -3266,6 +4008,12 @@
               "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
               "sig": "clankerIsToken0(bytes32)",
               "data": "0x07eda3da43554963a88cdbae13e0687df8e2f134ea7e5f530fed6c1a08be8eec2c7e4e83"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
@@ -3275,14 +4023,20 @@
           "zero_for_one": true,
           "stored_lp_fee": 30000,
           "measured_bps": 59.6356,
-          "note": "LP fee 30000 pips + protocol fee 6000 pips taken in beforeSwap",
+          "note": "LP fee 30000 pips against a stored 30000 pips, plus a protocol carve of 6000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
           "detail": {
             "is_token0": false,
             "fee_pips": 30000,
             "protocol_fee_pips": 6000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 30000,
             "taken_at": "beforeSwap",
+            "side": "input",
             "predicted_bps": 59.6421
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99890148,
           "predicted_bps": 59.6421,
           "delta_bps": -0.0065,
           "verdict": "CONCORDANT",
@@ -3304,6 +4058,12 @@
               "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
               "sig": "clankerIsToken0(bytes32)",
               "data": "0x07eda3da4b1bd12f872833f87f40cf3af233245f371a0af9e7fe58dca19f9193bc671f85"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
@@ -3313,14 +4073,20 @@
           "zero_for_one": true,
           "stored_lp_fee": 30000,
           "measured_bps": 59.6356,
-          "note": "LP fee 30000 pips + protocol fee 6000 pips taken in beforeSwap",
+          "note": "LP fee 30000 pips against a stored 30000 pips, plus a protocol carve of 6000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
           "detail": {
             "is_token0": false,
             "fee_pips": 30000,
             "protocol_fee_pips": 6000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 30000,
             "taken_at": "beforeSwap",
+            "side": "input",
             "predicted_bps": 59.6421
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99890148,
           "predicted_bps": 59.6421,
           "delta_bps": -0.0065,
           "verdict": "CONCORDANT",
@@ -3342,6 +4108,12 @@
               "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
               "sig": "clankerIsToken0(bytes32)",
               "data": "0x07eda3da530b4eb6ce4fa0d097f04048ca6eee1356b9bbb9d8225d28ac5cc53afc7adb6f"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
@@ -3351,14 +4123,20 @@
           "zero_for_one": false,
           "stored_lp_fee": 0,
           "measured_bps": 1176.4601,
-          "note": "LP fee 100000 pips + protocol fee 20000 pips taken in beforeSwap",
+          "note": "LP fee 100000 pips against a stored 0 pips, plus a protocol carve of 20000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
           "detail": {
             "is_token0": true,
             "fee_pips": 100000,
             "protocol_fee_pips": 20000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 0,
             "taken_at": "beforeSwap",
+            "side": "input",
             "predicted_bps": 1176.4706
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99989911,
           "predicted_bps": 1176.4706,
           "delta_bps": -0.0105,
           "verdict": "CONCORDANT",
@@ -3380,6 +4158,12 @@
               "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
               "sig": "clankerIsToken0(bytes32)",
               "data": "0x07eda3da5516fae7dfeb3e1b1be671f9127994d79c5f641411f0b2537ad92ea90acbb5ff"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
@@ -3389,14 +4173,20 @@
           "zero_for_one": false,
           "stored_lp_fee": 0,
           "measured_bps": 357.8494,
-          "note": "LP fee 30000 pips + protocol fee 6000 pips taken in beforeSwap",
+          "note": "LP fee 30000 pips against a stored 0 pips, plus a protocol carve of 6000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
           "detail": {
             "is_token0": true,
             "fee_pips": 30000,
             "protocol_fee_pips": 6000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 0,
             "taken_at": "beforeSwap",
+            "side": "input",
             "predicted_bps": 357.8529
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99989911,
           "predicted_bps": 357.8529,
           "delta_bps": -0.0035,
           "verdict": "CONCORDANT",
@@ -3418,26 +4208,38 @@
               "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
               "sig": "clankerIsToken0(bytes32)",
               "data": "0x07eda3da659b6b04ce3f35986f8a3436488234940e07d39e0035b9add488dabe1143954f"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
         {
           "pool_id": "0x67443869ce12cb2fa90aa8a2a522bc89360caa3aeec2063751fd3fcf4681f2ab",
-          "amount_in": "100000000000000",
+          "amount_in": "1000000000000",
           "zero_for_one": false,
           "stored_lp_fee": 0,
           "measured_bps": 0.0,
-          "note": "LP fee 0 pips + protocol fee 0 pips taken in beforeSwap",
+          "note": "LP fee 0 pips against a stored 0 pips, plus a protocol carve of 0 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
           "detail": {
             "is_token0": true,
             "fee_pips": 0,
             "protocol_fee_pips": 0,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 0,
             "taken_at": "beforeSwap",
+            "side": "input",
             "predicted_bps": 0.0
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.7e-07,
           "predicted_bps": 0.0,
-          "delta_bps": 0.0,
-          "verdict": "CONCORDANT",
+          "verdict": "NOT_RESOLVABLE",
+          "reason": "the quote at this pool is insensitive to size (elasticity 1.72e-07: ten times the input buys the same output), and the code takes this fee out of the INPUT \u2014 so no input-side rate can be resolved here",
           "declared_calls": [
             {
               "name": "token_fee",
@@ -3456,6 +4258,12 @@
               "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
               "sig": "clankerIsToken0(bytes32)",
               "data": "0x07eda3da67443869ce12cb2fa90aa8a2a522bc89360caa3aeec2063751fd3fcf4681f2ab"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
@@ -3465,14 +4273,20 @@
           "zero_for_one": true,
           "stored_lp_fee": 10000,
           "measured_bps": 17.6697,
-          "note": "LP fee 10000 pips + protocol fee 2000 pips taken in beforeSwap",
+          "note": "LP fee 10000 pips against a stored 10000 pips, plus a protocol carve of 2000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
           "detail": {
             "is_token0": false,
             "fee_pips": 10000,
             "protocol_fee_pips": 2000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 10000,
             "taken_at": "beforeSwap",
+            "side": "input",
             "predicted_bps": 19.9601
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99974552,
           "predicted_bps": 19.9601,
           "delta_bps": -2.2904,
           "verdict": "DIVERGENT",
@@ -3494,6 +4308,12 @@
               "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
               "sig": "clankerIsToken0(bytes32)",
               "data": "0x07eda3da6be731a245a7ae0bf1221359e2da551aa80857ef70198eede0fb030f2a1e0cf3"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
@@ -3503,14 +4323,20 @@
           "zero_for_one": false,
           "stored_lp_fee": 0,
           "measured_bps": 1176.4601,
-          "note": "LP fee 100000 pips + protocol fee 20000 pips taken in beforeSwap",
+          "note": "LP fee 100000 pips against a stored 0 pips, plus a protocol carve of 20000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
           "detail": {
             "is_token0": true,
             "fee_pips": 100000,
             "protocol_fee_pips": 20000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 0,
             "taken_at": "beforeSwap",
+            "side": "input",
             "predicted_bps": 1176.4706
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99989911,
           "predicted_bps": 1176.4706,
           "delta_bps": -0.0105,
           "verdict": "CONCORDANT",
@@ -3532,6 +4358,12 @@
               "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
               "sig": "clankerIsToken0(bytes32)",
               "data": "0x07eda3da772db21f4871f120949e4c7a88b34b1a894bb1f6c7343e48c3fdab47280ac5f0"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
@@ -3541,14 +4373,20 @@
           "zero_for_one": false,
           "stored_lp_fee": 0,
           "measured_bps": 119.7544,
-          "note": "LP fee 10000 pips + protocol fee 2000 pips taken in beforeSwap",
+          "note": "LP fee 10000 pips against a stored 0 pips, plus a protocol carve of 2000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
           "detail": {
             "is_token0": true,
             "fee_pips": 10000,
             "protocol_fee_pips": 2000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 0,
             "taken_at": "beforeSwap",
+            "side": "input",
             "predicted_bps": 119.7605
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.9994892,
           "predicted_bps": 119.7605,
           "delta_bps": -0.0061,
           "verdict": "CONCORDANT",
@@ -3570,6 +4408,12 @@
               "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
               "sig": "clankerIsToken0(bytes32)",
               "data": "0x07eda3da805639c1ca0c253bc52d5bc1ecde5708fe93bcd0b765d4fac7d4844754ec448b"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
@@ -3579,14 +4423,20 @@
           "zero_for_one": false,
           "stored_lp_fee": 0,
           "measured_bps": 119.7544,
-          "note": "LP fee 10000 pips + protocol fee 2000 pips taken in beforeSwap",
+          "note": "LP fee 10000 pips against a stored 0 pips, plus a protocol carve of 2000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
           "detail": {
             "is_token0": true,
             "fee_pips": 10000,
             "protocol_fee_pips": 2000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 0,
             "taken_at": "beforeSwap",
+            "side": "input",
             "predicted_bps": 119.7605
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.9994892,
           "predicted_bps": 119.7605,
           "delta_bps": -0.0061,
           "verdict": "CONCORDANT",
@@ -3608,25 +4458,37 @@
               "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
               "sig": "clankerIsToken0(bytes32)",
               "data": "0x07eda3da8818ed96a3a0ede8f16e305273b3707b146f77df33b75ccfeafe5e144dfbf573"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
         {
           "pool_id": "0x96816815dae55abbac44e041a94ee0135b9f2cd8b585254ea2afdfea552eabab",
-          "amount_in": "100000000000000",
+          "amount_in": "10000000000000000",
           "zero_for_one": true,
           "stored_lp_fee": 30000,
-          "measured_bps": 59.5362,
-          "note": "LP fee 30000 pips + protocol fee 6000 pips taken in afterSwap",
+          "measured_bps": 59.9911,
+          "note": "LP fee 30000 pips against a stored 30000 pips, plus a protocol carve of 6000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in afterSwap",
           "detail": {
             "is_token0": true,
             "fee_pips": 30000,
             "protocol_fee_pips": 6000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 30000,
             "taken_at": "afterSwap",
+            "side": "output",
             "predicted_bps": 60.0
           },
+          "quantization_bps": 0.0104,
+          "size_elasticity": 1.00008124,
           "predicted_bps": 60.0,
-          "delta_bps": -0.4638,
+          "delta_bps": -0.0089,
           "verdict": "CONCORDANT",
           "declared_calls": [
             {
@@ -3646,6 +4508,12 @@
               "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
               "sig": "clankerIsToken0(bytes32)",
               "data": "0x07eda3da96816815dae55abbac44e041a94ee0135b9f2cd8b585254ea2afdfea552eabab"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
@@ -3655,14 +4523,20 @@
           "zero_for_one": false,
           "stored_lp_fee": 0,
           "measured_bps": 1176.4495,
-          "note": "LP fee 100000 pips + protocol fee 20000 pips taken in beforeSwap",
+          "note": "LP fee 100000 pips against a stored 0 pips, plus a protocol carve of 20000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
           "detail": {
             "is_token0": true,
             "fee_pips": 100000,
             "protocol_fee_pips": 20000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 0,
             "taken_at": "beforeSwap",
+            "side": "input",
             "predicted_bps": 1176.4706
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99979661,
           "predicted_bps": 1176.4706,
           "delta_bps": -0.0211,
           "verdict": "CONCORDANT",
@@ -3684,6 +4558,12 @@
               "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
               "sig": "clankerIsToken0(bytes32)",
               "data": "0x07eda3da9fec0a22086542ef685c644810550bb4283ce83fe90dd25cbbdf8f6761dfd233"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
@@ -3693,14 +4573,20 @@
           "zero_for_one": true,
           "stored_lp_fee": 80000,
           "measured_bps": 157.3436,
-          "note": "LP fee 80000 pips + protocol fee 16000 pips taken in beforeSwap",
+          "note": "LP fee 80000 pips against a stored 80000 pips, plus a protocol carve of 16000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
           "detail": {
             "is_token0": false,
             "fee_pips": 80000,
             "protocol_fee_pips": 16000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 80000,
             "taken_at": "beforeSwap",
+            "side": "input",
             "predicted_bps": 157.4803
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99990718,
           "predicted_bps": 157.4803,
           "delta_bps": -0.1367,
           "verdict": "CONCORDANT",
@@ -3722,6 +4608,12 @@
               "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
               "sig": "clankerIsToken0(bytes32)",
               "data": "0x07eda3daab2766784d7e62805f173f23010b42336bf86c902af9c55c8dd23af88ea128e7"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
@@ -3731,14 +4623,20 @@
           "zero_for_one": false,
           "stored_lp_fee": 0,
           "measured_bps": 119.7544,
-          "note": "LP fee 10000 pips + protocol fee 2000 pips taken in beforeSwap",
+          "note": "LP fee 10000 pips against a stored 0 pips, plus a protocol carve of 2000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
           "detail": {
             "is_token0": true,
             "fee_pips": 10000,
             "protocol_fee_pips": 2000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 0,
             "taken_at": "beforeSwap",
+            "side": "input",
             "predicted_bps": 119.7605
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.9994892,
           "predicted_bps": 119.7605,
           "delta_bps": -0.0061,
           "verdict": "CONCORDANT",
@@ -3760,6 +4658,12 @@
               "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
               "sig": "clankerIsToken0(bytes32)",
               "data": "0x07eda3dac7a5ac5b908aac09fcad7ed085c925b2817731d45187761c68db5e63ecd4098e"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
@@ -3769,14 +4673,20 @@
           "zero_for_one": false,
           "stored_lp_fee": 0,
           "measured_bps": 119.7544,
-          "note": "LP fee 10000 pips + protocol fee 2000 pips taken in beforeSwap",
+          "note": "LP fee 10000 pips against a stored 0 pips, plus a protocol carve of 2000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
           "detail": {
             "is_token0": true,
             "fee_pips": 10000,
             "protocol_fee_pips": 2000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 0,
             "taken_at": "beforeSwap",
+            "side": "input",
             "predicted_bps": 119.7605
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.9994892,
           "predicted_bps": 119.7605,
           "delta_bps": -0.0061,
           "verdict": "CONCORDANT",
@@ -3798,6 +4708,12 @@
               "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
               "sig": "clankerIsToken0(bytes32)",
               "data": "0x07eda3dae36eeb2899060db23f88175e17072cfdfeee2f4f5fb3863a5ce89639b5f5c122"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
@@ -3807,14 +4723,20 @@
           "zero_for_one": false,
           "stored_lp_fee": 0,
           "measured_bps": 119.7544,
-          "note": "LP fee 10000 pips + protocol fee 2000 pips taken in beforeSwap",
+          "note": "LP fee 10000 pips against a stored 0 pips, plus a protocol carve of 2000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
           "detail": {
             "is_token0": true,
             "fee_pips": 10000,
             "protocol_fee_pips": 2000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 0,
             "taken_at": "beforeSwap",
+            "side": "input",
             "predicted_bps": 119.7605
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.9994892,
           "predicted_bps": 119.7605,
           "delta_bps": -0.0061,
           "verdict": "CONCORDANT",
@@ -3836,6 +4758,12 @@
               "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
               "sig": "clankerIsToken0(bytes32)",
               "data": "0x07eda3dae3dd5c989cdf0f037a765bb5e7116ab8ed9cabcac0a01a4d627a60028c17cf92"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
@@ -3845,14 +4773,20 @@
           "zero_for_one": true,
           "stored_lp_fee": 30000,
           "measured_bps": 59.6391,
-          "note": "LP fee 30000 pips + protocol fee 6000 pips taken in beforeSwap",
+          "note": "LP fee 30000 pips against a stored 30000 pips, plus a protocol carve of 6000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
           "detail": {
             "is_token0": false,
             "fee_pips": 30000,
             "protocol_fee_pips": 6000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 30000,
             "taken_at": "beforeSwap",
+            "side": "input",
             "predicted_bps": 59.6421
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99948513,
           "predicted_bps": 59.6421,
           "delta_bps": -0.003,
           "verdict": "CONCORDANT",
@@ -3874,6 +4808,12 @@
               "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
               "sig": "clankerIsToken0(bytes32)",
               "data": "0x07eda3dae3ea7bb190bc3e30920ff44ed891b2c0a54c7720473c0e8c7ed9804eb4b82f58"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
@@ -3883,14 +4823,20 @@
           "zero_for_one": false,
           "stored_lp_fee": 0,
           "measured_bps": 119.7544,
-          "note": "LP fee 10000 pips + protocol fee 2000 pips taken in beforeSwap",
+          "note": "LP fee 10000 pips against a stored 0 pips, plus a protocol carve of 2000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
           "detail": {
             "is_token0": true,
             "fee_pips": 10000,
             "protocol_fee_pips": 2000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 0,
             "taken_at": "beforeSwap",
+            "side": "input",
             "predicted_bps": 119.7605
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.9994892,
           "predicted_bps": 119.7605,
           "delta_bps": -0.0061,
           "verdict": "CONCORDANT",
@@ -3912,6 +4858,12 @@
               "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
               "sig": "clankerIsToken0(bytes32)",
               "data": "0x07eda3daf21910924a50af728bdd1ff84599cb4e489badf4adcf795e6fc8a20d49f66e24"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         },
@@ -3921,14 +4873,20 @@
           "zero_for_one": false,
           "stored_lp_fee": 0,
           "measured_bps": 119.7544,
-          "note": "LP fee 10000 pips + protocol fee 2000 pips taken in beforeSwap",
+          "note": "LP fee 10000 pips against a stored 0 pips, plus a protocol carve of 2000 pips (200000 / 1e6 of the LP fee, read on chain at the measured block), taken in beforeSwap",
           "detail": {
             "is_token0": true,
             "fee_pips": 10000,
             "protocol_fee_pips": 2000,
+            "protocol_fee_numerator": 200000,
+            "numerator_source": "read on chain at the measured block",
+            "stored_lp_fee_pips": 0,
             "taken_at": "beforeSwap",
+            "side": "input",
             "predicted_bps": 119.7605
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.9994892,
           "predicted_bps": 119.7605,
           "delta_bps": -0.0061,
           "verdict": "CONCORDANT",
@@ -3950,6 +4908,12 @@
               "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
               "sig": "clankerIsToken0(bytes32)",
               "data": "0x07eda3daf62306f059492e26cf7eb9f3149469ba632b8de2caeb4c600cd1561f8b1bf1b2"
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         }
@@ -3957,9 +4921,11 @@
       "concordance": {
         "label": "PARTIAL",
         "pools": 30,
-        "concordant": 25,
+        "concordant": 28,
         "divergent": 1,
-        "unverified": 4,
+        "unverified": 0,
+        "not_resolvable": 1,
+        "comparable": 29,
         "max_abs_delta_bps": 2.2904,
         "tolerance_bps": 0.5
       }
@@ -4150,6 +5116,8 @@
         "concordant": 0,
         "divergent": 0,
         "unverified": 0,
+        "not_resolvable": 0,
+        "comparable": 0,
         "max_abs_delta_bps": null,
         "tolerance_bps": 0.5
       },
@@ -4159,9 +5127,9 @@
     {
       "hook": "0xbdf938149ac6a781f94faa0ed45e6a0e984c6544",
       "registry_name": "DopplerHookInitializer",
-      "rows": 365,
+      "rows": 376,
       "pools": 73,
-      "measured_rows": 115,
+      "measured_rows": 126,
       "measured_bps_median": 105.0,
       "source_status": "FOUND",
       "source_provider": "sourcify",
@@ -4331,12 +5299,15 @@
           "note": "decay finished 152278s before the measured block",
           "detail": {
             "current_fee_pips": 10500,
+            "side": "output",
             "start_fee_pips": 800000,
             "end_fee_pips": 10500,
             "duration_s": 14,
             "delegate": "0x9982538f41f2ae29ddb9d3d9307010052984fdbb",
             "taken_at": "afterSwap"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99714294,
           "predicted_bps": 105.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -4364,12 +5335,15 @@
           "note": "decay finished 151019s before the measured block",
           "detail": {
             "current_fee_pips": 15000,
+            "side": "output",
             "start_fee_pips": 500000,
             "end_fee_pips": 15000,
             "duration_s": 15,
             "delegate": "0x9982538f41f2ae29ddb9d3d9307010052984fdbb",
             "taken_at": "afterSwap"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99954603,
           "predicted_bps": 150.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -4397,12 +5371,15 @@
           "note": "decay finished 158188s before the measured block",
           "detail": {
             "current_fee_pips": 10500,
+            "side": "output",
             "start_fee_pips": 800000,
             "end_fee_pips": 10500,
             "duration_s": 14,
             "delegate": "0x9982538f41f2ae29ddb9d3d9307010052984fdbb",
             "taken_at": "afterSwap"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99714294,
           "predicted_bps": 105.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -4430,12 +5407,15 @@
           "note": "decay finished 152182s before the measured block",
           "detail": {
             "current_fee_pips": 10500,
+            "side": "output",
             "start_fee_pips": 800000,
             "end_fee_pips": 10500,
             "duration_s": 14,
             "delegate": "0x9982538f41f2ae29ddb9d3d9307010052984fdbb",
             "taken_at": "afterSwap"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99714294,
           "predicted_bps": 105.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -4463,12 +5443,15 @@
           "note": "decay finished 159483s before the measured block",
           "detail": {
             "current_fee_pips": 15000,
+            "side": "output",
             "start_fee_pips": 500000,
             "end_fee_pips": 15000,
             "duration_s": 15,
             "delegate": "0x9982538f41f2ae29ddb9d3d9307010052984fdbb",
             "taken_at": "afterSwap"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99954603,
           "predicted_bps": 150.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -4496,12 +5479,15 @@
           "note": "already fully decayed",
           "detail": {
             "current_fee_pips": 10500,
+            "side": "output",
             "start_fee_pips": 800000,
             "end_fee_pips": 10500,
             "duration_s": 14,
             "delegate": "0x9982538f41f2ae29ddb9d3d9307010052984fdbb",
             "taken_at": "afterSwap"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99757053,
           "predicted_bps": 105.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -4529,12 +5515,15 @@
           "note": "decay finished 159317s before the measured block",
           "detail": {
             "current_fee_pips": 15000,
+            "side": "output",
             "start_fee_pips": 500000,
             "end_fee_pips": 15000,
             "duration_s": 15,
             "delegate": "0x9982538f41f2ae29ddb9d3d9307010052984fdbb",
             "taken_at": "afterSwap"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99954603,
           "predicted_bps": 150.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -4562,12 +5551,15 @@
           "note": "decay finished 130090s before the measured block",
           "detail": {
             "current_fee_pips": 10500,
+            "side": "output",
             "start_fee_pips": 800000,
             "end_fee_pips": 10500,
             "duration_s": 14,
             "delegate": "0x9982538f41f2ae29ddb9d3d9307010052984fdbb",
             "taken_at": "afterSwap"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99757046,
           "predicted_bps": 105.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -4588,21 +5580,24 @@
         },
         {
           "pool_id": "0x787fe87a27824d11d743cd6007614d3f5776d1b42cce79358e390498bb436159",
-          "amount_in": "100000000000000",
+          "amount_in": "1000000000000000",
           "zero_for_one": true,
           "stored_lp_fee": 7000,
-          "measured_bps": 104.944,
+          "measured_bps": 104.9942,
           "note": "already fully decayed",
           "detail": {
             "current_fee_pips": 10500,
+            "side": "output",
             "start_fee_pips": 800000,
             "end_fee_pips": 10500,
             "duration_s": 14,
             "delegate": "0x9982538f41f2ae29ddb9d3d9307010052984fdbb",
             "taken_at": "afterSwap"
           },
+          "quantization_bps": 0.0073,
+          "size_elasticity": 1.00000645,
           "predicted_bps": 105.0,
-          "delta_bps": -0.056,
+          "delta_bps": -0.0058,
           "verdict": "CONCORDANT",
           "declared_calls": [
             {
@@ -4628,12 +5623,15 @@
           "note": "decay finished 151062s before the measured block",
           "detail": {
             "current_fee_pips": 10500,
+            "side": "output",
             "start_fee_pips": 800000,
             "end_fee_pips": 10500,
             "duration_s": 14,
             "delegate": "0x9982538f41f2ae29ddb9d3d9307010052984fdbb",
             "taken_at": "afterSwap"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99714294,
           "predicted_bps": 105.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -4661,12 +5659,15 @@
           "note": "decay finished 169935s before the measured block",
           "detail": {
             "current_fee_pips": 15000,
+            "side": "output",
             "start_fee_pips": 500000,
             "end_fee_pips": 15000,
             "duration_s": 15,
             "delegate": "0x9982538f41f2ae29ddb9d3d9307010052984fdbb",
             "taken_at": "afterSwap"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99954603,
           "predicted_bps": 150.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -4694,12 +5695,15 @@
           "note": "decay finished 159604s before the measured block",
           "detail": {
             "current_fee_pips": 10500,
+            "side": "output",
             "start_fee_pips": 800000,
             "end_fee_pips": 10500,
             "duration_s": 14,
             "delegate": "0x9982538f41f2ae29ddb9d3d9307010052984fdbb",
             "taken_at": "afterSwap"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99714294,
           "predicted_bps": 105.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -4727,12 +5731,15 @@
           "note": "decay finished 169877s before the measured block",
           "detail": {
             "current_fee_pips": 15000,
+            "side": "output",
             "start_fee_pips": 500000,
             "end_fee_pips": 15000,
             "duration_s": 15,
             "delegate": "0x9982538f41f2ae29ddb9d3d9307010052984fdbb",
             "taken_at": "afterSwap"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99954603,
           "predicted_bps": 150.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -4760,12 +5767,15 @@
           "note": "decay finished 137871s before the measured block",
           "detail": {
             "current_fee_pips": 15000,
+            "side": "output",
             "start_fee_pips": 500000,
             "end_fee_pips": 15000,
             "duration_s": 15,
             "delegate": "0x9982538f41f2ae29ddb9d3d9307010052984fdbb",
             "taken_at": "afterSwap"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99954603,
           "predicted_bps": 150.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -4793,12 +5803,15 @@
           "note": "decay finished 170046s before the measured block",
           "detail": {
             "current_fee_pips": 17500,
+            "side": "output",
             "start_fee_pips": 800000,
             "end_fee_pips": 17500,
             "duration_s": 14,
             "delegate": "0x9982538f41f2ae29ddb9d3d9307010052984fdbb",
             "taken_at": "afterSwap"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.97910317,
           "predicted_bps": 175.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -4826,12 +5839,15 @@
           "note": "decay finished 158286s before the measured block",
           "detail": {
             "current_fee_pips": 10500,
+            "side": "output",
             "start_fee_pips": 800000,
             "end_fee_pips": 10500,
             "duration_s": 14,
             "delegate": "0x9982538f41f2ae29ddb9d3d9307010052984fdbb",
             "taken_at": "afterSwap"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99714294,
           "predicted_bps": 105.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -4859,12 +5875,15 @@
           "note": "decay finished 151106s before the measured block",
           "detail": {
             "current_fee_pips": 10500,
+            "side": "output",
             "start_fee_pips": 800000,
             "end_fee_pips": 10500,
             "duration_s": 14,
             "delegate": "0x9982538f41f2ae29ddb9d3d9307010052984fdbb",
             "taken_at": "afterSwap"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.97567311,
           "predicted_bps": 105.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -4892,12 +5911,15 @@
           "note": "decay finished 170109s before the measured block",
           "detail": {
             "current_fee_pips": 15000,
+            "side": "output",
             "start_fee_pips": 500000,
             "end_fee_pips": 15000,
             "duration_s": 15,
             "delegate": "0x9982538f41f2ae29ddb9d3d9307010052984fdbb",
             "taken_at": "afterSwap"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99954603,
           "predicted_bps": 150.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -4925,12 +5947,15 @@
           "note": "decay finished 138235s before the measured block",
           "detail": {
             "current_fee_pips": 15000,
+            "side": "output",
             "start_fee_pips": 500000,
             "end_fee_pips": 15000,
             "duration_s": 15,
             "delegate": "0x9982538f41f2ae29ddb9d3d9307010052984fdbb",
             "taken_at": "afterSwap"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99954603,
           "predicted_bps": 150.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -4951,19 +5976,22 @@
         },
         {
           "pool_id": "0xd229690a22b234f81b67fd22fd05b3a45eb00fc3b690a8d6217092ae69ec0850",
-          "amount_in": "100000000000000",
+          "amount_in": "1000000000000",
           "zero_for_one": true,
           "stored_lp_fee": 0,
           "measured_bps": 175.0,
           "note": "already fully decayed",
           "detail": {
             "current_fee_pips": 17500,
+            "side": "output",
             "start_fee_pips": 800000,
             "end_fee_pips": 17500,
             "duration_s": 14,
             "delegate": "0x9982538f41f2ae29ddb9d3d9307010052984fdbb",
             "taken_at": "afterSwap"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": null,
           "predicted_bps": 175.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -4991,12 +6019,15 @@
           "note": "decay finished 153170s before the measured block",
           "detail": {
             "current_fee_pips": 10500,
+            "side": "output",
             "start_fee_pips": 800000,
             "end_fee_pips": 10500,
             "duration_s": 14,
             "delegate": "0x9982538f41f2ae29ddb9d3d9307010052984fdbb",
             "taken_at": "afterSwap"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99714294,
           "predicted_bps": 105.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -5024,12 +6055,15 @@
           "note": "decay finished 130100s before the measured block",
           "detail": {
             "current_fee_pips": 10500,
+            "side": "output",
             "start_fee_pips": 800000,
             "end_fee_pips": 10500,
             "duration_s": 14,
             "delegate": "0x9982538f41f2ae29ddb9d3d9307010052984fdbb",
             "taken_at": "afterSwap"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99757046,
           "predicted_bps": 105.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -5057,12 +6091,15 @@
           "note": "already fully decayed",
           "detail": {
             "current_fee_pips": 10500,
+            "side": "output",
             "start_fee_pips": 800000,
             "end_fee_pips": 10500,
             "duration_s": 14,
             "delegate": "0x9982538f41f2ae29ddb9d3d9307010052984fdbb",
             "taken_at": "afterSwap"
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99714317,
           "predicted_bps": 105.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -5088,7 +6125,9 @@
         "concordant": 23,
         "divergent": 0,
         "unverified": 0,
-        "max_abs_delta_bps": 0.056,
+        "not_resolvable": 0,
+        "comparable": 23,
+        "max_abs_delta_bps": 0.0058,
         "tolerance_bps": 0.5
       },
       "delegate": "0x9982538f41f2ae29ddb9d3d9307010052984fdbb",
@@ -5233,6 +6272,8 @@
           "detail": {
             "swap_callbacks": 0
           },
+          "quantization_bps": 0.0,
+          "size_elasticity": 1.8e-07,
           "predicted_bps": 0.0,
           "delta_bps": 0.0,
           "verdict": "CONCORDANT",
@@ -5245,6 +6286,8 @@
         "concordant": 1,
         "divergent": 0,
         "unverified": 0,
+        "not_resolvable": 0,
+        "comparable": 1,
         "max_abs_delta_bps": 0.0,
         "tolerance_bps": 0.5
       }
@@ -5421,17 +6464,27 @@
               "is_token0": true,
               "fee_pips": 10000,
               "protocol_fee_pips": 2000,
+              "protocol_fee_numerator": 200000,
+              "numerator_source": "read on chain at the measured block",
+              "stored_lp_fee_pips": 10000,
               "taken_at": "afterSwap",
+              "side": "output",
               "predicted_bps": 20.0
             },
             {
               "is_token0": false,
               "fee_pips": 10000,
               "protocol_fee_pips": 2000,
+              "protocol_fee_numerator": 200000,
+              "numerator_source": "read on chain at the measured block",
+              "stored_lp_fee_pips": 10000,
               "taken_at": "beforeSwap",
+              "side": "input",
               "predicted_bps": 19.9601
             }
           ],
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99990013,
           "predicted_bps": null,
           "predicted_bps_range": [
             19.9601,
@@ -5456,7 +6509,14 @@
               "name": "is_token0",
               "to": "0xdd5eeaff7bd481ad55db083062b13a3cdf0a68cc",
               "sig": "clankerIsToken0(bytes32)",
-              "unavailable": "RpcError: {'code': 3, 'message': 'execution reverted'}"
+              "unavailable": "RpcError: {'code': 3, 'message': 'execution reverted'}",
+              "fell_back_to": null
+            },
+            {
+              "name": "protocol_fee_numerator",
+              "to": "0xdd5eeaff7bd481ad55db083062b13a3cdf0a68cc",
+              "sig": "PROTOCOL_FEE_NUMERATOR()",
+              "data": "0x334e8367"
             }
           ]
         }
@@ -5467,6 +6527,8 @@
         "concordant": 1,
         "divergent": 0,
         "unverified": 0,
+        "not_resolvable": 0,
+        "comparable": 1,
         "max_abs_delta_bps": 0.0002,
         "tolerance_bps": 0.5
       }
@@ -5656,15 +6718,19 @@
           "measured_bps": 99.9938,
           "note": "steady state (anti-snipe window closed)",
           "detail": {
-            "base_fee_bps": 321256075626500525632949560651049267350991224561,
-            "total_fee_bps": 321256075626500525632949560651049267350991224561,
+            "base_fee_bps": 100,
+            "total_fee_bps": 100,
             "elapsed_s": 158346,
             "window_s": 60,
-            "taken_at": "beforeSwap or afterSwap depending on which side is the quote currency"
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
           },
-          "predicted_bps": 3.2125607562650054e+47,
-          "delta_bps": -3.2125607562650054e+47,
-          "verdict": "DIVERGENT",
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.99937185,
+          "predicted_bps": 100.0,
+          "delta_bps": -0.0062,
+          "verdict": "CONCORDANT",
           "declared_calls": [
             {
               "name": "pool_config",
@@ -5682,15 +6748,19 @@
           "measured_bps": 99.9938,
           "note": "steady state (anti-snipe window closed)",
           "detail": {
-            "base_fee_bps": 973682536362135394325096871691720992034547684748,
-            "total_fee_bps": 973682536362135394325096871691720992034547684748,
+            "base_fee_bps": 100,
+            "total_fee_bps": 100,
             "elapsed_s": 159690,
             "window_s": 60,
-            "taken_at": "beforeSwap or afterSwap depending on which side is the quote currency"
+            "token_is_currency0": false,
+            "taken_at": "beforeSwap",
+            "side": "input"
           },
-          "predicted_bps": 9.736825363621355e+47,
-          "delta_bps": -9.736825363621355e+47,
-          "verdict": "DIVERGENT",
+          "quantization_bps": 0.0,
+          "size_elasticity": 0.9993722,
+          "predicted_bps": 100.0,
+          "delta_bps": -0.0062,
+          "verdict": "CONCORDANT",
           "declared_calls": [
             {
               "name": "pool_config",
@@ -5702,12 +6772,14 @@
         }
       ],
       "concordance": {
-        "label": "DIVERGENT",
+        "label": "CONCORDANT",
         "pools": 2,
-        "concordant": 0,
-        "divergent": 2,
+        "concordant": 2,
+        "divergent": 0,
         "unverified": 0,
-        "max_abs_delta_bps": 9.736825363621355e+47,
+        "not_resolvable": 0,
+        "comparable": 2,
+        "max_abs_delta_bps": 0.0062,
         "tolerance_bps": 0.5
       }
     }

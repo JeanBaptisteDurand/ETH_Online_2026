@@ -229,12 +229,51 @@ export interface ProviderOptions {
   fetchImpl?: typeof fetch;
 }
 
+/**
+ * LES DELAIS, ETAGES. Ils l'ont ete de travers pendant tout un tour de ce lot, et le
+ * symptome meritait d'etre ecrit : la laisse d'Ollama valait 25 000 ms et le budget
+ * global du planificateur valait 25 000 ms aussi. Le budget expirait AVEC la laisse,
+ * donc la chaine etait avortee avant d'avoir essaye OpenAI. Le repli existait dans le
+ * code, il ne s'executait jamais. Un repli non atteignable est un repli absent.
+ *
+ * La regle depuis : chaque fournisseur a SA laisse, et le budget global vaut la SOMME
+ * des laisses plus une marge. Un fournisseur lent coute son temps, il ne coute pas le
+ * tour de celui qui suit.
+ *
+ * Le defaut d'Ollama est large parce qu'il est mesure, pas devine : granite3.3:8b rend
+ * un plan complet en 11 a 28 s sur la machine de developpement (prompt systeme reel,
+ * modele deja charge), et le premier appel apres un demarrage a froid paye en plus
+ * ~24 s de chargement du modele en memoire. Une laisse de 25 s coupait donc au milieu
+ * des plans corrects.
+ */
+export const DEFAULT_OLLAMA_TIMEOUT_MS = 45_000;
+export const DEFAULT_OPENAI_TIMEOUT_MS = 20_000;
+/** la marge du budget global au-dessus de la somme des laisses */
+export const CHAIN_MARGIN_MS = 3_000;
+
+/* Des FONCTIONS, pas des constantes de module. Une constante evaluee a l'import lit
+   l'environnement avant que l'appelant ait pu le regler : les `import` ESM sont hisses,
+   donc un test qui ecrit process.env juste avant son import arriverait trop tard et
+   croirait mesurer un reglage qui n'a jamais pris. On lit au moment de l'appel. */
+export const ollamaTimeoutMs = (): number =>
+  numEnv("TARE_OLLAMA_TIMEOUT_MS", DEFAULT_OLLAMA_TIMEOUT_MS);
+export const openaiTimeoutMs = (): number =>
+  numEnv("TARE_OPENAI_TIMEOUT_MS", DEFAULT_OPENAI_TIMEOUT_MS);
+
+function numEnv(key: string, fallback: number): number {
+  const raw = process.env[key];
+  if (raw === undefined || raw.trim() === "") return fallback;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
 async function postJson(
   url: string,
   body: unknown,
   headers: Record<string, string>,
   timeoutMs: number,
   f: typeof fetch,
+  name: string,
 ): Promise<{ status: number; text: string }> {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
@@ -246,6 +285,12 @@ async function postJson(
       signal: ctrl.signal,
     });
     return { status: r.status, text: await r.text() };
+  } catch (e) {
+    // `This operation was aborted` ne dit ni QUI a coupe ni AU BOUT DE COMBIEN.
+    // Ce message finit dans `degraded`, sous les yeux de quelqu'un : il doit se lire.
+    if (ctrl.signal.aborted)
+      throw new Error(`${name} n'a pas repondu en ${timeoutMs} ms (laisse du fournisseur)`);
+    throw e;
   } finally {
     clearTimeout(timer);
   }
@@ -257,7 +302,7 @@ export function makeOllamaCall(
 ): ModelCall {
   const base = (cfg.url ?? process.env.OLLAMA_URL ?? "http://127.0.0.1:11434").replace(/\/$/, "");
   const model = cfg.model ?? process.env.OLLAMA_PLANNER_MODEL ?? "granite3.3:8b";
-  const timeoutMs = cfg.timeoutMs ?? 25_000;
+  const timeoutMs = cfg.timeoutMs ?? ollamaTimeoutMs();
   const maxTokens = cfg.maxTokens ?? 700;
   const f = cfg.fetchImpl ?? fetch;
   const name = `ollama:${model}`;
@@ -277,6 +322,7 @@ export function makeOllamaCall(
       {},
       timeoutMs,
       f,
+      name,
     );
     if (status !== 200) throw new Error(`${name} HTTP ${status}: ${text.slice(0, 200)}`);
     const j = JSON.parse(text) as {
@@ -299,7 +345,7 @@ export function makeOpenAiCall(
   const apiKey = cfg.apiKey ?? process.env.OPENAI_API_KEY ?? "";
   const model = cfg.model ?? process.env.OPENAI_PLANNER_MODEL ?? "gpt-4o-mini";
   const base = (cfg.baseUrl ?? process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1").replace(/\/$/, "");
-  const timeoutMs = cfg.timeoutMs ?? 20_000;
+  const timeoutMs = cfg.timeoutMs ?? openaiTimeoutMs();
   const maxTokens = cfg.maxTokens ?? 700;
   const f = cfg.fetchImpl ?? fetch;
   const name = `openai:${model}`;
@@ -320,6 +366,7 @@ export function makeOpenAiCall(
       { authorization: `Bearer ${apiKey}` },
       timeoutMs,
       f,
+      name,
     );
     // Le corps d'erreur peut contenir la cle en clair dans un message : on ne le recopie pas.
     if (status !== 200) throw new Error(`${name} HTTP ${status}`);
@@ -360,25 +407,43 @@ export function chainCalls(calls: { name: string; call: ModelCall }[]): ModelCal
 export interface EnvModel {
   call: ModelCall;
   providers: string[];
+  /** le budget de la chaine entiere : somme des laisses + marge. JAMAIS une seule laisse. */
+  budgetMs: number;
 }
 
 /**
  * Le modele tel que l'environnement le decrit. Rien n'est teste par le reseau ici :
  * une sonde au demarrage mentirait sur l'etat au moment de la question.
+ *
+ * `budgetMs` sort d'ici parce que c'est ici qu'on sait COMBIEN de fournisseurs seront
+ * essayes. Un appelant qui fixerait le budget a la laisse d'un seul rendrait le repli
+ * inatteignable — c'est le bug qu'on a paye, il est documente plus haut.
  */
 export function modelCallFromEnv(opts: ProviderOptions = {}): EnvModel | null {
   const calls: { name: string; call: ModelCall }[] = [];
+  const leashes: number[] = [];
   const ollamaUrl = process.env.OLLAMA_URL;
   if (ollamaUrl && process.env.TARE_DISABLE_OLLAMA !== "1") {
     const model = process.env.OLLAMA_PLANNER_MODEL ?? "granite3.3:8b";
-    calls.push({ name: `ollama:${model}`, call: makeOllamaCall({ url: ollamaUrl, ...opts }) });
+    const timeoutMs = opts.timeoutMs ?? ollamaTimeoutMs();
+    leashes.push(timeoutMs);
+    calls.push({
+      name: `ollama:${model}`,
+      call: makeOllamaCall({ url: ollamaUrl, ...opts, timeoutMs }),
+    });
   }
   if (process.env.OPENAI_API_KEY && process.env.TARE_DISABLE_OPENAI !== "1") {
     const model = process.env.OPENAI_PLANNER_MODEL ?? "gpt-4o-mini";
-    calls.push({ name: `openai:${model}`, call: makeOpenAiCall(opts) });
+    const timeoutMs = opts.timeoutMs ?? openaiTimeoutMs();
+    leashes.push(timeoutMs);
+    calls.push({ name: `openai:${model}`, call: makeOpenAiCall({ ...opts, timeoutMs }) });
   }
   if (calls.length === 0) return null;
-  return { call: chainCalls(calls), providers: calls.map((c) => c.name) };
+  return {
+    call: chainCalls(calls),
+    providers: calls.map((c) => c.name),
+    budgetMs: leashes.reduce((a, b) => a + b, 0) + CHAIN_MARGIN_MS,
+  };
 }
 
 /* ----------------------------------------------------------- l'explication */
@@ -432,8 +497,12 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
 /* ------------------------------------------------------- les planificateurs */
 
 export interface LlmPlannerOptions {
-  /** au-dela, on ne conclut pas sur une reponse a moitie arrivee : on retombe */
-  timeoutMs?: number;
+  /**
+   * Le budget de LA CHAINE ENTIERE, pas la laisse d'un fournisseur. Au-dela, on ne
+   * conclut pas sur une reponse a moitie arrivee : on retombe sur le deterministe.
+   * Le mettre a la valeur d'une seule laisse tue le repli — voir OLLAMA_TIMEOUT_MS.
+   */
+  budgetMs?: number;
   /** comment joindre le RAG vectoriel du lot N. `false` : on ne l'interroge pas. */
   rag?: RagOptions | false;
 }
@@ -512,7 +581,7 @@ export async function planExplain(
  * filet de securite discret : il est annonce dans `degraded`.
  */
 export function makeLlmPlanner(call: ModelCall, opts: LlmPlannerOptions = {}): PlannerFn {
-  const timeoutMs = opts.timeoutMs ?? 25_000;
+  const timeoutMs = opts.budgetMs ?? ollamaTimeoutMs() + openaiTimeoutMs() + CHAIN_MARGIN_MS;
   return async (question, store, ctx) => {
     const fallback = (reason: string, detail: string): PlanOut => {
       const p = deterministicPlan(question, store, ctx);
@@ -619,6 +688,10 @@ export interface PlannerFromEnv {
   /** ce qui a ete branche, en clair, pour /health */
   mode: "llm" | "deterministe";
   providers: string[];
+  /** le budget reellement applique a la chaine, publie pour qu'il soit verifiable */
+  budget_ms: number;
+  /** pourquoi ce mode-la, en une phrase lisible par un humain */
+  why: string;
 }
 
 /**
@@ -626,13 +699,29 @@ export interface PlannerFromEnv {
  * ce qui est CONFIGURE, jamais ce qui est joignable. Le premier appel dira le reste.
  */
 export function plannerFromEnv(opts: LlmPlannerOptions & ProviderOptions = {}): PlannerFromEnv {
+  const rag = opts.rag;
   if (process.env.TARE_PLANNER === "deterministe")
-    return { planner: deterministicPlanner, mode: "deterministe", providers: [] };
+    return {
+      planner: withExplain(rawDeterministicPlanner, { rag }),
+      mode: "deterministe",
+      providers: [],
+      budget_ms: 0,
+      why: "TARE_PLANNER=deterministe : le planificateur LLM est desactive a la main",
+    };
   const env = modelCallFromEnv(opts);
-  if (!env) return { planner: deterministicPlanner, mode: "deterministe", providers: [] };
+  if (!env)
+    return {
+      planner: withExplain(rawDeterministicPlanner, { rag }),
+      mode: "deterministe",
+      providers: [],
+      budget_ms: 0,
+      why: "aucun fournisseur configure (ni OLLAMA_URL ni OPENAI_API_KEY) : expressions regulieres seules",
+    };
   return {
-    planner: makeLlmPlanner(env.call, opts),
+    planner: makeLlmPlanner(env.call, { ...opts, budgetMs: opts.budgetMs ?? env.budgetMs }),
     mode: "llm",
     providers: env.providers,
+    budget_ms: opts.budgetMs ?? env.budgetMs,
+    why: `fournisseurs essayes dans l'ordre : ${env.providers.join(" puis ")} ; le deterministe reste le filet`,
   };
 }

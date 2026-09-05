@@ -13,6 +13,7 @@ Step 2 is the only one that needs a network key, and it is idempotent: every eth
 cached in docs/hooks-source/_calls-cache.json, so a rerun is free and a rate limit costs one call.
 """
 import argparse
+import hashlib
 import json
 import os
 import sys
@@ -95,12 +96,22 @@ def cmd_analyze(args):
             chain.save()
     if chain:
         chain.save()
+    # The corpus is a moving file while the sweep is still running, so pin exactly which bytes
+    # this analysis was computed from. A report that cannot name its input is a report that cannot
+    # be checked.
+    with open(args.measurements, "rb") as fh:
+        corpus = fh.read()
     out = {
         "generated_by": "tare.source.cli analyze",
         "chain_id": args.chain_id,
         "block_number": args.block,
         "measurements": os.path.relpath(args.measurements, REPO),
+        "measurements_sha256": hashlib.sha256(corpus).hexdigest(),
+        "measurements_rows": corpus.count(b"\n"),
+        "measurements_bytes": len(corpus),
         "tolerance_bps": classify_mod.TOL_BPS,
+        "quantization_fraction": classify_mod.QUANT_FRACTION,
+        "saturation_elasticity": classify_mod.SATURATION_ELASTICITY,
         "hooks": records,
     }
     path = args.json or os.path.join(args.out, "analysis.json")

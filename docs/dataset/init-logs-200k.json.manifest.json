@@ -1,0 +1,20 @@
+{
+ "source": "eth_getLogs(PoolManager, Initialize)",
+ "pool_manager": "0x498581ff718922c3f8e6a244956af099b2652b2b",
+ "topic": "0xdd466e674ea557f56295e2d0218a125ea4b4f0f6f3307b95f85e6110838d6438",
+ "end_block": 50614000,
+ "span_blocks": 200000,
+ "start_block": 50414001,
+ "chunk_blocks": 10,
+ "chunks_total": 20000,
+ "chunks_failed": 0,
+ "coverage": 1.0,
+ "failed_ranges": [],
+ "n_events": 22896,
+ "n_hooked": 18307,
+ "n_hooks": 1559,
+ "replay": "python3 -m tare.collect 50614000 200000 /Users/beorlor/Documents/ethonline/ETH_Online_2026/docs/dataset/init-logs-200k.json 10 16",
+ "repaired": true,
+ "repaired_chunks": 35,
+ "recovered_events": 55
+}

@@ -159,6 +159,110 @@ def lp_fee_zero_table(rows: List[dict], above_bps: float = 1.0,
     }
 
 
+MARK_START = "<!-- FACTS:what-we-found -->"
+MARK_END = "<!-- /FACTS:what-we-found -->"
+
+
+def _pct(bps: float) -> str:
+    return f"{bps / 100:.1f}%".replace(".0%", "%")
+
+
+def markdown(t: dict) -> str:
+    """Le bloc « What we found » du README, engendre depuis le jeu.
+
+    Le README ne recopie plus ces nombres a la main : `make readme` remplace ce
+    qu'il y a entre les deux marqueurs par cette sortie. Un jeu qui grandit met
+    donc la prose a jour au lieu de la contredire.
+    """
+    hooks = t["by_hook"]
+    n_hooks = len(hooks)
+    mot = {1: "One hook", 2: "Two hooks", 3: "Three hooks", 4: "Four hooks",
+           5: "Five hooks", 6: "Six hooks", 7: "Seven hooks", 8: "Eight hooks",
+           9: "Nine hooks", 10: "Ten hooks"}.get(n_hooks, f"{n_hooks} hooks")
+    blocks = ", ".join(f"{b:,}" for b in t["blocks"]) or "—"
+    lo, hi = _pct(t["min_bps"]), _pct(t["max_bps"])
+
+    out = [MARK_START, ""]
+    out.append(f"**{mot} take between {lo} and {hi} of your swap on pools whose LP fee, read "
+               "on-chain, is zero.**")
+    out.append("")
+    out.append("| | |")
+    out.append("|---|---|")
+    out.append(f"| Published measurements | **{t['rows']}** across **{t['pools']} pools** and "
+               f"**{t['hooks']} hooks**, block **{blocks}** (Base) |")
+    order = ["MEASURED", "NOT_QUOTABLE", "NOT_MEASURABLE", "INTERPOLATED"]
+    lab = " · ".join(f"**{t['labels'][k]}** `{k}`" for k in order if k in t["labels"])
+    out.append(f"| of which | {lab} |")
+    out.append(f"| `MEASURED` above {t['filter']['above_bps']:g} bps on pools with "
+               f"`stored_lp_fee == 0` | **{t['n']}**, across **{t['n_pools']} pools** and "
+               f"**{t['n_hooks']} hooks** |")
+    out.append(f"| min / median / max on those | **{t['min_bps']:.2f} / {t['median_bps']:.2f} / "
+               f"{t['max_bps']:.2f} bps** |")
+    out.append("")
+    out.append("Per hook, worst first — every row is `MEASURED`, on pools whose stored LP fee "
+               "is zero:")
+    out.append("")
+    out.append("| Hook | n / pools | min · median · max (bps) | Registry says |")
+    out.append("|---|---|---|---|")
+    for h in hooks:
+        short = h["hook"][:10] + "…"
+        if h["in_registry"]:
+            access = h["registry_says"].split("swapAccess=")[1].split(",")[0]
+            audit = "no audit link" if "no audit link" in h["registry_says"] else "audit link"
+            says = f"`vanillaSwap=false`, `swapAccess={access}`, **{audit}**"
+            label = f"`{short}` {h['name']}"
+        else:
+            says = "**not in the registry at all**"
+            label = f"`{short}` (unnamed)"
+        out.append(f"| {label} | {h['n']} / {h['pools']} | "
+                   f"{h['min_bps']:.2f} · {h['median_bps']:.2f} · **{h['max_bps']:.2f}** | {says} |")
+    out.append("")
+    described = [h for h in hooks if h["in_registry"]]
+    unlisted = [h for h in hooks if not h["in_registry"]]
+    if described:
+        takes = " / ".join(f"{h['max_bps']:.0f}" for h in described)
+        # On n'affirme « tous vanillaSwap=false, aucun audit » que si c'est vrai de tous.
+        tous_faux = all("vanillaSwap=false" in h["registry_says"] for h in described)
+        aucun_audit = all("no audit link" in h["registry_says"] for h in described)
+        qualif = ""
+        if tous_faux and aucun_audit:
+            qualif = " — every one of them as `vanillaSwap: false`, with no audit link —"
+        elif tous_faux:
+            qualif = " — every one of them as `vanillaSwap: false` —"
+        phrase = (f"{len(described)} of the {n_hooks} are described by the registry{qualif} and "
+                  f"they take **{takes} bps**.")
+        if unlisted:
+            phrase += (f" The remaining {len(unlisted)} "
+                       f"{'is' if len(unlisted) == 1 else 'are'} not described at all.")
+        out.append(phrase)
+        out.append("")
+    out.append("The registry has two failure modes and this table shows both: **it describes "
+               "without quantifying, and")
+    out.append("it does not see everything.**")
+    out.append("")
+    out.append("```bash")
+    out.append("PYTHONPATH=engine python3 -m tare.dataset.stats --lp-fee-zero --above-bps 1"
+               "   # the table above")
+    out.append("```")
+    out.append("")
+    out.append(MARK_END)
+    return "\n".join(out)
+
+
+def splice_readme(readme: Path, block: str) -> bool:
+    """Remplace ce qu'il y a entre les marqueurs. Rend True si le fichier a change."""
+    text = readme.read_text()
+    i, j = text.find(MARK_START), text.find(MARK_END)
+    if i < 0 or j < 0:
+        raise ValueError(
+            f"marqueurs absents de {readme} — attendus {MARK_START} ... {MARK_END}")
+    new = text[:i] + block + text[j + len(MARK_END):]
+    if new == text:
+        return False
+    readme.write_text(new)
+    return True
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="tare.dataset.stats", description=__doc__.split("\n")[0])
     ap.add_argument("--in", dest="path", default=str(DEFAULT_DATASET))
@@ -167,10 +271,26 @@ def main(argv=None) -> int:
     ap.add_argument("--above-bps", type=float, default=1.0,
                     help="plancher d'arrondi, en bps (defaut 1.0)")
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--markdown", action="store_true",
+                    help="imprimer le bloc « What we found » du README")
+    ap.add_argument("--write-readme", action="store_true",
+                    help="ecrire ce bloc dans README.md entre ses marqueurs")
     a = ap.parse_args(argv)
 
     rows = read_rows(Path(a.path))
-    t = lp_fee_zero_table(rows, above_bps=a.above_bps, lp_fee_zero=a.lp_fee_zero)
+    lp0 = a.lp_fee_zero or a.markdown or a.write_readme
+    t = lp_fee_zero_table(rows, above_bps=a.above_bps, lp_fee_zero=lp0)
+
+    if a.markdown or a.write_readme:
+        block = markdown(t)
+        if a.write_readme:
+            readme = REPO / "README.md"
+            changed = splice_readme(readme, block)
+            print(f"{readme} : {'mis a jour' if changed else 'deja a jour'} "
+                  f"({t['rows']} mesures, {t['n_hooks']} hooks au-dessus du seuil)")
+        else:
+            print(block)
+        return 0
 
     if a.json:
         print(json.dumps(t, indent=1))

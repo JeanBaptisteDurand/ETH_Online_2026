@@ -1,5 +1,5 @@
 {
- "built_at": "2026-09-05T06:15:25+00:00",
+ "built_at": "2026-09-05T06:51:42+00:00",
  "engine_ver": "0.3.0",
  "rag_ver": "tare-rag/0.1.0",
  "embedding": {
@@ -10,14 +10,25 @@
  "embedding_selection": [
   "ollama: retenu (granite-embedding:278m, 768 dims)"
  ],
- "n_chunks": 1051,
+ "n_chunks": 1833,
  "by_corpus": {
-  "docs": 73,
-  "registry": 978
+  "docs": 74,
+  "registry": 978,
+  "hook_source": 781
  },
  "chunk_chars": {
-  "max": 1811,
-  "median": 1289
+  "budget": 2048,
+  "max": 2620,
+  "median": 1406,
+  "n_oversize": 1,
+  "oversize": [
+   "docs/hooks-source/0x0469a4bd3724dc86c9542f4694c976da13c450c0/sources/node_modules/@zoralabs/coins/src/libs/CoinConstants.sol#107-107"
+  ]
+ },
+ "solidity": {
+  "present": 741,
+  "vendored": 593,
+  "own": 148
  },
  "corpus": {
   "declared": [
@@ -75,15 +86,13 @@
     "path": "docs/hooks-source",
     "required": false,
     "note": "source Solidity verifie des hooks mesures (lot P, Sourcify/Etherscan)",
-    "present": false
+    "present": true
    }
   ],
   "n_declared": 7,
-  "n_present": 6,
+  "n_present": 7,
   "missing_required": [],
-  "missing_optional": [
-   "docs/hooks-source"
-  ],
+  "missing_optional": [],
   "ok": true
  },
  "fingerprints": [
@@ -123,9 +132,9 @@
    "path": "README.md",
    "present": true,
    "is_dir": false,
-   "size": 8506,
-   "mtime": 1788588470,
-   "sha256_12": "2a405ef27e9e"
+   "size": 10594,
+   "mtime": 1788589851,
+   "sha256_12": "c04d4ea274a2"
   },
   {
    "path": "docs/hooklist-live-20260905.json",
@@ -136,8 +145,12 @@
    "sha256_12": "ed6808f5376f"
   },
   {
-   "path": "/Users/beorlor/Documents/ethonline/ETH_Online_2026/docs/hooks-source",
-   "present": false
+   "path": "docs/hooks-source",
+   "present": true,
+   "is_dir": true,
+   "size": null,
+   "mtime": 1788589998,
+   "sha256_12": null
   }
  ],
  "graph": {
@@ -150,24 +163,25 @@
    "n_chain_entries": 160,
    "block_number": 50614000
   },
-  "n_chunks_with_graph_node": 978,
+  "n_chunks_with_graph_node": 1628,
   "n_registry_chunks_absent_from_graph": 0
  },
  "cache": {
-  "hits": 0,
-  "misses": 1051,
+  "hits": 1041,
+  "misses": 792,
   "path": "/Users/beorlor/Documents/ethonline/ETH_Online_2026/engine/tare/rag/var/embed-cache.jsonl"
  },
- "elapsed_s": 128.47,
+ "elapsed_s": 200.72,
  "loaded": true,
  "index_file": "/Users/beorlor/Documents/ethonline/ETH_Online_2026/engine/tare/rag/var/index.jsonl",
  "db": {
   "dsn": "postgresql://tare:***@127.0.0.1:55432/tare",
-  "rows_in_db": 1051,
+  "rows_in_db": 1833,
   "by_corpus_in_db": {
-   "docs": 73,
+   "docs": 74,
+   "hook_source": 781,
    "registry": 978
   },
-  "build_id": 1
+  "build_id": 2
  }
 }

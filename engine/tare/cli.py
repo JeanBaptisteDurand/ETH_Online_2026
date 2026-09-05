@@ -30,7 +30,7 @@ import sys
 from pathlib import Path
 
 from .sweep import (DEFAULT_OUT, DEFAULT_POOLS, DEFAULT_SUMMARY, DIRECTIONS, SIZES, dedupe,
-                    load_pools,
+                    discovery_provenance, load_pools,
                     measure_resilient, probe_direction, read_done, read_jsonl, summarise,
                     sweep, write_summary)
 
@@ -177,7 +177,11 @@ def cmd_summary(a) -> int:
     if not rows:
         print(f"{a.infile} est vide — lance d'abord `python3 -m tare.cli sweep --rpc ...`")
         return 1
-    s = summarise(rows, block=a.block)
+    # La provenance de la decouverte n'est pas un compte des lignes : c'est la forme de la
+    # recherche qui a produit la liste de pools. Sans elle, un lecteur prend l'echantillon pour
+    # la population.
+    s = summarise(rows, block=a.block,
+                  discovery=discovery_provenance(a.logs_manifest, a.pool_census))
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
     Path(a.out).write_text(json.dumps(s, indent=1) + "\n")
 
@@ -281,6 +285,10 @@ def build_parser() -> argparse.ArgumentParser:
     r.add_argument("--in", dest="infile", default=str(DEFAULT_OUT))
     r.add_argument("--out", default=str(DEFAULT_SUMMARY))
     r.add_argument("--block", type=int, default=None)
+    r.add_argument("--logs-manifest", default=None,
+                   help="<init-logs>.manifest.json : fenetre balayee et tranches jamais lues")
+    r.add_argument("--pool-census", default=None,
+                   help="<pools>.scan.json : lisibles / vides / ILLISIBLES")
     r.set_defaults(fn=cmd_summary)
 
     k = sub.add_parser("compact", help="dedupliquer et trier le JSONL en place")

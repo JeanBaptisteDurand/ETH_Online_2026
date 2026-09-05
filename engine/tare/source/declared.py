@@ -22,12 +22,14 @@ DEFAULT_PACE_S = 0.35          # Alchemy answers ~3 req/s comfortably on the fre
 class Chain:
     """A paced, cached eth_call surface. Injectable so tests never touch a network."""
 
-    def __init__(self, url: str, block: int, pace_s: float = DEFAULT_PACE_S, cache_path: str = None):
+    def __init__(self, url: str, block: int, pace_s: float = DEFAULT_PACE_S, cache_path: str = None,
+                 rate_limit_retries: int = 4):
         self.url = url
         self.block_hex = hex(block)
         self.block = block
         self.pace_s = pace_s
         self.cache_path = cache_path
+        self.rate_limit_retries = rate_limit_retries
         self.cache = {}
         self._last = 0.0
         if cache_path and os.path.exists(cache_path):
@@ -41,14 +43,29 @@ class Chain:
         self._last = time.time()
 
     def eth_call(self, to: str, data: str):
-        """Returns the raw hex result, or raises. Cached by (to, data, block)."""
+        """Returns the raw hex result, or raises. Cached by (to, data, block).
+
+        `rpc.call` already backs off on a 429; this adds a second, slower layer because a rate
+        limit that survives both is still not an answer and must reach the caller as a failure, not
+        as a missing value. Every 429 that got through in an earlier run turned a real pool into an
+        UNVERIFIED line in the report — visible, but wasted.
+        """
         key = f"{to.lower()}|{data}|{self.block}"
         if key in self.cache:
             return self.cache[key]
-        self._pace()
-        out = rpc_mod.call(self.url, "eth_call", [{"to": to, "data": data}, self.block_hex])
-        self.cache[key] = out
-        return out
+        delay = 4.0
+        for attempt in range(self.rate_limit_retries + 1):
+            self._pace()
+            try:
+                out = rpc_mod.call(self.url, "eth_call", [{"to": to, "data": data}, self.block_hex])
+            except rpc_mod.RateLimited:
+                if attempt == self.rate_limit_retries:
+                    raise
+                time.sleep(delay)
+                delay = min(delay * 2, 30.0)
+                continue
+            self.cache[key] = out
+            return out
 
     def block_timestamp(self):
         key = f"blockts|{self.block}"
@@ -105,27 +122,6 @@ def decode(kind: str, raw: str):
         return _uint(ws[0])
     if kind == "bool":
         return bool(_uint(ws[0]))
-    if kind.startswith("struct:"):
-        # layout comes from the fetched source (scan.parse_struct), never from an assumption.
-        layout = kind.split(":", 1)[1]
-        raise ValueError(f"struct decode needs a layout, got the bare tag {layout!r}")
-    if kind == "launchhook_config":
-        # mapping(PoolId => PoolConfig) public poolConfig  -> 11 flattened words
-        if len(ws) < 11:
-            raise ValueError(f"poolConfig returned {len(ws)} words, expected 11")
-        return {
-            "initialized": bool(_uint(ws[0])),
-            "token_is_currency0": bool(_uint(ws[1])),
-            "creator": "0x" + ws[2][-40:],
-            "platform_treasury": "0x" + ws[3][-40:],
-            "base_fee_bps": _uint(ws[4]),
-            "creator_bps": _uint(ws[5]),
-            "platform_bps": _uint(ws[6]),
-            "referrer_bps": _uint(ws[7]),
-            "anti_snipe_start_total_bps": _uint(ws[8]),
-            "anti_snipe_window_seconds": _uint(ws[9]),
-            "launch_time": _uint(ws[10]),
-        }
     if kind == "doppler_state":
         # mapping(address asset => PoolState) public getState. Solidity omits the dynamic array
         # members from a struct getter, so word 2 is `dopplerHook` and word 4 is `status`.

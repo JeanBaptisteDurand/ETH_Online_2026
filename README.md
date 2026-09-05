@@ -18,28 +18,29 @@ stub — and the difference **is** what the hook took.
 
 ## What we found
 
+<!-- FACTS:what-we-found -->
+
 **Six hooks take between 0.5% and 11.8% of your swap on pools whose LP fee, read on-chain, is zero.**
 
 | | |
 |---|---|
-| Published measurements | **995** across **199 pools** and **12 hooks**, block **50,614,000** (Base) |
-| of which | **720** `MEASURED` · **265** `NOT_QUOTABLE` · **10** `NOT_MEASURABLE` |
-| `MEASURED` above 1 bps on pools with `stored_lp_fee == 0` | **545**, across **109 pools** and **6 hooks** |
+| Published measurements | **1039** across **199 pools** and **12 hooks**, block **50,614,000** (Base) |
+| of which | **759** `MEASURED` · **270** `NOT_QUOTABLE` · **10** `NOT_MEASURABLE` |
+| `MEASURED` above 1 bps on pools with `stored_lp_fee == 0` | **578**, across **109 pools** and **6 hooks** |
 | min / median / max on those | **51.40 / 100.00 / 1176.46 bps** |
 
 Per hook, worst first — every row is `MEASURED`, on pools whose stored LP fee is zero:
 
 | Hook | n / pools | min · median · max (bps) | Registry says |
 |---|---|---|---|
-| `0xb429d62f…` Clanker Static Fee Hook v2 | 95 / 19 | 79.58 · 119.70 · **1176.46** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
+| `0xb429d62f…` Clanker Static Fee Hook v2 (Base) | 95 / 19 | 79.58 · 119.70 · **1176.46** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
 | `0x1aea38f0…` ClankerHookStaticFeeV2 | 10 / 2 | 57.44 · 253.31 · **689.95** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
-| `0xbdf93814…` DopplerHookInitializer | 50 / 10 | 150.00 · 150.00 · **175.00** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
-| `0x0469a4bd…` Zora Hook | 255 / 51 | 51.40 · 100.00 · **100.00** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
+| `0xbdf93814…` DopplerHookInitializer | 61 / 10 | 150.00 · 150.00 · **175.00** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
+| `0x0469a4bd…` Zora Hook | 277 / 51 | 51.40 · 100.00 · **100.00** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
 | `0x985c14ba…` LaunchHook | 125 / 25 | 69.30 · 99.56 · **100.00** | `vanillaSwap=false`, `swapAccess=temporal`, **no audit link** |
-| `0xdda9bc41…` — | 10 / 2 | 61.64 · 99.38 · **99.99** | **not in the registry at all** |
+| `0xdda9bc41…` (unnamed) | 10 / 2 | 61.64 · 99.38 · **99.99** | **not in the registry at all** |
 
-Five of the six carry the same description — `vanillaSwap: false`, `swapAccess: none`, no audit link
-— and take **1176 / 690 / 175 / 100 / 100 bps**. The sixth is not described at all.
+5 of the 6 are described by the registry — every one of them as `vanillaSwap: false`, with no audit link — and they take **1176 / 690 / 175 / 100 / 100 bps**. The remaining 1 is not described at all.
 
 The registry has two failure modes and this table shows both: **it describes without quantifying, and
 it does not see everything.**
@@ -47,6 +48,8 @@ it does not see everything.**
 ```bash
 PYTHONPATH=engine python3 -m tare.dataset.stats --lp-fee-zero --above-bps 1   # the table above
 ```
+
+<!-- /FACTS:what-we-found -->
 
 ## What the graph reveals
 

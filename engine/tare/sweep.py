@@ -588,9 +588,57 @@ def dedupe(rows) -> list:
     return list(seen.values())
 
 
-def summarise(rows, block=None) -> dict:
+def discovery_provenance(logs_manifest=None, pool_census=None) -> dict:
+    """Where the pools in this corpus came from, and what the search missed.
+
+    A corpus that reports 700 pools without saying over how many blocks it looked, or how many
+    pools it could not read, invites the reader to treat 700 as the population. It is a sample,
+    and the two files that know its shape are the collector's manifest and the scanner's census.
+    Both are optional here — an absent file is reported as absent, never as a clean run.
+    """
+    out = {}
+    for name, path in (("logs", logs_manifest), ("pools", pool_census)):
+        if path is None:
+            continue
+        p = Path(path)
+        if not p.exists():
+            out[name] = {"file": str(path), "status": "ABSENT"}
+            continue
+        d = json.loads(p.read_text())
+        if name == "logs":
+            out["logs"] = {
+                "file": str(path), "source": d.get("source"),
+                "window_blocks": d.get("span_blocks"),
+                "from_block": d.get("start_block"), "to_block": d.get("end_block"),
+                "chunks_total": d.get("chunks_total"),
+                "chunks_never_read": d.get("chunks_failed"),
+                "coverage": d.get("coverage"),
+                "n_initialize_events": d.get("n_events"),
+                "n_hooked_pools": d.get("n_hooked"),
+                "n_hooks": d.get("n_hooks"),
+            }
+        else:
+            out["pools"] = {
+                "file": str(path), "block_number": d.get("block_number"),
+                "n_hooked_pools": d.get("n_hooked_pools"),
+                "n_readable": d.get("n_readable"),
+                "n_liquid": d.get("n_liquid"),
+                "n_zero_liquidity": d.get("n_zero_liquidity"),
+                "n_unknown": d.get("n_unknown"),
+                "n_hooks_total": d.get("n_hooks_total"),
+                "n_hooks_with_liquid_pool": d.get("n_hooks_with_liquid_pool"),
+            }
+    return out
+
+
+def summarise(rows, block=None, discovery=None) -> dict:
     """Everything the summary claims is counted from `rows`. Nothing is carried over from a
-    previous run, and an empty input produces zeros, not omissions."""
+    previous run, and an empty input produces zeros, not omissions.
+
+    `discovery` is the one exception and it is not a count of anything in `rows`: it is the shape
+    of the search that produced the pool list, copied verbatim from the collector's manifest and
+    the scanner's census so a reader can see the denominator this sample was drawn from.
+    """
     rows = dedupe(rows)
     measured = [r for r in rows if r["label"] == "MEASURED" and r["bps"] is not None]
     bps = sorted(r["bps"] for r in measured)
@@ -658,6 +706,8 @@ def summarise(rows, block=None) -> dict:
         "n_pools_measured_both_sides": len(both_sides),
         "n_pools_measured_one_side": len(one_side),
 
+        "discovery": discovery or {},
+
         "n_profiles": len(profiles),
         "n_non_flat_profiles": len(non_flat),
         "n_asymmetric_pools": len(asym),
@@ -666,8 +716,9 @@ def summarise(rows, block=None) -> dict:
     }
 
 
-def write_summary(in_path=DEFAULT_OUT, out_path=DEFAULT_SUMMARY, block=None) -> dict:
-    s = summarise(read_jsonl(in_path), block=block)
+def write_summary(in_path=DEFAULT_OUT, out_path=DEFAULT_SUMMARY, block=None,
+                  discovery=None) -> dict:
+    s = summarise(read_jsonl(in_path), block=block, discovery=discovery)
     p = Path(out_path)
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(s, indent=1) + "\n")

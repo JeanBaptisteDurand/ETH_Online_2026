@@ -592,3 +592,57 @@ describe("invariants sur le vrai jeu (aucun nombre fige)", () => {
     });
   }, 180_000);
 });
+
+/* --------------------------------------------------------------------------
+ * La frontiere avec les intentions voisines. Ajouter `route` a fait REGRESSER
+ * `compare` : « compare 0xHOOK contre 0xHOOK » partait en routage, parce que le mot
+ * « contre » et deux adresses suffisaient, sans verifier que ces adresses etaient des
+ * jetons. Une intention nouvelle qui vole des questions a une ancienne est une
+ * regression, meme quand elle marche parfaitement sur les siennes.
+ * ------------------------------------------------------------------------ */
+
+describe("route ne vole pas les questions des autres intentions", () => {
+  const cas: [string, string][] = [
+    [`compare ${HA} contre ${HB}`, "compare"],
+    [`les jumeaux de ${HA} et ${HB}`, "twins"],
+
+    [`ouvre ${HB}`, "open"],
+  ];
+  for (const [q, attendu] of cas)
+    it(`« ${q.slice(0, 40)}… » reste ${attendu}`, () => {
+      expect(plan(q, store).intent).toBe(attendu);
+    });
+
+  it("« trace la courbe de 0xHOOK » n'est jamais volee par route", () => {
+    // La fixture ne porte pas de courbe pour ce hook : l'intention retombe sur unclear.
+    // Ce qu'on verifie ici n'est pas qu'elle vaut curve, c'est qu'elle ne vaut PAS route.
+    expect(plan(`trace la courbe de ${HA}`, store).intent).not.toBe("route");
+  });
+
+  it("mais une vraie paire de jetons part bien en route", () => {
+    expect(plan(`echanger ${T_A} contre ${T_B}`, store).intent).toBe("route");
+  });
+
+  it("sur un verbe d'echange explicite, deux adresses inconnues sont ROUTEES mais sans cout", () => {
+    // « echanger » ne laisse aucun doute sur l'intention : on repond. Mais deux adresses que
+    // le recensement ne connait pas ne fabriquent aucune porte et aucun chiffre — la reponse
+    // dit qu'il n'y a rien de mesure, ce qui vaut mieux que « je n'ai pas compris ».
+    const p = plan(
+      "echanger 0x1111111111111111111111111111111111111111 contre 0x2222222222222222222222222222222222222222",
+      store,
+    );
+    expect(p.intent).toBe("route");
+    expect(p.route?.verdict).toBe("NOT_MEASURED");
+    expect(p.route?.ranked ?? []).toEqual([]);
+  });
+
+  it("sur le signal faible seul (« A contre B »), deux adresses inconnues ne font pas une paire", () => {
+    // Sans verbe d'echange, « contre » est ambigu : c'est le cas qui volait les questions
+    // de compare. Ce qui n'est pas lu comme jeton n'est pas promu jeton.
+    const p = plan(
+      "0x1111111111111111111111111111111111111111 contre 0x2222222222222222222222222222222222222222",
+      store,
+    );
+    expect(p.intent).not.toBe("route");
+  });
+});

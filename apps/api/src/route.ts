@@ -681,9 +681,13 @@ export function buildRouteAnswer(q: RouteQuery, index: PairIndex, census: Census
     let cost_basis: string;
     let size_exact: boolean;
     if (q.amount === null) {
-      // Sans taille, on ne devine pas : on prend la PIRE taille mesuree et on le dit.
+      // Sans taille demandee, on ne devine pas la taille de l'echange : on retient la
+      // mesure qui a coute LE PLUS CHER, et on le dit. L'etiquette a longtemps ete
+      // « pire_taille_mesuree », ce qui decrivait autre chose — le code ne trie pas par
+      // taille, il trie par cout. Nommer une regle pour une autre est un mensonge de plus
+      // petite taille qu'un faux chiffre, mais de la meme famille.
       chosen = quoted.reduce((a, b) => (b.bps! > a.bps! ? b : a));
-      cost_basis = "pire_taille_mesuree";
+      cost_basis = "pire_cout_mesure";
       size_exact = false;
     } else {
       const sorted = quoted
@@ -739,7 +743,7 @@ export function buildRouteAnswer(q: RouteQuery, index: PairIndex, census: Census
         note: size_exact
           ? "cout lu a la taille demandee."
           : q.amount === null
-            ? "aucune taille demandee : le cout affiche est celui de la PIRE taille mesuree dans ce sens. Les autres tailles sont dans points[]."
+            ? "aucune taille demandee : le cout affiche est le PLUS ELEVE mesure dans ce sens, toutes tailles confondues. Les autres tailles sont dans points[]."
             : `la taille demandee (${q.amount} wei) n'a pas ete mesuree sur ce pool. Le cout affiche est celui de la taille mesuree la plus proche (${chosen.amount_in} wei).`,
       },
       measurement_id: chosen.id,
@@ -855,7 +859,7 @@ export function buildRouteAnswer(q: RouteQuery, index: PairIndex, census: Census
       requested_wei: q.amount,
       note:
         q.amount === null
-          ? "aucune taille demandee : chaque pool est classe sur sa PIRE taille mesuree dans ce sens (cost_basis=pire_taille_mesuree). Les autres tailles restent dans points[]."
+          ? "aucune taille demandee : chaque pool est classe sur son cout MESURE LE PLUS ELEVE dans ce sens, toutes tailles confondues (cost_basis=pire_cout_mesure). Les autres tailles restent dans points[]."
           : "chaque pool porte son propre champ size : exact_match dit si la taille demandee a ete mesuree telle quelle.",
     },
     block: {

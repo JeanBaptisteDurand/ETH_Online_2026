@@ -134,15 +134,19 @@ describe("parite avec engine/tare/graph/queries.py", () => {
     const { status, body } = await get("/graph/disagreement");
     expect(status).toBe(200);
     expectSameAsPython(body, "disagreement");
-    expect(body.n_registry_says_active_measure_says_flat).toBe(1);
-    expect(body.registry_says_active_measure_says_flat[0].address).toBe(HOOK_DISAGREE);
+    // La parite couvre deja l'egalite avec la sortie Python. Ce qui reste a verifier n'est
+    // pas un total — il etait de 1, il est de 3, il bougera encore — mais que le cas connu
+    // est bien dedans et que le compte annonce correspond a la liste rendue.
+    const plats = body.registry_says_active_measure_says_flat as { address: string }[];
+    expect(plats.map((x) => x.address)).toContain(HOOK_DISAGREE);
+    expect(body.n_registry_says_active_measure_says_flat).toBe(plats.length);
   });
 
   it("GET /graph/clusters rend les memes grappes de clones", async () => {
     const { status, body } = await get("/graph/clusters");
     expect(status).toBe(200);
     expect(body.clusters).toEqual(py("clusters"));
-    expect(body.n_clusters).toBe(2);
+    expect(body.n_clusters).toBe(body.clusters.length);
     expect(body.n_hooks).toBe(4);
   });
 

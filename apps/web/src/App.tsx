@@ -5,6 +5,7 @@ import { fmtBlock } from './lib/format'
 import { HookTable } from './components/Table'
 import { Detail } from './components/Detail'
 import { LedWidget } from './components/Led'
+import { RoutePanel } from './components/Route'
 import { GraphPanels } from './components/Graph'
 import { Panel } from './components/Prim'
 import { Chat } from './chat/Chat'
@@ -217,6 +218,11 @@ export default function App() {
           />
           <Legend />
         </Panel>
+
+        {/* La route : le classement des portes d'une paire, servi par GET /route. L'ordinal 07
+            est le prochain libre — la position dans la page prime sur l'ordre des ordinaux,
+            renumeroter les autres panneaux sortirait du perimetre de ce chantier. */}
+        <RoutePanel />
 
         <LedWidget />
 

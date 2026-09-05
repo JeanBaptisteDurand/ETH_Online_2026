@@ -1,7 +1,7 @@
 {
  "chain_id": 8453,
  "flat_bps": 1.0,
- "n_registry_says_active_measure_says_flat": 1,
+ "n_registry_says_active_measure_says_flat": 3,
  "registry_says_active_measure_says_flat": [
   {
    "id": "hook:8453:0x3b2b979df21036cee51b8debb13100e2cb8deacc",
@@ -25,11 +25,57 @@
     "bps_median": 0.0,
     "flat": true
    }
+  },
+  {
+   "id": "hook:8453:0x84bbab8cac69bf6711ba81f9915dc346f4cf2088",
+   "address": "0x84bbab8cac69bf6711ba81f9915dc346f4cf2088",
+   "label": "RwagmiHookV2",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 17,
+   "profile": {
+    "n": 272,
+    "by_label": {
+     "MEASURED": 63,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 209
+    },
+    "n_measured": 63,
+    "bps_min": 0.0,
+    "bps_max": 0.0,
+    "bps_median": 0.0,
+    "flat": true
+   }
+  },
+  {
+   "id": "hook:8453:0xbb7784a4d481184283ed89619a3e3ed143e1adc0",
+   "address": "0xbb7784a4d481184283ed89619a3e3ed143e1adc0",
+   "label": "DecayMulticurveInitializerHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 41,
+   "profile": {
+    "n": 645,
+    "by_label": {
+     "MEASURED": 87,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 272,
+     "NOT_QUOTABLE": 286
+    },
+    "n_measured": 87,
+    "bps_min": 0.0,
+    "bps_max": 0.0,
+    "bps_median": 0.0,
+    "flat": true
+   }
   }
  ],
  "n_registry_says_vanilla_measure_says_active": 0,
  "registry_says_vanilla_measure_says_active": [],
- "n_not_comparable": 260,
+ "n_not_comparable": 246,
  "not_comparable": [
   {
    "id": "hook:8453:0x000052423c1db6b7ff8641b85a7eefc7b2791888",
@@ -302,14 +348,14 @@
    "vanillaSwap_declared": [
     false
    ],
-   "n_pools": 0,
+   "n_pools": 1,
    "profile": {
-    "n": 0,
+    "n": 16,
     "by_label": {
      "MEASURED": 0,
      "INTERPOLATED": 0,
      "NOT_MEASURABLE": 0,
-     "NOT_QUOTABLE": 0
+     "NOT_QUOTABLE": 16
     },
     "n_measured": 0,
     "bps_min": null,
@@ -317,7 +363,7 @@
     "bps_median": null,
     "flat": null
    },
-   "reason": "aucune mesure MEASURED : "
+   "reason": "aucune mesure MEASURED : NOT_QUOTABLE=16"
   },
   {
    "id": "hook:8453:0x0b8fbfa9861af89d7d2cf2e55f61cee982a22080",
@@ -753,30 +799,6 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
-   "id": "hook:8453:0x1f91c998e7c2f4b690d75bdbf6502bdcd6e02acc",
-   "address": "0x1f91c998e7c2f4b690d75bdbf6502bdcd6e02acc",
-   "label": "LaunchHook",
-   "vanillaSwap_declared": [
-    false
-   ],
-   "n_pools": 0,
-   "profile": {
-    "n": 0,
-    "by_label": {
-     "MEASURED": 0,
-     "INTERPOLATED": 0,
-     "NOT_MEASURABLE": 0,
-     "NOT_QUOTABLE": 0
-    },
-    "n_measured": 0,
-    "bps_min": null,
-    "bps_max": null,
-    "bps_median": null,
-    "flat": null
-   },
-   "reason": "aucune mesure MEASURED : "
-  },
-  {
    "id": "hook:8453:0x2063a2b535a59911532cdf4d1cf28501099f0aec",
    "address": "0x2063a2b535a59911532cdf4d1cf28501099f0aec",
    "label": "SnapBackHook",
@@ -852,30 +874,6 @@
    "id": "hook:8453:0x22266a74902ef7546ab80156539e7a349ad20040",
    "address": "0x22266a74902ef7546ab80156539e7a349ad20040",
    "label": "BpegHook",
-   "vanillaSwap_declared": [
-    false
-   ],
-   "n_pools": 0,
-   "profile": {
-    "n": 0,
-    "by_label": {
-     "MEASURED": 0,
-     "INTERPOLATED": 0,
-     "NOT_MEASURABLE": 0,
-     "NOT_QUOTABLE": 0
-    },
-    "n_measured": 0,
-    "bps_min": null,
-    "bps_max": null,
-    "bps_median": null,
-    "flat": null
-   },
-   "reason": "aucune mesure MEASURED : "
-  },
-  {
-   "id": "hook:8453:0x23321f11a6d44fd1ab790044fdfde5758c902fdc",
-   "address": "0x23321f11a6d44fd1ab790044fdfde5758c902fdc",
-   "label": "Flaunch POSM v4 (Base)",
    "vanillaSwap_declared": [
     false
    ],
@@ -1859,30 +1857,6 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
-   "id": "hook:8453:0x4db263809e6ea36d223161535173a01b5b3240c0",
-   "address": "0x4db263809e6ea36d223161535173a01b5b3240c0",
-   "label": "DynamicFeeHookV2",
-   "vanillaSwap_declared": [
-    false
-   ],
-   "n_pools": 0,
-   "profile": {
-    "n": 0,
-    "by_label": {
-     "MEASURED": 0,
-     "INTERPOLATED": 0,
-     "NOT_MEASURABLE": 0,
-     "NOT_QUOTABLE": 0
-    },
-    "n_measured": 0,
-    "bps_min": null,
-    "bps_max": null,
-    "bps_median": null,
-    "flat": null
-   },
-   "reason": "aucune mesure MEASURED : "
-  },
-  {
    "id": "hook:8453:0x51bba15255406cfe7099a42183302640ba7dafdc",
    "address": "0x51bba15255406cfe7099a42183302640ba7dafdc",
    "label": "Flaunch POSM v1",
@@ -2030,30 +2004,6 @@
    "id": "hook:8453:0x58165a756a9e6a10a64db2b4a9bb47bdd62120cc",
    "address": "0x58165a756a9e6a10a64db2b4a9bb47bdd62120cc",
    "label": "PokeHook",
-   "vanillaSwap_declared": [
-    false
-   ],
-   "n_pools": 0,
-   "profile": {
-    "n": 0,
-    "by_label": {
-     "MEASURED": 0,
-     "INTERPOLATED": 0,
-     "NOT_MEASURABLE": 0,
-     "NOT_QUOTABLE": 0
-    },
-    "n_measured": 0,
-    "bps_min": null,
-    "bps_max": null,
-    "bps_median": null,
-    "flat": null
-   },
-   "reason": "aucune mesure MEASURED : "
-  },
-  {
-   "id": "hook:8453:0x588c683ecc450f8b2aadb13d7f63792b840425dc",
-   "address": "0x588c683ecc450f8b2aadb13d7f63792b840425dc",
-   "label": "Flaunch PositionManager",
    "vanillaSwap_declared": [
     false
    ],
@@ -3140,31 +3090,6 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
-   "id": "hook:8453:0x80e2f7dc8c2c880bbc4bdf80a5fb0eb8b1db68cc",
-   "address": "0x80e2f7dc8c2c880bbc4bdf80a5fb0eb8b1db68cc",
-   "label": "LiquidHookDynamicFeeV2",
-   "vanillaSwap_declared": [
-    false,
-    false
-   ],
-   "n_pools": 0,
-   "profile": {
-    "n": 0,
-    "by_label": {
-     "MEASURED": 0,
-     "INTERPOLATED": 0,
-     "NOT_MEASURABLE": 0,
-     "NOT_QUOTABLE": 0
-    },
-    "n_measured": 0,
-    "bps_min": null,
-    "bps_max": null,
-    "bps_median": null,
-    "flat": null
-   },
-   "reason": "aucune mesure MEASURED : "
-  },
-  {
    "id": "hook:8453:0x81542dc43aff247eff4a0ecefc286a2973ae1040",
    "address": "0x81542dc43aff247eff4a0ecefc286a2973ae1040",
    "label": "Zora Post Hook v1.1.1 (Base)",
@@ -3240,30 +3165,6 @@
    "id": "hook:8453:0x842212401b6c557cabe1986b04a921a71b969800",
    "address": "0x842212401b6c557cabe1986b04a921a71b969800",
    "label": "TrinityHookV10",
-   "vanillaSwap_declared": [
-    false
-   ],
-   "n_pools": 0,
-   "profile": {
-    "n": 0,
-    "by_label": {
-     "MEASURED": 0,
-     "INTERPOLATED": 0,
-     "NOT_MEASURABLE": 0,
-     "NOT_QUOTABLE": 0
-    },
-    "n_measured": 0,
-    "bps_min": null,
-    "bps_max": null,
-    "bps_median": null,
-    "flat": null
-   },
-   "reason": "aucune mesure MEASURED : "
-  },
-  {
-   "id": "hook:8453:0x84bbab8cac69bf6711ba81f9915dc346f4cf2088",
-   "address": "0x84bbab8cac69bf6711ba81f9915dc346f4cf2088",
-   "label": "RwagmiHookV2",
    "vanillaSwap_declared": [
     false
    ],
@@ -3362,30 +3263,6 @@
    "label": "Aegis v3 Hook (Base)",
    "vanillaSwap_declared": [
     false
-   ],
-   "n_pools": 0,
-   "profile": {
-    "n": 0,
-    "by_label": {
-     "MEASURED": 0,
-     "INTERPOLATED": 0,
-     "NOT_MEASURABLE": 0,
-     "NOT_QUOTABLE": 0
-    },
-    "n_measured": 0,
-    "bps_min": null,
-    "bps_max": null,
-    "bps_median": null,
-    "flat": null
-   },
-   "reason": "aucune mesure MEASURED : "
-  },
-  {
-   "id": "hook:8453:0x892d3c2b4abeaaf67d52a7b29783e2161b7cad40",
-   "address": "0x892d3c2b4abeaaf67d52a7b29783e2161b7cad40",
-   "label": "UniswapV4MulticurveInitializerHook",
-   "vanillaSwap_declared": [
-    true
    ],
    "n_pools": 0,
    "profile": {
@@ -3549,30 +3426,6 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
-   "id": "hook:8453:0x8f29bd5c8429730fa4c46e6295c4e679ededd0cc",
-   "address": "0x8f29bd5c8429730fa4c46e6295c4e679ededd0cc",
-   "label": "Aegis",
-   "vanillaSwap_declared": [
-    false
-   ],
-   "n_pools": 0,
-   "profile": {
-    "n": 0,
-    "by_label": {
-     "MEASURED": 0,
-     "INTERPOLATED": 0,
-     "NOT_MEASURABLE": 0,
-     "NOT_QUOTABLE": 0
-    },
-    "n_measured": 0,
-    "bps_min": null,
-    "bps_max": null,
-    "bps_median": null,
-    "flat": null
-   },
-   "reason": "aucune mesure MEASURED : "
-  },
-  {
    "id": "hook:8453:0x8f66d6821dfa255f7a008e76efdefb96992b5ae4",
    "address": "0x8f66d6821dfa255f7a008e76efdefb96992b5ae4",
    "label": "UniClawHookV4",
@@ -3672,30 +3525,6 @@
    "id": "hook:8453:0x95afbc0fccf974b41380f24e562f15b6dd90fac8",
    "address": "0x95afbc0fccf974b41380f24e562f15b6dd90fac8",
    "label": "Deli Constant Product Hook (Base)",
-   "vanillaSwap_declared": [
-    false
-   ],
-   "n_pools": 0,
-   "profile": {
-    "n": 0,
-    "by_label": {
-     "MEASURED": 0,
-     "INTERPOLATED": 0,
-     "NOT_MEASURABLE": 0,
-     "NOT_QUOTABLE": 0
-    },
-    "n_measured": 0,
-    "bps_min": null,
-    "bps_max": null,
-    "bps_median": null,
-    "flat": null
-   },
-   "reason": "aucune mesure MEASURED : "
-  },
-  {
-   "id": "hook:8453:0x963e91a45148b39737b9df10c5b897b55ca9e8cc",
-   "address": "0x963e91a45148b39737b9df10c5b897b55ca9e8cc",
-   "label": "Bonker Dynamic Fee Hook (Base)",
    "vanillaSwap_declared": [
     false
    ],
@@ -4061,14 +3890,14 @@
    "vanillaSwap_declared": [
     false
    ],
-   "n_pools": 0,
+   "n_pools": 1,
    "profile": {
-    "n": 0,
+    "n": 16,
     "by_label": {
      "MEASURED": 0,
      "INTERPOLATED": 0,
      "NOT_MEASURABLE": 0,
-     "NOT_QUOTABLE": 0
+     "NOT_QUOTABLE": 16
     },
     "n_measured": 0,
     "bps_min": null,
@@ -4076,7 +3905,7 @@
     "bps_median": null,
     "flat": null
    },
-   "reason": "aucune mesure MEASURED : "
+   "reason": "aucune mesure MEASURED : NOT_QUOTABLE=16"
   },
   {
    "id": "hook:8453:0xa167f8781351e27e5f98dccec86a82d952f69000",
@@ -4324,54 +4153,6 @@
    "label": "ClankerHookDynamicFee",
    "vanillaSwap_declared": [
     false,
-    false
-   ],
-   "n_pools": 0,
-   "profile": {
-    "n": 0,
-    "by_label": {
-     "MEASURED": 0,
-     "INTERPOLATED": 0,
-     "NOT_MEASURABLE": 0,
-     "NOT_QUOTABLE": 0
-    },
-    "n_measured": 0,
-    "bps_min": null,
-    "bps_max": null,
-    "bps_median": null,
-    "flat": null
-   },
-   "reason": "aucune mesure MEASURED : "
-  },
-  {
-   "id": "hook:8453:0xac4b3944c351b6641fdd85a192cf6ddf84b3facc",
-   "address": "0xac4b3944c351b6641fdd85a192cf6ddf84b3facc",
-   "label": "BDeFiHook",
-   "vanillaSwap_declared": [
-    false
-   ],
-   "n_pools": 0,
-   "profile": {
-    "n": 0,
-    "by_label": {
-     "MEASURED": 0,
-     "INTERPOLATED": 0,
-     "NOT_MEASURABLE": 0,
-     "NOT_QUOTABLE": 0
-    },
-    "n_measured": 0,
-    "bps_min": null,
-    "bps_max": null,
-    "bps_median": null,
-    "flat": null
-   },
-   "reason": "aucune mesure MEASURED : "
-  },
-  {
-   "id": "hook:8453:0xacf358b129423f0107b0bf892b3eff6c770128cc",
-   "address": "0xacf358b129423f0107b0bf892b3eff6c770128cc",
-   "label": "ZNS Launchpad",
-   "vanillaSwap_declared": [
     false
    ],
    "n_pools": 0,
@@ -4750,30 +4531,6 @@
     "flat": null
    },
    "reason": "aucune mesure MEASURED : "
-  },
-  {
-   "id": "hook:8453:0xbb7784a4d481184283ed89619a3e3ed143e1adc0",
-   "address": "0xbb7784a4d481184283ed89619a3e3ed143e1adc0",
-   "label": "DecayMulticurveInitializerHook",
-   "vanillaSwap_declared": [
-    false
-   ],
-   "n_pools": 13,
-   "profile": {
-    "n": 180,
-    "by_label": {
-     "MEASURED": 0,
-     "INTERPOLATED": 0,
-     "NOT_MEASURABLE": 87,
-     "NOT_QUOTABLE": 93
-    },
-    "n_measured": 0,
-    "bps_min": null,
-    "bps_max": null,
-    "bps_median": null,
-    "flat": null
-   },
-   "reason": "aucune mesure MEASURED : NOT_MEASURABLE=87, NOT_QUOTABLE=93"
   },
   {
    "id": "hook:8453:0xbd2597a08627f119ed50c1a252f888f5bfd31b80",
@@ -5450,30 +5207,6 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
-   "id": "hook:8453:0xd60d6b218116cfd801e28f78d011a203d2b068cc",
-   "address": "0xd60d6b218116cfd801e28f78d011a203d2b068cc",
-   "label": "Clanker Dynamic Fee Hook v2 (Base)",
-   "vanillaSwap_declared": [
-    false
-   ],
-   "n_pools": 0,
-   "profile": {
-    "n": 0,
-    "by_label": {
-     "MEASURED": 0,
-     "INTERPOLATED": 0,
-     "NOT_MEASURABLE": 0,
-     "NOT_QUOTABLE": 0
-    },
-    "n_measured": 0,
-    "bps_min": null,
-    "bps_max": null,
-    "bps_median": null,
-    "flat": null
-   },
-   "reason": "aucune mesure MEASURED : "
-  },
-  {
    "id": "hook:8453:0xd61a675f8a0c67a73dc3b54fb7318b4d91409040",
    "address": "0xd61a675f8a0c67a73dc3b54fb7318b4d91409040",
    "label": "Zora Creator Hook v1.1.2 (Base)",
@@ -5984,30 +5717,6 @@
    "id": "hook:8453:0xf785bb58059fab6fb19bdda2cb9078d9e546efdc",
    "address": "0xf785bb58059fab6fb19bdda2cb9078d9e546efdc",
    "label": "Flaunch POSM v2 (Base)",
-   "vanillaSwap_declared": [
-    false
-   ],
-   "n_pools": 0,
-   "profile": {
-    "n": 0,
-    "by_label": {
-     "MEASURED": 0,
-     "INTERPOLATED": 0,
-     "NOT_MEASURABLE": 0,
-     "NOT_QUOTABLE": 0
-    },
-    "n_measured": 0,
-    "bps_min": null,
-    "bps_max": null,
-    "bps_median": null,
-    "flat": null
-   },
-   "reason": "aucune mesure MEASURED : "
-  },
-  {
-   "id": "hook:8453:0xf85f1f3082cfbc5e1149972309b25054e4d420cc",
-   "address": "0xf85f1f3082cfbc5e1149972309b25054e4d420cc",
-   "label": "B20Hook",
    "vanillaSwap_declared": [
     false
    ],

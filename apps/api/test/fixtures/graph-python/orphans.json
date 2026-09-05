@@ -1,7 +1,7 @@
 {
  "scope": "chain_id=8453, pools connus = ceux de docs/dataset/measurements.jsonl",
  "n_listed": 272,
- "n_orphans": 259,
+ "n_orphans": 244,
  "orphans": [
   {
    "id": "hook:8453:0x000052423c1db6b7ff8641b85a7eefc7b2791888",
@@ -79,13 +79,6 @@
    "label": "CapGate",
    "bytecode_status": "CODE",
    "code_size": 1483
-  },
-  {
-   "id": "hook:8453:0x0ae73dfa41f1acacf32ad050924384b295e968cc",
-   "address": "0x0ae73dfa41f1acacf32ad050924384b295e968cc",
-   "label": "ClankerHookStaticFeeV2",
-   "bytecode_status": "UNAVAILABLE",
-   "code_size": null
   },
   {
    "id": "hook:8453:0x0b8fbfa9861af89d7d2cf2e55f61cee982a22080",
@@ -214,13 +207,6 @@
    "code_size": 16405
   },
   {
-   "id": "hook:8453:0x1f91c998e7c2f4b690d75bdbf6502bdcd6e02acc",
-   "address": "0x1f91c998e7c2f4b690d75bdbf6502bdcd6e02acc",
-   "label": "LaunchHook",
-   "bytecode_status": "UNAVAILABLE",
-   "code_size": null
-  },
-  {
    "id": "hook:8453:0x2063a2b535a59911532cdf4d1cf28501099f0aec",
    "address": "0x2063a2b535a59911532cdf4d1cf28501099f0aec",
    "label": "SnapBackHook",
@@ -247,13 +233,6 @@
    "label": "BpegHook",
    "bytecode_status": "CODE",
    "code_size": 7000
-  },
-  {
-   "id": "hook:8453:0x23321f11a6d44fd1ab790044fdfde5758c902fdc",
-   "address": "0x23321f11a6d44fd1ab790044fdfde5758c902fdc",
-   "label": "Flaunch POSM v4 (Base)",
-   "bytecode_status": "CODE",
-   "code_size": 24559
   },
   {
    "id": "hook:8453:0x23873ed5308b9f48ce3185fe8d17279e2c9e9000",
@@ -536,13 +515,6 @@
    "code_size": null
   },
   {
-   "id": "hook:8453:0x4db263809e6ea36d223161535173a01b5b3240c0",
-   "address": "0x4db263809e6ea36d223161535173a01b5b3240c0",
-   "label": "DynamicFeeHookV2",
-   "bytecode_status": "UNAVAILABLE",
-   "code_size": null
-  },
-  {
    "id": "hook:8453:0x51bba15255406cfe7099a42183302640ba7dafdc",
    "address": "0x51bba15255406cfe7099a42183302640ba7dafdc",
    "label": "Flaunch POSM v1",
@@ -590,13 +562,6 @@
    "label": "PokeHook",
    "bytecode_status": "CODE",
    "code_size": 24466
-  },
-  {
-   "id": "hook:8453:0x588c683ecc450f8b2aadb13d7f63792b840425dc",
-   "address": "0x588c683ecc450f8b2aadb13d7f63792b840425dc",
-   "label": "Flaunch PositionManager",
-   "bytecode_status": "UNAVAILABLE",
-   "code_size": null
   },
   {
    "id": "hook:8453:0x59aef9799dea01a7fb7da73bea10dfb08858a088",
@@ -907,13 +872,6 @@
    "code_size": null
   },
   {
-   "id": "hook:8453:0x80e2f7dc8c2c880bbc4bdf80a5fb0eb8b1db68cc",
-   "address": "0x80e2f7dc8c2c880bbc4bdf80a5fb0eb8b1db68cc",
-   "label": "LiquidHookDynamicFeeV2",
-   "bytecode_status": "CODE",
-   "code_size": 20341
-  },
-  {
    "id": "hook:8453:0x81542dc43aff247eff4a0ecefc286a2973ae1040",
    "address": "0x81542dc43aff247eff4a0ecefc286a2973ae1040",
    "label": "Zora Post Hook v1.1.1 (Base)",
@@ -942,13 +900,6 @@
    "code_size": 13954
   },
   {
-   "id": "hook:8453:0x84bbab8cac69bf6711ba81f9915dc346f4cf2088",
-   "address": "0x84bbab8cac69bf6711ba81f9915dc346f4cf2088",
-   "label": "RwagmiHookV2",
-   "bytecode_status": "CODE",
-   "code_size": 11991
-  },
-  {
    "id": "hook:8453:0x854f820475b229b7805a386f758cfb285023d040",
    "address": "0x854f820475b229b7805a386f758cfb285023d040",
    "label": "Zora Creator Hook v1.0.0.1 (Base)",
@@ -975,13 +926,6 @@
    "label": "Aegis v3 Hook (Base)",
    "bytecode_status": "CODE",
    "code_size": 12200
-  },
-  {
-   "id": "hook:8453:0x892d3c2b4abeaaf67d52a7b29783e2161b7cad40",
-   "address": "0x892d3c2b4abeaaf67d52a7b29783e2161b7cad40",
-   "label": "UniswapV4MulticurveInitializerHook",
-   "bytecode_status": "CODE",
-   "code_size": 3011
   },
   {
    "id": "hook:8453:0x89bc845938b5e1481cc1c5484d2d55a9c0523fff",
@@ -1026,13 +970,6 @@
    "code_size": null
   },
   {
-   "id": "hook:8453:0x8f29bd5c8429730fa4c46e6295c4e679ededd0cc",
-   "address": "0x8f29bd5c8429730fa4c46e6295c4e679ededd0cc",
-   "label": "Aegis",
-   "bytecode_status": "CODE",
-   "code_size": 11512
-  },
-  {
    "id": "hook:8453:0x8f66d6821dfa255f7a008e76efdefb96992b5ae4",
    "address": "0x8f66d6821dfa255f7a008e76efdefb96992b5ae4",
    "label": "UniClawHookV4",
@@ -1066,13 +1003,6 @@
    "label": "Deli Constant Product Hook (Base)",
    "bytecode_status": "CODE",
    "code_size": 23943
-  },
-  {
-   "id": "hook:8453:0x963e91a45148b39737b9df10c5b897b55ca9e8cc",
-   "address": "0x963e91a45148b39737b9df10c5b897b55ca9e8cc",
-   "label": "Bonker Dynamic Fee Hook (Base)",
-   "bytecode_status": "CODE",
-   "code_size": 20347
   },
   {
    "id": "hook:8453:0x972fd516470c0e1841211c51c37ab2f7dfe44040",
@@ -1173,13 +1103,6 @@
    "code_size": null
   },
   {
-   "id": "hook:8453:0xa10a6f4b918e963ec8694d37aa22e438706fe8cc",
-   "address": "0xa10a6f4b918e963ec8694d37aa22e438706fe8cc",
-   "label": "ClankerHookStaticFeeV2",
-   "bytecode_status": "UNAVAILABLE",
-   "code_size": null
-  },
-  {
    "id": "hook:8453:0xa167f8781351e27e5f98dccec86a82d952f69000",
    "address": "0xa167f8781351e27e5f98dccec86a82d952f69000",
    "label": "SaturnOmnichainV4Hook",
@@ -1255,20 +1178,6 @@
    "label": "ClankerHookDynamicFee",
    "bytecode_status": "CODE",
    "code_size": 16816
-  },
-  {
-   "id": "hook:8453:0xac4b3944c351b6641fdd85a192cf6ddf84b3facc",
-   "address": "0xac4b3944c351b6641fdd85a192cf6ddf84b3facc",
-   "label": "BDeFiHook",
-   "bytecode_status": "UNAVAILABLE",
-   "code_size": null
-  },
-  {
-   "id": "hook:8453:0xacf358b129423f0107b0bf892b3eff6c770128cc",
-   "address": "0xacf358b129423f0107b0bf892b3eff6c770128cc",
-   "label": "ZNS Launchpad",
-   "bytecode_status": "CODE",
-   "code_size": 14216
   },
   {
    "id": "hook:8453:0xadaccf778c96772fb06b042212b7ff0c434e00cc",
@@ -1572,13 +1481,6 @@
    "code_size": null
   },
   {
-   "id": "hook:8453:0xd60d6b218116cfd801e28f78d011a203d2b068cc",
-   "address": "0xd60d6b218116cfd801e28f78d011a203d2b068cc",
-   "label": "Clanker Dynamic Fee Hook v2 (Base)",
-   "bytecode_status": "CODE",
-   "code_size": 20230
-  },
-  {
    "id": "hook:8453:0xd61a675f8a0c67a73dc3b54fb7318b4d91409040",
    "address": "0xd61a675f8a0c67a73dc3b54fb7318b4d91409040",
    "label": "Zora Creator Hook v1.1.2 (Base)",
@@ -1731,13 +1633,6 @@
    "label": "Flaunch POSM v2 (Base)",
    "bytecode_status": "CODE",
    "code_size": 24458
-  },
-  {
-   "id": "hook:8453:0xf85f1f3082cfbc5e1149972309b25054e4d420cc",
-   "address": "0xf85f1f3082cfbc5e1149972309b25054e4d420cc",
-   "label": "B20Hook",
-   "bytecode_status": "UNAVAILABLE",
-   "code_size": null
   },
   {
    "id": "hook:8453:0xf9527fb5a34ac6fbc579e4fbc3bf292ed57d4880",

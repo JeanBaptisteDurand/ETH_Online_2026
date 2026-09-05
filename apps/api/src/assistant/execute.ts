@@ -17,8 +17,17 @@ import type { Label } from "../labels.js";
 import { NEGLIGIBLE_BPS, type HookView, type PointView, type ProfileView, type StoreView } from "./store.js";
 import { getGraph, type GraphView } from "./graph.js";
 import { hasFlag } from "./flags.js";
-import { Narration, type Citation } from "./narrate.js";
+import { Narration, fmtBps, type Citation } from "./narrate.js";
 import type { Intent, PlanOut } from "./planner.js";
+// La narration du routage relit la reponse de GET /route ; elle ne la recalcule pas.
+import {
+  rankedGates,
+  routeFromActions,
+  unrankedGates,
+  type RouteAnswer,
+  type RouteDeps,
+  type RouteGate,
+} from "./planner.js";
 
 export const HONESTY_RULES = [
   "Le modele choisit quoi interroger et explique ce qui revient : il ne produit jamais un nombre.",
@@ -522,6 +531,288 @@ function findPool(store: StoreView, hook: string, measurementId: string): string
   return "";
 }
 
+/* ------------------------------------------------- la narration du routage */
+
+/** On n'en detaille pas trente : les suivantes sont comptees, pas resumees. */
+const ROUTE_SHOW = 4;
+
+function fileOf(path: string): string {
+  return path.split("/").pop() ?? path;
+}
+
+/**
+ * Une valeur en bps d'une porte. Le signe est ecrit en PROSE et la valeur absolue est
+ * citee : un hook peut rendre plus que le pool sans lui (bps negatif dans le jeu), et
+ * le jeton numerique cite doit etre exactement celui qu'on ecrit.
+ */
+function citeGateBps(n: Narration, g: RouteGate, value: number, what: string, source: string): void {
+  if (value < 0) n.text("-");
+  n.num(fmtBps(Math.abs(value)), {
+    kind: "measurement",
+    what,
+    source,
+    measurement_id: g.measurement_id ?? null,
+    hook: g.hook,
+    pool_id: g.pool_id,
+    block_number: g.block_number ?? null,
+    amount_in: g.size?.used_wei ?? null,
+    direction: g.direction ?? null,
+    label: (g.label as Label | undefined) ?? null,
+    replay: g.replay ?? null,
+  });
+}
+
+/** Une porte classee, avec la composition de son cout et la ligne qui le porte. */
+function gateLine(n: Narration, g: RouteGate, source: string): void {
+  n.text("Porte ").ident(g.hook).text(" sur le pool ").ident(g.pool_id ?? "(pool inconnu)").text(" : ");
+  if (g.total_bps === null || g.hook_bps === null || g.hook_bps === undefined || g.lp_fee_bps_used === undefined) {
+    n.text(
+      "route.ts l'a classee mais la composition de son cout n'est pas complete dans sa reponse ; je ne la resume pas a moitie. ",
+    );
+    return;
+  }
+  n.text("cout total ");
+  citeGateBps(n, g, g.total_bps, "cout total mesure = frais LP de slot0 + prelevement du hook, tires de la MEME ligne", source);
+  n.text(" bps, soit frais LP ");
+  citeGateBps(n, g, g.lp_fee_bps_used, "frais LP lus dans slot0 au bloc de la mesure (stored_lp_fee / 100)", source);
+  n.text(" bps plus prelevement du hook ");
+  citeGateBps(n, g, g.hook_bps, "prelevement du hook mesure par contrefactuel, en points de base", source);
+  n.text(" bps");
+  if (g.label) n.text(", etiquette ").ident(g.label);
+  if (g.measurement_id) n.text(", ligne ").ident(g.measurement_id);
+  if (g.size?.used_wei) {
+    n.text(", taille ");
+    n.size(g.size.used_wei, source);
+    n.text(" unites");
+  }
+  if (g.direction) n.text(", sens ").ident(g.direction);
+  if (g.block_number !== undefined && g.block_number !== null) {
+    n.text(", bloc ");
+    n.block(g.block_number, source);
+  }
+  n.text(". ");
+}
+
+/**
+ * PAR OU PASSER, mis en phrase.
+ *
+ * Ce qui compte ici tient en une regle : quand la paire n'a qu'une porte, on le DIT.
+ * Presenter un classement a un element laisserait croire a un choix qui n'existe pas
+ * — et le recensement dit que c'est le cas de la quasi-totalite des paires.
+ *
+ * Aucun nombre n'est calcule ici : tous viennent de la reponse de buildRouteAnswer()
+ * (apps/api/src/route.ts) et chacun repart avec sa ligne, son bloc, sa taille, son
+ * sens, son etiquette et sa commande de rejeu.
+ */
+export function narrateRoute(n: Narration, answer: RouteAnswer): void {
+  const ranked = rankedGates(answer);
+  const unranked = unrankedGates(answer);
+  const source = answer.sources.map((x) => fileOf(x.path)).join(" + ");
+  const censusFile = fileOf(answer.census_source.path);
+  const asked = answer.pair.as_asked;
+
+  n.text("Pour echanger ")
+    .ident(asked[0] ?? "?")
+    .text(" contre ")
+    .ident(asked[1] ?? "?")
+    .text(", sens ")
+    .ident(answer.direction.human)
+    .text(" : ");
+
+  /* --- ce que le jeu mesure vraiment ------------------------------------- */
+  if (answer.counts.pools_measured === 0) {
+    n.text(
+      "aucune mesure du jeu ne couvre cette paire. Je n'ai donc aucun cout a donner et je n'en fabrique pas : une paire non mesuree n'est pas une paire gratuite, c'est une absence de mesure. ",
+    );
+  } else if (ranked.length === 0) {
+    n.text("le jeu porte ");
+    n.count(
+      answer.counts.pools_measured,
+      "portes mesurees pour cette paire",
+      "pools distincts de cette paire ayant au moins une ligne dans les fichiers de mesures",
+      source,
+    );
+    n.text(
+      " porte(s) mesuree(s), mais aucune n'a de cout dans ce sens : une cotation qui n'aboutit pas est NOT_QUOTABLE, ce n'est pas un cout de zero. ",
+    );
+    if (answer.direction.pools_quoted_in_other_direction > 0) {
+      n.count(
+        answer.direction.pools_quoted_in_other_direction,
+        "portes cotant dans l'autre sens",
+        "pools de la paire portant au moins une ligne chiffree dans le sens oppose",
+        source,
+      );
+      n.text(
+        " porte(s) cotent dans l'AUTRE sens : repose la question dans l'ordre inverse. Je ne bascule pas de sens toute seule. ",
+      );
+    }
+  } else if (answer.counts.pools_measured === 1) {
+    // LE cas du corpus : une seule porte. On ne rend pas un classement a un element,
+    // parce qu'un classement laisse croire a un choix. Ce qu'il y a a savoir ici,
+    // c'est le peage — et l'affirmation "aucune alternative" est faite plus bas,
+    // seulement si le recensement la soutient.
+    n.text("il n'y a pas de classement a rendre : une seule porte est mesuree pour cette paire. ");
+    gateLine(n, ranked[0]!, source);
+  } else if (ranked.length === 1) {
+    // Plusieurs portes mesurees mais une seule chiffrable : ce n'est pas un
+    // classement non plus. Dire "la moins chere" en comparant a des portes sans
+    // cout serait comparer un nombre a une absence.
+    n.text(
+      "une seule porte a un cout mesure dans ce sens ; les autres sont listees plus bas, sans cout. Ce n'est donc pas un classement. ",
+    );
+    gateLine(n, ranked[0]!, source);
+  } else {
+    n.count(
+      ranked.length,
+      "portes classees",
+      "pools de la paire portant un cout total mesure dans ce sens",
+      source,
+    );
+    n.text(" porte(s) ont un cout total mesure dans ce sens, de la moins chere a la plus chere. ");
+    for (const g of ranked.slice(0, ROUTE_SHOW)) gateLine(n, g, source);
+    if (ranked.length > ROUTE_SHOW) {
+      n.count(
+        ranked.length - ROUTE_SHOW,
+        "portes classees non detaillees dans cette phrase",
+        "reste du classement, lisible tel quel dans la reponse de GET /route",
+        source,
+      );
+      n.text(" autre(s) porte(s) suivent dans le classement. ");
+    }
+    if (answer.ranking_note)
+      n.text(
+        "Au moins deux portes ont le MEME cout total mesure : leur ordre relatif est deterministe mais arbitraire, la mesure ne les separe pas. ",
+      );
+  }
+
+  /* --- ce qui n'est pas classe, et ne le sera pas ------------------------- */
+  if (unranked.length > 0) {
+    n.count(
+      unranked.length,
+      "portes listees hors classement",
+      "pools de la paire sans cout total mesure dans le sens demande",
+      source,
+    );
+    n.text(" porte(s) sont listees hors classement (");
+    n.ident([...new Set(unranked.map((g) => g.why ?? "SANS_RAISON"))].join(", "));
+    n.text(
+      "). Aucun cout ne leur est prete, aucun zero ne leur est donne, et leur place dans cette liste ne dit rien de leur prix. ",
+    );
+  }
+  if (answer.counts.gates_not_measured > 0) {
+    n.count(
+      answer.counts.gates_not_measured,
+      "portes du recensement jamais mesurees",
+      "pools de la paire vus au recensement et absents des fichiers de mesures",
+      censusFile,
+    );
+    n.text(
+      " porte(s) vues au recensement n'ont jamais ete mesurees : elles ne sont ni classees, ni comptees comme gratuites. ",
+    );
+  }
+
+  /* --- peut-on contourner le hook ? -------------------------------------- */
+  const pic = answer.alternatives.pools_in_census;
+  if (answer.alternatives.claim === "AUCUNE_ALTERNATIVE") {
+    n.text("Le recensement ne voit qu'un seul pool v4 pour cette paire");
+    if (answer.census_source.block_number !== null) {
+      n.text(" au bloc ");
+      n.block(answer.census_source.block_number, censusFile);
+    }
+    n.text(
+      " : aucune alternative n'existe a ce bloc, on ne peut pas contourner le hook. Il n'y a donc pas de recommandation a faire, il y a un peage a connaitre — un prelevement n'y est pas un prix concurrentiel, c'est un peage sur la seule route. ",
+    );
+  } else if (answer.alternatives.claim === "PLUSIEURS_PORTES" && pic !== null) {
+    n.text("Le recensement voit ");
+    n.count(pic, "portes recensees pour cette paire", "pools de cette paire dans le recensement de decouverte", censusFile);
+    n.text(" porte(s) pour cette paire, toutes couvertes par au moins une mesure. ");
+  } else if (answer.alternatives.claim === "ALTERNATIVES_NON_MESUREES" && pic !== null) {
+    n.text("Le recensement voit ");
+    n.count(pic, "portes recensees pour cette paire", "pools de cette paire dans le recensement de decouverte", censusFile);
+    n.text(" porte(s) pour cette paire et toutes ne sont pas mesurees : je ne peux donc pas affirmer que ce classement couvre toutes les alternatives. ");
+  } else {
+    n.text(
+      "Je ne peux rien affirmer sur les alternatives de cette paire : le recensement ne la voit pas, ou n'est pas charge. C'est INDETERMINE, ce n'est pas 'aucune alternative'. ",
+    );
+  }
+
+  /* --- de combien ce recensement est-il un minorant ? --------------------- */
+  const unreadable = answer.census_source.unreadable_pools;
+  if (unreadable === null) {
+    n.text(
+      "Reserve : le manifeste du balayage ne dit pas combien de pools sont restes illisibles, donc on ne sait pas de combien ce recensement est un minorant. ",
+    );
+  } else if (unreadable > 0) {
+    n.text("Reserve : le balayage de decouverte n'a pas pu lire ");
+    n.count(
+      unreadable,
+      "pools illisibles au balayage de decouverte",
+      "champ n_unknown du manifeste .scan.json de ce recensement",
+      censusFile,
+    );
+    n.text(
+      " pools et le manifeste ne dit pas a quelles paires ils appartiennent : ce recensement est un MINORANT. ",
+    );
+  }
+
+  /* --- la structure, derivee a chaque appel ------------------------------ */
+  const st = answer.structure;
+  if (st) {
+    n.text("Structure du marche, derivee du recensement a chaque appel et jamais ecrite en dur : sur ");
+    n.count(
+      st.pairs_discovered,
+      "paires distinctes recensees",
+      "paires (currency0,currency1) distinctes du recensement de decouverte",
+      censusFile,
+    );
+    n.text(" paires");
+    if (st.block_number !== null) {
+      n.text(" decouvertes au bloc ");
+      n.block(st.block_number, censusFile);
+    }
+    n.text(", ");
+    n.count(
+      st.pairs_with_more_than_one_pool,
+      "paires offrant un choix de pool",
+      "paires du recensement ayant strictement plus d'un pool",
+      censusFile,
+    );
+    n.text(" offrent un choix de pool, soit ");
+    n.num(fmtBps(st.share_pct), {
+      kind: "count",
+      what: "part des paires offrant un choix de pool, en pourcent",
+      derived_from:
+        "pairs_with_more_than_one_pool / pairs_discovered * 100, arrondi a quatre decimales",
+      source: censusFile,
+    });
+    n.text(" %. Pour les ");
+    n.count(
+      st.pairs_with_a_single_pool,
+      "paires a porte unique",
+      "pairs_discovered - pairs_with_more_than_one_pool",
+      censusFile,
+    );
+    n.text(
+      " autres il n'existe qu'une porte : on ne peut pas contourner le hook, et un prelevement n'y est pas un prix concurrentiel. ",
+    );
+  } else {
+    n.text(
+      "Le recensement n'est pas charge : la phrase structurelle n'est pas calculable, et je ne la remplace pas par des chiffres memorises. ",
+    );
+  }
+
+  /* --- comment verifier ---------------------------------------------------*/
+  // "slot0" porte un chiffre sans etre un nombre : il passe par ident(), sinon
+  // l'auditeur le compte comme une valeur non sourcee — et il a raison de le faire.
+  n.text(
+    "Aucune taille n'a ete demandee : chaque porte est lue a sa PIRE taille mesuree dans ce sens, et cette taille est citee avec son cout. Deux portes peuvent donc etre comparees a des tailles differentes si le balayage ne les a pas couvertes aux memes tailles — les tailles ci-dessus le disent. Le cout total est la somme des frais LP lus dans ",
+  )
+    .ident("slot0")
+    .text(
+      " et du prelevement du hook mesure par contrefactuel, pris sur la MEME ligne ; chaque valeur repart avec son identifiant de mesure et sa commande de rejeu.",
+    );
+}
+
 /**
  * La narration. Chaque nombre passe par `Narration`, donc par une citation ; la prose
  * n'a pas le droit de contenir un chiffre. Si un template derape, `build()` leve.
@@ -531,6 +822,8 @@ export function narrate(
   planOut: PlanOut,
   exec: Execution,
   store: StoreView,
+  /** injectable pour les tests du routage ; sinon route.ts lit ses fichiers */
+  routeDeps: RouteDeps = {},
 ): { text: string; citations: Citation[]; identifiers: string[]; label: Label | null } {
   const n = new Narration();
   const source = src(store);
@@ -759,6 +1052,29 @@ export function narrate(
       dsCount("mesures restantes dans la session", Math.max(0, d?.quota_left ?? 0), "quota de session du chat (le peage x402 garde l'API et le MCP, pas le navigateur)");
       n.text(" mesure(s) pour cette session : depuis un navigateur, aucun visiteur n'a de compte Hedera, donc le chat ne paie pas en x402 — il consomme un quota.");
       break;
+    }
+    case "route": {
+      // Le plan deterministe transporte deja la reponse de route.ts. Un plan de modele
+      // ne le peut pas : le schema d'actions n'a pas de case "paire de jetons". On la
+      // reconstruit alors depuis les adresses que le modele a nommees, et seulement si
+      // le recensement les connait comme des jetons.
+      const answer = planOut.route ?? routeFromActions(planOut.actions, routeDeps);
+      if (!answer) {
+        const c = exec.steps.find((s) => s.action.type === "clarify");
+        const d = c?.data as { question: string } | undefined;
+        n.text(
+          d?.question ??
+            "Je n'ai pas identifie les deux jetons de cette question de routage. Donne-les moi en adresses completes : je ne devine pas une paire, et je ne donne pas de cout pour une paire que je n'ai pas lue.",
+        );
+        return { ...n.build(), label: null };
+      }
+      narrateRoute(n, answer);
+      if (rankedGates(answer).length > 0) break;
+      // Rien n'a pu etre chiffre : l'etiquette dit LAQUELLE des deux absences c'est.
+      return {
+        ...n.build(),
+        label: answer.counts.pools_measured === 0 ? "NOT_MEASURABLE" : "NOT_QUOTABLE",
+      };
     }
     case "open": {
       const step = exec.steps.find((s) => s.action.type === "open");

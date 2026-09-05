@@ -438,10 +438,10 @@ describe("taille non mesuree", () => {
     expect(r.total_bps).toBe(14); // 5 + 9
   });
 
-  it("sans taille demandee, classe sur la pire taille mesuree et l'annonce", async () => {
+  it("sans taille demandee, classe sur le cout mesure le plus eleve et l'annonce", async () => {
     const { body } = await ask(`currency0=${T_A}&currency1=${T_B}`);
     expect(body.size.requested_wei).toBeNull();
-    for (const r of body.ranked) expect(r.cost_basis).toBe("pire_taille_mesuree");
+    for (const r of body.ranked) expect(r.cost_basis).toBe("pire_cout_mesure");
     expect(body.ranked[0].total_bps).toBe(27); // P2 : 5 + max(20,22)
     expect(body.ranked[1].total_bps).toBe(40); // P1 : 30 + 10 (sa seule taille cotee)
   });

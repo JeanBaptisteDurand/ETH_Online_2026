@@ -43,12 +43,17 @@ sweeps both directions.
 ## 3. The hook registry has no quantitative field, and `additionalProperties: false` makes that
    permanent
 
-**What happened.** `hooklist.json` describes **613 hooks** with **19 fields**: 14 permission
-booleans, 4 property booleans, one `swapAccess` enum, and `chainId`. Not one of them is a quantity.
-The schema sets `additionalProperties: false` in four places, so a consumer cannot add one either.
+**What happened.** `hooklist.json` describes **978 hooks** (read live on 2026-09-05, snapshot in
+`docs/hooklist-live-20260905.json`) with 14 permission booleans, 4 property booleans, a `swapAccess`
+enum and `chainId`. Not one of them is a quantity. The schema sets `additionalProperties: false` in
+four places, so a consumer cannot add one either.
 
-**Why it matters.** **570 of 613 entries (93.0%)** carry `vanillaSwap: false` — the registry's way
-of saying "this hook changes your swap". It has no way to say *by how much*. We measured four hooks
+**Why it matters.** **833 of 978 entries (85.2%)** carry `vanillaSwap: false` — the registry's way
+of saying "this hook changes your swap". It has no way to say *by how much*.
+
+A second number makes the point sharper: the registry grew from 613 to 978 entries in about a week,
+while `auditUrl` stayed at **exactly 30 entries** throughout — 4.9% then, **3.1% now**. Coverage is
+not keeping pace with growth, which makes the missing quantitative field matter more, not less. We measured four hooks
 that the registry describes almost identically — same active flags, `swapAccess: none`, no audit
 link — and found they take **1,176 / 175 / 100 / 0 bps** respectively. The boolean does not
 discriminate between them.
@@ -60,7 +65,7 @@ measured quantity.
 
 ## 4. The registry is structurally blind to unverified hooks
 
-**What happened.** **613 of 613 entries** have `verifiedSource: true`. The ingestion pipeline
+**What happened.** **978 of 978 entries** have `verifiedSource: true`. The ingestion pipeline
 (`.claude/prompts/analyze-hook.md`, step 4) stops when Etherscan reports `Verified: False`.
 
 **Why it matters.** On a random sample of 80 hooks deployed on Base outside the registry, **2 were
@@ -114,7 +119,7 @@ earn its way in. A measured extraction figure is exactly the input that criterio
 ## What worked well
 
 The 14-bit permission encoding is excellent. We verified it across the entire registry — **8,582 bit
-comparisons over 613 hooks, zero deviation** — which means a client can state a hook's permissions
+comparisons, zero deviation** — which means a client can state a hook's permissions
 from its address alone, with no RPC and no trust. That property carried a whole feature of our
 product.
 

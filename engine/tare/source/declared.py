@@ -14,6 +14,7 @@ import time
 
 from .. import rpc as rpc_mod
 from ..keccak import sel
+from . import scan as scan_mod
 
 DEFAULT_PACE_S = 0.35          # Alchemy answers ~3 req/s comfortably on the free tier
 
@@ -79,6 +80,22 @@ def _uint(w):
     return int(w, 16)
 
 
+def decode_struct(layout: list, raw: str) -> dict:
+    """Decode a public struct getter positionally, using a layout parsed from the source."""
+    ws = words(raw)
+    if len(ws) < len(layout):
+        raise ValueError(f"struct getter returned {len(ws)} words, the source declares {len(layout)}")
+    out = {}
+    for (typ, name), word in zip(layout, ws):
+        if typ == "bool":
+            out[name] = bool(_uint(word))
+        elif typ.startswith("address"):
+            out[name] = "0x" + word[-40:]
+        else:
+            out[name] = _uint(word)
+    return out
+
+
 def decode(kind: str, raw: str):
     """Decode one eth_call return. Raises ValueError on a short/empty answer — never returns 0."""
     ws = words(raw)
@@ -88,6 +105,10 @@ def decode(kind: str, raw: str):
         return _uint(ws[0])
     if kind == "bool":
         return bool(_uint(ws[0]))
+    if kind.startswith("struct:"):
+        # layout comes from the fetched source (scan.parse_struct), never from an assumption.
+        layout = kind.split(":", 1)[1]
+        raise ValueError(f"struct decode needs a layout, got the bare tag {layout!r}")
     if kind == "launchhook_config":
         # mapping(PoolId => PoolConfig) public poolConfig  -> 11 flattened words
         if len(ws) < 11:
@@ -126,6 +147,8 @@ def decode(kind: str, raw: str):
 # ---- reading a profile's declared values ------------------------------------------------------
 
 def _arg_words(arg: str, row: dict, extra):
+    if arg == "none":
+        return [""]
     if arg == "pool_id":
         return [row["pool_id"][2:].rjust(64, "0")]
     if arg == "currency_probe":
@@ -133,7 +156,7 @@ def _arg_words(arg: str, row: dict, extra):
     raise ValueError(f"unknown arg source {arg!r}")
 
 
-def read_declared(chain: Chain, profile: dict, hook: str, row: dict) -> dict:
+def read_declared(chain: Chain, profile: dict, hook: str, row: dict, hook_dir: str = None) -> dict:
     """Run every reader the profile declares. Returns {"ok", "values", "reason", "calls"}."""
     values = dict(profile.get("constants") or {})
     calls = []
@@ -152,26 +175,41 @@ def read_declared(chain: Chain, profile: dict, hook: str, row: dict) -> dict:
                 continue
             return {"ok": False, "values": values, "calls": calls,
                     "reason": f"no target for {spec['name']}: {spec['to']} was not resolved"}
-        selector = sel(spec["sig"])
+        layout = None
+        if spec["type"] == "struct":
+            if hook_dir is None:
+                return {"ok": False, "values": values, "calls": calls,
+                        "reason": f"{spec['name']} needs a struct layout but no source dir was given"}
+            try:
+                layout = scan_mod.parse_struct(hook_dir, spec["struct"]["file"], spec["struct"]["name"])
+            except Exception as exc:                               # noqa: BLE001
+                return {"ok": False, "values": values, "calls": calls,
+                        "reason": f"could not read the layout of {spec['struct']['name']}: {exc}"}
+        signatures = spec.get("sigs") or [spec["sig"]]
         last_err = None
         got = None
-        for arg_word in _arg_words(spec["arg"], row, values):
-            data = selector + arg_word
-            try:
-                raw = chain.eth_call(target, data)
-                got = decode(spec["type"], raw)
-                calls.append({"name": spec["name"], "to": target, "sig": spec["sig"], "data": data})
+        for signature in signatures:
+            selector = sel(signature)
+            for arg_word in _arg_words(spec["arg"], row, values):
+                data = selector + arg_word
+                try:
+                    raw = chain.eth_call(target, data)
+                    got = decode_struct(layout, raw) if layout else decode(spec["type"], raw)
+                    calls.append({"name": spec["name"], "to": target, "sig": signature, "data": data})
+                    break
+                except Exception as exc:                           # noqa: BLE001
+                    last_err = f"{type(exc).__name__}: {exc}"
+            if got is not None:
                 break
-            except Exception as exc:                               # noqa: BLE001
-                last_err = f"{type(exc).__name__}: {exc}"
         if got is None:
             if spec.get("optional"):
-                values[spec["name"]] = None
-                calls.append({"name": spec["name"], "to": target, "sig": spec["sig"],
-                              "unavailable": last_err})
+                values[spec["name"]] = spec.get("fallback")
+                calls.append({"name": spec["name"], "to": target, "sig": signatures[0],
+                              "unavailable": last_err,
+                              "fell_back_to": spec.get("fallback")})
                 continue
             return {"ok": False, "values": values, "calls": calls,
-                    "reason": f"{spec['sig']} on {target}: {last_err}"}
+                    "reason": f"{'/'.join(signatures)} on {target}: {last_err}"}
         # `getState` returns a struct; promote its delegate so the next reader can target it.
         if spec["type"] == "doppler_state":
             values["delegate"] = got["delegate"]

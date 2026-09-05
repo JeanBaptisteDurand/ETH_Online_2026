@@ -338,6 +338,22 @@ class TestCompact(unittest.TestCase):
         got = [(r["hook"], int(r["amount_in"])) for r in rows]
         self.assertEqual(got, sorted(got))
 
+    def test_the_two_directions_of_one_cell_have_a_stable_order(self):
+        """Both sides share (hook, pool, size). Without the direction in the sort key the file
+        re-orders itself on every compaction and the diff is pure noise."""
+        for zfo in (False, True):
+            for size in reversed(SIZES):
+                append_jsonl(self.out, row(size=size, zfo=zfo))
+        self._compact()
+        first = self.out.read_text()
+        rows = read_jsonl(self.out)
+        self.assertEqual(len(rows), CELLS)
+        got = [(r["hook"], r["pool_id"], int(r["amount_in"]), not r["zero_for_one"])
+               for r in rows]
+        self.assertEqual(got, sorted(got))
+        self._compact()
+        self.assertEqual(self.out.read_text(), first)
+
     def test_compacting_twice_changes_nothing(self):
         for size in SIZES:
             append_jsonl(self.out, row(size=size))

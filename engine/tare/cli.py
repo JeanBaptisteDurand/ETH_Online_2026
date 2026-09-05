@@ -29,7 +29,8 @@ import random
 import sys
 from pathlib import Path
 
-from .sweep import (DEFAULT_OUT, DEFAULT_POOLS, DEFAULT_SUMMARY, SIZES, dedupe, load_pools,
+from .sweep import (DEFAULT_OUT, DEFAULT_POOLS, DEFAULT_SUMMARY, DIRECTIONS, SIZES, dedupe,
+                    load_pools,
                     measure_resilient, probe_direction, read_done, read_jsonl, summarise,
                     sweep, write_summary)
 
@@ -61,7 +62,8 @@ def cmd_sweep(a) -> int:
     if a.restart and out.exists():
         out.unlink()
 
-    print(f"sweep  {len(pools)} pools x {len(SIZES)} tailles  bloc {a.block}  -> {out}")
+    print(f"sweep  {len(pools)} pools x {len(SIZES)} tailles x {len(DIRECTIONS)} sens "
+          f"= {len(pools) * len(SIZES) * len(DIRECTIONS)} cellules  bloc {a.block}  -> {out}")
     print(f"       {len(already)} mesures deja presentes, elles ne seront pas refaites\n")
 
     stats = sweep(a.rpc, pools, a.block, out_path=out, sizes=SIZES,
@@ -208,8 +210,12 @@ def cmd_compact(a) -> int:
     rewrites it sorted and deduplicated so a naive reader gets exactly the dataset.
     """
     rows = read_jsonl(a.infile)
+    # Direction is in the sort key because it is in the identity: since the sweep measures both
+    # sides, (hook, pool, size) names two lines, and a tie broken by whatever order the shards
+    # happened to append in makes the committed file churn on every run for no change in content.
     kept = sorted(dedupe(rows),
-                  key=lambda r: (r["hook"], r["pool_id"], int(r["amount_in"])))
+                  key=lambda r: (r["hook"], r["pool_id"], int(r["amount_in"]),
+                                 not r["zero_for_one"]))
     tmp = Path(str(a.infile) + ".tmp")
     with tmp.open("w") as fh:
         for r in kept:

@@ -57,10 +57,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from . import __version__
+from .consts import V4_QUOTER
 from .measure import Measurement, measure
 from .poolid import PoolKey
-from .quote import first_quotable_direction, quote
-from .rpc import get_code
+from .quote import NOT_ENOUGH_LIQUIDITY, encode, first_quotable_direction, quote
+from .rpc import RpcError, call, get_code
 from .stub import BYTECODE as STUB, digest as stub_digest
 
 # The size grid, in wei of currency-in. Gate A3 pins its own five decades (1e14..1e18) and is
@@ -404,6 +405,11 @@ def sweep_pool(url: str, key: PoolKey, block: int, sizes=SIZES, done=None, on_ro
         if k in done:
             continue
         m = measure_resilient(url, key, zfo, size, block)
+        # The cell we asked for is what gets marked done, not the cell the row claims to be.
+        # They are the same today — `measure` echoes its argument — but keying the resume set off
+        # the answer instead of the question means one mislabelled row makes the sweep ask for
+        # that cell again on every run, for ever.
+        done.add(k)
         out.append(m)
         if on_row is not None:
             on_row(m)
@@ -657,3 +663,331 @@ def write_summary(in_path=DEFAULT_OUT, out_path=DEFAULT_SUMMARY, block=None) -> 
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(s, indent=1) + "\n")
     return s
+
+
+# ============================================================================== the caller axis
+#
+# Does a hook treat one address differently from another? The honest form of that question is
+# narrower than it sounds, and the narrow form is the one this file answers.
+#
+# `eth_call` lets us set `from`. On a v4 swap that address becomes `tx.origin`, and *only*
+# `tx.origin`: the `sender` argument `beforeSwap` receives is whoever called
+# `PoolManager.swap`, which for a quote is always the V4Quoter, no matter who signed. `msg.sender`
+# inside the hook is the PoolManager. So the single channel between the caller and the hook is
+# `tx.origin`, and the measurable question is:
+#
+#     does the quoted output of the identical swap move when `tx.origin` moves?
+#
+# A yes is a real finding — the hook branches on the origin, which is how allow-lists and
+# anti-MEV carve-outs are usually written. A no is *not* proof that the hook treats everyone
+# alike: it could branch on `hookData`, on a router it recognises as `sender`, or on state it
+# only sees in a real transaction. `NOT_MEASURABLE` is the label for everything this method
+# cannot see, and the summary says so in `caveat`.
+#
+# The stub is never installed here. This axis compares the hook against itself, so there is no
+# counterfactual to set up — which also means several caller sweeps could share one fork. They
+# still do not: the guard exists so that nobody has to remember which sweep is which.
+
+CALLER_SIZES = [10**15, 10**18]
+
+# Four origins, chosen to be distinguishable and replayable rather than meaningful. Whether each
+# one carries code is read off the fork at run time and written into the summary; nothing here
+# assumes it.
+CALLERS = (
+    ("zero",   "0x0000000000000000000000000000000000000000"),
+    ("eoa_a",  "0x00000000000000000000000000000000000000a1"),
+    ("eoa_b",  "0x00000000000000000000000000000000000000b2"),
+    ("router", "0x6ff5693b99212da76ad316178a184ab56d299b43"),
+)
+
+DEFAULT_CALLERS_OUT = REPO / "docs" / "dataset" / "callers.jsonl"
+DEFAULT_CALLERS_SUMMARY = REPO / "docs" / "dataset" / "callers-summary.json"
+
+CALLER_FIELDS = (
+    "hook", "pool_id", "chain_id", "block_number", "zero_for_one", "amount_in",
+    "caller", "caller_name", "out", "label", "reason", "engine_ver", "observed_at",
+)
+
+
+def quote_as(url: str, key: PoolKey, zero_for_one: bool, amount_in: int, caller: str):
+    """`quote`, with `from` set. Returns (amount_out, None) or (None, reason).
+
+    Deliberately a separate function rather than a keyword on `quote`: every other reading in this
+    project is taken with the default origin, and a parameter that silently changes what a
+    published bps means is not worth the four saved lines.
+    """
+    try:
+        raw = call(url, "eth_call",
+                   [{"to": V4_QUOTER, "from": caller,
+                     "data": encode(key, zero_for_one, amount_in)}, "latest"])
+    except RpcError as e:
+        msg = str(e)
+        return None, ("NOT_ENOUGH_LIQUIDITY" if NOT_ENOUGH_LIQUIDITY in msg else msg[:120])
+    if not raw or len(raw) < 66:
+        return None, "SHORT_RETURN"
+    out = int(raw[2:66], 16)
+    return (out, None) if out > 0 else (None, "ZERO_OUT")
+
+
+def caller_row(key: PoolKey, zero_for_one: bool, amount_in: int, block: int,
+               name: str, caller: str, out, reason) -> dict:
+    """One reading of one origin. A failure keeps its line and its reason, never a zero."""
+    if out is not None:
+        label = "MEASURED"
+    elif is_infra(reason):
+        label, reason = "NOT_MEASURABLE", f"{RPC_UNAVAILABLE} {reason}"
+    else:
+        label = "NOT_QUOTABLE"
+    return {
+        "hook": key.hooks, "pool_id": "0x" + key.pool_id().hex(), "chain_id": 8453,
+        "block_number": block, "zero_for_one": zero_for_one, "amount_in": str(amount_in),
+        "caller": caller, "caller_name": name,
+        "out": None if out is None else str(out),
+        "label": label, "reason": None if reason is None else str(reason)[:300],
+        "engine_ver": f"tare-engine/{__version__}",
+        "observed_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    }
+
+
+def caller_key(row) -> tuple:
+    return (row["pool_id"], int(row["block_number"]), str(row["amount_in"]),
+            bool(row["zero_for_one"]), row["caller"].lower())
+
+
+def read_callers_done(path) -> set:
+    done = set()
+    for r in read_jsonl(path):
+        if all(f in r for f in ("pool_id", "block_number", "amount_in", "zero_for_one", "caller")):
+            if not (r.get("reason") or "").startswith(NOT_LOOKED):
+                done.add(caller_key(r))
+    return done
+
+
+def sweep_callers(url: str, pools, block: int, out_path=DEFAULT_CALLERS_OUT,
+                  sizes=CALLER_SIZES, callers=CALLERS, resume=True, log=None) -> dict:
+    """Quote the same swap from several origins, for every pool, both directions.
+
+    Writes one JSONL line per (pool, direction, size, origin) — including the ones that revert,
+    because "this origin cannot swap here and that one can" is exactly the finding this axis is
+    for, and it only exists if both lines are on disk.
+    """
+    done = read_callers_done(out_path) if resume else set()
+    stats = {"pools": 0, "written": 0, "by_label": {l: 0 for l in LABELS}, "n_pools_differ": 0}
+    t0 = time.time()
+
+    for i, (key, _liq, _dyn) in enumerate(pools, 1):
+        pool_id = "0x" + key.pool_id().hex()
+        rows, t = [], time.time()
+        for zfo in DIRECTIONS:
+            for size in sizes:
+                for name, addr in callers:
+                    k = (pool_id, int(block), str(size), bool(zfo), addr.lower())
+                    if k in done:
+                        continue
+                    try:
+                        out, reason = quote_as(url, key, zfo, size, addr)
+                    except Exception as exc:            # the node, not the pool
+                        out, reason = None, f"{type(exc).__name__}: {exc}"
+                    r = caller_row(key, zfo, size, block, name, addr, out, reason)
+                    append_jsonl_dict(out_path, r)
+                    done.add(k)
+                    rows.append(r)
+        if not rows:
+            continue
+        stats["pools"] += 1
+        stats["written"] += len(rows)
+        for r in rows:
+            stats["by_label"][r["label"]] = stats["by_label"].get(r["label"], 0) + 1
+        v = caller_verdict(rows)
+        if v["verdict"] == "ORIGIN_SENSITIVE":
+            stats["n_pools_differ"] += 1
+        if log:
+            log(f"[{i}/{len(pools)}] {pool_id[:18]} hook={key.hooks[:10]} "
+                f"{time.time() - t:5.1f}s  {len(rows):>3} lectures  {v['verdict']}")
+
+    stats["seconds"] = round(time.time() - t0, 1)
+    return stats
+
+
+def append_jsonl_dict(path, row: dict) -> None:
+    p = Path(path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    with p.open("a") as fh:
+        fh.write(json.dumps(row, separators=(",", ":")) + "\n")
+        fh.flush()
+        os.fsync(fh.fileno())
+
+
+def caller_verdict(rows) -> dict:
+    """What the origins said about one pool.
+
+    ORIGIN_SENSITIVE   at least one (direction, size) cell where the origins disagree — either a
+                       different amount out, or one origin quoting where another reverts.
+    ORIGIN_INVARIANT   every cell that could be read gave every origin the same answer.
+    NOT_QUOTABLE       no origin got a quote anywhere, and the pool is what said no.
+    NOT_MEASURABLE     the node is what said no, so nothing was established.
+    """
+    cells = {}
+    for r in rows:
+        cells.setdefault((str(r["amount_in"]), bool(r["zero_for_one"])), []).append(r)
+
+    diverging, comparable, infra, quotable = [], 0, False, False
+    for (size, zfo), group in cells.items():
+        if any(r["label"] == "NOT_MEASURABLE" for r in group):
+            infra = True
+            continue                                  # a cell we could not read says nothing
+        comparable += 1
+        answers = {(r["out"], r["label"]) for r in group}
+        quotable |= any(r["label"] == "MEASURED" for r in group)
+        if len(answers) > 1:
+            diverging.append({
+                "amount_in": size, "zero_for_one": zfo,
+                "by_caller": {r["caller_name"]: (r["out"] or r["reason"]) for r in group},
+            })
+
+    if diverging:
+        verdict = "ORIGIN_SENSITIVE"
+    elif not comparable:
+        verdict = "NOT_MEASURABLE"
+    elif quotable:
+        verdict = "ORIGIN_INVARIANT"
+    else:
+        verdict = "NOT_QUOTABLE"
+    return {
+        "hook": rows[0]["hook"], "pool_id": rows[0]["pool_id"],
+        "verdict": verdict, "cells_compared": comparable,
+        "cells_unreadable": len(cells) - comparable,
+        "n_callers": len({r["caller"].lower() for r in rows}),
+        "diverging_cells": diverging,
+        "rpc_blocked": infra,
+    }
+
+
+def summarise_callers(rows, block=None, code_by_caller=None) -> dict:
+    """Fold the caller readings into one verdict per pool and one per hook.
+
+    A hook is ORIGIN_SENSITIVE if *any* of its pools is: one branch on the origin is enough to
+    make the statement true. It is ORIGIN_INVARIANT only when at least one of its pools was
+    actually comparable and none diverged — never by default, and never because we could not look.
+    """
+    seen = {}
+    for r in rows:
+        seen[caller_key(r)] = r
+    rows = list(seen.values())
+
+    by_pool = {}
+    for r in rows:
+        by_pool.setdefault(r["pool_id"], []).append(r)
+    verdicts = [caller_verdict(v) for v in by_pool.values()]
+
+    by_hook = {}
+    for v in verdicts:
+        by_hook.setdefault(v["hook"], []).append(v["verdict"])
+    hook_verdict = {}
+    for h, vs in by_hook.items():
+        hook_verdict[h] = ("ORIGIN_SENSITIVE" if "ORIGIN_SENSITIVE" in vs
+                           else "ORIGIN_INVARIANT" if "ORIGIN_INVARIANT" in vs
+                           else "NOT_QUOTABLE" if "NOT_QUOTABLE" in vs
+                           else "NOT_MEASURABLE")
+    tally = lambda want: sum(1 for v in verdicts if v["verdict"] == want)
+    blocks = sorted({r["block_number"] for r in rows})
+    return {
+        "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "engine_ver": f"tare-engine/{__version__}",
+        "chain_id": rows[0]["chain_id"] if rows else None,
+        "block_number": block if block is not None else (blocks[0] if len(blocks) == 1 else None),
+        "question": "does the quoted output of the identical swap move when tx.origin moves?",
+        "caveat": ("eth_call `from` reaches a v4 hook only as tx.origin: the `sender` argument of "
+                   "beforeSwap is the V4Quoter and msg.sender is the PoolManager. ORIGIN_INVARIANT "
+                   "therefore means 'does not branch on tx.origin', not 'treats every caller "
+                   "alike' — a hook can still branch on hookData, on a router it recognises as "
+                   "sender, or on state that only exists inside a real transaction."),
+        "callers": [{"name": n, "address": a,
+                     "has_code_on_fork": (code_by_caller or {}).get(a.lower())}
+                    for n, a in CALLERS],
+        "sizes": [str(s) for s in CALLER_SIZES],
+        "n_readings": len(rows),
+        "by_label": {l: sum(1 for r in rows if r["label"] == l) for l in LABELS},
+        "n_pools": len(by_pool),
+        "n_hooks": len(by_hook),
+        "n_pools_origin_sensitive": tally("ORIGIN_SENSITIVE"),
+        "n_pools_origin_invariant": tally("ORIGIN_INVARIANT"),
+        "n_pools_not_quotable": tally("NOT_QUOTABLE"),
+        "n_pools_not_measurable": tally("NOT_MEASURABLE"),
+        "n_hooks_origin_sensitive": sum(1 for v in hook_verdict.values()
+                                        if v == "ORIGIN_SENSITIVE"),
+        "hook_verdicts": dict(sorted(hook_verdict.items())),
+        "origin_sensitive_pools": [v for v in verdicts if v["verdict"] == "ORIGIN_SENSITIVE"],
+    }
+
+
+def write_callers_summary(in_path=DEFAULT_CALLERS_OUT, out_path=DEFAULT_CALLERS_SUMMARY,
+                          block=None, code_by_caller=None) -> dict:
+    s = summarise_callers(read_jsonl(in_path), block=block, code_by_caller=code_by_caller)
+    p = Path(out_path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(s, indent=1) + "\n")
+    return s
+
+
+# ----------------------------------------------------------------------------- one command
+#
+# The caller axis has its own schema and its own output, so it gets its own entry point rather
+# than a flag on `tare.cli sweep` that would make two unrelated files look like one command.
+#
+#   python3 -m tare.sweep callers --rpc http://127.0.0.1:8545 --pools docs/dataset/pools.json \
+#                                 --out docs/dataset/callers.jsonl --shard 0 --of 4
+
+def main(argv=None) -> int:
+    import argparse
+    ap = argparse.ArgumentParser(prog="tare.sweep", description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    c = sub.add_parser("callers", help="le meme swap depuis plusieurs tx.origin")
+    c.add_argument("--rpc", default="http://127.0.0.1:8545")
+    c.add_argument("--block", type=int, default=50614000)
+    c.add_argument("--pools", default=str(DEFAULT_POOLS))
+    c.add_argument("--out", default=str(DEFAULT_CALLERS_OUT))
+    c.add_argument("--summary", default=str(DEFAULT_CALLERS_SUMMARY))
+    c.add_argument("--limit", type=int, default=0)
+    c.add_argument("--shard", type=int, default=0)
+    c.add_argument("--of", type=int, default=1)
+    a = ap.parse_args(argv)
+
+    if a.of < 1 or not (0 <= a.shard < a.of):
+        print(f"--shard doit etre dans [0, {a.of}) ; recu --shard {a.shard} --of {a.of}")
+        return 2
+
+    pools = load_pools(a.pools)
+    pools.sort(key=lambda p: -p[1])
+    if a.of > 1:
+        pools = [p for i, p in enumerate(pools) if i % a.of == a.shard]
+    if a.limit:
+        pools = pools[:a.limit]
+
+    print(f"axe appelant : {len(pools)} pools x {len(DIRECTIONS)} sens x {len(CALLER_SIZES)} "
+          f"tailles x {len(CALLERS)} origines  bloc {a.block}  -> {a.out}")
+    stats = sweep_callers(a.rpc, pools, a.block, out_path=a.out,
+                          log=lambda s: print(s, flush=True))
+    print(f"\n{stats['written']} lectures en {stats['seconds']}s, "
+          f"{stats['n_pools_differ']} pools ou les origines divergent")
+
+    code = {}
+    for _n, addr in CALLERS:
+        try:
+            code[addr.lower()] = bool((get_code(a.rpc, addr) or "0x") != "0x")
+        except Exception:
+            code[addr.lower()] = None          # inconnu, jamais False par defaut
+    s = write_callers_summary(a.out, a.summary, block=a.block, code_by_caller=code)
+    print(f"resume -> {a.summary}  ({s['n_readings']} lectures, {s['n_pools']} pools, "
+          f"{s['n_pools_origin_sensitive']} sensibles a tx.origin, "
+          f"{s['n_pools_origin_invariant']} invariants, "
+          f"{s['n_pools_not_measurable']} non mesurables)")
+    print(f"rejouer : python3 -m tare.sweep callers --rpc {a.rpc} --block {a.block} "
+          f"--pools {a.pools} --out {a.out}")
+    return 0
+
+
+if __name__ == "__main__":
+    import sys as _sys
+    _sys.exit(main())

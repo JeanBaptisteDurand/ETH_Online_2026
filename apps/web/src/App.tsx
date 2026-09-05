@@ -5,6 +5,7 @@ import { fmtBlock } from './lib/format'
 import { HookTable } from './components/Table'
 import { Detail } from './components/Detail'
 import { LedWidget } from './components/Led'
+import { GraphPanels } from './components/Graph'
 import { Panel } from './components/Prim'
 import { Chat } from './chat/Chat'
 import { buildModel } from './chat/model'
@@ -228,6 +229,10 @@ export default function App() {
               : null
           }
         />
+
+        {/* Les trois encarts de graphe. Ils viennent de l'API et ne bloquent jamais la page :
+            si elle ne repond pas, ils le disent au lieu d'afficher zero. */}
+        <GraphPanels hook={hook.address} />
 
         <footer
           className="t-data-xs px-[16px] py-[12px] flex flex-col gap-[3px]"

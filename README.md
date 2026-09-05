@@ -93,9 +93,42 @@ packages/   shared Zod contracts
 docs/       method, limits, and the corrections this project had to make
 ```
 
+
+## Where to look in the code
+
+Uniswap Foundation asks that a README point at the lines that make the integration verifiable. These
+are those lines.
+
+| What | Where |
+|---|---|
+| **The inert stub**, and why it is shaped that way | [`engine/tare/stub.py`](engine/tare/stub.py) — the `Hooks.sol` return-size invariants it satisfies are named in the module docstring |
+| **The counterfactual**: quote, swap the hook's code, quote again, restore | [`engine/tare/measure.py:96-140`](engine/tare/measure.py#L96-L140) |
+| **Why a negative result is not negative extraction** | [`engine/tare/measure.py:26`](engine/tare/measure.py#L26) — `CUSTOM_ACCOUNTING_BPS` |
+| **`PoolKey` → `poolId` → storage slots** (`pools` at slot 6, `liquidity` at +3) | [`engine/tare/poolid.py`](engine/tare/poolid.py) |
+| **`slot0.lpFee` at bits 208–231** — the stored fee the counterfactual falls back to | [`engine/tare/consts.py`](engine/tare/consts.py) |
+| **`V4Quoter` calldata**, and the direction-dependent revert | [`engine/tare/quote.py`](engine/tare/quote.py) — `NOT_ENOUGH_LIQUIDITY`, `first_quotable_direction` |
+| **The 14 permission bits are the hook's own address** | [`packages/hookflags/src/index.ts`](packages/hookflags/src/index.ts), proven over the whole registry in [`engine/tests/test_flags.py`](engine/tests/test_flags.py) |
+| **The gate that cannot be faked** — reproduces five known bps on every run | [`engine/tare/gates/a3.py`](engine/tare/gates/a3.py) |
+| **The x402 resource server on Hedera** | [`apps/api/src/x402.ts`](apps/api/src/x402.ts) |
+| **Billing by measurement, not by request** | [`apps/api/src/metering/ledger.ts`](apps/api/src/metering/ledger.ts) |
+| **The guard that reads the hook out of Universal Router calldata** | [`packages/guard/src/calldata.ts`](packages/guard/src/calldata.ts) |
+| **Never truncate an error body** — the bug that hid a revert selector four times | [`engine/tare/rpc.py`](engine/tare/rpc.py) |
+
+## Prompts, specs and planning artifacts
+
+Every brief given to every agent, and the documents they were planned against, are committed under
+[`docs/prompts/`](docs/prompts/) and [`docs/planning/`](docs/planning/). See
+[`docs/prompts/README.md`](docs/prompts/README.md).
+
 ## AI attribution
 
-Built with Claude Code. Prompts, specs and the full decision trail are committed under `docs/`.
+Built with Claude Code. Every prompt, spec and planning artifact is committed under
+[`docs/prompts/`](docs/prompts/) and [`docs/planning/`](docs/planning/) — including
+[`docs/planning/01-adversarial-audit.md`](docs/planning/01-adversarial-audit.md), the record of an
+earlier direction being abandoned after its own figures failed review.
+
+What is not AI-generated is the measurement: every number in `docs/dataset/` comes from an EVM fork,
+and [`engine/tare/gates/a3.py`](engine/tare/gates/a3.py) recomputes five of them on every run.
 
 ## License
 

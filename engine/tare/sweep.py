@@ -1,6 +1,6 @@
 """The sweep — turning one measurement into coverage.
 
-Four facts about the fork drive every design decision in this file.
+Six facts about the fork drive every design decision in this file.
 
 1. **A pool usually quotes in one direction only.** `V4Quoter` reverts with `NotEnoughLiquidity`
    for the other side, and the first version of this sweep read that revert as "dead pool". It
@@ -11,14 +11,15 @@ Four facts about the fork drive every design decision in this file.
 2. **The first RPC touch of a pool is expensive and the next ones are free.** anvil fetches the
    pool's storage slots and the token contracts from the upstream archive node once, then serves
    them locally. Measured on this fork: a cold pool took 30-120 s, the same pool on a second pass
-   took 0.5-9 s. So the sweep is grouped **by pool** — all five sizes back to back, paying the
-   cold cost once instead of five times.
+   took 0.5-9 s. So the sweep is grouped **by pool** — every size and both directions back to
+   back, paying the cold cost once instead of sixteen times.
 
 3. **A run gets interrupted.** The output is JSONL — one measurement per line, flushed and fsynced
    as it is produced — and a restart reads back what is already there and skips it. The resume key
-   is `(pool_id, block_number, amount_in)`: the fork is pinned, so re-measuring one of those adds
-   nothing. The direction is deliberately *not* part of the key; it is a derived observation, not
-   an input.
+   is `(pool_id, block_number, amount_in, zero_for_one)`: the fork is pinned, so re-measuring one
+   of those adds nothing. Direction is part of the key since fact 5 below — while the sweep only
+   ever measured one side per pool it had to be left out, or a resumed run would have re-measured
+   every pool whose probe happened to land on the other side.
 
 4. **A fork can hold exactly one measurer.** `measure` installs the stub over the hook's code,
    quotes, and puts the original back — global mutable state on the node. Two processes sharing
@@ -26,9 +27,24 @@ Four facts about the fork drive every design decision in this file.
    means several *forks*, one process each (`--shard i --of n`, one `--rpc` per shard), and
    `stub_is_installed` refuses a reading rather than publishing a contended one.
 
-Nothing here invents a value, and nothing here disappears. A pool that refuses the swap produces
-five lines labelled NOT_QUOTABLE carrying the revert reason; a pool the node could not serve
-produces five lines labelled NOT_MEASURABLE saying so. Never zero lines, and never a zero.
+5. **One direction per pool was a sampling decision, not a fact about the pool.** Fact 1 above
+   made the sweep *probe* for a quotable side and then measure only that side. That recovered the
+   pools an earlier sweep had thrown away, but it also meant the corpus could never answer "does
+   this hook take the same cut both ways?" — and a v4 hook is free to charge asymmetrically,
+   because `beforeSwap` receives `zeroForOne`. So the sweep now measures **both** directions and
+   `resume_key` carries the direction. A row for a side that does not quote is still written,
+   labelled, and carries the revert: the asymmetry is in the data instead of hidden by the probe.
+
+6. **A hook can read `tx.origin`.** Through `eth_call`, the `from` field sets the origin of the
+   whole call. It does *not* reach the hook as `sender` — v4 passes the address that called
+   `PoolManager.swap`, which is always the quoter — so the only channel from the caller to the
+   hook is `tx.origin`. `sweep_callers` quotes the identical swap from several origins and reports
+   whether the output moves. That is a narrower question than "does the hook price me differently",
+   and it is written down as the narrow one it is, in a separate file with its own schema.
+
+Nothing here invents a value, and nothing here disappears. Every (pool, size, direction) cell
+gets exactly one line: a pool that refuses the swap gets NOT_QUOTABLE carrying the revert reason,
+a pool the node could not serve gets NOT_MEASURABLE saying so. Never zero lines, and never a zero.
 """
 from __future__ import annotations      # Python 3.9: PEP 604 unions in annotations
 
@@ -47,8 +63,21 @@ from .quote import first_quotable_direction, quote
 from .rpc import get_code
 from .stub import BYTECODE as STUB, digest as stub_digest
 
-# The five sizes of gate A3, in wei of currency-in: 0.0001 to 1.0 token.
-SIZES = [10**14, 10**15, 10**16, 10**17, 10**18]
+# The size grid, in wei of currency-in. Gate A3 pins its own five decades (1e14..1e18) and is
+# deliberately left alone — it reproduces numbers that predate this file. The sweep runs wider:
+# 1e12 is a dust swap that some hooks let through free and others round to nothing, and 1e19 is
+# large enough to walk out of the first tick range on a shallow pool. Eight decades, so a curve
+# has enough points to show a knee rather than a slope.
+SIZES = [10**e for e in range(12, 20)]
+
+# Both sides of every pool. `beforeSwap` is handed `zeroForOne`, so a hook may charge one way and
+# not the other; measuring one side and calling it "the" fee assumed it could not.
+DIRECTIONS = (True, False)
+
+# Two measurements of one pool at one size differ by more than this, one way versus the other,
+# and the hook is doing something direction-dependent. Chosen an order of magnitude above the
+# quoter's rounding: an exact-input quote of 1e12 wei rounds at well under a tenth of a bp.
+ASYMMETRY_BPS = 1.0
 
 # A fee that does not move with size is a flat fee. Five basis points of travel between the
 # smallest and the largest swap is the threshold above which the hook is doing something the
@@ -230,12 +259,21 @@ def load_pools(path=DEFAULT_POOLS):
 def resume_key(row) -> tuple:
     """The identity of a measurement on a pinned fork.
 
-    `row` is a dict or a Measurement. Direction is excluded on purpose: it is observed by the
-    sweep, not chosen by it, so keying on it would re-measure a pool whose probe happened to land
-    on the other side.
+    `row` is a dict or a Measurement. Direction belongs in the key: the sweep measures both sides
+    of every pool, so `(pool, block, size)` names two distinct observations and collapsing them
+    would let `dedupe` silently throw one away — turning "this hook charges 30 bps one way and
+    100 the other" into whichever line happened to be written last.
+
+    Rows written before the two-direction sweep carry a direction too, so they keep their identity
+    and are not re-measured; only the side that was never looked at is.
     """
     d = row.dict() if isinstance(row, Measurement) else row
-    return (d["pool_id"], int(d["block_number"]), str(d["amount_in"]))
+    return (d["pool_id"], int(d["block_number"]), str(d["amount_in"]), bool(d["zero_for_one"]))
+
+
+def cell_key(pool_id: str, block: int, amount_in, zero_for_one: bool) -> tuple:
+    """`resume_key` from loose parts, so callers cannot get the tuple shape wrong."""
+    return (pool_id, int(block), str(amount_in), bool(zero_for_one))
 
 
 # The two reasons that mean "we did not look", as opposed to "we looked and this is what there
@@ -334,34 +372,38 @@ def probe_direction(url: str, key: PoolKey, sizes=SIZES):
 
 # ----------------------------------------------------------------------------- the sweep
 
-def sweep_pool(url: str, key: PoolKey, block: int, sizes=SIZES, done=None, on_row=None) -> list:
-    """Measure one pool at every size, in one go, reusing anvil's warm cache.
+def pool_cells(pool_id: str, block: int, sizes=SIZES, directions=DIRECTIONS) -> list:
+    """Every (direction, size) cell of one pool, in the order the sweep visits them.
 
-    `done` is the resume set; sizes already in it are skipped. `on_row` is called with each
-    fresh Measurement (that is where persistence happens) so an interruption loses nothing.
+    Directions outermost: `measure` rewrites the hook's code around each quote, and walking a
+    whole direction before switching keeps the quoter's own warm path stable. Sizes ascending
+    inside a direction, so an interrupted run leaves a curve that starts at the left.
+    """
+    return [(zfo, size, cell_key(pool_id, block, size, zfo))
+            for zfo in directions for size in sizes]
+
+
+def sweep_pool(url: str, key: PoolKey, block: int, sizes=SIZES, done=None, on_row=None,
+               directions=DIRECTIONS) -> list:
+    """Measure one pool at every size **in both directions**, in one go, reusing anvil's cache.
+
+    `done` is the resume set; cells already in it are skipped. `on_row` is called with each fresh
+    Measurement (that is where persistence happens) so an interruption loses nothing.
+
+    There is no direction probe any more. The probe existed to pick the one side worth spending
+    the sweep's budget on; now both sides are in the budget, so the choice is gone and with it the
+    silent loss of whatever the other side would have said. The probe's *other* job — never
+    reading a node failure as a pool verdict — is done by `measure_resilient`, which retries an
+    infrastructure failure and relabels a survivor NOT_MEASURABLE rather than NOT_QUOTABLE.
     """
     done = done if done is not None else set()
     pool_id = "0x" + key.pool_id().hex()
 
-    todo = [s for s in sizes
-            if (pool_id, int(block), str(s)) not in done]
-    if not todo:
-        return []
-
-    zfo, _probe, infra = probe_direction(url, key, sizes)
-    # No side quotes at any size: still emit a labelled row per size, carrying the reason the node
-    # actually returned. `measure_resilient` re-quotes and reports that reason itself, and marks
-    # the row NOT_MEASURABLE rather than NOT_QUOTABLE when the probe hit the node, not the pool.
-    direction = True if zfo is None else zfo
-
     out = []
-    for size in todo:
-        m = measure_resilient(url, key, direction, size, block)
-        if zfo is None and infra and m.label == "NOT_QUOTABLE":
-            # The probe never got a clean answer from either side. Whatever this last quote says,
-            # we did not establish that the pool is unquotable — only that we could not look.
-            m = dataclasses.replace(m, label="NOT_MEASURABLE",
-                                    reason=f"{RPC_UNAVAILABLE} probe {infra}"[:300])
+    for zfo, size, k in pool_cells(pool_id, block, sizes, directions):
+        if k in done:
+            continue
+        m = measure_resilient(url, key, zfo, size, block)
         out.append(m)
         if on_row is not None:
             on_row(m)
@@ -377,6 +419,16 @@ def _cell(m: Measurement) -> str:
     return {"NOT_QUOTABLE": "nq", "NOT_MEASURABLE": "nm"}.get(m.label, m.label[:3].lower())
 
 
+def _line(rows) -> str:
+    """The progress line, split by direction so the two curves stay readable side by side."""
+    parts = []
+    for zfo, tag in ((True, "0>1"), (False, "1>0")):
+        side = [m for m in rows if m.zero_for_one is zfo]
+        if side:
+            parts.append(tag + " " + " ".join(f"{_cell(m):>7}" for m in side))
+    return "  |  ".join(parts)
+
+
 def sweep(url: str, pools, block: int, out_path=DEFAULT_OUT, sizes=SIZES,
           resume=True, log=None) -> dict:
     """Sweep a list of `(PoolKey, liquidity, dynamic)` and append to `out_path`.
@@ -390,7 +442,8 @@ def sweep(url: str, pools, block: int, out_path=DEFAULT_OUT, sizes=SIZES,
 
     for i, (key, liquidity, _dyn) in enumerate(pools, 1):
         pool_id = "0x" + key.pool_id().hex()
-        if all((pool_id, int(block), str(s)) in done for s in sizes):
+        cells = pool_cells(pool_id, block, sizes)
+        if all(k in done for _z, _s, k in cells):
             stats["pools_skipped"] += 1
             continue
         stats["pools"] += 1
@@ -404,10 +457,9 @@ def sweep(url: str, pools, block: int, out_path=DEFAULT_OUT, sizes=SIZES,
             # silently shrinks the denominator of every statistic drawn from this file.
             stats["errors"] += 1
             note = f"  ERREUR {type(exc).__name__}: {exc}"[:160]
-            rows = [unmeasurable(key, True, size, block,
+            rows = [unmeasurable(key, zfo, size, block,
                                  f"{RPC_UNAVAILABLE} sweep {type(exc).__name__}: {exc}")
-                    for size in sizes
-                    if (pool_id, int(block), str(size)) not in done]
+                    for zfo, size, k in cells if k not in done]
             for m in rows:
                 append_jsonl(out_path, m)
 
@@ -417,8 +469,7 @@ def sweep(url: str, pools, block: int, out_path=DEFAULT_OUT, sizes=SIZES,
             stats["by_label"][m.label] = stats["by_label"].get(m.label, 0) + 1
         if log:
             log(f"[{i}/{len(pools)}] {pool_id[:18]} hook={key.hooks[:10]} "
-                f"{time.time() - t:5.1f}s  "
-                + " ".join(f"{_cell(m):>7}" for m in rows) + note)
+                f"{time.time() - t:5.1f}s  " + _line(rows) + note)
 
     stats["seconds"] = round(time.time() - t0, 1)
     return stats
@@ -427,17 +478,22 @@ def sweep(url: str, pools, block: int, out_path=DEFAULT_OUT, sizes=SIZES,
 # ----------------------------------------------------------------------------- summary
 
 def profile(rows) -> dict:
-    """Per-pool bps as a function of size, and how far it travels.
+    """bps as a function of size for one pool **in one direction**, and how far it travels.
 
-    A hook whose take is the same at 1e14 and at 1e18 is a flat fee wearing a hook. One whose take
-    collapses (or explodes) with size is doing something the fee field cannot say. `amplitude_bps`
-    is the gap between the smallest and the largest size — the two ends of the curve — while
-    `spread_bps` is the full max-min travel, which can be larger if the curve is not monotone.
+    A hook whose take is the same at the smallest and the largest swap is a flat fee wearing a
+    hook. One whose take collapses (or explodes) with size is doing something the fee field cannot
+    say. `amplitude_bps` is the gap between the two ends of the curve; `spread_bps` is the full
+    max-min travel, which is larger when the curve is not monotone.
+
+    `rows` must already be one direction of one pool — mixing the two sides would interleave two
+    curves into one and invent a slope that neither of them has. `profiles_of` does that split.
     """
     ms = sorted((r for r in rows if r["label"] == "MEASURED" and r["bps"] is not None),
                 key=lambda r: int(r["amount_in"]))
     if len(ms) < 2:
         return {}
+    if len({bool(r["zero_for_one"]) for r in ms}) > 1:
+        raise ValueError("profile() a recu les deux sens d'un pool : ce sont deux courbes")
     bps = [r["bps"] for r in ms]
     return {
         "hook": ms[0]["hook"],
@@ -453,6 +509,49 @@ def profile(rows) -> dict:
         "amplitude_bps": round(abs(bps[-1] - bps[0]), 4),
         "spread_bps": round(max(bps) - min(bps), 4),
     }
+
+
+def profiles_of(rows) -> list:
+    """One profile per (pool, direction). Never one per pool: see `profile`."""
+    by_curve = {}
+    for r in rows:
+        by_curve.setdefault((r["pool_id"], bool(r["zero_for_one"])), []).append(r)
+    return [p for p in (profile(v) for v in by_curve.values()) if p]
+
+
+def asymmetries(rows) -> list:
+    """Pools that charge differently depending on which way you swap.
+
+    Only cells measured on **both** sides at the **same** size count: comparing 1e15 one way with
+    1e18 the other would report the size curve as an asymmetry. A pool that quotes one way and
+    reverts the other is not listed here — that is a liquidity fact, not a pricing one, and it is
+    already visible in the NOT_QUOTABLE rows.
+    """
+    cells = {}
+    for r in rows:
+        if r["label"] != "MEASURED" or r["bps"] is None:
+            continue
+        cells.setdefault((r["pool_id"], str(r["amount_in"])), {})[bool(r["zero_for_one"])] = r
+
+    out = {}
+    for (pool_id, size), sides in cells.items():
+        if True not in sides or False not in sides:
+            continue
+        a, b = sides[True], sides[False]
+        gap = round(abs(a["bps"] - b["bps"]), 4)
+        cur = out.setdefault(pool_id, {
+            "hook": a["hook"], "pool_id": pool_id,
+            "currency0": a["currency0"], "currency1": a["currency1"],
+            "stored_lp_fee": a["stored_lp_fee"],
+            "sizes_compared": 0, "max_gap_bps": 0.0, "at_size": None,
+            "bps_zero_for_one": None, "bps_one_for_zero": None,
+        })
+        cur["sizes_compared"] += 1
+        if gap > cur["max_gap_bps"]:
+            cur.update(max_gap_bps=gap, at_size=size,
+                       bps_zero_for_one=a["bps"], bps_one_for_zero=b["bps"])
+    return sorted((v for v in out.values() if v["max_gap_bps"] >= ASYMMETRY_BPS),
+                  key=lambda v: -v["max_gap_bps"])
 
 
 def dedupe(rows) -> list:
@@ -485,9 +584,18 @@ def summarise(rows, block=None) -> dict:
     for r in rows:
         by_pool.setdefault(r["pool_id"], []).append(r)
 
-    profiles = [p for p in (profile(v) for v in by_pool.values()) if p]
+    profiles = profiles_of(rows)
     non_flat = sorted((p for p in profiles if p["amplitude_bps"] >= NON_FLAT_BPS),
                       key=lambda p: -p["amplitude_bps"])
+    asym = asymmetries(rows)
+
+    # Coverage of the two-direction grid, counted rather than assumed: a pool is "both sides
+    # measured" only when a MEASURED row exists for each side.
+    sides = {}
+    for r in measured:
+        sides.setdefault(r["pool_id"], set()).add(bool(r["zero_for_one"]))
+    both_sides = [p for p, v in sides.items() if len(v) == 2]
+    one_side = [p for p, v in sides.items() if len(v) == 1]
 
     # The finding this dataset exists to support: a pool whose fee field reads zero on-chain,
     # taking more than a basis point on a real swap.
@@ -508,7 +616,10 @@ def summarise(rows, block=None) -> dict:
         "block_number": block if block is not None else (blocks[0] if len(blocks) == 1 else None),
         "blocks": blocks,
         "sizes": [str(s) for s in SIZES],
+        "sizes_present": sorted({str(r["amount_in"]) for r in rows}, key=int),
+        "directions": ["zero_for_one", "one_for_zero"],
         "non_flat_threshold_bps": NON_FLAT_BPS,
+        "asymmetry_threshold_bps": ASYMMETRY_BPS,
 
         "n_measurements": len(rows),
         "by_label": {l: sum(1 for r in rows if r["label"] == l) for l in LABELS},
@@ -527,7 +638,15 @@ def summarise(rows, block=None) -> dict:
         "bps_median": round(statistics.median(bps), 4) if bps else None,
         "bps_max": bps[-1] if bps else None,
 
+        "n_measured_zero_for_one": sum(1 for r in measured if r["zero_for_one"]),
+        "n_measured_one_for_zero": sum(1 for r in measured if not r["zero_for_one"]),
+        "n_pools_measured_both_sides": len(both_sides),
+        "n_pools_measured_one_side": len(one_side),
+
+        "n_profiles": len(profiles),
         "n_non_flat_profiles": len(non_flat),
+        "n_asymmetric_pools": len(asym),
+        "asymmetric_pools": asym,
         "non_flat_profiles": non_flat,
     }
 

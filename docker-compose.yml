@@ -19,7 +19,9 @@ services:
       POSTGRES_USER: tare
       POSTGRES_PASSWORD: tare
       POSTGRES_DB: tare
-    ports: ["5432:5432"]
+    # Port hote surchargeable : sur la machine de dev, 5432 est deja pris par un
+    # autre projet. TARE_DB_PORT=55432 suffit alors, et DATABASE_URL suit.
+    ports: ["${TARE_DB_PORT:-5432}:5432"]
     volumes: ["pgdata:/var/lib/postgresql/data"]
     healthcheck:
       test: ["CMD-SHELL","pg_isready -U tare"]

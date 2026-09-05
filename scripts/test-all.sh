@@ -4,7 +4,7 @@
 # the measurement engine applies to a node that will not answer.
 set -uo pipefail
 cd "$(dirname "$0")/.."
-pass=0; total=0; broken=(); failed=()
+pass=0; total=0; broken=(); failed=(); skipped=()
 
 count() { # name, pass, total
   printf "  %-22s %s/%s\n" "$1" "$2" "$3"; pass=$((pass+$2)); total=$((total+$3))
@@ -19,15 +19,20 @@ vitest_count() { # dir, config, name
   # dans les deux formes, et on compte les echecs explicitement.
   local out; out=$(cd "$1" && npx vitest run ${2:+--config $2} 2>&1) || true
   local ligne p f t
-  ligne=$(grep -oE 'Tests +[0-9]+ (failed|passed).*\([0-9]+\)' <<<"$out" | tail -1)
+  ligne=$(grep -oE 'Tests +[0-9]+ (failed|passed|skipped).*\([0-9]+\)' <<<"$out" | tail -1)
   if [ -z "$ligne" ]; then
     broken+=("$3"); printf "  %-22s NE TOURNE PAS\n" "$3"; return
   fi
   t=$(grep -oE '\([0-9]+\)$' <<<"$ligne" | tr -d '()')
   p=$(grep -oE '[0-9]+ passed' <<<"$ligne" | grep -oE '[0-9]+' | head -1)
   f=$(grep -oE '[0-9]+ failed' <<<"$ligne" | grep -oE '[0-9]+' | head -1)
-  p=${p:-0}; f=${f:-0}
-  count "$3" "$p" "$t"
+  # Un test IGNORE n'est ni passe ni echoue. Le compter dans le total faisait lire
+  # "45/46" comme un echec alors que rien n'avait echoue — une absence prise pour une
+  # panne, dans le compte-rendu d'un projet qui refuse exactement cela.
+  local sk; sk=$(grep -oE '[0-9]+ skipped' <<<"$ligne" | grep -oE '[0-9]+' | head -1)
+  p=${p:-0}; f=${f:-0}; sk=${sk:-0}
+  count "$3" "$p" "$((t - sk))"
+  [ "$sk" -gt 0 ] && skipped+=("$3 ($sk)")
   [ "$f" -gt 0 ] && failed+=("$3 ($f)")
   return 0
 }
@@ -65,6 +70,9 @@ if [ ${#broken[@]} -gt 0 ]; then
 fi
 if [ ${#failed[@]} -gt 0 ]; then
   printf "  suites en echec : %s\n" "${failed[*]}"
+fi
+if [ ${#skipped[@]} -gt 0 ]; then
+  printf "  tests ignores (hors total) : %s\n" "${skipped[*]}"
 fi
 if [ ${#broken[@]} -gt 0 ]; then
   echo "  $pass/$total tests green — INCOMPLET, ${#broken[@]} suite(s) non executee(s)"

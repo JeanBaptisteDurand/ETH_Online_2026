@@ -132,6 +132,225 @@ const HERO =
 const POOLS = readJson(p("docs/pools-liquides.json"));
 const censusHooks = [...new Set(POOLS.map((r) => r[1][4]))];
 
+/* ------------------------------- 2b. the structure of the census: how many doors */
+
+/* The question that decides how every bps on this page should be read: for a given pair of
+   currencies, is there a second pool? Where there is not, the hook on the only pool is not
+   quoting against anyone, and its cut cannot be refused by going elsewhere. Both counts are
+   derived from the full census below; neither is asserted anywhere in the markup. */
+const FULL_FILE = "docs/dataset/pools-liquides-full.json";
+const SCAN_FILE = `${FULL_FILE}.scan.json`;
+const CONTESTED_FILE = "docs/dataset/measurements-contestes.jsonl";
+
+let STRUCTURE = null;
+if (existsSync(p(FULL_FILE)) && existsSync(p(SCAN_FILE))) {
+  const FULL = readJson(p(FULL_FILE));
+  const SCAN = readJson(p(SCAN_FILE));
+  if (SCAN.block_number !== BLOCK)
+    throw new Error(`census scanned block ${SCAN.block_number}, the corpus is at ${BLOCK}`);
+  if (SCAN.n_liquid !== FULL.length)
+    throw new Error("the census file and its scan report disagree on how many pools it holds");
+
+  /* What the census can and cannot see, read from the log collector's own manifest rather than
+     described from memory: it is one window of Initialize events, and only the pools whose
+     PoolKey names a hook. A pool older than the window, or one with no hook at all, is not in
+     this file — so "one pool" below means one pool OF THIS CENSUS, and the page says so. */
+  const MANIFEST = `${SCAN.source_logs.split("/").pop()}.manifest.json`;
+  const MAN = existsSync(p("docs/dataset", MANIFEST)) ? readJson(p("docs/dataset", MANIFEST)) : null;
+  if (MAN && MAN.end_block !== BLOCK)
+    throw new Error(`the census log window ends at ${MAN.end_block}, the corpus is at ${BLOCK}`);
+  if (MAN && MAN.n_hooked !== SCAN.n_hooked_pools)
+    throw new Error("the log manifest and the scan report disagree on how many hooked pools were seen");
+
+  /* v4 sorts the two currencies inside the PoolKey, so [currency0, currency1] is already the
+     canonical identity of a pair: nothing is normalised here, and nothing is guessed. */
+  const pairSize = new Map();
+  for (const [, key] of FULL) {
+    const id = `${key[0]}/${key[1]}`;
+    pairSize.set(id, (pairSize.get(id) ?? 0) + 1);
+  }
+  const multi = [...pairSize].filter(([, n]) => n > 1);
+  const gatesInMulti = multi.reduce((a, [, n]) => a + n, 0);
+
+  /* The scan records its rate-limited endpoint with the API key inside the URL. Only the
+     cause class ("HTTP 429") is carried onto the page — never the endpoint. */
+  const causes = (SCAN.unknown_causes ?? []).map(([why, n]) => ({
+    cause: String(why).split(" from ")[0],
+    n,
+  }));
+
+  /* Those pools are absent from the census, and the scan does not record their PoolKey, so a
+     pair whose second pool is one of them is counted here as having exactly one. That is why
+     the multi count is a LOWER BOUND, and why the page prints the reserve next to it. */
+  const unknownKeysKnown = (SCAN.unknown_pools ?? []).some((u) => u.currency0 || u.key);
+
+  let contested = null;
+  if (existsSync(p(CONTESTED_FILE))) {
+    const rows = readFileSync(p(CONTESTED_FILE), "utf8")
+      .split("\n")
+      .filter((l) => l.trim())
+      .map((l) => JSON.parse(l));
+    const cBlocks = [...new Set(rows.map((m) => m.block_number))];
+    if (cBlocks.length !== 1 || cBlocks[0] !== BLOCK)
+      throw new Error("the contested corpus is not at the block this page states");
+    if (rows.some((m) => m.chain_id !== chains[0]))
+      throw new Error("the contested corpus is not on the chain this page states");
+
+    const pairs = new Map();
+    for (const m of rows) {
+      const id = `${m.currency0}/${m.currency1}`;
+      const pair =
+        pairs.get(id) ?? { id, currency0: m.currency0, currency1: m.currency1, gates: new Map() };
+      const g =
+        pair.gates.get(m.pool_id) ??
+        { pool_id: m.pool_id, hook: m.hook, key_fee: m.key_fee, n: 0, measured: 0, bps: [], labels: {}, lp: new Set() };
+      g.n++;
+      const l = label(m);
+      g.labels[l] = (g.labels[l] ?? 0) + 1;
+      /* Un stored_lp_fee absent est une LECTURE QUI A ECHOUE, pas une valeur de moins.
+         L'ignorer faisait passer une porte dont une seule ligne avait ete lue pour une porte
+         dont toutes les lignes s'accordent, et le commentaire d'a cote promettait l'inverse.
+         On l'ajoute donc comme valeur distincte : g.lp.size > 1 signalera le desaccord. */
+      g.lp.add(m.stored_lp_fee ?? null);
+      if (l === "MEASURED" && m.bps !== null) {
+        g.measured++;
+        g.bps.push(m.bps);
+      }
+      pair.gates.set(m.pool_id, g);
+      pairs.set(id, pair);
+    }
+
+    /* The census decides which pairs have several pools; the sweep decides what each of those
+       pools takes. If the two disagree — on the set of pairs, or on how many pools a pair has —
+       the page would be describing a set that neither file contains. Refuse instead. */
+    /* Deux pools d'une meme paire peuvent porter LE MEME hook : deux portes existent bien,
+       mais le choix ne se fait pas entre deux hooks. Presenter ces deux-la comme la preuve
+       que « des hooks differents prennent des montants differents » serait exactement la
+       faute que cette section existe pour eviter. On marque le cas, la page le dit. */
+    for (const pair of pairs.values()) {
+      const hooks = new Set([...pair.gates.values()].map((g) => g.hook.toLowerCase()));
+      pair.n_hooks = hooks.size;
+      pair.one_hook_several_pools = hooks.size === 1 && pair.gates.size > 1;
+    }
+
+    const censusMulti = new Map(multi);
+    if (pairs.size !== censusMulti.size)
+      throw new Error(
+        `census counts ${censusMulti.size} pairs with several pools, the contested corpus covers ${pairs.size}`,
+      );
+    for (const [id, pair] of pairs) {
+      if (censusMulti.get(id) !== pair.gates.size)
+        throw new Error(
+          `pair ${id}: census counts ${censusMulti.get(id)} pools, the sweep measured ${pair.gates.size}`,
+        );
+    }
+
+    const shaped = [...pairs.values()]
+      .map((pair) => {
+        const gates = [...pair.gates.values()]
+          .map((g) => ({
+            pool_id: g.pool_id,
+            hook: g.hook,
+            key_fee: g.key_fee,
+            /* One stored_lp_fee per gate only when every row of that gate read the same one. A
+               slot0 read that failed leaves null, and null is never folded into a number. */
+            stored_lp_fee: g.lp.size === 1 ? [...g.lp][0] : null,
+            lp_values_seen: [...g.lp],
+            n: g.n,
+            measured: g.measured,
+            /* The median of the MEASURED rows of this gate, over every size and both directions
+               the sweep ran. It is a summary of this corpus, not the cost of one swap: the API's
+               /route picks the row at the requested size instead, and names it. */
+            median: g.bps.length ? fixed(median(g.bps)) : null,
+            /* The same median, unrounded: the spread below is a difference of measurements,
+               never a difference of two rounded strings. */
+            median_raw: g.bps.length ? median(g.bps) : null,
+            min: g.bps.length ? fixed(Math.min(...g.bps)) : null,
+            max: g.bps.length ? fixed(Math.max(...g.bps)) : null,
+            labels: g.labels,
+          }))
+          .sort(
+            (a, b) =>
+              (a.median === null ? 1 : 0) - (b.median === null ? 1 : 0) ||
+              Number(b.median) - Number(a.median),
+          );
+        const quoted = gates.filter((g) => g.median !== null);
+        const meds = quoted.map((g) => g.median_raw);
+        const lps = new Set(quoted.map((g) => g.stored_lp_fee));
+        return {
+          id: pair.id,
+          currency0: pair.currency0,
+          currency1: pair.currency1,
+          doors: gates.length,
+          hooks: new Set(gates.map((g) => g.hook)).size,
+          quoted: quoted.length,
+          /* A gap between a number and a non-number does not exist: no quote, no spread. */
+          spread: meds.length >= 2 ? fixed(Math.max(...meds) - Math.min(...meds)) : null,
+          worst: meds.length ? fixed(Math.max(...meds)) : null,
+          /* Non-null only when every quoted door of the pair read the SAME stored LP fee. When
+             it holds, the spread between the doors is the hook and nothing else. */
+          same_lp_fee: meds.length >= 2 && lps.size === 1 && !lps.has(null) ? [...lps][0] : null,
+          gates,
+        };
+      })
+      .sort(
+        (a, b) =>
+          (a.spread === null ? 1 : 0) - (b.spread === null ? 1 : 0) ||
+          Number(b.spread) - Number(a.spread) ||
+          b.doors - a.doors,
+      );
+
+    const cLabels = {};
+    for (const m of rows) cLabels[label(m)] = (cLabels[label(m)] || 0) + 1;
+
+    contested = {
+      file: CONTESTED_FILE,
+      n: rows.length,
+      hooks: new Set(rows.map((m) => m.hook)).size,
+      pools: new Set(rows.map((m) => m.pool_id)).size,
+      sizes: new Set(rows.map((m) => m.amount_in)).size,
+      by_label: cLabels,
+      engine_ver: [...new Set(rows.map((m) => m.engine_ver))].join(" · "),
+      pairs: shaped,
+      /* Sorted by spread, so the first row is the widest measured gap between two doors of the
+         same pair. Both picks are rules, not choices: they are recomputed at every build. */
+      widest_id: shaped.find((x) => x.spread !== null)?.id ?? null,
+      most_quoted_id:
+        shaped
+          .slice()
+          .sort((a, b) => b.quoted - a.quoted || Number(a.worst) - Number(b.worst))[0]?.id ?? null,
+    };
+  }
+
+  STRUCTURE = {
+    census_file: FULL_FILE,
+    scan_file: SCAN_FILE,
+    pools: FULL.length,
+    pairs: pairSize.size,
+    pairs_multi: multi.length,
+    pairs_single: pairSize.size - multi.length,
+    gates_in_multi: gatesInMulti,
+    pct_multi: ((100 * multi.length) / pairSize.size).toFixed(2),
+    hooked_pools_seen: SCAN.n_hooked_pools ?? null,
+    window: MAN
+      ? {
+          source: MAN.source,
+          span_blocks: MAN.span_blocks,
+          span_pretty: grp(MAN.span_blocks),
+          start_block: MAN.start_block,
+          end_block: MAN.end_block,
+          events: MAN.n_events,
+          hooked: MAN.n_hooked,
+          coverage: MAN.coverage,
+        }
+      : null,
+    unknown_pools: SCAN.n_unknown ?? null,
+    unknown_causes: causes,
+    unknown_keys_known: unknownKeysKnown,
+    contested,
+  };
+}
+
 /* ------------------------------------------- 3. the A3 gate — the curve */
 
 /* Parsed, not copied: if the gate's expectations move, this page moves with them. */
@@ -328,6 +547,7 @@ const facts = {
     .map((h) => ({ hook: h.hook, n: h.n, pools: h.pools.size, finding: h.finding }))
     .sort((a, b) => b.finding - a.finding || b.n - a.n),
   census: { pools: POOLS.length, hooks: censusHooks.length },
+  structure: STRUCTURE,
   gate_a3: {
     hook: a3Hook,
     currency0: a3KeyArgs[0],
@@ -363,6 +583,20 @@ w("hero", `${facts.hero.bps} bps · ${facts.hero.hook_short}`);
 w("gate A3 points", facts.gate_a3.points.length);
 w("stub", `${facts.stub.bytes} bytes · ${facts.stub.keccak256}`);
 w("census", `${facts.census.pools} pools / ${facts.census.hooks} hooks`);
+w(
+  "structure",
+  STRUCTURE
+    ? `${grp(STRUCTURE.pairs)} pairs / ${STRUCTURE.pairs_multi} with several pools (${STRUCTURE.pct_multi} %) · ${STRUCTURE.unknown_pools} pools unread`
+    : "NOT MEASURED",
+);
+w(
+  "contested",
+  STRUCTURE?.contested
+    ? `${STRUCTURE.contested.n} measurements / ${STRUCTURE.contested.pools} pools / ${STRUCTURE.contested.hooks} hooks · widest spread ${
+        STRUCTURE.contested.pairs.find((x) => x.id === STRUCTURE.contested.widest_id)?.spread
+      } bps`
+    : "NOT MEASURED",
+);
 w("tests", tests ? `${tests.green}/${tests.run}` : "NOT MEASURED");
 w("commit", commit ?? "NOT MEASURED");
 if (!existsSync(OUT)) process.exit(1);

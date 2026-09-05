@@ -12,7 +12,8 @@
     "preview": "vite preview --port 4174",
     "budget": "node build/budget.mjs",
     "typecheck": "tsc --noEmit",
-    "check": "npm run build && npm run typecheck && npm run budget"
+    "check": "npm run build && npm run typecheck && npm run budget",
+    "test": "node --test test/*.test.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.4.1",

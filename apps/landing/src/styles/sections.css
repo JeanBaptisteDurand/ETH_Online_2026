@@ -198,7 +198,19 @@
 
 /* ------------------------------------------------------------- section 03 */
 
-.s3-lead { margin-bottom: var(--s7); }
+.s3-nums { margin-bottom: var(--s7); }
+
+/* The doors of one pair, side by side, at the density of the matrix. A door with no measured
+   value carries no ramp step: colour here is a magnitude, and not measured is not zero — so it
+   keeps the flat ground and shows its labels instead of a number. */
+.doors { display: flex; flex-wrap: wrap; gap: 1px; }
+.doors > * { flex: 0 0 auto; min-width: 92px; }
+.s3-reads { margin-top: var(--s6); }
+.na { background: var(--bg-2); }
+
+/* ------------------------------------------------------------- section 04 */
+
+.section-lead { margin-bottom: var(--s7); }
 .swap-panels { display: grid; grid-template-columns: 1fr; gap: var(--s5); align-items: stretch; }
 @media (min-width: 900px) {
   .swap-panels { grid-template-columns: minmax(0, 1fr) 48px minmax(0, 1fr); gap: 0; }
@@ -256,10 +268,10 @@
 .qnum.base { color: var(--baseline); }
 .quotes p { margin-top: var(--s4); max-width: 74ch; }
 
-/* ------------------------------------------------------------- section 04 */
+/* ------------------------------------------------------------- section 05 */
 
-.s4-in { display: grid; grid-template-columns: 1fr; gap: var(--s7); }
-@media (min-width: 1024px) { .s4-in { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: var(--s8); } }
+.s5-in { display: grid; grid-template-columns: 1fr; gap: var(--s7); }
+@media (min-width: 1024px) { .s5-in { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: var(--s8); } }
 .chartbox { min-width: 0; }
 .chart-host { padding: var(--s4) var(--s4) 0; min-height: 0; }
 .chart-host:empty { display: none; }
@@ -267,8 +279,8 @@
 .cl { display: flex; align-items: center; gap: 6px; }
 .cl .sw { width: 18px; height: 8px; }
 .cl .sw.base { height: 1px; }
-.s4-side { display: flex; flex-direction: column; gap: var(--s4); }
-.s4-side .body { max-width: 52ch; }
+.s5-side { display: flex; flex-direction: column; gap: var(--s4); }
+.s5-side .body { max-width: 52ch; }
 
 /* uPlot, dressed as an instrument. Its own stylesheet is vendored in styles/uplot.css. */
 .chart-host .uplot { width: 100%; }
@@ -307,7 +319,7 @@ table.dense .leds { justify-content: flex-start; }
 .fallback { border-top: var(--hair); }
 
 
-.s5-ft {
+.s6-ft {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
@@ -315,15 +327,15 @@ table.dense .leds { justify-content: flex-start; }
   gap: var(--s5);
   margin-top: var(--s5);
 }
-.s5-ft p { max-width: 62ch; }
+.s6-ft p { max-width: 62ch; }
 
-/* ------------------------------------------------------------- section 06 */
+/* ------------------------------------------------------------- section 07 */
 
 .limits { background: var(--bg-1); }
-.s6-in { display: grid; grid-template-columns: 1fr; gap: var(--s7); }
-@media (min-width: 1024px) { .s6-in { grid-template-columns: minmax(0, 1fr) 300px; gap: var(--s8); } }
-.s6-in .body p + p { margin-top: var(--s5); }
-.s6-side { display: flex; flex-direction: column; gap: var(--s4); }
+.s7-in { display: grid; grid-template-columns: 1fr; gap: var(--s7); }
+@media (min-width: 1024px) { .s7-in { grid-template-columns: minmax(0, 1fr) 300px; gap: var(--s8); } }
+.s7-in .body p + p { margin-top: var(--s5); }
+.s7-side { display: flex; flex-direction: column; gap: var(--s4); }
 .labellist { display: flex; flex-direction: column; gap: 1px; background: var(--line); border: var(--hair); }
 .labellist li { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); padding: 8px 10px; background: var(--bg-1); }
 

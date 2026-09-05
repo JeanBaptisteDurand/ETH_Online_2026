@@ -1,7 +1,7 @@
 /**
  * boot.ts — everything the page needs before it is interactive, and nothing more.
  *
- * The verdict is already painted when this runs: sections 00-06 are static HTML with the
+ * The verdict is already painted when this runs: sections 00-07 are static HTML with the
  * measurements baked in at build time. This file only adds behaviour that could not exist
  * in markup, and it loads the two heavy sections with import() when they come into view.
  */

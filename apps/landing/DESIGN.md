@@ -20,13 +20,18 @@ happened to arrive in the same document.
 
 Measured on `dist/`, printed by `npm run budget`:
 
+> Les poids ci-dessous ont ete releves a un instant donne. Ils bougent avec le corpus,
+> qui grandit : ne les recopiez pas, relancez `npm run budget`, qui les recalcule et
+> refuse la page si un critere saute. Un chiffre de poids fige dans une doc devient
+> faux au build suivant — c'est le defaut que ce projet reproche partout ailleurs.
+
 | criterion | budget | measured |
 |---|---|---|
 | verdict readable with JS disabled | required | the value is a literal in `index.html` |
 | render-blocking stylesheets | 0 | 0 — all CSS inlined in `<head>` |
-| critical document, gzip | < 14 kB | **12.9 kB** |
+| critical document, gzip | < 14 kB | **13.88 kB** |
 | JS that can run before the fold | < 2 kB gzip | **1.74 kB** |
-| total JS, all chunks | < 160 kB gzip | **26.1 kB** |
+| total JS, all chunks | < 160 kB gzip | **26.5 kB** |
 | fonts | 2 files, latin only | **68.8 kB**, self-hosted, preloaded |
 | third-party origins at runtime | 0 | 0 |
 | non-zero `border-radius` in shipped bytes | 0 | 0 |
@@ -42,6 +47,19 @@ is why uPlot's stylesheet is vendored (§7) rather than overridden.
   That is the one thing this page may not have. Dark is not a default here, it is the only mode.
   *(The light tokens are therefore shipped but unexercised: **NOT VERIFIED** in a browser.)*
 - **No React.** §7.
+- **Section 03 was written to what was left of the budget, and it shows.** The page is 12.68 kB
+  gzip without it and **13.88 kB with it**, against a 14 kB criterion, so the section lost, in this
+  order: a SPREAD column, the stored LP fee under every door, the per-door count of MEASURED rows,
+  and the per-door hook address. All four are in `docs/dataset/measurements-contestes.jsonl`, which
+  the section names on the page, and the one figure the cuts were about — the gap between two doors
+  of the same pair — is stated in the prose under the table. The criterion was not raised.
+
+Two of the savings were taken on the shipped bytes instead of on the content, and neither removes a
+character a reader would have seen. `build/html.mjs` collapses runs of whitespace outside `<pre>`
+and `<code>` before the markup is baked in — HTML collapses them anyway — and uPlot's stylesheet
+moved out of the inlined `<head>` into the chart's deferred chunk (§7, Departure 2). Measured by
+building the same corpus with and without each change and reading `npm run budget`: **14.30 → 13.88
+kB** for the whitespace, **14.11 → 13.88 kB** for the stylesheet.
 
 ---
 
@@ -315,7 +333,7 @@ Committing such a `.woff2` to a public GitHub repository violates the licence by
 | where | what sweeps |
 |---|---|
 | the 14-bit register, head and foot | bits light in sequence, 24 ms apart, capped at 120 ms |
-| sections 01–06 | the block fades in as one, 280 ms, no per-element stagger |
+| sections 01–07 | the block fades in as one, 280 ms, no per-element stagger |
 | section 04's curve | the plot is revealed left to right in 320 ms, once, via `clip-path` |
 | the matrix, on sort | the rows that moved settle in 180 ms on `--e-move` |
 
@@ -349,6 +367,8 @@ Vite plugin bakes the result into `index.html` at build time.
 | the 5-point curve in section 04 | **parsed out of `engine/tare/gates/a3.py`** — `SIZES`, `EXPECTED`, `TOL`, `HOOK`, `KEY` |
 | the 89-byte stub, its assembly comments, its keccak | **parsed out of `engine/tare/stub.py`** |
 | liquid pools, distinct hooks | `docs/pools-liquides.json` |
+| section 03: pairs, pairs with a second pool, the share, the unread pools and their cause | `docs/dataset/pools-liquides-full.json` and its `.scan.json` — pairs counted from the PoolKeys; the rate-limited endpoint's URL is deliberately left behind, only the cause class travels |
+| section 03: what each pool of those pairs takes | `docs/dataset/measurements-contestes.jsonl` — the median of a pool's MEASURED rows, and **which pair is quoted as the widest gap and which as the counter-example is decided by a rule in `facts.mjs`**, recomputed at every build |
 | the real hook bytecode in section 03 | `data/hook-bytecode.json` — `eth_getCode` at the pinned block, §6.1 |
 | the 14 permission bits | `BigInt(address) & 0x3FFFn`, no RPC at all, §6.2 |
 | commit, engine version, `N/N` tests | `git rev-parse` and the engine's own unittest run at build time |
@@ -420,6 +440,11 @@ Two reasons, both rules rather than taste: it ships `border-radius: 50%` on the 
 this page is radius 0 in the *shipped bytes*, which is what `npm run budget` greps; and its
 `.u-legend` table never renders, because the legend here is our own DOM — two swatches and a
 monospace label, the SSTR device. Attribution and the MIT notice are at the top of the file.
+
+It is also imported `?inline` by `src/sections/curve.ts` and injected as a `<style>` the first time
+the chart mounts, so it travels in the chart's deferred chunk instead of the inlined `<head>`. It
+used to sit in every visit's critical document, including the visits that never scroll as far as the
+chart. Same trade as Departure 1, applied to a stylesheet.
 
 **Departure 3 — the page is in English.** The storyboard is in French; the README, the submission
 and the judges are not. The four labels use the canonical engine enum —

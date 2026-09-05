@@ -55,6 +55,7 @@ node_test_count() { # dir, glob-or-cmd, name — le runner natif de node imprime
 node_test_count apps/mcp "npm test --silent"        "mcp"
 vitest_count packages/guard ""                      "guard"
 node_test_count apps/web "node --test src/chat/*.test.ts" "web (chat)"
+node_test_count apps/landing "npm test --silent"        "landing"
 
 echo "  ----------------------------------------"
 # Trois etats, jamais confondus : une suite qui ne demarre pas, une suite qui echoue, et

@@ -107,6 +107,26 @@ const rampLegend = () => `
 
 const chip = (t) => `<span class="chip">${esc(t)}</span>`;
 
+/* The page ships as one response and holds itself to a 14 kB gzip critical document, which
+   `npm run budget` measures. The markup below is indented for whoever reads this file; the
+   wire does not need that indentation. Runs of whitespace between tags collapse to a single
+   space — which is what HTML does with them anyway — except inside <pre> and <code>, where a
+   newline is content and is left exactly as it was. Spacing is all this removes. */
+const tighten = (html) =>
+  html
+    .split(/(<pre[\s\S]*?<\/pre>|<code[\s\S]*?<\/code>)/)
+    .map((part, i) =>
+      i % 2
+        ? part
+        : part
+            .replace(/\n\s*/g, " ")
+            .replace(/ {2,}/g, " ")
+            /* and the space between two block-level tags, where HTML renders nothing anyway.
+               Inline tags are not in this list, because there a space is a word gap. */
+            .replace(/(<\/?(?:div|p|section|table|thead|tbody|tr|td|th|caption|ul|li|dl|dt|dd|figure|figcaption|aside|header|footer|nav|main|h1|h2|hr|input)\b[^>]*>) +(?=<)/g, "$1"),
+    )
+    .join("");
+
 /* =========================================================================== */
 
 export function render(f) {
@@ -319,6 +339,126 @@ make measure HOOK=${esc(f.hero.hook)} BLOCK=${f.hero.block}</code>
 </section>`;
 
   /* -------------------------------------------------------------- section 3 */
+  /* The census counted the doors of every pair; the sweep measured what each door of the
+     contested ones takes. Which pair is quoted as the widest gap and which as the counter-
+     example are picked by a rule at build time, never by hand — see facts.mjs. The section
+     does not render at all when the census is missing: it never guesses a structure.
+     Kept deliberately spare: the critical document has a 14 kB gzip budget and this section
+     was cut down twice to fit inside it (DESIGN.md 0). */
+  const st = f.structure;
+  const ct = st?.contested ?? null;
+  const byId = (id) => (ct && id ? (ct.pairs.find((x) => x.id === id) ?? null) : null);
+  const widest = byId(ct?.widest_id);
+  const mostQuoted = byId(ct?.most_quoted_id);
+  /* The dearest and the cheapest door of the widest pair, whatever the pair's door count:
+     the sentence below must stay true if a third pool appears on it tomorrow. */
+  const wq = widest ? widest.gates.filter((g) => g.median !== null) : [];
+  const dear = wq[0] ?? null;
+  const cheap = wq.length ? wq[wq.length - 1] : null;
+  const addr = (a) => esc(short(a, 6, 4));
+  /* Le compte des portes qui ne prelevent RIEN. Il lisait `g.median`, qui est la mediane
+     ARRONDIE a deux decimales : une porte a 0,004 bps se serait publiee « at 0.00 bps »,
+     c'est-a-dire comme ne prenant rien, alors qu'elle prend quelque chose. Un arrondi
+     d'affichage ne doit jamais decider d'une affirmation. On lit la mediane BRUTE, et on
+     n'appelle zero que ce qui est exactement zero. */
+  const nZero = (x) =>
+    x.gates.filter((g) => g.median_raw !== null && g.median_raw === 0).length;
+
+  /* A door with no measured value gets no ramp step: colour here is a magnitude, and not
+     measured is not zero. It keeps the flat ground and carries the engine's own labels in
+     place of a number — which is the whole point of having four of them. */
+  const door = (g) =>
+    g.median === null
+      ? `<div class="cell na"><div class="p">${Object.keys(g.labels).map(esc).join(" · ")}</div></div>`
+      : `<div class="cell ${rampClass(Number(g.median))}"><div class="v num">${esc(g.median)}</div></div>`;
+
+  /* Deux portes qui portent LE MEME hook restent deux portes — mais le choix ne se fait
+     alors pas entre deux hooks, et cette section parle de hooks. Le taire laisserait lire
+     « deux hooks prennent des montants differents » la ou un seul hook sert deux pools. */
+  const pairRow = (x) =>
+    `<tr><td class="hex"><span class="ink">${addr(x.currency0)}</span><br>${addr(
+      x.currency1,
+    )}${
+      x.one_hook_several_pools
+        ? '<br><span class="p">un seul hook, deux pools</span>'
+        : ""
+    }</td><td><div class="doors">${x.gates.map(door).join("")}</div></td></tr>`;
+
+  const s3 = !st
+    ? ""
+    : `
+<section id="structure" class="band" data-reveal>
+  <div class="wrap">
+    ${sindex("03", "Nowhere else<br>to go", `${grp(st.pairs)} PAIRS · ${st.pairs_multi} WITH A SECOND POOL`)}
+    <p class="lead section-lead">A cut is a price only when it can be refused. This census holds every v4 pool that
+    was opened with a hook${
+      st.window ? `, in a window of ${esc(st.window.span_pretty)} Base blocks,` : ""
+    } with liquidity, and <strong class="ink">${grp(st.pairs_single)} of its ${grp(
+      st.pairs,
+    )} token pairs hold exactly one</strong>: no second door, and no one to quote against.${
+      ct ? ` The other ${st.pairs_multi}, and all ${st.gates_in_multi} of their pools, are below.` : ""
+    }</p>
+    <div class="stat s3-nums">
+      <span class="label">PAIRS WITH A SECOND POOL</span>
+      <p class="metric">${st.pairs_multi} <span class="over">/ ${grp(st.pairs)} PAIRS · ${esc(st.pct_multi)} %</span></p>
+      <span class="data-xs">A LOWER BOUND: ${st.unknown_pools} pools of the census could not be read (${
+        (st.unknown_causes ?? []).map((c) => esc(c.cause)).join(" · ") || "cause not recorded"
+      })${
+        st.unknown_keys_known ? "" : ", with their PoolKeys unrecorded"
+      }: a pair whose second pool is one of them is counted here as holding one.</span>
+    </div>
+    ${
+      !ct
+        ? `<p class="data-xs prov-note">${NM} — the pools of those pairs have not been swept yet.</p>`
+        : `<div class="tablewrap"><table class="dense">
+      <caption class="sr-only">Every pair with more than one pool, and what each of its pools takes</caption>
+      <thead><tr><th>PAIR · CURRENCY0 / CURRENCY1</th><th>EACH POOL · MEDIAN HOOK EXTRACTION, BPS</th></tr></thead>
+      <tbody>${ct.pairs.map(pairRow).join("")}</tbody></table></div>
+    <p class="data-xs prov-note">Doors and unread pools from <span class="hex">${esc(st.census_file)}</span>
+    and its scan report; extraction from <span class="hex">${esc(ct.file)}</span> — ${grp(ct.n)} measurements,
+    ${ct.pools} pools, ${ct.hooks} hooks, ${ct.sizes} sizes both ways, block ${B}, ${esc(ct.engine_ver)}. A door is
+    the <b>median of its MEASURED rows</b>, hook only, 2 decimals. ${Object.entries(
+      ct.by_label,
+    )
+      .filter(([k]) => k !== "MEASURED")
+      .map(([k, v]) => `${v} ${esc(k)}`)
+      .join(" and ")} rows are counted, never read as zero.${
+      st.window
+        ? ` The census is ${grp(st.window.events)} <span class="mono-in">Initialize</span> events over
+    ${esc(st.window.span_pretty)} blocks${
+      st.window.coverage === 1 ? " with no chunk missed" : `, coverage ${st.window.coverage}`
+    }, kept when the PoolKey names a hook: an older pool, a hookless one or an empty one is not in it.`
+        : ""
+    }</p>`
+    }
+    ${
+      !ct || !widest || !mostQuoted || !dear || !cheap
+        ? ""
+        : `<div class="s2-in s3-reads">
+      <div><p class="label">WHERE THE SECOND DOOR CHANGES THE PRICE</p>
+      <p class="body"><span class="hex ink">${addr(widest.currency0)} / ${addr(widest.currency1)}</span>:
+      ${widest.doors} pools, ${widest.hooks} hooks${
+        widest.same_lp_fee === null ? "" : `, the same stored LP fee on both — ${widest.same_lp_fee}`
+      }. Its dearest door takes a median <strong>${esc(dear.median)}</strong>&nbsp;bps, its cheapest
+      <strong>${esc(cheap.median)}</strong>: <strong>${esc(
+        widest.spread,
+      )}&nbsp;bps apart</strong> over the same size grid at the same block${
+        widest.same_lp_fee === null ? "" : ", so the gap is the hook alone"
+      }.</p></div>
+      <div><p class="label">AND WHERE IT CHANGES ALMOST NOTHING</p>
+      <p class="body"><span class="hex ink">${addr(mostQuoted.currency0)} / ${addr(
+        mostQuoted.currency1,
+      )}</span>: ${mostQuoted.quoted} of ${mostQuoted.doors} pools answered, ${
+        mostQuoted.hooks
+      } hooks, ${nZero(mostQuoted)} of them at <strong>0.00</strong>&nbsp;bps and the widest at
+      <strong>${esc(mostQuoted.worst)}</strong>. Where the doors are most numerous, the hooks take almost
+      nothing.</p></div>
+    </div>`
+    }
+  </div>
+</section>`;
+
+  /* -------------------------------------------------------------- section 4 */
   /* Whose bytecode this panel shows. The hero's, when it is cached at this block; otherwise
      the highest-extraction hook that is. The panel names it either way — an anonymous hex dump
      labelled "real bytecode" would be an illustration, and this page does not use illustrations. */
@@ -341,11 +481,11 @@ make measure HOOK=${esc(f.hero.hook)} BLOCK=${f.hero.block}</code>
     )
     .join("");
 
-  const s3 = `
+  const s4 = `
 <section id="method" class="band" data-reveal>
   <div class="wrap">
-    ${sindex("03", "Change the hook,<br>not the pool", `STUB · ${f.stub.bytes} BYTES`)}
-    <p class="lead s3-lead">A v4 pool's identity is its <span class="mono-in">PoolKey</span>, and the PoolKey contains the
+    ${sindex("04", "Change the hook,<br>not the pool", `STUB · ${f.stub.bytes} BYTES`)}
+    <p class="lead section-lead">A v4 pool's identity is its <span class="mono-in">PoolKey</span>, and the PoolKey contains the
     hook's address. "The same pool without its hook" does not exist. So the pool is left untouched and the
     <em>hook</em> is replaced: on a fork pinned to one block, <span class="mono-in">anvil_setCode</span> writes an inert
     stub over the hook's bytecode. Quote the same swap twice. The gap <em>is</em> what the hook took.</p>
@@ -405,13 +545,13 @@ make measure HOOK=${esc(f.hero.hook)} BLOCK=${f.hero.block}</code>
   </div>
 </section>`;
 
-  /* -------------------------------------------------------------- section 4 */
+  /* -------------------------------------------------------------- section 5 */
   const pts = f.gate_a3.points;
-  const s4 = `
+  const s5 = `
 <section id="curve" class="band" data-reveal>
   <div class="wrap">
-    ${sindex("04", "The same swap,<br>five sizes", `GATE A3 · ±${f.gate_a3.tol_bps} BPS`)}
-    <div class="s4-in">
+    ${sindex("05", "The same swap,<br>five sizes", `GATE A3 · ±${f.gate_a3.tol_bps} BPS`)}
+    <div class="s5-in">
       <figure class="chartbox panel" id="chart" data-points='${esc(JSON.stringify(pts))}'>
         <div class="panel-hd">
           <span class="label">EXTRACTION vs SWAP SIZE · <span class="hex">${esc(short(f.gate_a3.hook, 8, 6))}</span></span>
@@ -438,7 +578,7 @@ make measure HOOK=${esc(f.hero.hook)} BLOCK=${f.hero.block}</code>
         )}</div>
       </figure>
 
-      <div class="s4-side">
+      <div class="s5-side">
         <p class="body">Extraction is not a constant. It is ${pts[0].bps.toFixed(2)}&nbsp;bps on the smallest
         size and ${pts[pts.length - 1].bps.toFixed(2)}&nbsp;bps on the largest — as the swap grows, price
         impact grows with it and the hook's share of the output falls. A single headline percentage for a hook
@@ -456,7 +596,7 @@ make gate-a3</code>
   </div>
 </section>`;
 
-  /* -------------------------------------------------------------- section 5 */
+  /* -------------------------------------------------------------- section 6 */
   const mrow = (r, i) => `<tr data-bps="${r.bps}" data-size="${r.amount_in}">
     <td class="hex"><span class="ink">${esc(short(r.hook, 8, 6))}</span></td>
     <td class="hex">${esc(short(r.pool_id, 8, 6))}</td>
@@ -481,10 +621,10 @@ make gate-a3</code>
       The whole corpus is <span class="hex">${esc(f.corpus.file)}</span>.</td></tr>`
     : "";
 
-  const s5 = `
+  const s6 = `
 <section id="matrix" class="band" data-reveal>
   <div class="wrap">
-    ${sindex("05", "The matrix", `${grp(f.census.pools)} LIQUID POOLS · ${f.census.hooks} DISTINCT HOOKS`)}
+    ${sindex("06", "The matrix", `${grp(f.census.pools)} LIQUID POOLS · ${f.census.hooks} DISTINCT HOOKS`)}
     <div class="tablewrap">
       <table class="dense matrix" id="matrix-table">
         <caption class="sr-only">Head and tail of the measured ranking. Click a header to sort.</caption>
@@ -498,21 +638,21 @@ make gate-a3</code>
         <tbody>${headRows}${elision}${tailRows}</tbody>
       </table>
     </div>
-    <div class="s5-ft">
+    <div class="s6-ft">
       <p class="data-xs">Same cells as the instrument: value, uncertainty, provenance. No simplified
       landing variant exists. Uncertainty is ±0.00 because both quotes are integer outputs of the same
-      pinned block — the measurement has no sampling error, only the limits listed in 06.</p>
+      pinned block — the measurement has no sampling error, only the limits listed in 07.</p>
       <a class="cta" href="/hooks">OPEN THE FULL INSTRUMENT <span aria-hidden="true">↳</span></a>
     </div>
   </div>
 </section>`;
 
-  /* -------------------------------------------------------------- section 6 */
-  const s6 = `
+  /* -------------------------------------------------------------- section 7 */
+  const s7 = `
 <section id="limits" class="band limits" data-reveal>
   <div class="wrap">
-    ${sindex("06", "What I do not know", "PUBLISHED, NOT HIDDEN")}
-    <div class="s6-in">
+    ${sindex("07", "What I do not know", "PUBLISHED, NOT HIDDEN")}
+    <div class="s7-in">
       <div class="body">
         <p><strong>${grp(f.corpus.n - (f.corpus.by_label.MEASURED ?? 0))} of ${grp(
           f.corpus.n,
@@ -538,7 +678,7 @@ make gate-a3</code>
         charges nothing at this block can charge at the next one. The measurement is a photograph, and it is
         labelled with the moment it was taken.</p>
       </div>
-      <aside class="s6-side">
+      <aside class="s7-side">
         <div class="stat"><span class="label">LABELS IN THE CORPUS</span>
           <ul class="labellist">${["MEASURED", "INTERPOLATED", "NOT_MEASURABLE", "NOT_QUOTABLE"]
             .map(
@@ -582,5 +722,9 @@ make gate-a3</code>
   </div>
 </footer>`;
 
-  return { header, body: [s0, s1, s2, s3, s4, s5, s6].join("\n"), foot };
+  return {
+    header: tighten(header),
+    body: tighten([s0, s1, s2, s3, s4, s5, s6, s7].join("\n")),
+    foot: tighten(foot),
+  };
 }

@@ -10,7 +10,11 @@
  *  - The counterfactual series is grey. It has no magnitude, so it has no colour.
  */
 import uPlot from "uplot";
-import "../styles/uplot.css";
+/* uPlot's stylesheet belongs to this chunk, not to the document that carries the verdict:
+   imported ?inline it is a string in this chunk, and it is injected the first time the chart
+   mounts — which is the first moment it can matter. It used to ride in the inlined <head>
+   CSS of every visit, including the visits that never reach section 05. */
+import uplotCss from "../styles/uplot.css?inline";
 
 type Point = { amount_in: string; bps: number };
 
@@ -24,7 +28,16 @@ const RAMP: [number, string][] = [
 ];
 const rampVar = (bps: number) => RAMP.find(([max]) => bps <= max)![1];
 
+function injectUplotCss(): void {
+  if (document.getElementById("uplot-css")) return;
+  const style = document.createElement("style");
+  style.id = "uplot-css";
+  style.textContent = uplotCss;
+  document.head.append(style);
+}
+
 export function mount(root: HTMLElement): void {
+  injectUplotCss();
   const host = root.querySelector<HTMLElement>("#chart-host");
   const raw = root.dataset.points;
   if (!host || !raw) return;

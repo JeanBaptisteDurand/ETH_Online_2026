@@ -11,6 +11,7 @@
  * (voir session.ts), parce qu'aucun visiteur d'un navigateur n'a de compte Hedera.
  */
 import { Hono, type Context } from "hono";
+import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { cors } from "hono/cors";
 import { streamSSE } from "hono/streaming";
 import { ACTION_CATALOGUE, ActionSchema, parseActions } from "./actions.js";
@@ -20,6 +21,74 @@ import { execute, toRow, HONESTY_RULES } from "./execute.js";
 import { ask, sessions as defaultSessions, type Stage } from "./ask.js";
 import { deterministicPlanner, type PlannerFn } from "./llm.js";
 import { SessionStore, safeSessionId } from "./session.js";
+
+/**
+ * LE CODE HTTP D'UNE REPONSE DE L'ASSISTANT.
+ *
+ * Il a menti pendant tout un tour de ce lot : `answer.ok ? 200 : 429`. Toute reponse
+ * non-ok repartait donc en 429 Too Many Requests, y compris une question vide ou trop
+ * longue — le client lisait "tu vas trop vite" alors que RIEN n'avait ete limite. Un
+ * code de statut est une affirmation sur LA CAUSE ; se tromper de cause, c'est mentir,
+ * et un client qui reagit au 429 en attendant puis en reessayant attendra pour rien.
+ *
+ * La regle, et pourquoi chaque code :
+ *
+ *  - 200 : la question a ete comprise. Une DEMANDE DE PRECISION est une reponse, pas
+ *    un echec : intention `unclear` avec une action `clarify`, le corps porte la
+ *    lecture, les suggestions et le quota. Le modele qui n'a pas su quoi interroger
+ *    n'est pas un client fautif.
+ *  - 400 : il n'y a pas de question exploitable — absente, vide, ou plus de 600
+ *    caracteres (ask.ts). C'est la requete qui est en faute, pas la cadence.
+ *  - 429 : le quota de questions de la session est epuise. C'est la SEULE cause qui
+ *    merite ce code ici, et c'en est vraiment une : fenetre glissante par session
+ *    (session.ts). Le corps porte `quota.resets_at`, et on ajoute `Retry-After`,
+ *    calcule depuis cette date — pas une constante inventee.
+ *  - 503 : le planificateur a leve. Ce n'est ni la faute du client ni une limite de
+ *    debit, et rien ne dit que ca durera.
+ *  - 500 : un `ok:false` dont on ne connait pas la cause. On ne devine pas a la place
+ *    d'ask.ts : plutot avouer "je ne sais pas pourquoi" que designer un coupable au
+ *    hasard. Si ce code apparait, c'est qu'une voie a ete ajoutee sans etre nommee ici.
+ *
+ * CE QU'ON NE PREND PAS : 402. Dans ce depot, 402 appartient a x402 et n'est jamais nu :
+ * le middleware (src/x402.ts) y joint l'en-tete `payment-required`, et src/app.ts
+ * recopie `accepts[]` dans le corps pour qu'un humain le lise. Un 402 sans ces
+ * exigences ferait boucler un client x402 sur un paiement que le chat ne sait pas
+ * encaisser — le chat n'a pas de prix, il a un quota, et pour la raison ecrite dans
+ * session.ts : aucun visiteur de navigateur n'a de compte Hedera.
+ */
+export const ASSISTANT_STATUS_RULES = [
+  "200 : question comprise, y compris quand la reponse est une demande de precision",
+  "400 : question absente, vide ou trop longue",
+  "429 : quota de questions de la session epuise (Retry-After depuis quota.resets_at)",
+  "503 : le planificateur a leve",
+  "500 : cause inconnue — jamais un code emprunte a une autre couche",
+] as const;
+
+/** Ce dont le calcul a besoin. Volontairement etroit : ce sont les seuls champs qui
+ *  portent une CAUSE, et aucun d'eux n'est du texte destine a un humain. */
+export interface StatusInput {
+  ok: boolean;
+  degraded?: { reason: string; detail: string } | null;
+}
+
+export function httpStatusForAnswer(a: StatusInput): ContentfulStatusCode {
+  if (a.ok) return 200;
+  const reason = a.degraded?.reason ?? null;
+  // ask.ts ne pose PAS de `degraded` sur la seule voie ou la question elle-meme est
+  // inexploitable : c'est ce qui la distingue, et c'est verifie par les tests.
+  if (reason === null) return 400;
+  if (reason === "quota") return 429;
+  if (reason === "planner_error") return 503;
+  return 500;
+}
+
+/** Secondes a attendre avant de reessayer, prises sur la fenetre reelle de la session.
+ *  Rend null quand la reponse ne porte pas de quota utilisable : on n'invente pas un
+ *  delai, on se tait. */
+export function retryAfterSeconds(resetsAt: unknown, now = Date.now()): number | null {
+  if (typeof resetsAt !== "number" || !Number.isFinite(resetsAt)) return null;
+  return Math.max(0, Math.ceil((resetsAt - now) / 1000));
+}
 
 export interface AssistantDeps {
   planner?: PlannerFn;
@@ -75,6 +144,7 @@ export function createAssistantRouter(deps: AssistantDeps = {}) {
         "POST /actions/validate  valide une liste d'actions sans rien executer",
         "POST /actions/run       execute une liste d'actions deja typee (le front rejoue un permalien)",
       ],
+      status_codes: ASSISTANT_STATUS_RULES,
       billing:
         "Le chat a un quota par session. Facturer une mesure en x402 depuis un navigateur est impossible : aucun visiteur n'a de compte Hedera. x402 garde POST /measure et le MCP.",
     }),
@@ -132,7 +202,12 @@ export function createAssistantRouter(deps: AssistantDeps = {}) {
       planner,
       sessions: bag,
     });
-    return c.json(answer, answer.ok ? 200 : 429);
+    const status = httpStatusForAnswer(answer);
+    if (status === 429) {
+      const secs = retryAfterSeconds(answer.quota?.resets_at);
+      if (secs !== null) c.header("Retry-After", String(secs));
+    }
+    return c.json(answer, status);
   });
 
   const streamAnswer = (c: Context, question: unknown, sessionId?: string) =>

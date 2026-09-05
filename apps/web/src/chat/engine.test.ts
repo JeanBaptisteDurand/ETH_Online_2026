@@ -10,6 +10,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
+import { execSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 
@@ -44,13 +45,21 @@ const ds = JSON.parse(readFileSync(resolve(webRoot, 'src/data/dataset.json'), 'u
 }
 const model = buildModel(ds.hooks, ds.rows, ds.provenance.registry.entries)
 
-/* ------------------------------------------------ le recompte independant */
+/* ------------------------------------------------ le recompte independant
+ *
+ * Il recompte depuis LA MEME source que le modele : les lignes du jeu embarque
+ * (public/data). Une version anterieure recomptait depuis docs/dataset/measurements.jsonl,
+ * le fichier VIVANT que les balayages remplissent — si bien que le test comparait la
+ * fraicheur de l'instantane embarque, pas la logique de reduction, et devenait rouge des
+ * qu'une mesure arrivait apres la derniere construction du jeu. La fraicheur a maintenant
+ * son propre test, plus bas, qui dit clairement ce qu'il reproche.
+ *
+ * L'independance qui compte est conservee : ce recompte n'appelle NI buildModel NI
+ * applyActions. Il refait le raisonnement a la main.
+ */
 
 type Raw = { hook: string; pool_id: string; bps: number | null; label: string }
-const raws: Raw[] = readFileSync(resolve(repoRoot, 'docs/dataset/measurements.jsonl'), 'utf8')
-  .split('\n')
-  .filter((l) => l.trim() !== '')
-  .map((l) => JSON.parse(l) as Raw)
+const raws: Raw[] = ds.rows as unknown as Raw[]
 
 const snapshot = JSON.parse(
   readFileSync(resolve(webRoot, 'public/data/hooklist.snapshot.json'), 'utf8'),
@@ -311,4 +320,32 @@ test('une demande de mesure n’est jamais executee par le navigateur', () => {
   assert.equal(out.results[0].ok, false)
   assert.ok(out.results[0].note.toLowerCase().includes('un seul mesureur par anvil'))
   assert.ok(out.results[0].lines.some((l) => l.v.includes('POST /measure')))
+})
+
+
+/* ------------------------------------------------------------- la fraicheur
+ *
+ * Separe de la parite, et pour une raison : melanger les deux faisait echouer un test de
+ * logique parce qu'un balayage avait ecrit une ligne. Ici on ne reproche qu'une chose, et
+ * on la nomme — le jeu embarque par le site est en retard sur le jeu publie.
+ */
+
+const balayageEnCours = (() => {
+  try {
+    return execSync('pgrep -f "tare.cli sweep" | wc -l', { encoding: 'utf8' }).trim() !== '0'
+  } catch {
+    return false
+  }
+})()
+
+test('le jeu embarque par le site est celui que le depot publie', { skip: balayageEnCours ? 'un balayage tourne : le jeu publie grandit pendant le test' : false }, () => {
+  const publie = readFileSync(resolve(repoRoot, 'docs/dataset/measurements.jsonl'), 'utf8')
+    .split('\n')
+    .filter((l) => l.trim() !== '').length
+  assert.equal(
+    ds.rows.length,
+    publie,
+    `le site embarque ${ds.rows.length} mesures, le depot en publie ${publie}. ` +
+      'Relancer : node apps/web/scripts/build-dataset.mjs',
+  )
 })

@@ -111,8 +111,8 @@
    "address": "0x5725df570e0008997dacef46bc179bbfc4d125cc",
    "chain_id": 1,
    "names": [
-    "Auto Liquidity Generator",
-    "Auto Liquidity Generator Hook"
+    "Auto Liquidity Generator Hook",
+    "Auto Liquidity Generator"
    ],
    "n_entries": 2,
    "divergences": [
@@ -126,8 +126,8 @@
       "properties": {},
       "identity": {
        "name": [
-        "Auto Liquidity Generator",
-        "Auto Liquidity Generator Hook"
+        "Auto Liquidity Generator Hook",
+        "Auto Liquidity Generator"
        ]
       }
      }
@@ -194,12 +194,12 @@
       "properties": {},
       "identity": {
        "auditUrl": [
-        null,
-        "https://github.com/RigoBlock/back-geo-oracle/blob/main/audits/33Audits_audit_back_geo_oracle.pdf"
+        "https://github.com/RigoBlock/back-geo-oracle/blob/main/audits/33Audits_audit_back_geo_oracle.pdf",
+        null
        ],
        "declared_deployer": [
-        null,
-        "0x080f08076e8eadc66006c3cbfed28a34918a1fa6"
+        "0x080f08076e8eadc66006c3cbfed28a34918a1fa6",
+        null
        ]
       }
      }
@@ -215,8 +215,8 @@
    "address": "0xe54082dfbf044b6a8f584bdddb90a22d5613c440",
    "chain_id": 1,
    "names": [
-    "UPeg Hook",
-    "UpegHook"
+    "UpegHook",
+    "UPeg Hook"
    ],
    "n_entries": 2,
    "divergences": [
@@ -229,18 +229,18 @@
       "flags": {},
       "properties": {
        "vanillaSwap": [
-        true,
-        false
+        false,
+        true
        ]
       },
       "identity": {
        "auditUrl": [
-        null,
-        "https://github.com/ChainCreators/Upeg"
+        "https://github.com/ChainCreators/Upeg",
+        null
        ],
        "name": [
-        "UPeg Hook",
-        "UpegHook"
+        "UpegHook",
+        "UPeg Hook"
        ]
       }
      }
@@ -302,18 +302,18 @@
       "flags": {},
       "properties": {
        "swapAccess": [
-        "none",
-        "other"
+        "other",
+        "none"
        ]
       },
       "identity": {
        "auditUrl": [
-        "https://github.com/RigoBlock/back-geo-oracle/blob/main/audits/33Audits_audit_back_geo_oracle.pdf",
-        null
+        null,
+        "https://github.com/RigoBlock/back-geo-oracle/blob/main/audits/33Audits_audit_back_geo_oracle.pdf"
        ],
        "declared_deployer": [
-        "0x080f08076e8eadc66006c3cbfed28a34918a1fa6",
-        null
+        null,
+        "0x080f08076e8eadc66006c3cbfed28a34918a1fa6"
        ]
       }
      }
@@ -381,12 +381,12 @@
       "properties": {},
       "identity": {
        "auditUrl": [
-        "https://github.com/RigoBlock/back-geo-oracle/blob/main/audits/33Audits_audit_back_geo_oracle.pdf",
-        null
+        null,
+        "https://github.com/RigoBlock/back-geo-oracle/blob/main/audits/33Audits_audit_back_geo_oracle.pdf"
        ],
        "declared_deployer": [
-        "0x080f08076e8eadc66006c3cbfed28a34918a1fa6",
-        null
+        null,
+        "0x080f08076e8eadc66006c3cbfed28a34918a1fa6"
        ]
       }
      }
@@ -452,8 +452,8 @@
       "flags": {},
       "properties": {
        "vanillaSwap": [
-        false,
-        true
+        true,
+        false
        ]
       },
       "identity": {}
@@ -555,18 +555,18 @@
       "flags": {},
       "properties": {
        "swapAccess": [
-        "other",
-        "none"
+        "none",
+        "other"
        ]
       },
       "identity": {
        "auditUrl": [
-        null,
-        "https://github.com/RigoBlock/back-geo-oracle/blob/main/audits/33Audits_audit_back_geo_oracle.pdf"
+        "https://github.com/RigoBlock/back-geo-oracle/blob/main/audits/33Audits_audit_back_geo_oracle.pdf",
+        null
        ],
        "declared_deployer": [
-        null,
-        "0x080f08076e8eadc66006c3cbfed28a34918a1fa6"
+        "0x080f08076e8eadc66006c3cbfed28a34918a1fa6",
+        null
        ]
       }
      }
@@ -651,8 +651,8 @@
    "address": "0x6646b048fba0a70a692f7690ae6dad83bcacb0c8",
    "chain_id": 8453,
    "names": [
-    "SuperStrategy",
-    "Super Strategy v3 (Base)"
+    "Super Strategy v3 (Base)",
+    "SuperStrategy"
    ],
    "n_entries": 2,
    "divergences": [
@@ -666,8 +666,8 @@
       "properties": {},
       "identity": {
        "name": [
-        "SuperStrategy",
-        "Super Strategy v3 (Base)"
+        "Super Strategy v3 (Base)",
+        "SuperStrategy"
        ]
       }
      }
@@ -696,8 +696,8 @@
       "flags": {},
       "properties": {
        "swapAccess": [
-        "none",
-        "allowlist"
+        "allowlist",
+        "none"
        ]
       },
       "identity": {}
@@ -822,8 +822,8 @@
    "address": "0x80e2f7dc8c2c880bbc4bdf80a5fb0eb8b1db68cc",
    "chain_id": 8453,
    "names": [
-    "Liquid Dynamic Fee Hook V2",
-    "LiquidHookDynamicFeeV2"
+    "LiquidHookDynamicFeeV2",
+    "Liquid Dynamic Fee Hook V2"
    ],
    "n_entries": 2,
    "divergences": [
@@ -837,8 +837,8 @@
       "properties": {},
       "identity": {
        "name": [
-        "Liquid Dynamic Fee Hook V2",
-        "LiquidHookDynamicFeeV2"
+        "LiquidHookDynamicFeeV2",
+        "Liquid Dynamic Fee Hook V2"
        ]
       }
      }
@@ -915,8 +915,8 @@
    "address": "0xab29e4cb49980a6ac152515bb69470e0dedc68cc",
    "chain_id": 8453,
    "names": [
-    "tokens.fun HookDynamicFee",
-    "ClankerHookDynamicFee"
+    "ClankerHookDynamicFee",
+    "tokens.fun HookDynamicFee"
    ],
    "n_entries": 2,
    "divergences": [
@@ -930,12 +930,12 @@
       "properties": {},
       "identity": {
        "declared_deployer": [
-        "0x3b5aedd9ab921e592d2fccaa6e33cf893e7eeb70",
-        null
+        null,
+        "0x3b5aedd9ab921e592d2fccaa6e33cf893e7eeb70"
        ],
        "name": [
-        "tokens.fun HookDynamicFee",
-        "ClankerHookDynamicFee"
+        "ClankerHookDynamicFee",
+        "tokens.fun HookDynamicFee"
        ]
       }
      }
@@ -965,8 +965,8 @@
       "flags": {},
       "properties": {
        "swapAccess": [
-        "none",
-        "governance"
+        "governance",
+        "none"
        ]
       },
       "identity": {}
@@ -982,8 +982,8 @@
    "address": "0xcd256a2f4574cb6aca4837313ad225d2fe1de5cf",
    "chain_id": 8453,
    "names": [
-    "AngstromL2",
-    "Angstrom L2"
+    "Angstrom L2",
+    "AngstromL2"
    ],
    "n_entries": 2,
    "divergences": [
@@ -997,8 +997,8 @@
       "properties": {},
       "identity": {
        "name": [
-        "AngstromL2",
-        "Angstrom L2"
+        "Angstrom L2",
+        "AngstromL2"
        ]
       }
      }
@@ -1013,8 +1013,8 @@
    "address": "0xe0e522e5888e398d9e5d4d90a48c489425cb2888",
    "chain_id": 8453,
    "names": [
-    "sETH Hook",
-    "SETHHook"
+    "SETHHook",
+    "sETH Hook"
    ],
    "n_entries": 2,
    "divergences": [
@@ -1028,8 +1028,8 @@
       "properties": {},
       "identity": {
        "name": [
-        "sETH Hook",
-        "SETHHook"
+        "SETHHook",
+        "sETH Hook"
        ]
       }
      }
@@ -1044,8 +1044,8 @@
    "address": "0xea9346e83952840e69beb36df365c4e68de0e080",
    "chain_id": 8453,
    "names": [
-    "Liquid Launch Hook",
-    "LiquidLaunchHook"
+    "LiquidLaunchHook",
+    "Liquid Launch Hook"
    ],
    "n_entries": 2,
    "divergences": [
@@ -1059,8 +1059,8 @@
       "properties": {},
       "identity": {
        "name": [
-        "Liquid Launch Hook",
-        "LiquidLaunchHook"
+        "LiquidLaunchHook",
+        "Liquid Launch Hook"
        ]
       }
      }
@@ -1106,8 +1106,8 @@
    "address": "0xbf4b4a83708474528a93c123f817e7f2a0637a88",
    "chain_id": 42161,
    "names": [
-    "VTSwapHook",
-    "VTSwapHook(ATH-vATH)"
+    "VTSwapHook(ATH-vATH)",
+    "VTSwapHook"
    ],
    "n_entries": 2,
    "divergences": [
@@ -1121,12 +1121,12 @@
       "properties": {},
       "identity": {
        "declared_deployer": [
-        null,
-        "0x1e1840f1eb9d9b89f4b1f2ad469e31e9877b820d"
+        "0x1e1840f1eb9d9b89f4b1f2ad469e31e9877b820d",
+        null
        ],
        "name": [
-        "VTSwapHook",
-        "VTSwapHook(ATH-vATH)"
+        "VTSwapHook(ATH-vATH)",
+        "VTSwapHook"
        ]
       }
      }

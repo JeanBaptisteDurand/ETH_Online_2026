@@ -29,14 +29,182 @@
  ],
  "n_registry_says_vanilla_measure_says_active": 0,
  "registry_says_vanilla_measure_says_active": [],
- "n_not_comparable": 149,
+ "n_not_comparable": 260,
  "not_comparable": [
+  {
+   "id": "hook:8453:0x000052423c1db6b7ff8641b85a7eefc7b2791888",
+   "address": "0x000052423c1db6b7ff8641b85a7eefc7b2791888",
+   "label": "BunniHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x0000fe59823933ac763611a69c88f91d45f81888",
+   "address": "0x0000fe59823933ac763611a69c88f91d45f81888",
+   "label": "BunniHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x0010d0d5db05933fa0d9f7038d365e1541a41888",
+   "address": "0x0010d0d5db05933fa0d9f7038d365e1541a41888",
+   "label": "BunniHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x01edc739f4893df3c0658fb1b57d5a6ca05c1000",
+   "address": "0x01edc739f4893df3c0658fb1b57d5a6ca05c1000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x03d2434d5a9ab7fb46bd3c7956a7c62e0cd46044",
+   "address": "0x03d2434d5a9ab7fb46bd3c7956a7c62e0cd46044",
+   "label": "AdvancedFeeHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x03fd23758e8790768fbb6a684b17fdda3b9a9000",
+   "address": "0x03fd23758e8790768fbb6a684b17fdda3b9a9000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
   {
    "id": "hook:8453:0x04e08a08bab77b389e970a65d91fba8bf4ef6080",
    "address": "0x04e08a08bab77b389e970a65d91fba8bf4ef6080",
    "label": "GovernedLBPStrategy",
    "vanillaSwap_declared": [
     true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x070e47ba89e6e0ece8fe3e4083b8c74814c54844",
+   "address": "0x070e47ba89e6e0ece8fe3e4083b8c74814c54844",
+   "label": "CabalFeeHook",
+   "vanillaSwap_declared": [
+    false
    ],
    "n_pools": 0,
    "profile": {
@@ -80,9 +248,57 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0x0a10576d56379b951317e07363301c1e8c7e9fcc",
+   "address": "0x0a10576d56379b951317e07363301c1e8c7e9fcc",
+   "label": "TupleOracleHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0x0a914acb246063b4ed0f3a0fc13d0c0e8c8500c4",
    "address": "0x0a914acb246063b4ed0f3a0fc13d0c0e8c8500c4",
    "label": "CapGate",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x0ae73dfa41f1acacf32ad050924384b295e968cc",
+   "address": "0x0ae73dfa41f1acacf32ad050924384b295e968cc",
+   "label": "ClankerHookStaticFeeV2",
    "vanillaSwap_declared": [
     false
    ],
@@ -133,6 +349,30 @@
    "label": "OwnerManagedRangeHook",
    "vanillaSwap_declared": [
     false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x11d7ab8cdf007e4f66929a9e231f419574ec1000",
+   "address": "0x11d7ab8cdf007e4f66929a9e231f419574ec1000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
    ],
    "n_pools": 0,
    "profile": {
@@ -203,6 +443,30 @@
    "id": "hook:8453:0x1258e5f3c71ca9dce95ce734ba5759532e46d040",
    "address": "0x1258e5f3c71ca9dce95ce734ba5759532e46d040",
    "label": "Zora Creator Hook v2.2.1 (Base)",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x130b18baa7f6f0d7b3730acc605aabe56df028cc",
+   "address": "0x130b18baa7f6f0d7b3730acc605aabe56df028cc",
+   "label": "BerylPadHookStaticFeeV2",
    "vanillaSwap_declared": [
     false
    ],
@@ -296,9 +560,57 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0x19945cf328faad357df4e1cc809a2fb39bc300cc",
+   "address": "0x19945cf328faad357df4e1cc809a2fb39bc300cc",
+   "label": "TripoolsAntiSnipeHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0x1c0c00db76140b4e7deb997ccf1246d8d6b80440",
    "address": "0x1c0c00db76140b4e7deb997ccf1246d8d6b80440",
    "label": "A51peg Hook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x1cfead8e66cebc5e51093dfd247ad34f841740c4",
+   "address": "0x1cfead8e66cebc5e51093dfd247ad34f841740c4",
+   "label": "TruthMarketHook",
    "vanillaSwap_declared": [
     false
    ],
@@ -344,11 +656,107 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0x1e898f8f35f139a79a16d93537ab9b4097b21000",
+   "address": "0x1e898f8f35f139a79a16d93537ab9b4097b21000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x1ed3afa8c99b4ab597c48a9f56cad6457d255000",
+   "address": "0x1ed3afa8c99b4ab597c48a9f56cad6457d255000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x1f5d1feec5186a4200b047c94ca6c4619d392fdc",
+   "address": "0x1f5d1feec5186a4200b047c94ca6c4619d392fdc",
+   "label": "Flaunch PositionManager",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0x1f6c7744a0b0393db8e96d3aaa023146828028cc",
    "address": "0x1f6c7744a0b0393db8e96d3aaa023146828028cc",
    "label": "tokens.fun HookStaticFeeV2",
    "vanillaSwap_declared": [
     false,
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x1f91c998e7c2f4b690d75bdbf6502bdcd6e02acc",
+   "address": "0x1f91c998e7c2f4b690d75bdbf6502bdcd6e02acc",
+   "label": "LaunchHook",
+   "vanillaSwap_declared": [
     false
    ],
    "n_pools": 0,
@@ -396,6 +804,30 @@
    "id": "hook:8453:0x21411ada5ba2bf1ed416a2573e037cda070ce080",
    "address": "0x21411ada5ba2bf1ed416a2573e037cda070ce080",
    "label": "MoonsendFeeHook_BASE",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x221fab939d3c966122da95cea963e1b8d3f410c0",
+   "address": "0x221fab939d3c966122da95cea963e1b8d3f410c0",
+   "label": "ZoraV4CoinHook",
    "vanillaSwap_declared": [
     false
    ],
@@ -465,11 +897,83 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0x23873ed5308b9f48ce3185fe8d17279e2c9e9000",
+   "address": "0x23873ed5308b9f48ce3185fe8d17279e2c9e9000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0x23ab2e6d4ab0c5f872567098671f1ffb46fd2500",
    "address": "0x23ab2e6d4ab0c5f872567098671f1ffb46fd2500",
    "label": "TELxIncentiveHook",
    "vanillaSwap_declared": [
     true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x2588587e21d5df55c80abccd555c3d9b9365e8c8",
+   "address": "0x2588587e21d5df55c80abccd555c3d9b9365e8c8",
+   "label": "AutoBurnHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x26541922c531ad24e26437f51fa77ff8c6ef90c0",
+   "address": "0x26541922c531ad24e26437f51fa77ff8c6ef90c0",
+   "label": "ZoraV4CoinHook",
+   "vanillaSwap_declared": [
+    false
    ],
    "n_pools": 0,
    "profile": {
@@ -585,6 +1089,30 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0x2a3d8748d4de2efcea0c1c63da49eb3fd4d09000",
+   "address": "0x2a3d8748d4de2efcea0c1c63da49eb3fd4d09000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0x2ad6936032d4201fc74041afbc801faab1bf40c4",
    "address": "0x2ad6936032d4201fc74041afbc801faab1bf40c4",
    "label": "HeavierHand",
@@ -638,6 +1166,78 @@
    "label": "BVCC Dynamic Fee Hook (Base)",
    "vanillaSwap_declared": [
     false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x2d135c0e411959c1daaaa33829568866afafd000",
+   "address": "0x2d135c0e411959c1daaaa33829568866afafd000",
+   "label": "ProjectHook",
+   "vanillaSwap_declared": [
+    true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x2ddaeea2ce544ac44e0e9b6d11a4cc75187b5000",
+   "address": "0x2ddaeea2ce544ac44e0e9b6d11a4cc75187b5000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x2ef9ff1fd204a3b94b7882917e65940ff5951000",
+   "address": "0x2ef9ff1fd204a3b94b7882917e65940ff5951000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
    ],
    "n_pools": 0,
    "profile": {
@@ -779,9 +1379,153 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0x37ca10c307fa8caa772f3583b3fd1e923dee2aa8",
+   "address": "0x37ca10c307fa8caa772f3583b3fd1e923dee2aa8",
+   "label": "StableSwapHooks",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x3a5357b375904cfaa9df07fba7252baa491c6fdc",
+   "address": "0x3a5357b375904cfaa9df07fba7252baa491c6fdc",
+   "label": "BoardHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x3aa3f28ae7c829a98359f31f3ddc5dae0a57afdc",
+   "address": "0x3aa3f28ae7c829a98359f31f3ddc5dae0a57afdc",
+   "label": "BoardHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0x3e342a06f9592459d75721d6956b570f02ef2dc0",
    "address": "0x3e342a06f9592459d75721d6956b570f02ef2dc0",
    "label": "UniswapV4ScheduledMulticurveInitializerHook",
+   "vanillaSwap_declared": [
+    true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x3e83479b2276ecfb7c7181f67b5d092d3511e0c4",
+   "address": "0x3e83479b2276ecfb7c7181f67b5d092d3511e0c4",
+   "label": "TruthMarketHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x3f67d62bbe3bc3d816c0adda020151008daa5000",
+   "address": "0x3f67d62bbe3bc3d816c0adda020151008daa5000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x3f704abd271515b0056f68d3e477f00ec1f6d000",
+   "address": "0x3f704abd271515b0056f68d3e477f00ec1f6d000",
+   "label": "SaturnOmnichainV4Hook",
    "vanillaSwap_declared": [
     true
    ],
@@ -947,6 +1691,30 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0x491508a9389490b5f8cdadc23393ade022ee1000",
+   "address": "0x491508a9389490b5f8cdadc23393ade022ee1000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0x49659b737c672324a221623f8d3f29e5687f28cc",
    "address": "0x49659b737c672324a221623f8d3f29e5687f28cc",
    "label": "JanpuHookDynamicFeeV2",
@@ -971,9 +1739,129 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0x4a32872bf122d1aeae22f3c9da36650c14b66acc",
+   "address": "0x4a32872bf122d1aeae22f3c9da36650c14b66acc",
+   "label": "TokenFab",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0x4ab61d774b170d0610fdcc5559aae2c356c600c8",
    "address": "0x4ab61d774b170d0610fdcc5559aae2c356c600c8",
    "label": "Pubhouse Hook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x4ac4aff2eede61556bfbc45879a87d440a3c68cc",
+   "address": "0x4ac4aff2eede61556bfbc45879a87d440a3c68cc",
+   "label": "LiquidHookDynamicFeeV2",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x4c9cb1962718e867df8c800f24b26e9a70ef9000",
+   "address": "0x4c9cb1962718e867df8c800f24b26e9a70ef9000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x4cd3be8768aea2a0297c22c17a7a3cae65adc0cc",
+   "address": "0x4cd3be8768aea2a0297c22c17a7a3cae65adc0cc",
+   "label": "Politiswap",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x4db263809e6ea36d223161535173a01b5b3240c0",
+   "address": "0x4db263809e6ea36d223161535173a01b5b3240c0",
+   "label": "DynamicFeeHookV2",
    "vanillaSwap_declared": [
     false
    ],
@@ -1067,6 +1955,30 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0x56f25473dd2c2e8cd37b68ff38f3bddeb19daaa8",
+   "address": "0x56f25473dd2c2e8cd37b68ff38f3bddeb19daaa8",
+   "label": "CurveHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0x570a48f96035c2874de1c0f13c5075a05683b0cc",
    "address": "0x570a48f96035c2874de1c0f13c5075a05683b0cc",
    "label": "Deli Hook (Base)",
@@ -1118,6 +2030,54 @@
    "id": "hook:8453:0x58165a756a9e6a10a64db2b4a9bb47bdd62120cc",
    "address": "0x58165a756a9e6a10a64db2b4a9bb47bdd62120cc",
    "label": "PokeHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x588c683ecc450f8b2aadb13d7f63792b840425dc",
+   "address": "0x588c683ecc450f8b2aadb13d7f63792b840425dc",
+   "label": "Flaunch PositionManager",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x59aef9799dea01a7fb7da73bea10dfb08858a088",
+   "address": "0x59aef9799dea01a7fb7da73bea10dfb08858a088",
+   "label": "NARA Liquidity Growth Hook",
    "vanillaSwap_declared": [
     false
    ],
@@ -1285,6 +2245,30 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0x5da2b7e2a88216d5ad129a0147a5e59aad4aea44",
+   "address": "0x5da2b7e2a88216d5ad129a0147a5e59aad4aea44",
+   "label": "TokenFab",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0x5e48f905661d75501ca756edb3403da98f0400c4",
    "address": "0x5e48f905661d75501ca756edb3403da98f0400c4",
    "label": "BlockEcho",
@@ -1314,6 +2298,30 @@
    "label": "Zora Creator Hook v1.1.1.1 (Base)",
    "vanillaSwap_declared": [
     false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x5e738993237611ea8def9e104b013ba622e1d000",
+   "address": "0x5e738993237611ea8def9e104b013ba622e1d000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
    ],
    "n_pools": 0,
    "profile": {
@@ -1408,7 +2416,7 @@
   {
    "id": "hook:8453:0x6646b048fba0a70a692f7690ae6dad83bcacb0c8",
    "address": "0x6646b048fba0a70a692f7690ae6dad83bcacb0c8",
-   "label": "SuperStrategy",
+   "label": "Super Strategy v3 (Base)",
    "vanillaSwap_declared": [
     false,
     false
@@ -1460,6 +2468,78 @@
    "label": "XDHook",
    "vanillaSwap_declared": [
     false,
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x66ee9adb1d644bb818e654aaed1824618c116fdc",
+   "address": "0x66ee9adb1d644bb818e654aaed1824618c116fdc",
+   "label": "BoardHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x6773a2c211748e328d094e54c2b9f6b68208c088",
+   "address": "0x6773a2c211748e328d094e54c2b9f6b68208c088",
+   "label": "VvveityFeeHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x6ae11676c7b3ec082989ce12ba462d46180fc0c4",
+   "address": "0x6ae11676c7b3ec082989ce12ba462d46180fc0c4",
+   "label": "TruthMarketHook",
+   "vanillaSwap_declared": [
     false
    ],
    "n_pools": 0,
@@ -1552,6 +2632,102 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0x6cbc61fc9c667ec84936f6da623689b95a3c1040",
+   "address": "0x6cbc61fc9c667ec84936f6da623689b95a3c1040",
+   "label": "ContentCoinHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x6e5388d971015f3608b08f3c38fea80d0e685040",
+   "address": "0x6e5388d971015f3608b08f3c38fea80d0e685040",
+   "label": "CreatorCoinHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x6f43871c25acf149d68629490af33774d09c1000",
+   "address": "0x6f43871c25acf149d68629490af33774d09c1000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x702b1fe403ec993a102adde47f2ab52eb2eadacc",
+   "address": "0x702b1fe403ec993a102adde47f2ab52eb2eadacc",
+   "label": "StonkHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0x704268ac7043aeef50f47b6a03ae68ccf808e044",
    "address": "0x704268ac7043aeef50f47b6a03ae68ccf808e044",
    "label": "BTC ACC Hook (Base)",
@@ -1600,9 +2776,57 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0x721eeec896f413ca7b971e0ef3cad2cd16b350c0",
+   "address": "0x721eeec896f413ca7b971e0ef3cad2cd16b350c0",
+   "label": "ZoraV4CoinHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0x723b16ef13a1b9a2bd63238bec47cdf1d4a010c4",
    "address": "0x723b16ef13a1b9a2bd63238bec47cdf1d4a010c4",
    "label": "DynamicFee",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x73e0ae5d6b6950155db0415a60e5bb9a89a310c0",
+   "address": "0x73e0ae5d6b6950155db0415a60e5bb9a89a310c0",
+   "label": "ZoraV4CoinHook",
    "vanillaSwap_declared": [
     false
    ],
@@ -1678,6 +2902,78 @@
    "label": "SpectraLaunch",
    "vanillaSwap_declared": [
     true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x766d77aa976ad92fa785dc505228dca7a36f80cc",
+   "address": "0x766d77aa976ad92fa785dc505228dca7a36f80cc",
+   "label": "TaxHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x7b0957aec2fb2a6cadef57a537a9d086849b60c4",
+   "address": "0x7b0957aec2fb2a6cadef57a537a9d086849b60c4",
+   "label": "TruthMarketHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x7c672f3850afadcb8f83478e0a2a90d109fa6044",
+   "address": "0x7c672f3850afadcb8f83478e0a2a90d109fa6044",
+   "label": "AdvancedFeeHookV6",
+   "vanillaSwap_declared": [
+    false
    ],
    "n_pools": 0,
    "profile": {
@@ -1796,9 +3092,57 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0x805975d27518e3e23c4838802d9dda7302dca044",
+   "address": "0x805975d27518e3e23c4838802d9dda7302dca044",
+   "label": "AdvancedFeeHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x80887f4ce589c973ebb1f6f81b6f6bb492106fdc",
+   "address": "0x80887f4ce589c973ebb1f6f81b6f6bb492106fdc",
+   "label": "BoardHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0x80e2f7dc8c2c880bbc4bdf80a5fb0eb8b1db68cc",
    "address": "0x80e2f7dc8c2c880bbc4bdf80a5fb0eb8b1db68cc",
-   "label": "Liquid Dynamic Fee Hook V2",
+   "label": "LiquidHookDynamicFeeV2",
    "vanillaSwap_declared": [
     false,
     false
@@ -1989,6 +3333,30 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0x886313bb1b7a17c00a189995dba8534ce2715000",
+   "address": "0x886313bb1b7a17c00a189995dba8534ce2715000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0x88c9ff9fc0b22cca42265d3f1d1c2c39e41cdacc",
    "address": "0x88c9ff9fc0b22cca42265d3f1d1c2c39e41cdacc",
    "label": "Aegis v3 Hook (Base)",
@@ -2037,9 +3405,129 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0x89bc845938b5e1481cc1c5484d2d55a9c0523fff",
+   "address": "0x89bc845938b5e1481cc1c5484d2d55a9c0523fff",
+   "label": "AgentUniswapHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x8a524135d425331d88603ea8cfe23adbe75680cc",
+   "address": "0x8a524135d425331d88603ea8cfe23adbe75680cc",
+   "label": "TripoolsAntiSnipeHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0x8dc3b85e1dc1c846ebf3971179a751896842e5dc",
    "address": "0x8dc3b85e1dc1c846ebf3971179a751896842e5dc",
    "label": "Flaunch AnyPOSM v1 (Base)",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x8defd6da5b578f50b22a358c4d859d5b538e9088",
+   "address": "0x8defd6da5b578f50b22a358c4d859d5b538e9088",
+   "label": "GitlawnchHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x8e04235b0a61dab93ab99c0bef82a407a8af5040",
+   "address": "0x8e04235b0a61dab93ab99c0bef82a407a8af5040",
+   "label": "ZoraV4CoinHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x8e7640e6bbcc483be39c9898a41dae86013368cc",
+   "address": "0x8e7640e6bbcc483be39c9898a41dae86013368cc",
+   "label": "ClankerHookStaticFeeV2",
    "vanillaSwap_declared": [
     false
    ],
@@ -2066,6 +3554,54 @@
    "label": "Aegis",
    "vanillaSwap_declared": [
     false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x8f66d6821dfa255f7a008e76efdefb96992b5ae4",
+   "address": "0x8f66d6821dfa255f7a008e76efdefb96992b5ae4",
+   "label": "UniClawHookV4",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0x922826f26bacb89e9e9165951b4964f5436fd000",
+   "address": "0x922826f26bacb89e9e9165951b4964f5436fd000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
    ],
    "n_pools": 0,
    "profile": {
@@ -2205,6 +3741,30 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0x97edfabcc578743e3b1e77a03c7772eea28c40c8",
+   "address": "0x97edfabcc578743e3b1e77a03c7772eea28c40c8",
+   "label": "ThryxAntiSniperHookV5",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0x9818ddd1102c9606cd693ac17a7b8b17609480c4",
    "address": "0x9818ddd1102c9606cd693ac17a7b8b17609480c4",
    "label": "TailTwins",
@@ -2303,6 +3863,30 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0x9b47e436e216b2cb54d6f24154f86d946098d040",
+   "address": "0x9b47e436e216b2cb54d6f24154f86d946098d040",
+   "label": "ContentCoinHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0x9d11f9505ca92f4b6983c1285d1ac0aaff7ec0c0",
    "address": "0x9d11f9505ca92f4b6983c1285d1ac0aaff7ec0c0",
    "label": "Limit Order Hook (Base)",
@@ -2375,6 +3959,54 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0xa060a690e9c5a9a65043cedd5c07877e371fd000",
+   "address": "0xa060a690e9c5a9a65043cedd5c07877e371fd000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xa068cf4c52abdd3479145c4b3cbd8e3d71542a44",
+   "address": "0xa068cf4c52abdd3479145c4b3cbd8e3d71542a44",
+   "label": "LaunchHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0xa09ff20120d0dc9b9840c3260ea4f2be7e6ce888",
    "address": "0xa09ff20120d0dc9b9840c3260ea4f2be7e6ce888",
    "label": "SuperTokenWrapperHook",
@@ -2399,9 +4031,153 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0xa10104b0d43d63701328b61699a902795d9e6acc",
+   "address": "0xa10104b0d43d63701328b61699a902795d9e6acc",
+   "label": "TokenFab",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xa10a6f4b918e963ec8694d37aa22e438706fe8cc",
+   "address": "0xa10a6f4b918e963ec8694d37aa22e438706fe8cc",
+   "label": "ClankerHookStaticFeeV2",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xa167f8781351e27e5f98dccec86a82d952f69000",
+   "address": "0xa167f8781351e27e5f98dccec86a82d952f69000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0xa1ebdd5ca6470bbd67114331387f2dda7bfad040",
    "address": "0xa1ebdd5ca6470bbd67114331387f2dda7bfad040",
    "label": "Zora Post Hook v1 (Base)",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xa2c0d9e0f0c1660b2f4ecd0414d2f18f999d5000",
+   "address": "0xa2c0d9e0f0c1660b2f4ecd0414d2f18f999d5000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xa3885fff57cb16cad60a3cac7e49b0273f562840",
+   "address": "0xa3885fff57cb16cad60a3cac7e49b0273f562840",
+   "label": "VieTokenPoolHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xa3898644f517e3f7dd4d8a958b97e3658ced60cc",
+   "address": "0xa3898644f517e3f7dd4d8a958b97e3658ced60cc",
+   "label": "FlowHookV3",
    "vanillaSwap_declared": [
     false
    ],
@@ -2447,9 +4223,57 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0xa52ee9411402a4c44cc87948343c6ce50258a8cc",
+   "address": "0xa52ee9411402a4c44cc87948343c6ce50258a8cc",
+   "label": "CornersHookStaticFee",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0xa7a62422d13c7648ca53ad91e9268ac4bfc6c0c4",
    "address": "0xa7a62422d13c7648ca53ad91e9268ac4bfc6c0c4",
    "label": "TotalizerTrap",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xaa096f558f3d4c9226de77e7cc05f18e180b2544",
+   "address": "0xaa096f558f3d4c9226de77e7cc05f18e180b2544",
+   "label": "DopplerHookInitializer",
    "vanillaSwap_declared": [
     false
    ],
@@ -2497,9 +4321,33 @@
   {
    "id": "hook:8453:0xab29e4cb49980a6ac152515bb69470e0dedc68cc",
    "address": "0xab29e4cb49980a6ac152515bb69470e0dedc68cc",
-   "label": "tokens.fun HookDynamicFee",
+   "label": "ClankerHookDynamicFee",
    "vanillaSwap_declared": [
     false,
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xac4b3944c351b6641fdd85a192cf6ddf84b3facc",
+   "address": "0xac4b3944c351b6641fdd85a192cf6ddf84b3facc",
+   "label": "BDeFiHook",
+   "vanillaSwap_declared": [
     false
    ],
    "n_pools": 0,
@@ -2544,9 +4392,81 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0xadaccf778c96772fb06b042212b7ff0c434e00cc",
+   "address": "0xadaccf778c96772fb06b042212b7ff0c434e00cc",
+   "label": "Politiswap",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xadfe042ded16b4bfee0af065dfa85af0c9196a44",
+   "address": "0xadfe042ded16b4bfee0af065dfa85af0c9196a44",
+   "label": "TokenFab",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0xb030fd8c2f8576f8ab05cfbbe659285e7d7a1040",
    "address": "0xb030fd8c2f8576f8ab05cfbbe659285e7d7a1040",
    "label": "Zora Post Hook v1.0.0.1 (Base)",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xb053e410725d988f8f3c979d0a4727ae173360cc",
+   "address": "0xb053e410725d988f8f3c979d0a4727ae173360cc",
+   "label": "BaldpadFeeHookV3",
    "vanillaSwap_declared": [
     false
    ],
@@ -2643,6 +4563,30 @@
    "id": "hook:8453:0xb476c448da4453208df4e371fee26f4e630d3044",
    "address": "0xb476c448da4453208df4e371fee26f4e630d3044",
    "label": "SPAWN (Base)",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xb4a13777525ddc151603e6d6b7db86352848eaa8",
+   "address": "0xb4a13777525ddc151603e6d6b7db86352848eaa8",
+   "label": "CurveHook",
    "vanillaSwap_declared": [
     false
    ],
@@ -2784,20 +4728,20 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
-   "id": "hook:8453:0xbb7784a4d481184283ed89619a3e3ed143e1adc0",
-   "address": "0xbb7784a4d481184283ed89619a3e3ed143e1adc0",
-   "label": "DecayMulticurveInitializerHook",
+   "id": "hook:8453:0xb99c5b4c603a607db02a984ed0a69fb45edc9000",
+   "address": "0xb99c5b4c603a607db02a984ed0a69fb45edc9000",
+   "label": "SaturnOmnichainV4Hook",
    "vanillaSwap_declared": [
-    false
+    true
    ],
-   "n_pools": 3,
+   "n_pools": 0,
    "profile": {
-    "n": 15,
+    "n": 0,
     "by_label": {
      "MEASURED": 0,
      "INTERPOLATED": 0,
-     "NOT_MEASURABLE": 10,
-     "NOT_QUOTABLE": 5
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
     },
     "n_measured": 0,
     "bps_min": null,
@@ -2805,12 +4749,132 @@
     "bps_median": null,
     "flat": null
    },
-   "reason": "aucune mesure MEASURED : NOT_MEASURABLE=10, NOT_QUOTABLE=5"
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xbb7784a4d481184283ed89619a3e3ed143e1adc0",
+   "address": "0xbb7784a4d481184283ed89619a3e3ed143e1adc0",
+   "label": "DecayMulticurveInitializerHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 13,
+   "profile": {
+    "n": 180,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 87,
+     "NOT_QUOTABLE": 93
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : NOT_MEASURABLE=87, NOT_QUOTABLE=93"
   },
   {
    "id": "hook:8453:0xbd2597a08627f119ed50c1a252f888f5bfd31b80",
    "address": "0xbd2597a08627f119ed50c1a252f888f5bfd31b80",
    "label": "DynamicFeeHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xbeff407b7062e2fe15928960a58aec93b0c76044",
+   "address": "0xbeff407b7062e2fe15928960a58aec93b0c76044",
+   "label": "AdvancedFeeHookV3",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xc084969baec7910f8df71bdcd90d9c37d3919000",
+   "address": "0xc084969baec7910f8df71bdcd90d9c37d3919000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xc1d439d52dd5ea6a7910df9ee97bff7eb4ae2844",
+   "address": "0xc1d439d52dd5ea6a7910df9ee97bff7eb4ae2844",
+   "label": "TokenFab",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xc384b99a6e5cd1a800b2d83ab71bab7bd712b0cc",
+   "address": "0xc384b99a6e5cd1a800b2d83ab71bab7bd712b0cc",
+   "label": "DeliHook",
    "vanillaSwap_declared": [
     false
    ],
@@ -2861,6 +4925,54 @@
    "label": "Graduation Hook (Base)",
    "vanillaSwap_declared": [
     true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xc6b5a5d3f73a24645c25faa833ef411947385000",
+   "address": "0xc6b5a5d3f73a24645c25faa833ef411947385000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xc8b624ad72059c41b6e324c7840651e1dfa268cc",
+   "address": "0xc8b624ad72059c41b6e324c7840651e1dfa268cc",
+   "label": "ClankerHookDynamicFeeV2",
+   "vanillaSwap_declared": [
+    false
    ],
    "n_pools": 0,
    "profile": {
@@ -2953,6 +5065,30 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0xca5ba7e14f7b815b1c18e1485157afae33795000",
+   "address": "0xca5ba7e14f7b815b1c18e1485157afae33795000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0xca975b9daf772c71161f3648437c3616e5be0088",
    "address": "0xca975b9daf772c71161f3648437c3616e5be0088",
    "label": "Simple Sell Tax Hook",
@@ -2977,9 +5113,33 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0xcae7ebfa18755d1f35ee8e0f3356f375ed5b2aa8",
+   "address": "0xcae7ebfa18755d1f35ee8e0f3356f375ed5b2aa8",
+   "label": "CurveHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0xcd256a2f4574cb6aca4837313ad225d2fe1de5cf",
    "address": "0xcd256a2f4574cb6aca4837313ad225d2fe1de5cf",
-   "label": "AngstromL2",
+   "label": "Angstrom L2",
    "vanillaSwap_declared": [
     false,
     false
@@ -3026,11 +5186,83 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0xd103012ad40bcd053fdda1ae80f62f39366ca080",
+   "address": "0xd103012ad40bcd053fdda1ae80f62f39366ca080",
+   "label": "ForgeHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0xd24d29a47adb8786072ab2cb9925dc8ba36bc044",
    "address": "0xd24d29a47adb8786072ab2cb9925dc8ba36bc044",
    "label": "CrownClash",
    "vanillaSwap_declared": [
     false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xd2f43d17307e31a706f83055ebc82a0738bda8cc",
+   "address": "0xd2f43d17307e31a706f83055ebc82a0738bda8cc",
+   "label": "CornersHookStaticFee",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xd3aee1d3d02ae89a7fae8e13e2868a473d4b9000",
+   "address": "0xd3aee1d3d02ae89a7fae8e13e2868a473d4b9000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
    ],
    "n_pools": 0,
    "profile": {
@@ -3074,9 +5306,129 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0xd3d133469adc85e01a4887404d8ac12d630e9040",
+   "address": "0xd3d133469adc85e01a4887404d8ac12d630e9040",
+   "label": "ContentCoinHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xd5252a67935fc6b913c4441ac0e5ebf3219faaa8",
+   "address": "0xd5252a67935fc6b913c4441ac0e5ebf3219faaa8",
+   "label": "PlayerCurveHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xd53fe0aa99500ec696aa451272efaedf0b659000",
+   "address": "0xd53fe0aa99500ec696aa451272efaedf0b659000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xd55bfda89980b3a517719f2e6fbd53be565b0844",
+   "address": "0xd55bfda89980b3a517719f2e6fbd53be565b0844",
+   "label": "AutoFeeCollectionHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0xd577f945b6025ce1e60ac1a82f2ee8ff3fb428c4",
    "address": "0xd577f945b6025ce1e60ac1a82f2ee8ff3fb428c4",
    "label": "ArtacleIndexHook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xd60a6a0f0d5e3fd451449c7256bbbdc59561e888",
+   "address": "0xd60a6a0f0d5e3fd451449c7256bbbdc59561e888",
+   "label": "Generic4626Router",
    "vanillaSwap_declared": [
     false
    ],
@@ -3170,11 +5522,59 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0xd971ac7ae52166fca2035440f699a5eff1815000",
+   "address": "0xd971ac7ae52166fca2035440f699a5eff1815000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0xdb4a0eb0410407d6c22a35c27288834e0d9f4044",
    "address": "0xdb4a0eb0410407d6c22a35c27288834e0d9f4044",
    "label": "LegacyLedger",
    "vanillaSwap_declared": [
     false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xdd59ecae4b2c2515faf7de27982d82954acfd000",
+   "address": "0xdd59ecae4b2c2515faf7de27982d82954acfd000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
    ],
    "n_pools": 0,
    "profile": {
@@ -3220,7 +5620,7 @@
   {
    "id": "hook:8453:0xe0e522e5888e398d9e5d4d90a48c489425cb2888",
    "address": "0xe0e522e5888e398d9e5d4d90a48c489425cb2888",
-   "label": "sETH Hook",
+   "label": "SETHHook",
    "vanillaSwap_declared": [
     false,
     false
@@ -3267,11 +5667,107 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0xe5d1a9ceb14b505b230115213f1ed277b48a7acc",
+   "address": "0xe5d1a9ceb14b505b230115213f1ed277b48a7acc",
+   "label": "V4rcade Fee Hook",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0xe61bdf0c9e665f02df20fede6dcef379cb751040",
    "address": "0xe61bdf0c9e665f02df20fede6dcef379cb751040",
    "label": "Zora Post Hook v1.0.0.2 (Base)",
    "vanillaSwap_declared": [
     false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xe6b2b3e59d5df7827eb0a7915675db66ab12a044",
+   "address": "0xe6b2b3e59d5df7827eb0a7915675db66ab12a044",
+   "label": "AdvancedFeeHookV3",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xe702d70654fc7fd003b9079646b4cfd9c425ea44",
+   "address": "0xe702d70654fc7fd003b9079646b4cfd9c425ea44",
+   "label": "TokenFab",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xe79f5e8dcd3a258394332afcdc9dbe955bff5000",
+   "address": "0xe79f5e8dcd3a258394332afcdc9dbe955bff5000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
    ],
    "n_pools": 0,
    "profile": {
@@ -3317,7 +5813,7 @@
   {
    "id": "hook:8453:0xea9346e83952840e69beb36df365c4e68de0e080",
    "address": "0xea9346e83952840e69beb36df365c4e68de0e080",
-   "label": "Liquid Launch Hook",
+   "label": "LiquidLaunchHook",
    "vanillaSwap_declared": [
     false,
     false
@@ -3388,6 +5884,78 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0xf04e5e679019f70314f1c898d83977617af3d000",
+   "address": "0xf04e5e679019f70314f1c898d83977617af3d000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xf5ee090f78bb3aa9e8719c776449bfa1587828cc",
+   "address": "0xf5ee090f78bb3aa9e8719c776449bfa1587828cc",
+   "label": "ClankerHookStaticFeeV2",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xf679fcb0090d6b444296cdacf91884537072ea44",
+   "address": "0xf679fcb0090d6b444296cdacf91884537072ea44",
+   "label": "TokenFab",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0xf6d0a13609bb5779bc5d639f2ba3bfda83d4d0c0",
    "address": "0xf6d0a13609bb5779bc5d639f2ba3bfda83d4d0c0",
    "label": "ZoraV4CoinHook",
@@ -3416,6 +5984,30 @@
    "id": "hook:8453:0xf785bb58059fab6fb19bdda2cb9078d9e546efdc",
    "address": "0xf785bb58059fab6fb19bdda2cb9078d9e546efdc",
    "label": "Flaunch POSM v2 (Base)",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xf85f1f3082cfbc5e1149972309b25054e4d420cc",
+   "address": "0xf85f1f3082cfbc5e1149972309b25054e4d420cc",
+   "label": "B20Hook",
    "vanillaSwap_declared": [
     false
    ],
@@ -3533,6 +6125,30 @@
    "reason": "aucune mesure MEASURED : "
   },
   {
+   "id": "hook:8453:0xfdeb47f7e84d33bd85340919a1de1dcef9139000",
+   "address": "0xfdeb47f7e84d33bd85340919a1de1dcef9139000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
    "id": "hook:8453:0xfe6947cd46a7e8f068a6b6ca804fb986feda8040",
    "address": "0xfe6947cd46a7e8f068a6b6ca804fb986feda8040",
    "label": "BpegHook",
@@ -3608,6 +6224,54 @@
    "id": "hook:8453:0xff74be9d3596ea7a33bb4983dd7906fb34135040",
    "address": "0xff74be9d3596ea7a33bb4983dd7906fb34135040",
    "label": "Zora Post Hook v2.2 (Base)",
+   "vanillaSwap_declared": [
+    false
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xffd39ccd8baea0c8f809a500806386242d3a1000",
+   "address": "0xffd39ccd8baea0c8f809a500806386242d3a1000",
+   "label": "SaturnOmnichainV4Hook",
+   "vanillaSwap_declared": [
+    true
+   ],
+   "n_pools": 0,
+   "profile": {
+    "n": 0,
+    "by_label": {
+     "MEASURED": 0,
+     "INTERPOLATED": 0,
+     "NOT_MEASURABLE": 0,
+     "NOT_QUOTABLE": 0
+    },
+    "n_measured": 0,
+    "bps_min": null,
+    "bps_max": null,
+    "bps_median": null,
+    "flat": null
+   },
+   "reason": "aucune mesure MEASURED : "
+  },
+  {
+   "id": "hook:8453:0xfff800b76768da8ab6aab527021e4a6a91219040",
+   "address": "0xfff800b76768da8ab6aab527021e4a6a91219040",
+   "label": "CreatorCoinHook",
    "vanillaSwap_declared": [
     false
    ],

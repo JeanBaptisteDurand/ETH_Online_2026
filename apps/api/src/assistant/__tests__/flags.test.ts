@@ -123,7 +123,14 @@ describe("les trois copies de la table ne divergent pas", () => {
   function shiftsFrom(path: string, pattern: RegExp): Record<string, number> {
     const src = readFileSync(path, "utf8");
     const out: Record<string, number> = {};
-    for (const m of src.matchAll(pattern)) out[m[1]] = Number(m[2]);
+    for (const m of src.matchAll(pattern)) {
+      const nom = m[1];
+      const val = m[2];
+      // Un groupe de capture peut ne pas avoir participe : le typer non-optionnel
+      // laisserait passer un `out[undefined]` a l'execution.
+      if (nom === undefined || val === undefined) continue;
+      out[nom] = Number(val);
+    }
     return out;
   }
 

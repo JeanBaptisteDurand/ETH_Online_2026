@@ -17,10 +17,11 @@ import { plannerFromEnv } from "./llm.js";
 
 const port = Number(process.env.ASSISTANT_PORT ?? 8788);
 
-// LE PLANIFICATEUR REEL. Ollama d'abord (local, gratuit), OpenAI en repli, et le
-// deterministe reste le filet en dessous des deux. On ne sonde aucun fournisseur ici :
-// ce qui est imprime est ce qui est CONFIGURE, pas ce qui est joignable. Chaque question
-// dira elle-meme, dans `degraded`, si elle a du retomber.
+// LE PLANIFICATEUR REEL. Ollama et OpenAI sont lances ENSEMBLE sur chaque question et
+// la premiere reponse valide gagne (llm.ts, raceProviders) ; le deterministe reste le
+// filet en dessous des deux. On ne sonde aucun fournisseur ici : ce qui est imprime est
+// ce qui est CONFIGURE, pas ce qui est joignable. Chaque question dira elle-meme, dans
+// `why` et `degraded`, qui a repondu et ce que les autres ont fait.
 const { planner, mode, providers, budget_ms, why } = plannerFromEnv();
 
 const app = new Hono();
@@ -43,7 +44,7 @@ console.log(
 if (!store.complete) console.warn(`[assistant] LECTURE PARTIELLE : ${store.incomplete_reason}`);
 console.log(
   `[assistant] planificateur ${mode}` +
-    (providers.length ? ` — ${providers.join(" puis ")}, budget ${budget_ms} ms` : "") +
+    (providers.length ? ` — ${providers.join(" et ")}, budget ${budget_ms} ms` : "") +
     ` (${why})`,
 );
 console.log(`[assistant] http://127.0.0.1:${port}/assistant`);

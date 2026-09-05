@@ -260,6 +260,24 @@ function judge(
 
 /* ---------------------------------------------------------------- montage */
 
+/**
+ * Construit une vue a partir de donnees FOURNIES, sans toucher au jeu publie.
+ *
+ * Expose pour les tests, et pour une raison precise : plusieurs invariants portent sur
+ * des cas que le jeu ne contient pas forcement aujourd'hui. « Un hook sans mesure porte
+ * max_bps=null » etait verifie en cherchant un tel hook dans le jeu vivant ; le corpus a
+ * grandi jusqu'a n'en plus contenir aucun, et le test est passe au rouge sans qu'aucune
+ * regle soit violee. Un invariant se verifie sur un cas construit, pas sur l'espoir que
+ * les donnees du jour en contiennent un.
+ */
+export function buildStoreFrom(
+  ds: Dataset,
+  reg: Registry,
+  poolsWithLiquidity: number,
+): StoreView {
+  return build(ds, reg, poolsWithLiquidity);
+}
+
 function build(ds: Dataset, reg: Registry, poolsWithLiquidity: number): StoreView {
   const available = reg.path !== null && reg.count > 0;
   const hooks: HookView[] = [];

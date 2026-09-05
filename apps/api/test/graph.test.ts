@@ -114,8 +114,12 @@ describe("parite avec engine/tare/graph/queries.py", () => {
     const { status, body } = await get("/graph/orphans");
     expect(status).toBe(200);
     expectSameAsPython(body, "orphans");
-    expect(body.n_orphans).toBe(148);
-    expect(body.n_listed).toBe(157);
+    // expectSameAsPython compare deja la reponse entiere a la sortie Python. Figer 148 et
+    // 157 en plus n'ajoutait aucune garantie et rendait le test faux des que le corpus
+    // grandissait : il est passe au rouge sur une parite parfaite. On garde donc ce que
+    // la parite ne dit pas — la coherence interne du compte.
+    expect(body.n_orphans).toBeLessThanOrEqual(body.n_listed);
+    expect(body.orphans).toHaveLength(body.n_orphans);
   });
 
   it("GET /graph/contradictions rend les memes divergences, champ par champ", async () => {
@@ -283,7 +287,13 @@ describe("chaque reponse porte sa provenance", () => {
     const { body } = await get("/graph");
     expect(body.graph.source).toBe(DEFAULT_GRAPH_PATH);
     expect(body.graph.block_number).toBe(50614000);
-    expect(body.graph.n_measurements).toBe(995);
+    // Le compte vient du graphe lui-meme : c'est la provenance qu'on teste ici, pas la
+    // taille du corpus du jour.
+    // Le compte annonce doit etre celui que le FICHIER du graphe declare — pas un
+    // nombre fige, et pas non plus une comparaison de la valeur avec elle-meme.
+    const meta = JSON.parse(readFileSync(DEFAULT_GRAPH_PATH, "utf8")).meta;
+    expect(body.graph.n_measurements).toBe(meta.n_measurements);
+    expect(body.graph.n_measurements).toBeGreaterThan(0);
     expect(body.graph.chain_cache_present).toBe(true);
     expect(body.graph.measurements).toContain("measurements.jsonl");
     expect(typeof body.took_ms).toBe("number");
@@ -291,16 +301,29 @@ describe("chaque reponse porte sa provenance", () => {
 
   it("GET /graph publie les comptes que les traversees revelent", async () => {
     const { body } = await get("/graph");
+    // Les comptes annonces par l'enveloppe doivent etre CEUX DES TRAVERSEES, pas une
+    // copie figee. On les confronte donc aux fixtures Python — la meme source de verite
+    // que les tests de parite — au lieu de les comparer a un objet ecrit a la main qui
+    // devenait faux a chaque balayage.
+    const orph = py("orphans");
+    const contr = py("contradictions");
+    const disag = py("disagreement");
+    const clus = py("clusters");
     expect(body.findings).toEqual({
-      clone_clusters: 2,
-      hooks_in_clone_clusters: 4,
-      orphans: 148,
-      listed_hooks_on_chain: 157,
-      hooks_with_multiple_registry_entries: 37,
-      contradictions: 33,
-      registry_says_active_measure_says_flat: 1,
-      registry_says_vanilla_measure_says_active: 0,
-      not_comparable: 149,
+      clone_clusters: clus.length,
+      hooks_in_clone_clusters: clus.reduce(
+        (n: number, c: { n_hooks: number }) => n + c.n_hooks,
+        0,
+      ),
+      orphans: orph.n_orphans,
+      listed_hooks_on_chain: orph.n_listed,
+      hooks_with_multiple_registry_entries: contr.n_hooks_with_multiple_entries,
+      contradictions: contr.n_contradictory,
+      registry_says_active_measure_says_flat:
+        disag.n_registry_says_active_measure_says_flat,
+      registry_says_vanilla_measure_says_active:
+        disag.n_registry_says_vanilla_measure_says_active,
+      not_comparable: disag.n_not_comparable,
     });
   });
 

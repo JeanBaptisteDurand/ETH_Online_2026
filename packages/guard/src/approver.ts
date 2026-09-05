@@ -9,9 +9,12 @@
  * Ce qui est cable ici :
  *   - confirmApprover : window.confirm, le defaut du navigateur ;
  *   - alwaysApprove / alwaysDeny : pour les tests et le mode "journal seul".
- * Ce qui ne l'est pas :
- *   - ledgerApprover : l'interface est ecrite, le transport ne l'est pas. Il REFUSE
- *     explicitement au lieu de laisser passer. Une garde qui echoue en "oui" ne garde rien.
+ *   - ledgerApprover : l'interface, plus le transport reel de ./ledger.ts (WebHID, EIP-712).
+ *     Sans transport il REFUSE explicitement au lieu de laisser passer. Une garde qui echoue
+ *     en "oui" ne garde rien.
+ * Ce qui n'a jamais tourne :
+ *   - le chemin Ledger contre un appareil physique ou contre Speculos. Il est teste contre un
+ *     faux appareil, et rien d'autre : docs/LIMITS.md section 11.
  */
 import type { GuardReport } from "./types.js";
 
@@ -21,7 +24,12 @@ export interface ApprovalDecision {
   by: string;
   /** pourquoi, en clair */
   reason: string;
-  /** empreinte laissee par l'appareil, quand il y en a une (Ledger : l'ecran signe) */
+  /**
+   * L'empreinte laissee par l'appareil, quand il y en a une. Pour Ledger c'est la signature
+   * EIP-712 (r || s || v). Elle atteste d'une chose et d'une seule : cet appareil a affiche
+   * ces champs et un humain a valide. Elle ne dit rien de la justesse du nombre affiche, ni
+   * du sort de la transaction ensuite.
+   */
   attestation?: string | null;
 }
 
@@ -89,15 +97,20 @@ export const alwaysDeny: Approver = {
 };
 
 /**
- * Le point de branchement Ledger, ecrit et NON CABLE.
+ * Le point de branchement Ledger.
  *
- * Ce qui manquera le jour du branchement, et rien d'autre : un transport
- * (@ledgerhq/hw-transport-webhid) et un ecran clair qui affiche la phrase de `renderPrompt`
- * avec les bps, le bloc et la taille. Tant que `transport` est absent, la reponse est NON.
+ * Le transport reel vit dans ./ledger.ts (WebHID + @ledgerhq/hw-app-eth, message EIP-712) et
+ * s'obtient par ledgerWebHidTransport(). Il n'a jamais tourne contre un appareil physique ni
+ * contre Speculos : voir docs/LIMITS.md section 11. Ce fichier-ci ne connait que l'interface,
+ * et tant que `transport` est absent la reponse est NON.
+ *
+ * Le rapport est passe EN PLUS du texte : un appareil a ecran veut des champs (le pool, le
+ * hook, les bps, le bloc, la taille), pas un pave. Le parametre est optionnel pour que les
+ * transports qui ne savent afficher que du texte restent valides.
  */
 export interface LedgerTransport {
-  /** montre le texte sur l'appareil et rend l'attestation si l'utilisateur valide */
-  showAndConfirm(text: string): Promise<{ confirmed: boolean; attestation?: string }>;
+  /** montre le rapport sur l'appareil et rend l'attestation si l'utilisateur valide */
+  showAndConfirm(text: string, report?: GuardReport): Promise<{ confirmed: boolean; attestation?: string }>;
 }
 
 export function ledgerApprover(transport?: LedgerTransport | null): Approver {
@@ -113,7 +126,7 @@ export function ledgerApprover(transport?: LedgerTransport | null): Approver {
         };
       }
       try {
-        const r = await transport.showAndConfirm(renderPrompt(report));
+        const r = await transport.showAndConfirm(renderPrompt(report), report);
         return {
           approved: Boolean(r.confirmed),
           by: "ledger",

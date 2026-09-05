@@ -16,6 +16,7 @@ import { engineHealth, runPlans, type EngineHealth } from "./engine.js";
 import { createMetering, toMeasurementUnit } from "./metering/index.js";
 import { createGraphRouter } from "./graph-routes.js";
 import { createRagRouter } from "./rag/index.js";
+import { createRouteRouter } from "./route.js";
 import { createPaymentLayer, payerFromHeader, priceFor } from "./x402.js";
 import type { Label } from "./labels.js";
 import type { RagStore, QueryEmbedder } from "./rag/index.js";
@@ -68,6 +69,7 @@ export function createApp(deps: AppDeps = {}) {
         "GET  /graph               le graphe : ce que les traversees revelent",
         "GET  /rag/search?q=..     les passages du corpus, avec fichier, ligne et distance",
         "GET  /rag/meta            l'etat de l'index vectoriel, lu en base",
+        "GET  /route?currency0=..&currency1=..  par quel pool passer, et ce que ca coute",
       ],
     }),
   );
@@ -422,6 +424,13 @@ export function createApp(deps: AppDeps = {}) {
   // PREFIXE d'un en-tete derive du graphe : le graphe nourrit l'index. Voir
   // engine/tare/rag/ pour la construction et src/rag/routes.ts pour les refus.
   app.route("/", createRagRouter({ store: deps.ragStore, embedder: deps.ragEmbedder }));
+
+  /* ------------------------------------------------------------------ route */
+
+  // "je veux echanger A contre B" : le classement des portes mesurees d'une paire,
+  // ou l'aveu qu'il n'y en a qu'une. Voir la note de tete de route.ts : la route ne
+  // classe que ce qui a un cout mesure, et liste le reste sans lui preter un zero.
+  app.route("/", createRouteRouter());
 
   /* ------------------------------------------------------------ utilitaire */
 

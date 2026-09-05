@@ -1,0 +1,217 @@
+{
+ "generated_at": "2026-09-05T12:00:01+00:00",
+ "engine_ver": "tare-engine/0.3.0",
+ "stub_hash": "0x8e39b2ad4344342b4f7dc5cf31df0aec9bd5b5f8ec7fccd241256cf1fda637a4",
+ "chain_id": 8453,
+ "block_number": 50614000,
+ "blocks": [
+  50614000
+ ],
+ "sizes": [
+  "1000000000000",
+  "10000000000000",
+  "100000000000000",
+  "1000000000000000",
+  "10000000000000000",
+  "100000000000000000",
+  "1000000000000000000",
+  "10000000000000000000"
+ ],
+ "sizes_present": [
+  "1000000000000",
+  "10000000000000",
+  "100000000000000",
+  "1000000000000000",
+  "10000000000000000",
+  "100000000000000000",
+  "1000000000000000000",
+  "10000000000000000000"
+ ],
+ "directions": [
+  "zero_for_one",
+  "one_for_zero"
+ ],
+ "non_flat_threshold_bps": 5.0,
+ "asymmetry_threshold_bps": 1.0,
+ "n_measurements": 368,
+ "by_label": {
+  "MEASURED": 121,
+  "INTERPOLATED": 0,
+  "NOT_MEASURABLE": 34,
+  "NOT_QUOTABLE": 213
+ },
+ "n_hooks": 20,
+ "n_pools": 23,
+ "n_hooks_measured": 13,
+ "n_pools_measured": 14,
+ "n_rpc_unavailable": 34,
+ "n_pools_rpc_unavailable": 7,
+ "n_gt_1bps_at_zero_stored_lp_fee": 30,
+ "n_pools_gt_1bps_at_zero_stored_lp_fee": 3,
+ "n_hooks_gt_1bps_at_zero_stored_lp_fee": 3,
+ "bps_min": 0.0,
+ "bps_median": 1.2277,
+ "bps_max": 511.9455,
+ "n_measured_zero_for_one": 74,
+ "n_measured_one_for_zero": 47,
+ "n_pools_measured_both_sides": 2,
+ "n_pools_measured_one_side": 12,
+ "discovery": {},
+ "n_profiles": 16,
+ "n_non_flat_profiles": 4,
+ "n_asymmetric_pools": 2,
+ "asymmetric_pools": [
+  {
+   "hook": "0xc90eddf51569270e06270ea98f7efff828dde0cc",
+   "pool_id": "0xe11e1e56d18cedbdc9ab46a3158b051e86ab93e1fa20196d0b2b78c29066f7f1",
+   "currency0": "0x0000000000000000000000000000000000000000",
+   "currency1": "0x07a6a0a4cf7ebc79bdd537b5b681fd00a9cb1b67",
+   "stored_lp_fee": 3000,
+   "sizes_compared": 8,
+   "max_gap_bps": 299.9684,
+   "at_size": "10000000000000000000",
+   "bps_zero_for_one": 0.0316,
+   "bps_one_for_zero": 300.0
+  },
+  {
+   "hook": "0xc90eddf51569270e06270ea98f7efff828dde0cc",
+   "pool_id": "0x997673a6e66b4d4b3875e7dd42482b5947fd9c00882a1c5f70425605b89932da",
+   "currency0": "0x0000000000000000000000000000000000000000",
+   "currency1": "0x07a6a0a4cf7ebc79bdd537b5b681fd00a9cb1b67",
+   "stored_lp_fee": 0,
+   "sizes_compared": 8,
+   "max_gap_bps": 299.9679,
+   "at_size": "10000000000000000000",
+   "bps_zero_for_one": 0.0321,
+   "bps_one_for_zero": 300.0
+  }
+ ],
+ "non_flat_profiles": [
+  {
+   "hook": "0xc90eddf51569270e06270ea98f7efff828dde0cc",
+   "pool_id": "0x997673a6e66b4d4b3875e7dd42482b5947fd9c00882a1c5f70425605b89932da",
+   "currency0": "0x0000000000000000000000000000000000000000",
+   "currency1": "0x07a6a0a4cf7ebc79bdd537b5b681fd00a9cb1b67",
+   "zero_for_one": true,
+   "stored_lp_fee": 0,
+   "sizes": [
+    "1000000000000",
+    "10000000000000",
+    "100000000000000",
+    "1000000000000000",
+    "10000000000000000",
+    "100000000000000000",
+    "1000000000000000000",
+    "10000000000000000000"
+   ],
+   "bps": [
+    299.7201,
+    297.2242,
+    274.3762,
+    155.1274,
+    29.0165,
+    3.1783,
+    0.3209,
+    0.0321
+   ],
+   "bps_at_min_size": 299.7201,
+   "bps_at_max_size": 0.0321,
+   "amplitude_bps": 299.688,
+   "spread_bps": 299.688
+  },
+  {
+   "hook": "0xc90eddf51569270e06270ea98f7efff828dde0cc",
+   "pool_id": "0xe11e1e56d18cedbdc9ab46a3158b051e86ab93e1fa20196d0b2b78c29066f7f1",
+   "currency0": "0x0000000000000000000000000000000000000000",
+   "currency1": "0x07a6a0a4cf7ebc79bdd537b5b681fd00a9cb1b67",
+   "zero_for_one": true,
+   "stored_lp_fee": 3000,
+   "sizes": [
+    "1000000000000",
+    "10000000000000",
+    "100000000000000",
+    "1000000000000000",
+    "10000000000000000",
+    "100000000000000000",
+    "1000000000000000000",
+    "10000000000000000000"
+   ],
+   "bps": [
+    299.7153,
+    297.1775,
+    273.9787,
+    153.8653,
+    28.578,
+    3.1258,
+    0.3155,
+    0.0316
+   ],
+   "bps_at_min_size": 299.7153,
+   "bps_at_max_size": 0.0316,
+   "amplitude_bps": 299.6837,
+   "spread_bps": 299.6837
+  },
+  {
+   "hook": "0xaf07116f1892c5fae4b55234a57ea20cf4e960cc",
+   "pool_id": "0x30af3420023c254aa62170c4fa153e87f140540f2756e3ed6a0e897b422e0b00",
+   "currency0": "0xb2000000000000000000007d9640993d01f94199",
+   "currency1": "0xb7ebae7b9135b6454a6ba0b5e483317f72ca3356",
+   "zero_for_one": false,
+   "stored_lp_fee": 6000,
+   "sizes": [
+    "1000000000000",
+    "10000000000000",
+    "100000000000000",
+    "1000000000000000",
+    "10000000000000000",
+    "100000000000000000",
+    "1000000000000000000",
+    "10000000000000000000"
+   ],
+   "bps": [
+    264.0,
+    264.0,
+    264.0,
+    263.9995,
+    263.9954,
+    267.9533,
+    295.5924,
+    511.9455
+   ],
+   "bps_at_min_size": 264.0,
+   "bps_at_max_size": 511.9455,
+   "amplitude_bps": 247.9455,
+   "spread_bps": 247.9501
+  },
+  {
+   "hook": "0x48a011cb654327c3209c00110832190a364760cc",
+   "pool_id": "0x9492c969a3f748a57a63975273b0837894042a22c21e858f9d7673ba80162c26",
+   "currency0": "0xb2000000000000000000007d9640993d01f94199",
+   "currency1": "0xb7ebae7b9135b6454a6ba0b5e483317f72ca3356",
+   "zero_for_one": false,
+   "stored_lp_fee": 6000,
+   "sizes": [
+    "1000000000000",
+    "10000000000000",
+    "100000000000000",
+    "1000000000000000",
+    "10000000000000000",
+    "100000000000000000",
+    "1000000000000000000"
+   ],
+   "bps": [
+    210.0,
+    210.0,
+    210.0,
+    209.9999,
+    209.9993,
+    209.9926,
+    216.924
+   ],
+   "bps_at_min_size": 210.0,
+   "bps_at_max_size": 216.924,
+   "amplitude_bps": 6.924,
+   "spread_bps": 6.9314
+  }
+ ]
+}

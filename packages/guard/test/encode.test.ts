@@ -1,9 +1,16 @@
 /**
- * Aller-retour encodeur / decodeur sur les 199 PoolKey REELLES du jeu.
+ * Aller-retour encodeur / decodeur sur TOUTES les PoolKey reelles du jeu.
  *
  * Lire le hook aux octets 0xa0..0xc0 pourrait etre un coup de chance sur huit transactions.
- * Ici on refabrique le calldata de 199 pools reels — frais dynamiques, tick spacings de 1 a
+ * Ici on refabrique le calldata de chaque pool reel — frais dynamiques, tick spacings de 1 a
  * 200, adresses nulles — et on verifie que le decodeur retrouve la cle exacte a chaque fois.
+ *
+ * Le nombre de pools n'est PAS fige : il etait de 199, puis 371, puis 950. Deux consequences.
+ * D'abord le titre ne cite plus de total, sinon il deviendrait faux sans que rien ne change.
+ * Ensuite la duree croit avec le corpus : ce test a commence a expirer au bout des 5 s par
+ * defaut de vitest, sous la charge des balayages, et tombait environ une fois sur quatre. Une
+ * expiration se lit comme un echec du decodeur alors que le decodeur n'a rien fait de mal.
+ * On lui donne donc un budget explicite, proportionne au travail reel.
  */
 import { describe, it, expect } from "vitest";
 import { encodeUniversalRouterExactInSingle } from "../src/encode.js";
@@ -12,7 +19,7 @@ import { poolId } from "../src/poolkey.js";
 import { measurements } from "./helpers.js";
 
 describe("encode -> decode", () => {
-  it("retrouve la PoolKey et le pool_id des 199 pools du jeu", () => {
+  it("retrouve la PoolKey et le pool_id de CHAQUE pool du jeu", () => {
     const rows = measurements();
     const seen = new Set<string>();
     let n = 0;
@@ -46,11 +53,11 @@ describe("encode -> decode", () => {
       expect(leg.amountIn).toBe(r.amount_in);
       n++;
     }
-    // Le corpus grandit (199 pools au premier balayage, 366 apres elargissement) : on verifie
-    // que CHAQUE pool distinct se re-derive, pas qu'il y en ait un nombre fige.
+    // Le corpus grandit : on verifie que CHAQUE pool distinct se re-derive, pas qu'il y en
+    // ait un nombre fige. Le plancher garde le test utile si le fichier devenait minuscule.
     expect(n).toBe(seen.size);
     expect(n).toBeGreaterThan(150);
-  });
+  }, 60_000);
 
   it("produit la meme forme que le calldata reel : 352 octets de params pour un exact-in-single", () => {
     const data = encodeUniversalRouterExactInSingle([

@@ -227,6 +227,39 @@ rather than a number is [`engine/tare/sweep.py:137-142`](../engine/tare/sweep.py
   a token to a recipient and it cannot distinguish a fee taken by the hook from output diverted
   anywhere else.
 
+## 11. The Ledger approval has never touched a Ledger
+
+The guard can ask a Ledger device to approve a swap: `packages/guard/src/ledger.ts` opens a device
+over WebHID, builds an EIP-712 message whose fields are the pool, the hook, the measured bps, the
+label, the size, the direction and the measurement block, and calls `signEIP712Message` through
+`@ledgerhq/hw-app-eth@7.8.16` / `@ledgerhq/hw-transport-webhid@6.36.0`.
+
+**That code has never been executed against a physical device, and never against Speculos.** Every
+test it has is against a fake device object ([`packages/guard/test/ledger.test.ts`](../packages/guard/test/ledger.test.ts));
+nobody involved in this project has seen these fields rendered on a real screen. Reproduce what
+*is* verified with `cd packages/guard && npm install && npm run typecheck && npm test`.
+
+What is therefore unknown: how the Ledger Ethereum app lays out these field names on the device
+screen, whether long string values are truncated or paged, how it renders the `TareSwap[]` array or
+an empty one, and which `v` a real device returns. No **ERC-7730** clear-signing descriptor has
+been written or submitted to Ledger's registry, so the rendering is whatever the generic EIP-712
+renderer does.
+
+What *is* verified, and is the property that matters: **every failure path answers no.** No
+transport, no `navigator.hid`, a device that will not open, any error raised while signing, a
+human rejection (`0x6985`), an unreadable signature, a call carrying text but no report — each
+returns `approved: false` with a reason naming the cause. Note the honest edge of that list: the
+real-world reasons a signature fails — device locked, Ethereum app not open, cable pulled — all
+share one `catch`, and it is that code path that has been exercised, not the causes themselves.
+
+There is deliberately no `signEIP712HashedMessage` fallback for devices too old for full typed
+data: that call displays two hashes, which is the blind blob the whole design exists to refuse, so
+an incapable device gets a refusal instead of a signature.
+
+And when it does work, the attestation is bounded: a signature says *this device displayed these
+fields and a human approved*. It says nothing about whether the bps figure is right, whether the
+hook still behaves that way at the current block, or what happened to the transaction afterwards.
+
 ---
 
 Labels and their exact meanings: [`HONESTY.md`](HONESTY.md). How the number is produced:

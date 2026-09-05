@@ -49,11 +49,12 @@ describe("poolId", () => {
       expect(id, `pool ${r.pool_id}`).toBe(r.pool_id);
       checked++;
     }
-    // Le corpus grandit (199 pools au premier balayage, 371 apres elargissement) : on verifie
-    // que CHAQUE pool distinct se re-derive, pas qu'il y en ait un nombre fige.
+    // Le corpus grandit : on verifie que CHAQUE pool distinct se re-derive, pas qu'il y en
+    // ait un nombre fige. Budget explicite pour la meme raison que dans encode.test.ts :
+    // la duree croit avec le corpus, et une expiration se lirait comme un keccak256 faux.
     expect(checked).toBe(seen.size);
     expect(checked).toBeGreaterThan(150);
-  });
+  }, 60_000);
 
   it("encode la PoolKey sur exactement 5 mots de 32 octets", () => {
     const enc = encodePoolKey({

@@ -34,6 +34,38 @@ export {
   ledgerApprover,
 } from "./approver.js";
 export type { Approver, ApprovalDecision, LedgerTransport, GateOptions } from "./approver.js";
+/**
+ * Le chemin Ledger. Les paquets @ledgerhq ne sont charges qu'a l'ouverture reelle d'un
+ * appareil (import() dynamique dans ledger.ts) : importer @tare/guard n'en tire aucun octet.
+ */
+export {
+  ledgerEip712Approver,
+  ledgerWebHidTransport,
+  openWebHidDevice,
+  buildGuardTypedData,
+  encodeSignature,
+  isUserRejection,
+  promptDigest,
+  takeField,
+  labelField,
+  swapSizeField,
+  freshnessField,
+  datasetField,
+  TARE_GUARD_TYPES,
+  TARE_GUARD_PRIMARY_TYPE,
+  LEDGER_DEFAULT_PATH,
+  LEDGER_STATUS_USER_REJECTED,
+} from "./ledger.js";
+export type {
+  Eip712Field,
+  Eip712TypedData,
+  TypedDataOptions,
+  LedgerTransportOptions,
+  DeviceSignature,
+  DeviceSession,
+  OpenDevice,
+  EthLike,
+} from "./ledger.js";
 export {
   encodeUniversalRouterExactInSingle,
   encodeExactInSingleParams,

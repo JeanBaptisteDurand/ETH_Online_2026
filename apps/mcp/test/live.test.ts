@@ -38,6 +38,20 @@ test("the live counterfactual reproduces the committed row, quote leg for quote 
     block: BLOCK,
     timeoutMs: 120000,
   });
+  // Un echec ici a une cause bien plus probable qu'un moteur casse : le fork vise est
+  // deja occupe par un autre mesureur. Le talon est un etat GLOBAL du nud ; deux
+  // processus qui le posent et le retirent se marchent dessus, et le moteur refuse
+  // desormais de rendre un nombre dans ce cas (faux resultat #5). Le message le dit,
+  // plutot que de laisser lire "MEASURED attendu, NOT_MEASURABLE obtenu" comme une
+  // regression du contrefactuel.
+  if (r.label !== "MEASURED" && /mesureur_par_fork|stub_absent/.test(r.reason ?? "")) {
+    assert.fail(
+      `Le fork ${cfg().rpcUrl} est partage avec un autre mesureur : ${r.reason}\n` +
+        "Ce test a besoin d'un fork a lui. Lancez-en un et pointez-le :\n" +
+        "  anvil --fork-url $RPC --fork-block-number 50614000 --port 8610 &\n" +
+        "  TARE_RPC_URL=http://127.0.0.1:8610 npm test",
+    );
+  }
   assert.equal(r.label, "MEASURED");
   // Not "close to": the same integers. The stub is deterministic and the fork is pinned.
   assert.equal(r.out_with, row.out_with);

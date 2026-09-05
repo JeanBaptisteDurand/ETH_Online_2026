@@ -3,12 +3,13 @@
   "version": "0.1.0",
   "type": "module",
   "license": "Apache-2.0",
-  "description": "TARE Guard \u2014 intercepte un swap Uniswap v4 avant signature, decode la PoolKey du calldata, consulte la table de mesures TARE et rend un verdict.",
+  "description": "TARE Guard — intercepte un swap Uniswap v4 avant signature, decode la PoolKey du calldata, consulte la table de mesures TARE et rend un verdict.",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
     "./browser": "./src/browser.ts",
+    "./ledger": "./src/ledger.ts",
     "./table": "./data/table.json"
   },
   "files": [
@@ -31,5 +32,9 @@
     "esbuild": "^0.25.0",
     "typescript": "^5.9.3",
     "vitest": "^3.2.7"
+  },
+  "dependencies": {
+    "@ledgerhq/hw-app-eth": "^7.8.16",
+    "@ledgerhq/hw-transport-webhid": "^6.36.0"
   }
 }

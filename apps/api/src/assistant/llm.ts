@@ -12,9 +12,16 @@
  * timeout, une reponse TRONQUEE : on retombe sur le planificateur deterministe et on
  * l'ECRIT dans `degraded`. Jamais un resultat a moitie.
  *
- * L'ORDRE DES FOURNISSEURS : Ollama d'abord (local, gratuit, granite3.3:8b), OpenAI
- * en repli (gpt-4o-mini). Chaque echec est conserve et publie ; on ne fait jamais
- * passer une bascule de fournisseur pour un fonctionnement normal.
+ * LES FOURNISSEURS COURENT ENSEMBLE, ILS NE SE SUIVENT PLUS. Ils etaient essayes EN
+ * SERIE, et la facture a ete mesuree : une question libre a mis 51,8 s parce que la
+ * laisse d'Ollama (45 s) etait payee EN ENTIER avant qu'OpenAI n'ait le droit de
+ * commencer. On les lance donc en meme temps et on garde la PREMIERE REPONSE VALIDE —
+ * celle qui passe Zod ET l'auditeur de nombres, pas la premiere ARRIVEE : un JSON casse
+ * rendu en une seconde ne doit pas battre un plan correct rendu en trois.
+ *
+ * Les perdants sont annules pour de vrai (AbortSignal jusqu'au fetch), et ce que CHACUN
+ * a fait — gagnant, perdant, refuse, expire, annule — est publie dans `why`. La vitesse
+ * ne se paie pas en tracabilite : c'est la tracabilite qui est le produit.
  *
  * LA TRONCATURE EST UN ECHEC, PAS UNE REPONSE COURTE. Ollama la signale par
  * `done_reason: "length"`, OpenAI par `finish_reason: "length"`. Les deux sont
@@ -25,6 +32,7 @@ import "../config.js"; // charge .env une fois, sans jamais journaliser une cle
 import { parseModelPlan, ACTION_CATALOGUE, type Action } from "./actions.js";
 import { plan as deterministicPlan, type Intent, type PlanOut, type PlannerContext } from "./planner.js";
 import type { StoreView } from "./store.js";
+import { sanitizeModelSay } from "./narrate.js";
 import {
   buildExplain,
   detectExplain,
@@ -36,7 +44,24 @@ import {
 
 /** Ce qu'un appel modele rend : du texte, ou du texte avec le nom du fournisseur. */
 export type ModelReply = string | { text: string; provider?: string; note?: string };
-export type ModelCall = (req: { system: string; user: string }) => Promise<ModelReply>;
+
+/**
+ * Un appel modele. `signal` est ce qui rend la course honnete : sans lui, "annuler le
+ * perdant" voudrait dire "ignorer sa reponse" — la requete continuerait a tourner, le
+ * jeton continuerait a etre facture, et le fournisseur continuerait a etre charge pour
+ * rien. Un appel qui ignore `signal` reste correct, il est juste moins poli.
+ */
+export type ModelCall = (req: {
+  system: string;
+  user: string;
+  signal?: AbortSignal;
+}) => Promise<ModelReply>;
+
+/** Un fournisseur nomme : la course a besoin de savoir QUI a fait quoi. */
+export interface ProviderCall {
+  name: string;
+  call: ModelCall;
+}
 
 export type PlannerFn = (
   question: string,
@@ -223,6 +248,30 @@ export class TruncatedReplyError extends Error {
   }
 }
 
+/**
+ * La laisse d'UN fournisseur a claque. C'est une classe et pas un `Error` nu parce que
+ * le rapport de course doit distinguer "il n'a pas repondu a temps" de "il a plante" et
+ * de "on l'a annule" : trois causes, trois lignes differentes sous les yeux du lecteur.
+ * Le texte, lui, ne change pas — il est deja dans les journaux du matin.
+ */
+export class ProviderTimeoutError extends Error {
+  constructor(
+    readonly provider: string,
+    readonly timeoutMs: number,
+  ) {
+    super(`${provider} n'a pas repondu en ${timeoutMs} ms (laisse du fournisseur)`);
+    this.name = "ProviderTimeoutError";
+  }
+}
+
+/** Un fournisseur coupe parce qu'un autre a gagne la course. Ce n'est pas une panne. */
+export class RaceCancelledError extends Error {
+  constructor(readonly provider: string) {
+    super(`${provider} annule : un autre fournisseur a rendu une reponse valide avant lui`);
+    this.name = "RaceCancelledError";
+  }
+}
+
 export interface ProviderOptions {
   timeoutMs?: number;
   maxTokens?: number;
@@ -236,9 +285,12 @@ export interface ProviderOptions {
  * donc la chaine etait avortee avant d'avoir essaye OpenAI. Le repli existait dans le
  * code, il ne s'executait jamais. Un repli non atteignable est un repli absent.
  *
- * La regle depuis : chaque fournisseur a SA laisse, et le budget global vaut la SOMME
- * des laisses plus une marge. Un fournisseur lent coute son temps, il ne coute pas le
- * tour de celui qui suit.
+ * La regle depuis : chaque fournisseur a SA laisse, et le budget global doit tenir la
+ * PLUS LONGUE d'entre elles, plus une marge. Depuis que les fournisseurs courent
+ * ensemble (`raceProviders`), c'est un MAXIMUM et non plus une somme : personne
+ * n'attend son tour, donc personne ne paie le tour d'un autre. Un budget cale sur une
+ * seule laisse reste le meme piege qu'avant — il couperait le plus lent avant sa propre
+ * laisse, et un repli inatteignable est un repli absent.
  *
  * Le defaut d'Ollama est large parce qu'il est mesure, pas devine : granite3.3:8b rend
  * un plan complet en 11 a 28 s sur la machine de developpement (prompt systeme reel,
@@ -248,7 +300,11 @@ export interface ProviderOptions {
  */
 export const DEFAULT_OLLAMA_TIMEOUT_MS = 45_000;
 export const DEFAULT_OPENAI_TIMEOUT_MS = 20_000;
-/** la marge du budget global au-dessus de la somme des laisses */
+/**
+ * La marge du budget global au-dessus de la laisse la PLUS LONGUE. Le nom garde son
+ * "CHAIN" d'origine parce qu'il est exporte et lu ailleurs ; ce qu'il mesure, lui, a
+ * change de sens le jour ou les fournisseurs ont cesse de se suivre.
+ */
 export const CHAIN_MARGIN_MS = 3_000;
 
 /* Des FONCTIONS, pas des constantes de module. Une constante evaluee a l'import lit
@@ -274,9 +330,18 @@ async function postJson(
   timeoutMs: number,
   f: typeof fetch,
   name: string,
+  external?: AbortSignal,
 ): Promise<{ status: number; text: string }> {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  const relay = () => ctrl.abort();
+  if (external) {
+    if (external.aborted) {
+      clearTimeout(timer);
+      throw new RaceCancelledError(name);
+    }
+    external.addEventListener("abort", relay, { once: true });
+  }
   try {
     const r = await f(url, {
       method: "POST",
@@ -288,11 +353,16 @@ async function postJson(
   } catch (e) {
     // `This operation was aborted` ne dit ni QUI a coupe ni AU BOUT DE COMBIEN.
     // Ce message finit dans `degraded`, sous les yeux de quelqu'un : il doit se lire.
-    if (ctrl.signal.aborted)
-      throw new Error(`${name} n'a pas repondu en ${timeoutMs} ms (laisse du fournisseur)`);
+    // L'ordre des deux tests n'est pas indifferent : quand la course annule, le signal
+    // interne est abattu LUI AUSSI (c'est le relais qui l'abat), donc le tester en
+    // premier ferait passer une annulation pour un depassement de laisse — un delai
+    // invente, exactement ce qu'on s'interdit.
+    if (external?.aborted) throw new RaceCancelledError(name);
+    if (ctrl.signal.aborted) throw new ProviderTimeoutError(name, timeoutMs);
     throw e;
   } finally {
     clearTimeout(timer);
+    external?.removeEventListener("abort", relay);
   }
 }
 
@@ -306,7 +376,7 @@ export function makeOllamaCall(
   const maxTokens = cfg.maxTokens ?? 700;
   const f = cfg.fetchImpl ?? fetch;
   const name = `ollama:${model}`;
-  return async ({ system, user }) => {
+  return async ({ system, user, signal }) => {
     const { status, text } = await postJson(
       `${base}/api/chat`,
       {
@@ -323,6 +393,7 @@ export function makeOllamaCall(
       timeoutMs,
       f,
       name,
+      signal,
     );
     if (status !== 200) throw new Error(`${name} HTTP ${status}: ${text.slice(0, 200)}`);
     const j = JSON.parse(text) as {
@@ -349,7 +420,7 @@ export function makeOpenAiCall(
   const maxTokens = cfg.maxTokens ?? 700;
   const f = cfg.fetchImpl ?? fetch;
   const name = `openai:${model}`;
-  return async ({ system, user }) => {
+  return async ({ system, user, signal }) => {
     if (!apiKey) throw new Error(`${name} sans cle : OPENAI_API_KEY absent`);
     const { status, text } = await postJson(
       `${base}/chat/completions`,
@@ -367,6 +438,7 @@ export function makeOpenAiCall(
       timeoutMs,
       f,
       name,
+      signal,
     );
     // Le corps d'erreur peut contenir la cle en clair dans un message : on ne le recopie pas.
     if (status !== 200) throw new Error(`${name} HTTP ${status}`);
@@ -383,10 +455,13 @@ export function makeOpenAiCall(
 }
 
 /**
- * Essaye les appels dans l'ordre. Chaque echec est CONSERVE et remonte avec le
- * succes : basculer de fournisseur n'est pas un fonctionnement normal, ca se dit.
+ * Essaye les appels DANS L'ORDRE. Garde pour ce qu'il sert encore : un appelant qui
+ * veut explicitement un ordre de priorite, et les tests qui verifient le repli seul.
+ * Ce n'est plus ce que `plannerFromEnv` branche — voir `raceProviders` : la chaine
+ * fait payer la laisse du premier avant que le second ait le droit de commencer, et
+ * cette attente-la a ete mesuree a 45 s sur une question qui a fini en 51,8 s.
  */
-export function chainCalls(calls: { name: string; call: ModelCall }[]): ModelCall {
+export function chainCalls(calls: ProviderCall[]): ModelCall {
   return async (req) => {
     const failures: string[] = [];
     for (const { name, call } of calls) {
@@ -404,10 +479,279 @@ export function chainCalls(calls: { name: string; call: ModelCall }[]): ModelCal
   };
 }
 
+/* -------------------------------------------------------------- la course */
+
+/**
+ * LA NOTE D'UN FOURNISSEUR DANS LA COURSE.
+ *
+ *  - `valide`  : utilisable tel quel. Il gagne, et les autres sont annules.
+ *  - `reserve` : utilisable, mais avec une reserve ecrite (typiquement : le modele a
+ *                glisse un chiffre dans sa phrase, l'auditeur la jettera). On ne le
+ *                declare pas gagnant tout de suite : si un concurrent rend mieux
+ *                pendant qu'il reste du temps, c'est le concurrent qui passe. Si
+ *                personne ne fait mieux, la reserve sert — un plan dont la phrase est
+ *                jetee reste tres au-dessus d'un repli par expressions regulieres.
+ *  - `refuse`  : inutilisable (JSON casse, Zod, plan vide). Ce n'est pas un gagnant
+ *                lent, c'est un non-resultat : la course continue sans lui.
+ */
+export type Grade<T> =
+  | { grade: "valide"; value: T }
+  | { grade: "reserve"; value: T; detail: string; reason?: string }
+  | { grade: "refuse"; detail: string; reason?: string };
+
+export type RaceOutcome =
+  | "gagnant"
+  | "reserve"
+  | "perdant"
+  | "refuse"
+  | "expire"
+  | "annule"
+  | "erreur";
+
+/** Ce qu'UN fournisseur a fait, publie tel quel. Personne n'est efface du proces-verbal. */
+export interface ProviderReport {
+  provider: string;
+  outcome: RaceOutcome;
+  /** duree reellement observee pour CE fournisseur, en ms. Mesuree, pas estimee. */
+  ms: number;
+  detail: string | null;
+  /** la cause, reutilisable telle quelle par `degraded.reason` quand tout echoue */
+  reason: string | null;
+}
+
+export interface RaceResult<T> {
+  value: T | null;
+  provider: string | null;
+  /** vrai quand ce qui est rendu vient d'une reserve et non d'un gagnant franc */
+  reserved: boolean;
+  reports: ProviderReport[];
+  /** duree de la course entiere, mesuree */
+  ms: number;
+}
+
+/**
+ * LANCE TOUS LES FOURNISSEURS EN MEME TEMPS ET GARDE LA PREMIERE REPONSE VALIDE.
+ *
+ * "Valide" et "arrivee la premiere" ne sont pas la meme chose, et c'est tout le sujet :
+ * granite3.3:8b rend parfois un JSON tronque en deux secondes la ou gpt-4o-mini rend un
+ * plan correct en trois. Prendre la premiere ARRIVEE ferait retomber la question sur le
+ * planificateur deterministe alors qu'un plan correct etait en vol. On juge donc chaque
+ * reponse (`grade`) AVANT de declarer un gagnant.
+ *
+ * Ce que cette fonction ne fait pas : inventer une note pour un fournisseur qu'on n'a
+ * pas laisse finir. Un fournisseur coupe par la course est marque `annule`, un
+ * fournisseur coupe par le budget est marque `expire` — jamais `refuse`, qui voudrait
+ * dire qu'on a lu sa reponse et qu'elle etait mauvaise.
+ */
+export async function raceProviders<T>(
+  calls: ProviderCall[],
+  req: { system: string; user: string },
+  grade: (text: string, provider: string) => Grade<T> | Promise<Grade<T>>,
+  budgetMs?: number,
+): Promise<RaceResult<T>> {
+  const t0 = Date.now();
+  const ctrl = new AbortController();
+  const reports = new Map<string, ProviderReport>();
+  // Un objet mutable plutot que deux `let` : la valeur est ecrite depuis des taches
+  // concurrentes, et un `let` capture donnerait a TypeScript une fausse certitude.
+  // Combien de temps on laisse aux autres apres qu'une reserve soit arrivee. Assez
+  // pour qu'un fournisseur deja engage finisse, trop peu pour payer une laisse entiere.
+  const GRACE_RESERVE_MS = Math.min(1500, budgetMs ?? 1500);
+
+  const box: {
+    winner: { provider: string; value: T; ms: number } | null;
+    reserve: { provider: string; value: T; ms: number } | null;
+  } = { winner: null, reserve: null };
+
+  let announce: () => void = () => {};
+  const firstValid = new Promise<void>((res) => {
+    announce = res;
+  });
+
+  const tasks = calls.map(async ({ name, call }) => {
+    const started = Date.now();
+    try {
+      const reply = await call({ ...req, signal: ctrl.signal });
+      const text = typeof reply === "string" ? reply : reply.text;
+      // Le fournisseur a le dernier mot sur son propre nom : un appel peut rendre un
+      // nom plus precis que celui de la liste.
+      const provider = typeof reply === "string" ? name : (reply.provider ?? name);
+      if (typeof text !== "string" || text.trim() === "") {
+        reports.set(name, {
+          provider,
+          outcome: "refuse",
+          ms: Date.now() - started,
+          detail: `${provider} n'a rien rendu`,
+          reason: "reponse vide du modele",
+        });
+        return;
+      }
+      const g = await grade(text, provider);
+      const ms = Date.now() - started;
+      if (g.grade === "valide") {
+        if (box.winner) {
+          reports.set(name, {
+            provider,
+            outcome: "perdant",
+            ms,
+            detail: "reponse valide, mais arrivee apres le gagnant",
+            reason: null,
+          });
+          return;
+        }
+        box.winner = { provider, value: g.value, ms };
+        reports.set(name, { provider, outcome: "gagnant", ms, detail: null, reason: null });
+        announce();
+        return;
+      }
+      if (g.grade === "reserve") {
+        if (!box.reserve) {
+          box.reserve = { provider, value: g.value, ms };
+          // Une reserve ne gagne pas tout de suite : un `valide` d'un autre fournisseur
+          // vaut mieux, et il arrive peut-etre dans la seconde. Mais elle ne doit pas
+          // non plus faire payer le budget entier — c'est le cas ORDINAIRE, et une
+          // premiere version de cette course ne cloturait que sur `valide`, si bien que
+          // la correction de latence ne servait justement pas la ou elle sert. On ouvre
+          // donc une fenetre de grace bornee, puis on se contente de la reserve.
+          const grace = setTimeout(() => {
+            if (!box.winner) announce();
+          }, GRACE_RESERVE_MS);
+          if (typeof grace === "object" && "unref" in grace) grace.unref();
+        }
+        reports.set(name, {
+          provider,
+          outcome: "reserve",
+          ms,
+          detail: g.detail,
+          reason: g.reason ?? null,
+        });
+        return;
+      }
+      reports.set(name, {
+        provider,
+        outcome: "refuse",
+        ms,
+        detail: g.detail,
+        reason: g.reason ?? null,
+      });
+    } catch (e) {
+      const ms = Date.now() - started;
+      const outcome: RaceOutcome =
+        e instanceof RaceCancelledError
+          ? "annule"
+          : e instanceof ProviderTimeoutError
+            ? "expire"
+            : "erreur";
+      reports.set(name, {
+        provider: name,
+        outcome,
+        ms,
+        detail: (e as Error).message.slice(0, 200),
+        // Trois causes, trois phrases. Une version anterieure ecrivait « modele
+        // injoignable » des que ce n'etait pas une annulation : un fournisseur
+        // parfaitement joignable, seulement plus lent que sa laisse, etait publie comme
+        // injoignable. Le champ `reason` est lu par un humain qui decide s'il faut
+        // changer de fournisseur ; lui mentir sur la cause lui fait prendre la mauvaise
+        // decision.
+        reason:
+          outcome === "annule"
+            ? null
+            : outcome === "expire"
+              ? "n'a pas repondu dans sa laisse"
+              : "modele injoignable",
+      });
+    }
+  });
+
+  // Les taches ne rejettent jamais : tout est attrape au-dessus. `allSettled` est donc
+  // l'evenement "plus personne ne court", pas un ramasse-miettes d'erreurs.
+  const everyone = Promise.allSettled(tasks);
+  let budgetHit = false;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const budget =
+    budgetMs === undefined
+      ? new Promise<void>(() => {})
+      : new Promise<void>((res) => {
+          timer = setTimeout(() => {
+            budgetHit = true;
+            res();
+          }, budgetMs);
+        });
+
+  await Promise.race([firstValid, everyone, budget]);
+  if (timer) clearTimeout(timer);
+  ctrl.abort();
+
+  // Ce qui n'a pas encore de note n'en aura pas : on vient de couper. On ecrit ce qu'on
+  // SAIT (annule, ou budget epuise), on n'attend pas une note qui ne viendra pas et on
+  // n'en fabrique pas une. La boucle est synchrone juste apres l'abort : aucune tache
+  // ne peut s'intercaler pour ecrire entre-temps.
+  for (const { name } of calls) {
+    if (reports.has(name)) continue;
+    reports.set(name, {
+      provider: name,
+      outcome: budgetHit ? "expire" : "annule",
+      ms: Date.now() - t0,
+      detail: budgetHit
+        ? `budget de la course epuise : ${budgetMs} ms`
+        : "coupe, un autre fournisseur a rendu une reponse utilisable avant lui",
+      // Coupe par le budget n'est pas injoignable : ce fournisseur repondait peut-etre,
+      // on ne l'a simplement pas laisse finir. On publie la cause reelle.
+      reason: budgetHit ? `budget de la course epuise : ${budgetMs} ms` : null,
+    });
+  }
+  const list = calls.map((c) => reports.get(c.name)!);
+  const won = box.winner ?? box.reserve;
+  return {
+    value: won ? won.value : null,
+    provider: won ? won.provider : null,
+    reserved: box.winner === null && box.reserve !== null,
+    reports: list,
+    ms: Date.now() - t0,
+  };
+}
+
+/** Le proces-verbal de la course, en clair, une ligne par fournisseur. */
+export function describeRace(reports: ProviderReport[]): string[] {
+  return reports.map((r) => {
+    const head = `${r.provider} — ${r.outcome} en ${r.ms} ms`;
+    return r.detail ? `${head} : ${r.detail}` : head;
+  });
+}
+
+/**
+ * La course vue comme un appel unique. Ici la seule exigence est "du texte non vide" :
+ * ce qui suit (le choix d'un sujet dans une liste fermee) a sa propre validation, et la
+ * refaire ici obligerait cette fonction a connaitre ce qu'elle transporte.
+ */
+export function raceCalls(calls: ProviderCall[], budgetMs?: number): ModelCall {
+  return async (req) => {
+    if (calls.length === 0) throw new Error("aucun fournisseur de modele configure");
+    const r = await raceProviders<string>(
+      calls,
+      req,
+      (text) => ({ grade: "valide", value: text }),
+      budgetMs,
+    );
+    if (r.value === null) throw new Error(describeRace(r.reports).join(" ; "));
+    const losers = r.reports.filter((x) => x.outcome !== "gagnant");
+    return {
+      text: r.value,
+      provider: r.provider ?? undefined,
+      note: losers.length ? `course : ${describeRace(losers).join(" ; ")}` : undefined,
+    };
+  };
+}
+
 export interface EnvModel {
+  /** la course vue comme un appel unique : pour ce qui n'a qu'un texte a recuperer */
   call: ModelCall;
+  /** les fournisseurs un par un : la course au niveau du PLAN en a besoin pour juger
+   *  chaque reponse separement et pour nommer qui a fait quoi */
+  calls: ProviderCall[];
   providers: string[];
-  /** le budget de la chaine entiere : somme des laisses + marge. JAMAIS une seule laisse. */
+  /** le budget de la course entiere : la plus LONGUE laisse + marge. JAMAIS moins que
+   *  la plus longue laisse — ce serait couper un fournisseur avant sa propre limite. */
   budgetMs: number;
 }
 
@@ -415,9 +759,8 @@ export interface EnvModel {
  * Le modele tel que l'environnement le decrit. Rien n'est teste par le reseau ici :
  * une sonde au demarrage mentirait sur l'etat au moment de la question.
  *
- * `budgetMs` sort d'ici parce que c'est ici qu'on sait COMBIEN de fournisseurs seront
- * essayes. Un appelant qui fixerait le budget a la laisse d'un seul rendrait le repli
- * inatteignable — c'est le bug qu'on a paye, il est documente plus haut.
+ * `budgetMs` sort d'ici parce que c'est ici qu'on connait les laisses. Il vaut la plus
+ * longue, plus la marge : les fournisseurs courent ensemble, ils ne s'attendent pas.
  */
 export function modelCallFromEnv(opts: ProviderOptions = {}): EnvModel | null {
   const calls: { name: string; call: ModelCall }[] = [];
@@ -439,10 +782,12 @@ export function modelCallFromEnv(opts: ProviderOptions = {}): EnvModel | null {
     calls.push({ name: `openai:${model}`, call: makeOpenAiCall({ ...opts, timeoutMs }) });
   }
   if (calls.length === 0) return null;
+  const budgetMs = Math.max(...leashes) + CHAIN_MARGIN_MS;
   return {
-    call: chainCalls(calls),
+    call: raceCalls(calls, budgetMs),
+    calls,
     providers: calls.map((c) => c.name),
-    budgetMs: leashes.reduce((a, b) => a + b, 0) + CHAIN_MARGIN_MS,
+    budgetMs,
   };
 }
 
@@ -453,6 +798,8 @@ export interface TopicChoice {
   say: string | null;
   provider: string | null;
   error: string | null;
+  /** ce que les fournisseurs perdants ont fait, quand l'appel etait une course */
+  note: string | null;
 }
 
 /**
@@ -468,23 +815,38 @@ export async function chooseTopic(
   try {
     reply = await withTimeout(call({ system: buildTopicPrompt(), user: question }), timeoutMs);
   } catch (e) {
-    return { topic: null, say: null, provider: null, error: (e as Error).message.slice(0, 300) };
+    return {
+      topic: null,
+      say: null,
+      provider: null,
+      error: (e as Error).message.slice(0, 300),
+      note: null,
+    };
   }
-  const { text, provider } = typeof reply === "string" ? { text: reply, provider: null } : { text: reply.text, provider: reply.provider ?? null };
+  const { text, provider, note } =
+    typeof reply === "string"
+      ? { text: reply, provider: null, note: null }
+      : { text: reply.text, provider: reply.provider ?? null, note: reply.note ?? null };
   let parsed: unknown;
   try {
     parsed = extractJson(text);
   } catch (e) {
-    return { topic: null, say: null, provider, error: (e as Error).message.slice(0, 300) };
+    return { topic: null, say: null, provider, error: (e as Error).message.slice(0, 300), note };
   }
   const o = (parsed ?? {}) as Record<string, unknown>;
   const topic = typeof o.topic === "string" ? o.topic.trim() : "";
   const say = typeof o.say === "string" && o.say.trim() !== "" ? o.say.trim().slice(0, 600) : null;
   if (topic === "" || topic === "none")
-    return { topic: null, say, provider, error: topic === "" ? "aucun sujet rendu" : null };
+    return { topic: null, say, provider, error: topic === "" ? "aucun sujet rendu" : null, note };
   if (!DOCTRINE_IDS.includes(topic))
-    return { topic: null, say, provider, error: `sujet hors catalogue : ${topic.slice(0, 60)}` };
-  return { topic, say, provider, error: null };
+    return {
+      topic: null,
+      say,
+      provider,
+      error: `sujet hors catalogue : ${topic.slice(0, 60)}`,
+      note,
+    };
+  return { topic, say, provider, error: null, note };
 }
 
 function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
@@ -554,6 +916,7 @@ export async function planExplain(
       topic = choice.topic;
       chosenBy = "modele";
       why.push(`sujet choisi par le modele${choice.provider ? ` (${choice.provider})` : ""}`);
+      if (choice.note) why.push(choice.note);
     } else {
       degraded = {
         reason: "aiguillage_modele_indisponible",
@@ -576,83 +939,171 @@ export async function planExplain(
   return explainPlan(res, say);
 }
 
+/** Ce qu'une reponse de modele vaut une fois lue : un plan, ou un renvoi vers la doctrine. */
+export type PlanCandidate =
+  | { kind: "plan"; intent: string; actions: Action[]; say: string | null }
+  | { kind: "explain" };
+
 /**
- * Enveloppe un appel modele en planificateur. Le repli deterministe n'est pas un
- * filet de securite discret : il est annonce dans `degraded`.
+ * JUGE UNE REPONSE DE MODELE, sans reseau et sans effet de bord.
+ *
+ * C'est ici que "valide" prend son sens dans la course : Zod d'abord (actions.ts), puis
+ * l'auditeur de nombres (narrate.ts) sur la phrase du modele. Sortir ce jugement du
+ * planificateur permet de l'appliquer a CHAQUE concurrent au moment ou il repond, ce
+ * qui est la seule facon de preferer un plan correct arrive en troisieme a un JSON
+ * casse arrive en premier.
+ *
+ * POURQUOI `reserve` ET PAS `refuse` QUAND LA PHRASE PORTE UN CHIFFRE. Le plan reste
+ * bon : ce sont ses ACTIONS qui interrogent le jeu, et elles ont passe Zod. C'est la
+ * phrase qui est fautive, et ask.ts sait deja la jeter en le disant (`degraded`
+ * uncited_numbers_in_model_sentence). La declarer perdante d'office ferait retomber la
+ * question sur les expressions regulieres pour une phrase d'introduction — on perdrait
+ * un plan correct par exces de zele.
+ *
+ * CE QUE CE PRE-AUDIT NE SAIT PAS. Il tourne AVANT l'execution, donc sans citation :
+ * tout chiffre y est donc non source, y compris un seuil que la narration finale
+ * aurait pu citer. Le verdict definitif reste celui d'ask.ts, avec les vraies
+ * citations. La consequence d'une divergence est bornee et jamais un faux nombre :
+ * un plan honnete peut seulement perdre sa priorite dans la course.
  */
-export function makeLlmPlanner(call: ModelCall, opts: LlmPlannerOptions = {}): PlannerFn {
-  const timeoutMs = opts.budgetMs ?? ollamaTimeoutMs() + openaiTimeoutMs() + CHAIN_MARGIN_MS;
+export function gradeModelPlan(text: string): Grade<PlanCandidate> {
+  let parsed: unknown;
+  try {
+    parsed = extractJson(text);
+  } catch (e) {
+    return {
+      grade: "refuse",
+      reason: "JSON illisible",
+      detail: (e as Error).message.slice(0, 300),
+    };
+  }
+
+  // Le modele a lui-meme range la question dans la doctrine : on lui fera choisir le
+  // sujet dans une liste fermee, on n'ecrit toujours pas le texte a sa place.
+  if ((parsed as { intent?: unknown } | null)?.intent === "explain")
+    return { grade: "valide", value: { kind: "explain" } };
+
+  const res = parseModelPlan(parsed);
+  if (!res.ok)
+    return {
+      grade: "refuse",
+      reason: "plan refuse par la validation",
+      detail: res.issues.map((i) => `${i.path}: ${i.message}`).join(" ; "),
+    };
+  if (res.plan.actions.length === 0)
+    return { grade: "refuse", reason: "plan vide", detail: "aucune action proposee" };
+
+  const say = res.plan.say ?? null;
+  const value: PlanCandidate = {
+    kind: "plan",
+    intent: res.plan.intent,
+    actions: res.plan.actions,
+    say,
+  };
+  const audit = sanitizeModelSay(say ?? undefined, [], []);
+  if (say !== null && audit.kept === null)
+    return {
+      grade: "reserve",
+      value,
+      reason: "uncited_numbers_in_model_sentence",
+      detail: `phrase du modele porteuse de nombres non sources : ${audit.violations.join(", ")}`,
+    };
+  return { grade: "valide", value };
+}
+
+/**
+ * Enveloppe un ou plusieurs appels modele en planificateur. Le repli deterministe
+ * n'est pas un filet de securite discret : il est annonce dans `degraded`.
+ *
+ * Avec PLUSIEURS fournisseurs ils courent ensemble et la premiere reponse VALIDE gagne
+ * (`raceProviders`) ; les autres sont annules et leur sort est ecrit dans `why`. Avec
+ * un seul, c'est exactement l'ancien comportement, un fournisseur qui court seul.
+ */
+export function makeLlmPlanner(
+  model: ModelCall | ProviderCall[],
+  opts: LlmPlannerOptions = {},
+): PlannerFn {
+  const calls: ProviderCall[] =
+    typeof model === "function" ? [{ name: "modele", call: model }] : [...model];
+  const timeoutMs =
+    opts.budgetMs ?? Math.max(ollamaTimeoutMs(), openaiTimeoutMs()) + CHAIN_MARGIN_MS;
+  // L'explication n'a qu'un texte a recuperer : la course y est vue comme un appel.
+  const explainCall = calls.length ? raceCalls(calls, timeoutMs) : null;
+
   return async (question, store, ctx) => {
-    const fallback = (reason: string, detail: string): PlanOut => {
+    const fallback = (reason: string, detail: string, trace: string[] = []): PlanOut => {
       const p = deterministicPlan(question, store, ctx);
       return {
         ...p,
-        why: [...p.why, `repli deterministe : ${reason}`],
+        why: [...p.why, ...trace, `repli deterministe : ${reason}`],
         degraded: { reason, detail: detail.slice(0, 300) },
       };
     };
 
     // Les questions de doctrine sont reconnues AVANT d'appeler le planificateur :
     // elles n'ont aucune action a produire, et le modele n'a qu'un sujet a choisir.
-    const det = detectExplain(question);
-    if (det)
-      return planExplain(question, store, { call, timeoutMs, rag: opts.rag });
+    if (detectExplain(question))
+      return planExplain(question, store, { call: explainCall, timeoutMs, rag: opts.rag });
 
-    let raw: ModelReply;
-    try {
-      raw = await withTimeout(
-        call({ system: buildSystemPrompt(store), user: question }),
+    const race = await raceProviders<PlanCandidate>(
+      calls,
+      { system: buildSystemPrompt(store), user: question },
+      gradeModelPlan,
+      timeoutMs,
+    );
+    // Une ligne par fournisseur, gagnant compris : c'est le proces-verbal de la course,
+    // et il part dans la reponse. Un gain de vitesse qui effacerait qui a fait quoi
+    // serait un mauvais echange pour ce projet.
+    const trace = describeRace(race.reports).map((l) => `course : ${l}`);
+
+    if (race.value === null) {
+      // Aucune valeur : on ne devine pas laquelle des pannes resumer. Quand toutes les
+      // causes se ressemblent on garde la leur, sinon on dit qu'il y en a plusieurs.
+      const causes = new Set(race.reports.map((r) => r.reason).filter((r): r is string => !!r));
+      const reason =
+        causes.size === 1
+          ? [...causes][0]!
+          : "aucun fournisseur n'a rendu de plan valide";
+      const only = race.reports.length === 1 ? race.reports[0]! : null;
+      const detail = only ? (only.detail ?? only.outcome) : describeRace(race.reports).join(" ; ");
+      return fallback(reason, detail, only ? [] : trace);
+    }
+
+    if (race.value.kind === "explain") {
+      const p = await planExplain(question, store, {
+        call: explainCall,
         timeoutMs,
-      );
-    } catch (e) {
-      return fallback("modele injoignable", (e as Error).message);
-    }
-    const text = typeof raw === "string" ? raw : raw.text;
-    const provider = typeof raw === "string" ? null : (raw.provider ?? null);
-    const note = typeof raw === "string" ? null : (raw.note ?? null);
-    if (typeof text !== "string" || text.trim() === "")
-      return fallback("reponse vide du modele", `fournisseur: ${provider ?? "inconnu"}`);
-
-    let parsedJson: unknown;
-    try {
-      parsedJson = extractJson(text);
-    } catch (e) {
-      return fallback("JSON illisible", (e as Error).message);
-    }
-
-    // Le modele a lui-meme range la question dans la doctrine : on lui fait choisir
-    // le sujet, on n'ecrit toujours pas le texte a sa place.
-    const hinted = (parsedJson as { intent?: unknown } | null)?.intent;
-    if (hinted === "explain") {
-      const p = await planExplain(question, store, { call, timeoutMs, rag: opts.rag });
+        rag: opts.rag,
+      });
       return {
         ...p,
         why: [
           ...p.why,
-          `intention explain proposee par le modele${provider ? ` (${provider})` : ""}`,
+          `intention explain proposee par le modele${race.provider ? ` (${race.provider})` : ""}`,
+          ...trace,
         ],
       };
     }
 
-    const res = parseModelPlan(parsedJson);
-    if (!res.ok)
-      return fallback(
-        "plan refuse par la validation",
-        res.issues.map((i) => `${i.path}: ${i.message}`).join(" ; "),
+    const plan = race.value;
+    const why = [
+      "planificateur LLM",
+      "actions validees par Zod avant execution",
+      `fournisseur : ${race.provider}`,
+      ...trace,
+    ];
+    if (race.reserved)
+      why.push(
+        "retenu sous reserve : la phrase du modele porte des nombres, l'auditeur de narrate.ts tranchera",
       );
-    if (res.plan.actions.length === 0) return fallback("plan vide", "aucune action proposee");
-
-    const why = ["planificateur LLM", "actions validees par Zod avant execution"];
-    if (provider) why.push(`fournisseur : ${provider}`);
-    if (note) why.push(note);
 
     return {
-      intent: intentFromActions(res.plan.actions, res.plan.intent),
-      actions: res.plan.actions,
-      reading: `plan propose par le modele (intent annonce: ${res.plan.intent})`,
+      intent: intentFromActions(plan.actions, plan.intent),
+      actions: plan.actions,
+      reading: `plan propose par le modele (intent annonce: ${plan.intent})`,
       params: emptyParams(),
       why,
-      say: res.plan.say ?? null,
+      say: plan.say,
       degraded: null,
       explain: null,
     };
@@ -718,10 +1169,13 @@ export function plannerFromEnv(opts: LlmPlannerOptions & ProviderOptions = {}): 
       why: "aucun fournisseur configure (ni OLLAMA_URL ni OPENAI_API_KEY) : expressions regulieres seules",
     };
   return {
-    planner: makeLlmPlanner(env.call, { ...opts, budgetMs: opts.budgetMs ?? env.budgetMs }),
+    planner: makeLlmPlanner(env.calls, { ...opts, budgetMs: opts.budgetMs ?? env.budgetMs }),
     mode: "llm",
     providers: env.providers,
     budget_ms: opts.budgetMs ?? env.budgetMs,
-    why: `fournisseurs essayes dans l'ordre : ${env.providers.join(" puis ")} ; le deterministe reste le filet`,
+    why:
+      env.providers.length > 1
+        ? `fournisseurs lances ensemble : ${env.providers.join(" et ")} ; la premiere reponse valide gagne, les autres sont annulees et leur sort est publie ; le deterministe reste le filet`
+        : `un seul fournisseur : ${env.providers.join("")} ; le deterministe reste le filet`,
   };
 }

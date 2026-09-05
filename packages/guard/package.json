@@ -1,0 +1,28 @@
+{
+  "name": "@tare/guard",
+  "version": "0.1.0",
+  "type": "module",
+  "license": "Apache-2.0",
+  "description": "TARE Guard — intercepte un swap Uniswap v4 avant signature, decode la PoolKey du calldata, consulte la table de mesures TARE et rend un verdict.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./table": "./data/table.json"
+  },
+  "files": ["src", "data", "README.md"],
+  "scripts": {
+    "build:table": "node scripts/build-table.mjs",
+    "build:bundle": "node scripts/build-bundle.mjs",
+    "build": "npm run build:table && npm run build:bundle",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "example": "node scripts/serve-example.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7"
+  }
+}

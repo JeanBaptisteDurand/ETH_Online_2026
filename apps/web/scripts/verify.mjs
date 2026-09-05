@@ -6,7 +6,7 @@
 // Il sort en code 1 des qu'une affirmation ne tient plus. C'est volontaire : une affirmation
 // invalidee doit casser la chaine, pas s'afficher quand meme.
 
-import { readFileSync } from 'node:fs'
+import { readFileSync, existsSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -61,7 +61,12 @@ check(
 )
 
 // --- 4. le jeu de donnees derive n invente rien
-const measurements = JSON.parse(readFileSync(resolve(repo, 'docs/measurements-v1.json'), 'utf8'))
+// Doit lire EXACTEMENT la meme source que build-dataset.mjs, sinon le recompte compare le jeu
+// affiche a un autre corpus et invalide tout — ce qui est arrive en basculant sur le balayage complet.
+const JSONL = resolve(repo, 'docs/dataset/measurements.jsonl')
+const measurements = existsSync(JSONL)
+  ? readFileSync(JSONL, 'utf8').split('\n').filter((l) => l.trim()).map((l) => JSON.parse(l))
+  : JSON.parse(readFileSync(resolve(repo, 'docs/measurements-v1.json'), 'utf8'))
 const ds = JSON.parse(readFileSync(resolve(root, 'src/data/dataset.json'), 'utf8'))
 check(ds.totals.rows === measurements.length, `${ds.totals.rows} lignes = les ${measurements.length} mesures brutes`)
 const over1 = measurements.filter(

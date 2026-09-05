@@ -130,7 +130,7 @@ sums it: in-range `uint128` liquidity from different token pairs has no shared d
 reports min / median / max of the measured subset together with the full list of values the median
 was computed from, and it says how much of the hook's surface is *not* measured.
 
-**We do not claim the corpus is the population.** 995 rows, 199 pools, 12 hooks, one chain, one
+**We do not claim the corpus is the population.** 7,634 rows, 605 pools, 16 hooks, one chain, one
 block. Everything outside that is unmeasured, and unmeasured is not zero.
 
 **We do not upgrade a label to make a point.** The single largest reading in the corpus,
@@ -145,7 +145,7 @@ Eight. Six are on the project's own record from before and during this repositor
 found inside this repository and are reproducible here. Each is written out because each is a *class*
 of error that a reader should assume is present in any measurement pipeline that does not name it.
 
-**Five of the eight are the same mistake:** a read was bounded, the bound was invisible, and the
+**Five of the nine are the same mistake:** a read was bounded, the bound was invisible, and the
 truncated result **parsed cleanly**. None of them raised an exception. All of them produced a number
 or a verdict. That is why honesty rule 3 is stated as an absolute rather than a preference:
 
@@ -396,9 +396,45 @@ appears elsewhere: the x402 facilitator fixture is copied, not invented
 
 ---
 
-## What the eight have in common
+### #9 — a benchmark that measured nothing, then a benchmark that flattered itself
 
-Five of the eight are one mistake: **a read was bounded, the bound was invisible, and the truncated
+**What it said.** `engine/tare/rag/data/header-lift.json` reported `mean_hits_at_k` of **0.0 for
+both arms** and `questions_unchanged: 10`. Read quickly, that says *the graph-derived header on each
+chunk neither helps nor hurts retrieval* — a tidy null result, and a reason to delete the header.
+
+**Why it was false.** Both arms scored zero because **neither could have scored anything**. All ten
+questions are numeric or topological predicates — *which hook takes the largest cut*, *how many
+pools* — and no embedding model compares numbers. Worse, registry cards describe their fees in
+prose, so similarity retrieves the hooks that *talk* about fees, not the ones measured as taking
+them. The benchmark was asking the vector index to do the graph's job. Zero was not a verdict on the
+header; it was a verdict on the question set.
+
+**Then the fix was worse.** Re-running over the full haystack — registry cards *and* the fetched
+Solidity — lifted recall to **0.07** and looked like progress. It was an artefact: one measured hook
+contributes ~50 source chunks, each inheriting that hook's graph facts, so a truth set defined at
+chunk level swelled to **611 of 1,884 chunks — a third of the corpus.** Retrieving 6 of the top 10
+from a set covering a third of everything is chance wearing a number.
+
+**How we knew.** Printing the truth-set size per question. `verite=611`, `verite=372`, `verite=331`
+on a corpus of 1,884 is not a gold set, it is a majority.
+
+**Class.** *A measurement whose unit is not the thing being measured.*
+
+**What prevents it now.** [`engine/tare/rag/split.py`](../engine/tare/rag/split.py) scores
+structural questions **per hook, not per chunk** (`_entity_scores`), and runs three retrievers over
+two question classes instead of two retrievers over one. The result is no longer a null: on the ten
+structural questions the graph answers **1.000** and the vector index **0.055**; on six semantic
+questions — *why does the stub return data instead of halting* — the vector index answers **0.417**
+and the graph **0.000**, because it indexes no prose. Each retriever is mute on the other's class,
+which is the measured argument for shipping both.
+[`engine/tare/rag/data/retriever-split.json`](../engine/tare/rag/data/retriever-split.json), replay
+`cd engine && python3 -m tare.rag.split`.
+
+---
+
+## What the nine have in common
+
+Five of the nine are one mistake: **a read was bounded, the bound was invisible, and the truncated
 result parsed cleanly** (#1, #2, #3, #7, #8). None raised an exception. All produced a number or a
 verdict.
 

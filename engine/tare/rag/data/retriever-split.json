@@ -1,0 +1,492 @@
+{
+ "built_at": "2026-09-05T10:03:21+00:00",
+ "protocole": "Une seule botte de foin — TOUT ce que le produit indexe — et trois recuperateurs. Deux classes de questions. Structurelle : la verite est un predicat de graphe, calculee, jamais choisie. Semantique : la verite est une section nommee, et les questions ont ete ECRITES A PARTIR de ces sections — ce bras mesure la recuperation d'un passage connu, pas la decouverte. Ce biais est declare.",
+ "botte_de_foin": {
+  "n_chunks": 1884,
+  "par_corpus": {
+   "docs": 77,
+   "hook_source": 829,
+   "registry": 978
+  },
+  "n_avec_noeud_graphe": 1676
+ },
+ "embedding": {
+  "provider": "ollama",
+  "model": "granite-embedding:278m",
+  "dim": 768
+ },
+ "embedding_selection": [
+  "ollama: retenu (granite-embedding:278m, 768 dims)"
+ ],
+ "k": 10,
+ "summary": {
+  "structurelle": {
+   "n_questions": 10,
+   "rappel_vecteur_avec_entete": 0.055,
+   "rappel_vecteur_sans_entete": 0.04,
+   "rappel_graphe": 1.0,
+   "mrr_vecteur_avec_entete": 0.0433,
+   "mrr_vecteur_sans_entete": 0.0458
+  },
+  "semantique": {
+   "n_questions": 6,
+   "rappel_vecteur_avec_entete": 0.4167,
+   "rappel_vecteur_sans_entete": 0.4,
+   "rappel_graphe": 0.0,
+   "mrr_vecteur_avec_entete": 0.5833,
+   "mrr_vecteur_sans_entete": 0.4167
+  }
+ },
+ "questions": [
+  {
+   "classe": "structurelle",
+   "key": "mesures",
+   "question": "quels hooks ont ete mesures sur Base, et combien prennent-ils ?",
+   "verite": "au moins une mesure MEASURED dans le graphe",
+   "vecteur_avec_entete": {
+    "n_truth": 13,
+    "unite": "hook",
+    "hits_at_k": 3,
+    "recall_at_k": 0.3,
+    "first_hit_rank": 3,
+    "reciprocal_rank": 0.3333
+   },
+   "vecteur_sans_entete": {
+    "n_truth": 13,
+    "unite": "hook",
+    "hits_at_k": 3,
+    "recall_at_k": 0.3,
+    "first_hit_rank": 8,
+    "reciprocal_rank": 0.125
+   },
+   "graphe": {
+    "n_truth": 13,
+    "recall_at_k": 1.0,
+    "exact": true,
+    "note": "predicat evalue sur le graphe : reponse exacte par construction"
+   }
+  },
+  {
+   "classe": "structurelle",
+   "key": "gros_prelevement",
+   "question": "quel hook retire la plus grosse part d'un echange ?",
+   "verite": "bps_max >= 500 sur les mesures MEASURED",
+   "vecteur_avec_entete": {
+    "n_truth": 2,
+    "unite": "hook",
+    "hits_at_k": 0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "vecteur_sans_entete": {
+    "n_truth": 2,
+    "unite": "hook",
+    "hits_at_k": 0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "graphe": {
+    "n_truth": 2,
+    "recall_at_k": 1.0,
+    "exact": true,
+    "note": "predicat evalue sur le graphe : reponse exacte par construction"
+   }
+  },
+  {
+   "classe": "structurelle",
+   "key": "beaucoup_de_pools",
+   "question": "un hook utilise par des dizaines de paires de jetons",
+   "verite": "au moins 20 pools attaches",
+   "vecteur_avec_entete": {
+    "n_truth": 4,
+    "unite": "hook",
+    "hits_at_k": 1,
+    "recall_at_k": 0.25,
+    "first_hit_rank": 10,
+    "reciprocal_rank": 0.1
+   },
+   "vecteur_sans_entete": {
+    "n_truth": 4,
+    "unite": "hook",
+    "hits_at_k": 0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "graphe": {
+    "n_truth": 4,
+    "recall_at_k": 1.0,
+    "exact": true,
+    "note": "predicat evalue sur le graphe : reponse exacte par construction"
+   }
+  },
+  {
+   "classe": "structurelle",
+   "key": "un_pour_cent",
+   "question": "les hooks qui prennent environ un pour cent sur chaque echange",
+   "verite": "bps median entre 95 et 105",
+   "vecteur_avec_entete": {
+    "n_truth": 7,
+    "unite": "hook",
+    "hits_at_k": 0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "vecteur_sans_entete": {
+    "n_truth": 7,
+    "unite": "hook",
+    "hits_at_k": 0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "graphe": {
+    "n_truth": 7,
+    "recall_at_k": 1.0,
+    "exact": true,
+    "note": "predicat evalue sur le graphe : reponse exacte par construction"
+   }
+  },
+  {
+   "classe": "structurelle",
+   "key": "jamais_cote",
+   "question": "les hooks pour lesquels aucune cotation n'a jamais abouti",
+   "verite": "des mesures existent, aucune n'est MEASURED",
+   "vecteur_avec_entete": {
+    "n_truth": 1,
+    "unite": "hook",
+    "hits_at_k": 0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "vecteur_sans_entete": {
+    "n_truth": 1,
+    "unite": "hook",
+    "hits_at_k": 0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "graphe": {
+    "n_truth": 1,
+    "recall_at_k": 1.0,
+    "exact": true,
+    "note": "predicat evalue sur le graphe : reponse exacte par construction"
+   }
+  },
+  {
+   "classe": "structurelle",
+   "key": "clones",
+   "question": "des contrats identiques deployes plusieurs fois",
+   "verite": "au moins un autre hook au meme code_hash",
+   "vecteur_avec_entete": {
+    "n_truth": 4,
+    "unite": "hook",
+    "hits_at_k": 0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "vecteur_sans_entete": {
+    "n_truth": 4,
+    "unite": "hook",
+    "hits_at_k": 0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "graphe": {
+    "n_truth": 4,
+    "recall_at_k": 1.0,
+    "exact": true,
+    "note": "predicat evalue sur le graphe : reponse exacte par construction"
+   }
+  },
+  {
+   "classe": "structurelle",
+   "key": "meme_auteur",
+   "question": "plusieurs hooks ecrits et deployes par la meme equipe",
+   "verite": "au moins un hook frere par le deployeur",
+   "vecteur_avec_entete": {
+    "n_truth": 119,
+    "unite": "hook",
+    "hits_at_k": 0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "vecteur_sans_entete": {
+    "n_truth": 119,
+    "unite": "hook",
+    "hits_at_k": 0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "graphe": {
+    "n_truth": 119,
+    "recall_at_k": 1.0,
+    "exact": true,
+    "note": "predicat evalue sur le graphe : reponse exacte par construction"
+   }
+  },
+  {
+   "classe": "structurelle",
+   "key": "une_seule_paire",
+   "question": "un hook qui ne sert qu'a une seule paire de jetons",
+   "verite": "exactement un pool attache",
+   "vecteur_avec_entete": {
+    "n_truth": 4,
+    "unite": "hook",
+    "hits_at_k": 0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "vecteur_sans_entete": {
+    "n_truth": 4,
+    "unite": "hook",
+    "hits_at_k": 0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "graphe": {
+    "n_truth": 4,
+    "recall_at_k": 1.0,
+    "exact": true,
+    "note": "predicat evalue sur le graphe : reponse exacte par construction"
+   }
+  },
+  {
+   "classe": "structurelle",
+   "key": "sans_prelevement",
+   "question": "des hooks qui ne prennent rien du tout sur l'echange",
+   "verite": "toutes les mesures MEASURED <= 1 bps",
+   "vecteur_avec_entete": {
+    "n_truth": 2,
+    "unite": "hook",
+    "hits_at_k": 0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "vecteur_sans_entete": {
+    "n_truth": 2,
+    "unite": "hook",
+    "hits_at_k": 0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "graphe": {
+    "n_truth": 2,
+    "recall_at_k": 1.0,
+    "exact": true,
+    "note": "predicat evalue sur le graphe : reponse exacte par construction"
+   }
+  },
+  {
+   "classe": "structurelle",
+   "key": "gros_contrat",
+   "question": "un hook dont le code deploye est particulierement volumineux",
+   "verite": "bytecode d'au moins 20 000 octets",
+   "vecteur_avec_entete": {
+    "n_truth": 41,
+    "unite": "hook",
+    "hits_at_k": 0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "vecteur_sans_entete": {
+    "n_truth": 41,
+    "unite": "hook",
+    "hits_at_k": 1,
+    "recall_at_k": 0.1,
+    "first_hit_rank": 3,
+    "reciprocal_rank": 0.3333
+   },
+   "graphe": {
+    "n_truth": 41,
+    "recall_at_k": 1.0,
+    "exact": true,
+    "note": "predicat evalue sur le graphe : reponse exacte par construction"
+   }
+  },
+  {
+   "classe": "semantique",
+   "key": "stub_pas_stop",
+   "question": "pourquoi le talon rend-il des donnees au lieu de s'arreter net ?",
+   "verite": "Hooks.sol valide la taille des donnees rendues",
+   "vecteur_avec_entete": {
+    "n_truth": 2,
+    "hits_at_k": 0,
+    "precision_at_k": 0.0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "vecteur_sans_entete": {
+    "n_truth": 2,
+    "hits_at_k": 0,
+    "precision_at_k": 0.0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "graphe": {
+    "n_truth": 2,
+    "recall_at_k": 0.0,
+    "exact": false,
+    "note": "NON_REPONDABLE : le graphe n'indexe aucune prose"
+   }
+  },
+  {
+   "classe": "semantique",
+   "key": "deux_mesureurs",
+   "question": "que se passe-t-il si deux mesures tournent sur le meme noeud anvil ?",
+   "verite": "le talon est un etat global mutable du noeud",
+   "vecteur_avec_entete": {
+    "n_truth": 1,
+    "hits_at_k": 1,
+    "precision_at_k": 0.1,
+    "recall_at_k": 1.0,
+    "first_hit_rank": 2,
+    "reciprocal_rank": 0.5
+   },
+   "vecteur_sans_entete": {
+    "n_truth": 1,
+    "hits_at_k": 1,
+    "precision_at_k": 0.1,
+    "recall_at_k": 1.0,
+    "first_hit_rank": 2,
+    "reciprocal_rank": 0.5
+   },
+   "graphe": {
+    "n_truth": 1,
+    "recall_at_k": 0.0,
+    "exact": false,
+    "note": "NON_REPONDABLE : le graphe n'indexe aucune prose"
+   }
+  },
+  {
+   "classe": "semantique",
+   "key": "contrefactuel",
+   "question": "comment comparer un pool a lui-meme sans son hook ?",
+   "verite": "la PoolKey contient l'adresse du hook",
+   "vecteur_avec_entete": {
+    "n_truth": 1,
+    "hits_at_k": 1,
+    "precision_at_k": 0.1,
+    "recall_at_k": 1.0,
+    "first_hit_rank": 1,
+    "reciprocal_rank": 1.0
+   },
+   "vecteur_sans_entete": {
+    "n_truth": 1,
+    "hits_at_k": 1,
+    "precision_at_k": 0.1,
+    "recall_at_k": 1.0,
+    "first_hit_rank": 1,
+    "reciprocal_rank": 1.0
+   },
+   "graphe": {
+    "n_truth": 1,
+    "recall_at_k": 0.0,
+    "exact": false,
+    "note": "NON_REPONDABLE : le graphe n'indexe aucune prose"
+   }
+  },
+  {
+   "classe": "semantique",
+   "key": "faux_resultats",
+   "question": "quelles erreurs ce projet a-t-il produites avant de se corriger ?",
+   "verite": "le registre des faux resultats",
+   "vecteur_avec_entete": {
+    "n_truth": 24,
+    "hits_at_k": 4,
+    "precision_at_k": 0.4,
+    "recall_at_k": 0.4,
+    "first_hit_rank": 1,
+    "reciprocal_rank": 1.0
+   },
+   "vecteur_sans_entete": {
+    "n_truth": 24,
+    "hits_at_k": 4,
+    "precision_at_k": 0.4,
+    "recall_at_k": 0.4,
+    "first_hit_rank": 1,
+    "reciprocal_rank": 1.0
+   },
+   "graphe": {
+    "n_truth": 24,
+    "recall_at_k": 0.0,
+    "exact": false,
+    "note": "NON_REPONDABLE : le graphe n'indexe aucune prose"
+   }
+  },
+  {
+   "classe": "semantique",
+   "key": "non_mesurable",
+   "question": "pourquoi un depassement de delai ne vaut-il jamais zero ?",
+   "verite": "un timeout donne NOT_MEASURABLE, jamais une valeur",
+   "vecteur_avec_entete": {
+    "n_truth": 12,
+    "hits_at_k": 1,
+    "precision_at_k": 0.1,
+    "recall_at_k": 0.1,
+    "first_hit_rank": 1,
+    "reciprocal_rank": 1.0
+   },
+   "vecteur_sans_entete": {
+    "n_truth": 12,
+    "hits_at_k": 0,
+    "precision_at_k": 0.0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "graphe": {
+    "n_truth": 12,
+    "recall_at_k": 0.0,
+    "exact": false,
+    "note": "NON_REPONDABLE : le graphe n'indexe aucune prose"
+   }
+  },
+  {
+   "classe": "semantique",
+   "key": "frais_lp_zero",
+   "question": "pourquoi mettre lpFeeOverride a zero ne supprime-t-il pas les frais ?",
+   "verite": "Pool.sol exige le drapeau 0x400000",
+   "vecteur_avec_entete": {
+    "n_truth": 12,
+    "hits_at_k": 0,
+    "precision_at_k": 0.0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "vecteur_sans_entete": {
+    "n_truth": 12,
+    "hits_at_k": 0,
+    "precision_at_k": 0.0,
+    "recall_at_k": 0.0,
+    "first_hit_rank": null,
+    "reciprocal_rank": 0.0
+   },
+   "graphe": {
+    "n_truth": 12,
+    "recall_at_k": 0.0,
+    "exact": false,
+    "note": "NON_REPONDABLE : le graphe n'indexe aucune prose"
+   }
+  }
+ ],
+ "elapsed_s": 103.18,
+ "replay": "cd engine && python3 -m tare.rag.split"
+}

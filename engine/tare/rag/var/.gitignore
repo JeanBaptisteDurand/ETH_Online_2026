@@ -1,0 +1,5 @@
+# Cache des vecteurs et index intermediaire : gros, reconstructibles, et la
+# source de verite est pgvector. Le rapport de build (data/build-report.json)
+# est le seul artefact commite.
+*
+!.gitignore

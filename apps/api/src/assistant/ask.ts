@@ -14,6 +14,7 @@ import { execute, narrate, HONESTY_RULES, type Execution } from "./execute.js";
 import { deterministicPlanner, type PlannerFn } from "./llm.js";
 import type { Intent, PlanOut } from "./planner.js";
 import { sanitizeModelSay, UncitedNumberError, type Citation } from "./narrate.js";
+import type { ExplainSource } from "./explain.js";
 import { SessionStore, safeSessionId, type QuotaState } from "./session.js";
 
 export interface Stage {
@@ -56,6 +57,9 @@ export interface Answer {
   identifiers: string[];
   /** l'etiquette de la reponse : null quand elle ne porte aucune grandeur mesuree */
   label: Label | null;
+  /** les sources d'une explication : fichier, section, passage relu, lien cliquable.
+   *  Vide pour toutes les autres intentions — elles citent des mesures, pas des textes. */
+  sources: ExplainSource[];
   data: {
     rows: Execution["rows"];
     withheld: Execution["withheld"];
@@ -88,6 +92,11 @@ const SUGGESTIONS: Partial<Record<Intent, string[]>> = {
   "top-extractors": ["trace la courbe du premier", "compare les deux premiers", "montre les orphelins"],
   curve: ["montre la preuve du point le plus haut", "les jumeaux de ce hook", "le rayon d'impact de ce hook"],
   open: ["trace la courbe", "les jumeaux de ce hook", "qui l'a deploye"],
+  explain: [
+    "que veut dire NOT_MEASURABLE ?",
+    "un bps eleve est-il un abus ?",
+    "comment je verifie une valeur ?",
+  ],
   unclear: [
     "les hooks qui prennent plus de 100 bps",
     "les hooks que le registre dit vanillaSwap=false mais qui mesurent moins de 1 bps",
@@ -128,6 +137,7 @@ export async function ask(questionRaw: unknown, opts: AskOptions = {}): Promise<
     registry: store.registry,
     honesty_rules: HONESTY_RULES,
     suggestions: DEFAULT_SUGGESTIONS,
+    sources: [] as ExplainSource[],
   };
 
   const emit = async (event: Stage["event"], data: unknown): Promise<void> => {
@@ -238,7 +248,15 @@ export async function ask(questionRaw: unknown, opts: AskOptions = {}): Promise<
   }
 
   const tExec = Date.now();
-  const exec = execute(planOut.actions, store, graph, { measureQuotaLeft });
+  // Une explication n'interroge PAS le jeu de mesures : elle explique la methode.
+  // Executer une liste d'actions vide renverrait tout le tableau comme "selection",
+  // ce qui ferait passer une explication pour un resultat de requete.
+  const exec: Execution = planOut.explain
+    ? {
+        ...emptyExecution(),
+        warnings: store.complete ? [] : [store.incomplete_reason ?? "lecture partielle du jeu"],
+      }
+    : execute(planOut.actions, store, graph, { measureQuotaLeft });
   const execMs = Date.now() - tExec;
   for (const step of exec.steps)
     await emit("action", { action: step.action, ok: step.ok, label: step.label, note: step.note });
@@ -259,12 +277,23 @@ export async function ask(questionRaw: unknown, opts: AskOptions = {}): Promise<
   let identifiers: string[] = [];
   let label: Label | null = null;
   let degraded = planOut.degraded ?? null;
+  let sources: ExplainSource[] = [];
   try {
-    const out = narrate(planOut.intent, planOut, exec, store);
-    narration = out.text;
-    citations = out.citations;
-    identifiers = out.identifiers;
-    label = out.label;
+    if (planOut.explain) {
+      // Le texte a deja ete audite a la construction (explain.ts, renderArticle) :
+      // aucun chiffre n'y figure sans citation. On le publie tel quel, avec ses sources.
+      narration = planOut.explain.text;
+      citations = planOut.explain.citations;
+      identifiers = planOut.explain.identifiers;
+      sources = planOut.explain.sources;
+      label = null;
+    } else {
+      const out = narrate(planOut.intent, planOut, exec, store);
+      narration = out.text;
+      citations = out.citations;
+      identifiers = out.identifiers;
+      label = out.label;
+    }
   } catch (e) {
     // Un gabarit qui laisse passer un nombre non source est un BUG, pas un detail :
     // on publie l'aveu, jamais le nombre.
@@ -274,6 +303,7 @@ export async function ask(questionRaw: unknown, opts: AskOptions = {}): Promise<
       : "La narration a echoue. Les lignes du tableau restent affichees telles qu'elles sont dans le jeu.";
     citations = [];
     identifiers = [];
+    sources = [];
     label = null;
     degraded = {
       reason: isGuard ? "uncited_number_in_template" : "narration_error",
@@ -294,17 +324,19 @@ export async function ask(questionRaw: unknown, opts: AskOptions = {}): Promise<
   }
 
   for (const chunk of chunkNarration(narration)) await emit("narration", { chunk });
-  await emit("citations", { citations, identifiers });
+  await emit("citations", { citations, identifiers, sources });
   if (degraded) await emit("degraded", degraded);
 
-  // Memoire de session : de quoi parlait cette reponse.
+  // Memoire de session : de quoi parlait cette reponse. Une explication ne parle
+  // d'aucun hook : elle ne doit pas effacer le contexte de la question precedente.
   const opened = planOut.actions.find((a) => a.type === "open");
-  bag.remember(session_id, {
-    lastHooks: exec.selection.length ? exec.selection : planOut.params.hooks,
-    ...(opened && opened.type === "open"
-      ? { openHook: opened.hook, openPool: opened.pool ?? null }
-      : {}),
-  });
+  if (!planOut.explain)
+    bag.remember(session_id, {
+      lastHooks: exec.selection.length ? exec.selection : planOut.params.hooks,
+      ...(opened && opened.type === "open"
+        ? { openHook: opened.hook, openPool: opened.pool ?? null }
+        : {}),
+    });
 
   await emit("done", {
     label,
@@ -325,6 +357,7 @@ export async function ask(questionRaw: unknown, opts: AskOptions = {}): Promise<
     citations,
     identifiers,
     label,
+    sources,
     data: {
       rows: exec.rows,
       withheld: exec.withheld,

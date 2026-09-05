@@ -2,11 +2,14 @@ RPC ?= http://127.0.0.1:8545
 BLOCK ?= 50614000
 
 .PHONY: test
-test:                       ## run the suite and print one citable line
-	@cd engine && python3 -m unittest discover -s tests -t . 2>&1 | tail -3
-	@cd engine && python3 -c "import unittest,sys;\
+test:                       ## engine suite only
+	@cd engine && python3 -c "import unittest;\
 r=unittest.TextTestRunner(stream=open('/dev/null','w')).run(unittest.defaultTestLoader.discover('tests','test*.py','.'));\
-print(f'{r.testsRun - len(r.failures) - len(r.errors)}/{r.testsRun} tests green')"
+print(f'engine     {r.testsRun - len(r.failures) - len(r.errors)}/{r.testsRun}')"
+
+.PHONY: test-all
+test-all:                   ## every suite, one citable line at the end
+	@bash scripts/test-all.sh
 
 .PHONY: up down
 up:                         ## start the fork, db and queue

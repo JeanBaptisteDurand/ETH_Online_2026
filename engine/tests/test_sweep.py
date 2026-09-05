@@ -652,6 +652,34 @@ class TestInstrumentVsSubject(unittest.TestCase):
             self.assertEqual(m.label, "NOT_MEASURABLE")
             self.assertTrue(m.reason.startswith(RPC_UNAVAILABLE))
 
+    def test_every_failure_rpc_py_can_raise_is_recognised_as_the_instrument(self):
+        """The exact strings `rpc.py` produces, not paraphrases of them.
+
+        `transport failure` and `empty body` were absent from INFRA_MARKERS. Widening the size
+        grid made the sweep touch cold pools whose first quote outlives curl's timeout, and every
+        one of those was written down as NOT_QUOTABLE — the instrument's clock published as the
+        pool's answer. The reasons below are copied from the three `raise` sites in rpc.py.
+        """
+        for reason in ("transport failure for http://127.0.0.1:8600 (28)",
+                       "empty body, HTTP 200, from http://127.0.0.1:8600",
+                       "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/k"):
+            self.assertTrue(is_infra(reason), f"{reason!r} lu comme un verdict du pool")
+
+    def test_a_pool_refusal_is_still_not_infra(self):
+        for reason in ("NOT_ENOUGH_LIQUIDITY", "ZERO_OUT", "SHORT_RETURN",
+                       "custom accounting"):
+            self.assertFalse(is_infra(reason), f"{reason!r} lu comme une panne du noeud")
+
+    def test_a_transport_timeout_becomes_not_measurable_not_not_quotable(self):
+        bad = row(bps=None, label="NOT_QUOTABLE",
+                  reason="transport failure for http://127.0.0.1:8600 (28)")
+        with patch("tare.sweep.measure", lambda *a, **k: bad), \
+             patch("tare.sweep.time.sleep", lambda *_: None):
+            m = measure_resilient("http://x", K, True, 10**12, BLOCK, attempts=2)
+        self.assertEqual(m.label, "NOT_MEASURABLE")
+        self.assertTrue(m.reason.startswith(RPC_UNAVAILABLE))
+        self.assertIsNone(m.bps)
+
     def test_a_second_measurer_on_the_same_fork_is_refused_not_recorded(self):
         """`anvil_setCode` is global state. Replaying a row against the anvil a shard was still
         sweeping turned 100.00 bps into 0.00 — twice out of three. A measurement taken while

@@ -1,0 +1,173 @@
+{
+ "built_at": "2026-09-05T06:15:25+00:00",
+ "engine_ver": "0.3.0",
+ "rag_ver": "tare-rag/0.1.0",
+ "embedding": {
+  "provider": "ollama",
+  "model": "granite-embedding:278m",
+  "dim": 768
+ },
+ "embedding_selection": [
+  "ollama: retenu (granite-embedding:278m, 768 dims)"
+ ],
+ "n_chunks": 1051,
+ "by_corpus": {
+  "docs": 73,
+  "registry": 978
+ },
+ "chunk_chars": {
+  "max": 1811,
+  "median": 1289
+ },
+ "corpus": {
+  "declared": [
+   {
+    "name": "method",
+    "kind": "markdown",
+    "path": "docs/METHOD.md",
+    "required": true,
+    "note": "la methode : du log Initialize au point de base",
+    "present": true
+   },
+   {
+    "name": "limits",
+    "kind": "markdown",
+    "path": "docs/LIMITS.md",
+    "required": true,
+    "note": "ce que la methode ne peut PAS dire",
+    "present": true
+   },
+   {
+    "name": "honesty",
+    "kind": "markdown",
+    "path": "docs/HONESTY.md",
+    "required": true,
+    "note": "les quatre etiquettes et les huit faux resultats produits",
+    "present": true
+   },
+   {
+    "name": "feedback",
+    "kind": "markdown",
+    "path": "FEEDBACK.md",
+    "required": true,
+    "note": "retour d'experience sur la pile Uniswap v4",
+    "present": true
+   },
+   {
+    "name": "readme",
+    "kind": "markdown",
+    "path": "README.md",
+    "required": true,
+    "note": "ce que le projet mesure et comment le rejouer",
+    "present": true
+   },
+   {
+    "name": "registry",
+    "kind": "registry",
+    "path": "docs/hooklist-live-20260905.json",
+    "required": true,
+    "note": "le registre officiel : une fiche = un document",
+    "present": true
+   },
+   {
+    "name": "hook_sources",
+    "kind": "solidity_dir",
+    "path": "docs/hooks-source",
+    "required": false,
+    "note": "source Solidity verifie des hooks mesures (lot P, Sourcify/Etherscan)",
+    "present": false
+   }
+  ],
+  "n_declared": 7,
+  "n_present": 6,
+  "missing_required": [],
+  "missing_optional": [
+   "docs/hooks-source"
+  ],
+  "ok": true
+ },
+ "fingerprints": [
+  {
+   "path": "docs/METHOD.md",
+   "present": true,
+   "is_dir": false,
+   "size": 16668,
+   "mtime": 1788581702,
+   "sha256_12": "7d5d8fe6aca3"
+  },
+  {
+   "path": "docs/LIMITS.md",
+   "present": true,
+   "is_dir": false,
+   "size": 12924,
+   "mtime": 1788581787,
+   "sha256_12": "4f7a89092e66"
+  },
+  {
+   "path": "docs/HONESTY.md",
+   "present": true,
+   "is_dir": false,
+   "size": 24769,
+   "mtime": 1788581933,
+   "sha256_12": "643eff286d65"
+  },
+  {
+   "path": "FEEDBACK.md",
+   "present": true,
+   "is_dir": false,
+   "size": 7748,
+   "mtime": 1788576155,
+   "sha256_12": "1028428ffe18"
+  },
+  {
+   "path": "README.md",
+   "present": true,
+   "is_dir": false,
+   "size": 8506,
+   "mtime": 1788588470,
+   "sha256_12": "2a405ef27e9e"
+  },
+  {
+   "path": "docs/hooklist-live-20260905.json",
+   "present": true,
+   "is_dir": false,
+   "size": 1230537,
+   "mtime": 1788576155,
+   "sha256_12": "ed6808f5376f"
+  },
+  {
+   "path": "/Users/beorlor/Documents/ethonline/ETH_Online_2026/docs/hooks-source",
+   "present": false
+  }
+ ],
+ "graph": {
+  "source": "build_tare_graph(hooklist=hooklist-live-20260905.json)",
+  "meta": {
+   "engine_ver": "tare-engine/0.3.0",
+   "backend": "networkx",
+   "n_measurements": 995,
+   "n_registry_entries": 978,
+   "n_chain_entries": 160,
+   "block_number": 50614000
+  },
+  "n_chunks_with_graph_node": 978,
+  "n_registry_chunks_absent_from_graph": 0
+ },
+ "cache": {
+  "hits": 0,
+  "misses": 1051,
+  "path": "/Users/beorlor/Documents/ethonline/ETH_Online_2026/engine/tare/rag/var/embed-cache.jsonl"
+ },
+ "elapsed_s": 128.47,
+ "loaded": true,
+ "index_file": "/Users/beorlor/Documents/ethonline/ETH_Online_2026/engine/tare/rag/var/index.jsonl",
+ "db": {
+  "dsn": "postgresql://tare:***@127.0.0.1:55432/tare",
+  "rows_in_db": 1051,
+  "by_corpus_in_db": {
+   "docs": 73,
+   "registry": 978
+  },
+  "build_id": 1
+ }
+}

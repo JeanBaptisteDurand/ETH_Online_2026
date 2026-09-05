@@ -123,6 +123,15 @@ INFRA_MARKERS = (
     "failed to get block",
     "failed to fetch",
     "empty response",               # rpc.py: curl returned nothing
+    # The three wordings rpc.py itself produces when the transport, not the chain, is what
+    # failed. They were missing, and the cost of missing them is precise: widening the size grid
+    # made the sweep touch cold pools whose first quote takes longer than curl's timeout, and
+    # every one of those came back labelled NOT_QUOTABLE — the node's clock recorded as the
+    # pool's refusal. Caught on the first real run of the wider grid, before anything was
+    # published; the corpus in docs/dataset carries none of them (checked line by line).
+    "transport failure",            # rpc.py: curl exited non-zero, or HTTP status 000
+    "empty body",                   # rpc.py: a status arrived, a body did not
+    "http 429",
     "error sending request",
     "rate limit",
     "too many requests",

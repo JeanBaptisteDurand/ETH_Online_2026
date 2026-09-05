@@ -1,0 +1,39 @@
+{
+  "address": "0xc71b7fa56c92b05fbe2448a8bfeb2e9c085fe000",
+  "attempts": [
+    {
+      "creation_match": null,
+      "match": "exact_match",
+      "outcome": "FOUND",
+      "provider": "sourcify",
+      "runtime_match": "exact_match",
+      "verified_at": "2026-08-23T04:55:41Z"
+    }
+  ],
+  "chain_id": 8453,
+  "creation_match": null,
+  "fetched_at": "2026-09-05T06:26:28+00:00",
+  "file_count": 2,
+  "files": [
+    {
+      "bytes": 7362,
+      "path": "src/modela/SatoInitGuardHook.sol",
+      "sha256": "3c4589b159f7a6bd8bed6c0c94b76d919bade5dc521612383931e982aa605d57",
+      "vendored": false
+    },
+    {
+      "bytes": 2676,
+      "path": "src/modela/V4Interfaces.sol",
+      "sha256": "f6315d0d9455061208b9dc6ae637f9662fe01aef74898d9fc239606588910043",
+      "vendored": false
+    }
+  ],
+  "match": "exact_match",
+  "own_file_count": 2,
+  "provider": "sourcify",
+  "replay": "curl -s 'https://sourcify.dev/server/v2/contract/8453/0xc71b7fa56c92b05fbe2448a8bfeb2e9c085fe000?fields=sources'",
+  "runtime_match": "exact_match",
+  "source_status": "FOUND",
+  "total_bytes": 10038,
+  "verified_at": "2026-08-23T04:55:41Z"
+}

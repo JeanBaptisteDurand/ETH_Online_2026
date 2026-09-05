@@ -15,8 +15,10 @@ import { normalizeMeasurement, buildReplay } from "./measurement.js";
 import { engineHealth, runPlans, type EngineHealth } from "./engine.js";
 import { createMetering, toMeasurementUnit } from "./metering/index.js";
 import { createGraphRouter } from "./graph-routes.js";
+import { createRagRouter } from "./rag/index.js";
 import { createPaymentLayer, payerFromHeader, priceFor } from "./x402.js";
 import type { Label } from "./labels.js";
+import type { RagStore, QueryEmbedder } from "./rag/index.js";
 
 export interface AppDeps {
   config?: Partial<Config>;
@@ -27,6 +29,10 @@ export interface AppDeps {
     health: (python: string, rpc: string) => Promise<EngineHealth>;
     run: typeof runPlans;
   };
+  /** injecte en test pour ne pas dependre d'un Postgres */
+  ragStore?: RagStore;
+  /** injecte en test pour ne pas dependre d'un Ollama */
+  ragEmbedder?: QueryEmbedder;
 }
 
 const HONESTY = [
@@ -60,6 +66,8 @@ export function createApp(deps: AppDeps = {}) {
         "GET  /usage               le compteur, unite = 1 mesure",
         "GET  /meta                sources, moteur, peage",
         "GET  /graph               le graphe : ce que les traversees revelent",
+        "GET  /rag/search?q=..     les passages du corpus, avec fichier, ligne et distance",
+        "GET  /rag/meta            l'etat de l'index vectoriel, lu en base",
       ],
     }),
   );
@@ -406,6 +414,14 @@ export function createApp(deps: AppDeps = {}) {
   // contradictions, desaccord registre/mesure). Le graphe est charge UNE fois et
   // memorise par (chemin, mtime, taille) : voir la note de tete de graph-routes.ts.
   app.route("/", createGraphRouter({ chainId: cfg.chainId }));
+
+  /* ------------------------------------------------------------------- rag */
+
+  // La recherche vectorielle sur le corpus declare (docs de methode, 978 fiches du
+  // registre, source Solidity des hooks mesures). Chaque morceau indexe a ete
+  // PREFIXE d'un en-tete derive du graphe : le graphe nourrit l'index. Voir
+  // engine/tare/rag/ pour la construction et src/rag/routes.ts pour les refus.
+  app.route("/", createRagRouter({ store: deps.ragStore, embedder: deps.ragEmbedder }));
 
   /* ------------------------------------------------------------ utilitaire */
 

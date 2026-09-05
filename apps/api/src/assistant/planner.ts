@@ -13,6 +13,8 @@ import type { Action, ColumnName, FlagName } from "./actions.js";
 import { ActionListSchema } from "./actions.js";
 import type { StoreView } from "./store.js";
 import { NEGLIGIBLE_BPS } from "./store.js";
+// type seul : pas d'import a l'execution, donc pas de cycle avec explain.ts
+import type { ExplainResult } from "./explain.js";
 
 export type Intent =
   | "registry-disagrees"
@@ -34,6 +36,8 @@ export type Intent =
   | "reset"
   | "export"
   | "permalink"
+  /** expliquer LE PRODUIT : la methode, les etiquettes, les limites. Voir explain.ts. */
+  | "explain"
   | "help"
   | "unclear";
 
@@ -65,6 +69,9 @@ export interface PlanOut {
   say?: string | null;
   /** ce qui a ete degrade en route (LLM invalide, phrase rejetee...) — jamais cache */
   degraded?: { reason: string; detail: string } | null;
+  /** l'explication deja construite, quand l'intention est `explain`. Le texte y est
+   *  ecrit par le produit et deja audite ; ask.ts le publie tel quel avec ses sources. */
+  explain?: ExplainResult | null;
 }
 
 /* ------------------------------------------------------------ normalisation */

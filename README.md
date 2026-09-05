@@ -18,20 +18,35 @@ stub — and the difference **is** what the hook took.
 
 ## What we found
 
-**Two hooks take ~1% of your swap on pools whose LP fee, read on-chain, is zero.**
+**Six hooks take between 0.5% and 11.8% of your swap on pools whose LP fee, read on-chain, is zero.**
 
 | | |
 |---|---|
-| Measurements | **128** across **32 pools**, block **50,614,000** (Base) |
-| Measurements above 1 bps on pools with `stored_lp_fee == 0` | **60** |
-| min / median / max on those | **94.14 / 99.96 / 100.00 bps** |
-| Hooks | `0x985c14baa2…` (52 measurements / 25 pools) · `0xdda9bc41e3…` (8 / 2) |
+| Published measurements | **995** across **199 pools** and **12 hooks**, block **50,614,000** (Base) |
+| of which | **720** `MEASURED` · **265** `NOT_QUOTABLE` · **10** `NOT_MEASURABLE` |
+| `MEASURED` above 1 bps on pools with `stored_lp_fee == 0` | **545**, across **109 pools** and **6 hooks** |
+| min / median / max on those | **51.40 / 100.00 / 1176.46 bps** |
 
-`0x985c14baa2…` is in the official registry — flagged `vanillaSwap=false`, `dynamicFee=false`,
-`swapAccess=temporal`, **no audit link**. `0xdda9bc41e3…` **is not in the registry at all.**
+Per hook, worst first — every row is `MEASURED`, on pools whose stored LP fee is zero:
 
-The registry has two failure modes and one figure shows both: **it describes without quantifying, and
+| Hook | n / pools | min · median · max (bps) | Registry says |
+|---|---|---|---|
+| `0xb429d62f…` Clanker Static Fee Hook v2 | 95 / 19 | 79.58 · 119.70 · **1176.46** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
+| `0x1aea38f0…` ClankerHookStaticFeeV2 | 10 / 2 | 57.44 · 253.31 · **689.95** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
+| `0xbdf93814…` DopplerHookInitializer | 50 / 10 | 150.00 · 150.00 · **175.00** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
+| `0x0469a4bd…` Zora Hook | 255 / 51 | 51.40 · 100.00 · **100.00** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
+| `0x985c14ba…` LaunchHook | 125 / 25 | 69.30 · 99.56 · **100.00** | `vanillaSwap=false`, `swapAccess=temporal`, **no audit link** |
+| `0xdda9bc41…` — | 10 / 2 | 61.64 · 99.38 · **99.99** | **not in the registry at all** |
+
+Five of the six carry the same description — `vanillaSwap: false`, `swapAccess: none`, no audit link
+— and take **1176 / 690 / 175 / 100 / 100 bps**. The sixth is not described at all.
+
+The registry has two failure modes and this table shows both: **it describes without quantifying, and
 it does not see everything.**
+
+```bash
+PYTHONPATH=engine python3 -m tare.dataset.stats --lp-fee-zero --above-bps 1   # the table above
+```
 
 ## What the graph reveals
 
@@ -57,10 +72,21 @@ curl localhost:8787/graph/impact/0x3b2b979df21036cee51b8debb13100e2cb8deacc
 PYTHONPATH=engine python3 -m tare.graph.cli disagreement               # the same, offline
 ```
 
-The graph is loaded **once**, keyed by `(path, mtime_ns, size)`, and its scans are memoised. Measured
-on this dataset: 50.8 ms to read and index, then 0.02 ms to hand back, 0.19 ms for `impact` on a
-31-pool hook, 0.0001 ms for a memoised aggregate. Rebuilding per request costs 21.7 ms — the mistake
-this cache exists to avoid.
+The graph is loaded **once**, keyed by `(path, mtime_ns, size)`, and its scans are memoised. These are
+medians over 21 runs on one laptop, not a constant — the point is the ratio, and the command prints
+your own numbers:
+
+| | median |
+|---|---|
+| cold load — read `graph.json` and index it, paid once | 63.5 ms |
+| warm hand-back — every request after that | **0.035 ms** |
+| `impact()` on the widest hook in the set (73 pools) | 1.20 ms |
+| a memoised aggregate (`contradictions`) | 0.0004 ms |
+| rebuilding from sources per request — the mistake this cache exists to avoid | 929 ms |
+
+```bash
+PYTHONPATH=engine python3 -m tare.graph.cachebench
+```
 
 ## The honesty rules
 
@@ -70,9 +96,11 @@ These are enforced, not aspirational.
    value on screen carries its block, its size and its direction, and replays with one command.
 2. **Every measurement is labelled** — `MEASURED` · `INTERPOLATED` · `NOT_MEASURABLE` · `NOT_QUOTABLE`
    — and a label is never upgraded to make a point.
-3. **Never conclude on a truncated response.** This project has produced three false findings that
-   way (a `[:3]` slice, a 2,000-byte body read, a `head -c 220`). Readers are bounded, and a bounded
-   read is a `NOT_MEASURABLE`, never a value.
+3. **Never conclude on a truncated response.** This project has produced eight false findings, and
+   four of the eight came from a bounded read (a `[:3]` slice, a 2,000-byte body, a `head -c 220`, a
+   200-character error string that cut a revert selector in half). All eight are written up in
+   [`docs/HONESTY.md`](docs/HONESTY.md) — what was claimed, how it was caught, what makes it
+   impossible now. A bounded read is a `NOT_MEASURABLE`, never a value, and never a zero.
 4. **Known limits are published, not hidden.** A hook with custom accounting *is* the liquidity;
    removing it does not measure what it takes, it destroys the pool. Those are `NOT_MEASURABLE`.
 
@@ -86,11 +114,14 @@ make measure HOOK=0x985c14baa2a18316ffda0aefb3a632fadfca2acc BLOCK=50614000
 ## Layout
 
 ```
-engine/     Python — discovery, liquidity, the stub, the counterfactual, the graph
-apps/api    Hono — the x402-gated measurement API on Hedera
-apps/web    Vite + React — the instrument
-packages/   shared Zod contracts
-docs/       method, limits, and the corrections this project had to make
+engine/            Python — discovery, liquidity, the stub, the counterfactual, the graph
+apps/api           Hono — the x402-gated measurement API on Hedera, and the assistant
+apps/web           Vite + React — the instrument
+apps/landing       the one-page verdict, readable with JavaScript off
+apps/mcp           four MCP tools, so an agent can ask the same questions
+packages/guard     reads the hook out of Universal Router calldata, plus an MV3 extension
+packages/hookflags the 14 permission bits, derived from the hook's own address
+docs/              method, limits, and the corrections this project had to make
 ```
 
 
@@ -102,7 +133,7 @@ are those lines.
 | What | Where |
 |---|---|
 | **The inert stub**, and why it is shaped that way | [`engine/tare/stub.py`](engine/tare/stub.py) — the `Hooks.sol` return-size invariants it satisfies are named in the module docstring |
-| **The counterfactual**: quote, swap the hook's code, quote again, restore | [`engine/tare/measure.py:96-140`](engine/tare/measure.py#L96-L140) |
+| **The counterfactual**: quote, swap the hook's code, quote again, restore | [`engine/tare/measure.py:68-102`](engine/tare/measure.py#L68-L102) — the whole of `measure()` |
 | **Why a negative result is not negative extraction** | [`engine/tare/measure.py:26`](engine/tare/measure.py#L26) — `CUSTOM_ACCOUNTING_BPS` |
 | **`PoolKey` → `poolId` → storage slots** (`pools` at slot 6, `liquidity` at +3) | [`engine/tare/poolid.py`](engine/tare/poolid.py) |
 | **`slot0.lpFee` at bits 208–231** — the stored fee the counterfactual falls back to | [`engine/tare/consts.py`](engine/tare/consts.py) |

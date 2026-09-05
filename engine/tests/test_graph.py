@@ -627,3 +627,44 @@ class TestCacheChaine(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class TestCacheBench(unittest.TestCase):
+    """Le README publie des durees de cache. Elles doivent venir d'une commande.
+
+    On n'affirme AUCUNE duree ici : une assertion sur des millisecondes est verte
+    ou rouge selon la charge de la machine, et un test qui clignote finit ignore.
+    Ce qu'on verifie est ce que le cache PROMET, et qui ne depend pas de la vitesse
+    du processeur : la remise a chaud est plus rapide que la lecture froide, elle
+    est plus rapide que la reconstruction, et le banc rend bien les cinq mesures
+    que le README cite — sinon le README citerait un chiffre que plus rien ne produit.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        from tare.graph import cachebench
+        if not cachebench.DEFAULT_GRAPH.exists():
+            raise unittest.SkipTest("graph.json absent : python3 -m tare.graph.cli build")
+        cls.r = cachebench.measure(repeats=3)
+
+    def test_le_banc_rend_les_cinq_mesures_que_le_README_cite(self):
+        for k in ("cold_load_ms", "warm_handback_ms", "impact_ms",
+                  "memoised_aggregate_ms", "rebuild_from_sources_ms"):
+            self.assertIn(k, self.r)
+            self.assertGreater(self.r[k], 0.0, f"{k} a 0 : rien n'a ete mesure")
+
+    def test_la_remise_a_chaud_bat_la_lecture_froide(self):
+        self.assertLess(self.r["warm_handback_ms"], self.r["cold_load_ms"])
+
+    def test_la_remise_a_chaud_bat_la_reconstruction(self):
+        """C'est l'erreur que ce cache existe pour eviter — elle doit se voir."""
+        self.assertLess(self.r["warm_handback_ms"], self.r["rebuild_from_sources_ms"])
+
+    def test_impact_est_mesure_sur_le_pire_cas_pas_sur_un_cas_moyen(self):
+        """Le hook choisi doit etre le plus large du jeu, sinon le chiffre flatte."""
+        from tare.graph.store import load_store
+        s = load_store()
+        largest = max(len(s.impact(d.get("address") or n).get("pools") or [])
+                      for n, d in s.g.nodes(data=True)
+                      if d.get("kind") == NodeKind.HOOK)
+        self.assertEqual(self.r["impact_pools"], largest)

@@ -1,0 +1,183 @@
+{
+  "address": "0xdda9bc41e324ef379e774ae1f7b062d23ea8aacc",
+  "attempts": [
+    {
+      "creation_match": null,
+      "match": "exact_match",
+      "outcome": "FOUND",
+      "provider": "sourcify",
+      "runtime_match": "exact_match",
+      "verified_at": "2026-08-27T12:51:36Z"
+    }
+  ],
+  "chain_id": 8453,
+  "creation_match": null,
+  "fetched_at": "2026-09-05T06:26:29+00:00",
+  "file_count": 26,
+  "files": [
+    {
+      "bytes": 8910,
+      "path": "lib/v4-core/lib/openzeppelin-contracts/contracts/proxy/utils/Initializable.sol",
+      "sha256": "a8b7eafa0fdc7cb5a644c8c61a8e4c51e031d5e1e6f268f72dbe18b768ead56e",
+      "vendored": true
+    },
+    {
+      "bytes": 3240,
+      "path": "lib/v4-core/lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol",
+      "sha256": "8d0bac508a25133c9ff80206f65164cef959ec084645d1e7b06050c2971ae0fc",
+      "vendored": true
+    },
+    {
+      "bytes": 15118,
+      "path": "lib/v4-core/lib/openzeppelin-contracts/contracts/utils/math/Math.sol",
+      "sha256": "a6ee779fc42e6bf01b5e6a963065706e882b016affbedfd8be19a71ea48e6e15",
+      "vendored": true
+    },
+    {
+      "bytes": 1023,
+      "path": "lib/v4-core/src/interfaces/IExtsload.sol",
+      "sha256": "9421ef4ba198d94058cd9a4c9fd2d663c61fc682f7dafa449a873456853f0025",
+      "vendored": true
+    },
+    {
+      "bytes": 699,
+      "path": "lib/v4-core/src/interfaces/IExttload.sol",
+      "sha256": "c21643d2c7f48d2d2407438a64a3ff0f376324cf6a0c62608977713652308c9e",
+      "vendored": true
+    },
+    {
+      "bytes": 8300,
+      "path": "lib/v4-core/src/interfaces/IHooks.sol",
+      "sha256": "aca1db9898026d9a4b8740752fb0dbfc6a55e4bede6a949c6af4e07d626f6900",
+      "vendored": true
+    },
+    {
+      "bytes": 13449,
+      "path": "lib/v4-core/src/interfaces/IPoolManager.sol",
+      "sha256": "173a3f93aeb39373271ebe2bfb961d824922378a39b7a5e983acbb1c122d296e",
+      "vendored": true
+    },
+    {
+      "bytes": 2489,
+      "path": "lib/v4-core/src/interfaces/IProtocolFees.sol",
+      "sha256": "807d68adea106ec2aa51a8009155de09ebfe09e1ee7053d5a5ae448d7e840654",
+      "vendored": true
+    },
+    {
+      "bytes": 488,
+      "path": "lib/v4-core/src/interfaces/callback/IUnlockCallback.sol",
+      "sha256": "2e4a514730654da2e08a82eff5b3eabae12dc1c6198951396e1d466d4c0e223e",
+      "vendored": true
+    },
+    {
+      "bytes": 3041,
+      "path": "lib/v4-core/src/interfaces/external/IERC20Minimal.sol",
+      "sha256": "5e966a2d22b3b234a56af4b17e36bf7be90f9b29b1ddb6a15bfefc0b6dab4282",
+      "vendored": true
+    },
+    {
+      "bytes": 3162,
+      "path": "lib/v4-core/src/interfaces/external/IERC6909Claims.sol",
+      "sha256": "1cd65496c829036bc6aee67bc71363ab5fb6989c65e793087d0e1e2379f7d7d8",
+      "vendored": true
+    },
+    {
+      "bytes": 5174,
+      "path": "lib/v4-core/src/libraries/CustomRevert.sol",
+      "sha256": "9d3dbe6b742cb1ac30f57df89d879ade9649389de1165fc637114bd062d39fca",
+      "vendored": true
+    },
+    {
+      "bytes": 16485,
+      "path": "lib/v4-core/src/libraries/Hooks.sol",
+      "sha256": "f6012d7f627259f8f32816ee8e10b1d6244067c602a178072732bcaa32086b17",
+      "vendored": true
+    },
+    {
+      "bytes": 3596,
+      "path": "lib/v4-core/src/libraries/LPFeeLibrary.sol",
+      "sha256": "e96c3fa7deac991dc09b6c5e560a340d01d6c68ccba483d4b29f8a66e5aa44e0",
+      "vendored": true
+    },
+    {
+      "bytes": 1200,
+      "path": "lib/v4-core/src/libraries/ParseBytes.sol",
+      "sha256": "6a6f3d1cec0143fd70ea68c34e6dce3bde72f368b213f1a225ada23dbfd99bb8",
+      "vendored": true
+    },
+    {
+      "bytes": 2269,
+      "path": "lib/v4-core/src/libraries/SafeCast.sol",
+      "sha256": "c1a815a41607be5b4c86ca588a951f368156da8ee21bdfc18b5d51b58a0f27be",
+      "vendored": true
+    },
+    {
+      "bytes": 2339,
+      "path": "lib/v4-core/src/types/BalanceDelta.sol",
+      "sha256": "320d9c13dec135c3903729e66d3a1040fe86d537a7ee53728915012ca183af32",
+      "vendored": true
+    },
+    {
+      "bytes": 1466,
+      "path": "lib/v4-core/src/types/BeforeSwapDelta.sol",
+      "sha256": "6aee06f1553e879f5909e8f4c0eac26ec23dd4821a7e56e4d5077db39a227e12",
+      "vendored": true
+    },
+    {
+      "bytes": 5458,
+      "path": "lib/v4-core/src/types/Currency.sol",
+      "sha256": "ba6726fd24fbc66848208dfbb2899116c10729c505e6e5552316ac2444f1dfc3",
+      "vendored": true
+    },
+    {
+      "bytes": 539,
+      "path": "lib/v4-core/src/types/PoolId.sol",
+      "sha256": "548424ac50ad58212545da70207283fb8990731578c115c85d5acbcb0e1d3c9f",
+      "vendored": true
+    },
+    {
+      "bytes": 805,
+      "path": "lib/v4-core/src/types/PoolKey.sol",
+      "sha256": "99e1afe285b5c614ebc9586ab5196db9d24a63fd924a449f5d99f490a6a6d6a9",
+      "vendored": true
+    },
+    {
+      "bytes": 2406,
+      "path": "lib/v4-core/test/utils/CurrencySettler.sol",
+      "sha256": "afe4d7de04f55f35f25bae046a96baa4137709b9df13d90b76c643a1317df6b8",
+      "vendored": true
+    },
+    {
+      "bytes": 5012,
+      "path": "src/FeeEscrow.sol",
+      "sha256": "21a7f81a3038297c77d1af81b578f2d76e64bb6ce9ac55bf30b0dbe7cfa589e4",
+      "vendored": false
+    },
+    {
+      "bytes": 34841,
+      "path": "src/LaunchHook.sol",
+      "sha256": "d93d69009b504bf2454bcc48a3c55af79d0a8f7463be0d12dfa33d6aea40a69c",
+      "vendored": false
+    },
+    {
+      "bytes": 7040,
+      "path": "src/base/BaseHook.sol",
+      "sha256": "74ec634e0d5c41088d3b30e6b0c602f393e0e2102a4494fc6780a9324eece414",
+      "vendored": false
+    },
+    {
+      "bytes": 247,
+      "path": "src/interfaces/IMsgSender.sol",
+      "sha256": "7b17cef368664e80992d33106b549d8d0615d5c70815707452051b78818a329b",
+      "vendored": false
+    }
+  ],
+  "match": "exact_match",
+  "own_file_count": 4,
+  "provider": "sourcify",
+  "replay": "curl -s 'https://sourcify.dev/server/v2/contract/8453/0xdda9bc41e324ef379e774ae1f7b062d23ea8aacc?fields=sources'",
+  "runtime_match": "exact_match",
+  "source_status": "FOUND",
+  "total_bytes": 148796,
+  "verified_at": "2026-08-27T12:51:36Z"
+}

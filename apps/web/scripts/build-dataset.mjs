@@ -7,7 +7,7 @@
 // Rule 3 of the product: a truncated read is NOT_MEASURABLE, never a value. So a hook with
 // zero MESURE rows never gets a bps here — it gets a label and a count.
 
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -15,11 +15,21 @@ const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
 const repo = resolve(root, '../..')
 
+// Le balayage complet (995 mesures, 199 pools, 12 hooks) est en JSONL ; measurements-v1.json
+// n'en est que le premier echantillon (128 lignes). On prefere le grand des qu'il existe.
+const JSONL_PATH = resolve(repo, 'docs/dataset/measurements.jsonl')
 const MEASUREMENTS_PATH = resolve(repo, 'docs/measurements-v1.json')
 const SNAPSHOT_PATH = resolve(root, 'public/data/hooklist.snapshot.json')
 const OUT = resolve(root, 'src/data/dataset.json')
 
-const measurements = JSON.parse(readFileSync(MEASUREMENTS_PATH, 'utf8'))
+let measurements
+if (existsSync(JSONL_PATH)) {
+  measurements = readFileSync(JSONL_PATH, 'utf8')
+    .split('\n').filter((l) => l.trim())
+    .map((l) => JSON.parse(l))
+} else {
+  measurements = JSON.parse(readFileSync(MEASUREMENTS_PATH, 'utf8'))
+}
 const snapshot = JSON.parse(readFileSync(SNAPSHOT_PATH, 'utf8'))
 
 // The engine writes MEASURED / NOT_MEASURABLE / NOT_QUOTABLE; measurements-v1.json was written

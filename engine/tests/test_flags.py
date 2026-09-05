@@ -28,7 +28,12 @@ class TestFlags(unittest.TestCase):
         self.assertEqual(sorted(HOOK_FLAGS.values()), [1 << i for i in range(14)])
 
     def test_every_bit_matches_the_registry_on_every_hook(self):
-        """8,974 comparisons. One mismatch invalidates the LED widget."""
+        """613 fiches x 14 booleens = 8582 comparaisons. Un seul ecart invalide le widget
+        a 14 diodes, qui n'appelle personne et ne peut donc pas se rattraper.
+
+        Le meme compte est imprime par apps/api/src/assistant/__tests__/flags.test.ts,
+        sur le meme registre, depuis une implementation independante.
+        """
         checked = mismatched = 0
         for e in self.entries:
             hk = e.get("hook") or {}

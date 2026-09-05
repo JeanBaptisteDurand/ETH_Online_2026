@@ -168,3 +168,52 @@ def swap_path_takes(findings: dict) -> list:
     swap_kinds = {"beforeSwap_delta", "afterSwap_delta", "dynamic_lp_fee",
                   "override_fee_flag", "pm_take", "pm_mint"}
     return [t for t in findings["takes"] if t["kind"] in swap_kinds]
+
+
+# ---- struct layouts, read from the source rather than assumed --------------------------------
+# A public `mapping(K => Struct)` getter returns the struct's value-type members flattened, in
+# declaration order. Two of the three LaunchHook deployments in this corpus ship *different*
+# PoolConfig structs with the *same* number of members, so a hard-coded layout would decode one of
+# them into plausible nonsense (it produced a 48-digit "fee" before this function existed). The
+# layout is therefore parsed from the very file we fetched.
+STRUCT_HEAD = re.compile(r"^\s*struct\s+(?P<name>\w+)\s*\{")
+STRUCT_FIELD = re.compile(r"^\s*(?P<type>[A-Za-z_][\w\.\[\]]*)\s+(?P<name>\w+)\s*;")
+VALUE_TYPES = re.compile(r"^(?:bool|address|address payable|uint\d*|int\d*|bytes\d+|"
+                         r"[A-Z]\w*)$")            # user-defined value types (PoolId, Currency…)
+NOT_VALUE = re.compile(r"\[\]$|^(?:string|bytes|mapping)$")
+
+
+class StructNotFound(LookupError):
+    pass
+
+
+def parse_struct(hook_dir: str, rel_file: str, struct_name: str) -> list:
+    """[(solidity_type, field_name), ...] in declaration order, from the fetched source."""
+    path = os.path.join(hook_dir, "sources", rel_file)
+    if not os.path.exists(path):
+        raise StructNotFound(f"{rel_file} is not in the fetched sources of {hook_dir}")
+    lines = _read_lines(path)
+    start = None
+    for i, line in enumerate(lines):
+        m = STRUCT_HEAD.match(line)
+        if m and m.group("name") == struct_name:
+            start = i
+            break
+    if start is None:
+        raise StructNotFound(f"struct {struct_name} not found in {rel_file}")
+    fields = []
+    for line in lines[start + 1:]:
+        if "}" in line:
+            break
+        m = STRUCT_FIELD.match(line)
+        if not m:
+            continue
+        typ = m.group("type")
+        if NOT_VALUE.search(typ):
+            raise StructNotFound(
+                f"struct {struct_name} member {m.group('name')} has non-value type {typ!r}; a "
+                "public getter omits it, so this struct cannot be decoded positionally")
+        fields.append((typ, m.group("name")))
+    if not fields:
+        raise StructNotFound(f"struct {struct_name} in {rel_file} has no decodable members")
+    return fields

@@ -1,0 +1,66 @@
+# Publishes the two surfaces to GitHub Pages.
+#
+# Both are fully static: the 995 measurements are baked into the bundle at build time, so the
+# verdict, the table, the curve and the permission LEDs work with no backend at all. The assistant
+# is the only part that needs a server, and the client says so plainly when it cannot reach one
+# rather than degrading into silence.
+#
+#   /        the presentation page  (~13 kB gzip before the verdict is readable)
+#   /hooks/  the instrument
+name: pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+
+      - name: Build the presentation page
+        working-directory: apps/landing
+        run: npm ci && npm run build
+
+      # verify.mjs recounts every published claim against the raw dataset; if the page states
+      # something the measurements do not support, the deploy stops here rather than shipping it.
+      - name: Build the instrument, and check what it claims
+        working-directory: apps/web
+        run: npm ci && npm run build
+        env:
+          BASE_URL: /hooks/
+
+      - name: Assemble
+        run: |
+          mkdir -p _site
+          cp -r apps/landing/dist/* _site/
+          mkdir -p _site/hooks
+          cp -r apps/web/dist/* _site/hooks/
+          # No Jekyll: filenames starting with an underscore must survive.
+          touch _site/.nojekyll
+
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: _site }
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

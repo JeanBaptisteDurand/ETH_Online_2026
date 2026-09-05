@@ -159,6 +159,7 @@ def build(hooklist: Optional[Path] = None, graph_json: Optional[Path] = None,
         raise C.CorpusError("sources requises absentes: " + ", ".join(state["missing_required"]))
 
     chunks, gi = build_chunks(hooklist=hooklist, graph_json=graph_json, sources=srcs)
+    sol_src = next((s for s in srcs if s.kind == C.SOLIDITY_DIR and s.exists()), None)
     embedder, why = make_embedder(prefer=prefer)
 
     def progress(done: int, total: int) -> None:
@@ -183,9 +184,17 @@ def build(hooklist: Optional[Path] = None, graph_json: Optional[Path] = None,
         "n_chunks": len(chunks),
         "by_corpus": by_corpus,
         "chunk_chars": {
+            "budget": K.TEXT_BUDGET,
             "max": max((len(c.text) for c in chunks), default=0),
             "median": sorted(len(c.text) for c in chunks)[len(chunks) // 2] if chunks else 0,
+            # Les morceaux dont la fin ne sera PAS dans le vecteur, nommes. Une
+            # ligne unique plus longue que le budget est insecable sans casser
+            # le rejeu `sed -n 'a,bp'` : on la signale au lieu de la couper.
+            "n_oversize": len(K.oversize(chunks)),
+            "oversize": [c.id for c in K.oversize(chunks)][:20],
         },
+        "solidity": (C.count_solidity(sol_src) if sol_src is not None
+                     else {"present": 0, "note": "docs/hooks-source absent (lot P)"}),
         "corpus": state,
         "fingerprints": [C.file_fingerprint(s.path) for s in srcs],
         "graph": {

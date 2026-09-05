@@ -200,21 +200,94 @@ def _top_level_spans(raw: str) -> List[Tuple[int, int]]:
     return spans
 
 
-def read_solidity(source: Source) -> List[Dict[str, Any]]:
-    """Les .sol deposes par le lot P. Le repertoire peut ne pas exister : on rend
-    une liste vide, et le rapport porte `present: false` — jamais l'inverse."""
+def read_solidity(source: Source, include_vendored: bool = False) -> List[Dict[str, Any]]:
+    """Les .sol deposes par le lot P dans docs/hooks-source/<adresse>/sources/.
+
+    Chaque repertoire de hook porte un provenance.json qui dit d'ou vient le
+    source (Sourcify ou Etherscan), quand il a ete verifie, et — c'est ce qui
+    compte ici — quels fichiers sont `vendored`, c'est-a-dire des dependances
+    recopiees (OpenZeppelin, Solmate, les interfaces v4-core). Sur les 741 .sol
+    livres, une bonne part est du code que le hook n'a pas ecrit.
+
+    Par defaut on les ECARTE, et le rapport de build compte combien. Les indexer
+    ferait remonter `SafeERC20.sol` sur toutes les questions de transfert, treize
+    fois — une fois par hook — et enterrerait le seul fichier qui repond. Ce
+    n'est pas une perte d'information : ces fichiers sont sur disque, cites par
+    provenance.json, et une question qui les vise vraiment est une question sur
+    OpenZeppelin, pas sur un hook v4.
+
+    Le repertoire peut ne pas exister : on rend une liste vide, et le rapport
+    porte `present: false` — jamais l'inverse.
+    """
     root = source.path
     if not root.is_dir():
         return []
-    files = sorted(p for p in root.rglob("*.sol") if p.is_file())
+    prov = _provenance_index(root)
     out = []
-    for p in files:
+    for p in sorted(q for q in root.rglob("*.sol") if q.is_file()):
         rel = str(p.relative_to(REPO_ROOT))
+        meta = prov.get(str(p.resolve()), {})
+        vendored = bool(meta.get("vendored"))
+        if vendored and not include_vendored:
+            continue
         out.append({"path": p, "rel": rel,
-                    "address": _address_from_path(p),
-                    "chain_id": _chain_from_path(p),
+                    "address": meta.get("address") or _address_from_path(p),
+                    "chain_id": meta.get("chain_id") or _chain_from_path(p),
+                    "vendored": vendored,
+                    "provenance": meta.get("provenance"),
+                    "sub_path": meta.get("sub_path"),
                     "text": p.read_text(errors="replace")})
     return out
+
+
+def count_solidity(source: Source) -> Dict[str, int]:
+    """Combien de .sol sont la, et combien sont ecartes comme dependances. Le
+    rapport de build le recopie : "on a indexe 656 fichiers sur 741" est
+    verifiable, "on a indexe le source" ne l'est pas."""
+    root = source.path
+    if not root.is_dir():
+        return {"present": 0, "vendored": 0, "own": 0}
+    prov = _provenance_index(root)
+    total = vendored = 0
+    for p in root.rglob("*.sol"):
+        if not p.is_file():
+            continue
+        total += 1
+        if (prov.get(str(p.resolve())) or {}).get("vendored"):
+            vendored += 1
+    return {"present": total, "vendored": vendored, "own": total - vendored}
+
+
+def _provenance_index(root: Path) -> Dict[str, Dict[str, Any]]:
+    """chemin absolu du .sol -> ce que provenance.json en dit. Un provenance.json
+    illisible n'invente rien : les fichiers du hook restent, sans drapeau."""
+    idx: Dict[str, Dict[str, Any]] = {}
+    for prov_file in sorted(root.glob("*/provenance.json")):
+        try:
+            data = json.loads(prov_file.read_text(errors="replace"))
+        except (json.JSONDecodeError, OSError):
+            continue
+        base = prov_file.parent
+        addr = (data.get("address") or "").strip().lower() or None
+        chain_id = data.get("chain_id")
+        attempts = data.get("attempts") or []
+        found = next((a for a in attempts if a.get("outcome") == "FOUND"), {})
+        provenance = {"provider": found.get("provider"), "match": found.get("match"),
+                      "runtime_match": found.get("runtime_match"),
+                      "creation_match": data.get("creation_match"),
+                      "verified_at": found.get("verified_at"),
+                      "fetched_at": data.get("fetched_at"),
+                      "file_count": data.get("file_count")}
+        for f in (data.get("files") or []):
+            sub = f.get("path")
+            if not sub:
+                continue
+            full = (base / "sources" / sub).resolve()
+            idx[str(full)] = {"address": addr, "chain_id": chain_id,
+                              "vendored": bool(f.get("vendored")),
+                              "sha256": f.get("sha256"), "bytes": f.get("bytes"),
+                              "sub_path": sub, "provenance": provenance}
+    return idx
 
 
 def _address_from_path(p: Path) -> Optional[str]:

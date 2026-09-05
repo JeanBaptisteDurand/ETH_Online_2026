@@ -20,6 +20,7 @@ Two things this file learned the hard way.
    log of the run and any gap makes it < 1.
 
     python3 -m tare.collect <end_block> <span> <out.json> [chunk] [workers]
+    python3 -m tare.collect --repair <out.json> [workers]   # rejoue les tranches KO
 """
 import json, os, sys, concurrent.futures as cf
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -38,7 +39,74 @@ def ranges_for(end: int, span: int, chunk: int):
     return [(a, min(a + chunk - 1, end)) for a in range(start, end + 1, chunk)]
 
 
+def fetch_range(url, r, tries=4):
+    """One chunk, retried. Returns (range, logs) or (range, why_it_failed)."""
+    a, b = r
+    last = "jamais tente"
+    for _ in range(tries):
+        try:
+            return r, call(url, "eth_getLogs",
+                           [{"address": POOL_MANAGER, "topics": [TOPIC_INITIALIZE],
+                             "fromBlock": hex(a), "toBlock": hex(b)}], 40)
+        except RpcError as e:
+            last = str(e)[:70]
+    return r, last
+
+
+def repair(out_path, workers=8):
+    """Retry exactly the chunks the first pass never read, and merge what comes back.
+
+    A declared gap is honest but it is still a gap. This closes the ones that were transient —
+    a 429 burst, a dropped connection — and rewrites the manifest with whatever is left, so the
+    published coverage is the coverage after every attempt rather than after the first.
+    """
+    url = os.environ["BASE_RPC_URL"]
+    man_path = out_path + ".manifest.json"
+    manifest = json.load(open(man_path))
+    todo = [(a, b) for a, b, _why in manifest["failed_ranges"]]
+    if not todo:
+        print(f"aucune tranche a reprendre : couverture deja {manifest['coverage']:.4%}")
+        return
+
+    logs = json.load(open(out_path))
+    seen = {(l["blockNumber"], l["logIndex"]) for l in logs}
+    print(f"reprise de {len(todo)} tranches en echec sur {manifest['chunks_total']:,}", flush=True)
+
+    still, recovered = [], 0
+    with cf.ThreadPoolExecutor(workers) as ex:
+        for r, res in ex.map(lambda x: fetch_range(url, x), todo):
+            if isinstance(res, list):
+                for l in res:
+                    k = (l["blockNumber"], l["logIndex"])
+                    if k not in seen:
+                        seen.add(k)
+                        logs.append(l)
+                        recovered += 1
+            else:
+                still.append((r, res))
+
+    total = manifest["chunks_total"]
+    coverage = (total - len(still)) / total
+    logs.sort(key=lambda l: (int(l["blockNumber"], 16), int(l["logIndex"], 16)))
+    json.dump(logs, open(out_path, "w"))
+    hooked = [l for l in logs if int("0x" + l["data"][2:][128 + 24:192], 16) != 0]
+    manifest.update(
+        chunks_failed=len(still), coverage=round(coverage, 6),
+        failed_ranges=[[a, b, why] for (a, b), why in still],
+        n_events=len(logs), n_hooked=len(hooked),
+        n_hooks=len({"0x" + l["data"][2:][128 + 24:192] for l in hooked}),
+        repaired=True, repaired_chunks=len(todo) - len(still), recovered_events=recovered,
+    )
+    json.dump(manifest, open(man_path, "w"), indent=1)
+    print(f"  {len(todo) - len(still)} tranches recuperees, {recovered} evenements de plus")
+    print(f"  tranches encore en echec : {len(still)}")
+    print(f"  couverture apres reprise : {coverage:.4%}")
+    print(f"  -> {out_path}  ({len(logs)} evenements, {len(hooked)} a hook)")
+
+
 def main():
+    if len(sys.argv) > 1 and sys.argv[1] == "--repair":
+        return repair(sys.argv[2], int(sys.argv[3]) if len(sys.argv) > 3 else 8)
     url = os.environ["BASE_RPC_URL"]
     end = int(sys.argv[1]) if len(sys.argv) > 1 else int(call(url, "eth_blockNumber", []), 16)
     span = int(sys.argv[2]) if len(sys.argv) > 2 else 200_000

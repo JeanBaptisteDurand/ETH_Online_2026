@@ -3,7 +3,19 @@
  *
  * The 14 permissions a hook declares are not stored anywhere: they ARE the low 14 bits of the
  * hook's own address, which is why hooks must be CREATE2-mined. Verified against the whole
- * official registry: 8,974 bit comparisons over 613 hooks, zero deviation (see test/).
+ * official registry — 613 entries x 14 booleans = **8,582 bit comparisons, zero deviation** — by
+ * two independent implementations that print the same count:
+ *
+ *   engine/tests/test_flags.py                          (Python, the engine's own table)
+ *   apps/api/src/assistant/__tests__/flags.test.ts      (TypeScript, and it checks that this
+ *                                                        file, apps/api and apps/mcp declare
+ *                                                        the same 14 shifts)
+ *
+ * This package has no build step and no test runner of its own; the parity check that covers it
+ * lives in apps/api, which does. Nothing imports this file at runtime today — apps/api and
+ * apps/mcp each carry a copy, for want of a shared build chain — which is exactly why the
+ * cross-copy check above exists: three hand-copied tables that drift apart would answer the same
+ * question two different ways, and nothing would break.
  *
  * Ported from LPLens (packages/agent/src/phases/05-hooks/flags.ts), which checked the layout
  * against Uniswap/v4-core/src/libraries/Hooks.sol.

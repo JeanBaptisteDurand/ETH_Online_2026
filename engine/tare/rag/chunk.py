@@ -28,10 +28,23 @@ from typing import Any, Dict, List, Optional
 from . import corpus as C
 from . import graph_header as GH
 
-# ≈ 1600 caracteres ~ 400 tokens : l'en-tete (≈500 c.) plus le contenu tiennent
-# dans la fenetre de 512 tokens de granite-embedding:278m sans troncature.
+# granite-embedding:278m lit 512 tokens. Au-dela, la fin du morceau n'est pas
+# "moins pesee" : elle est TRONQUEE, en silence, et un morceau tronque en
+# silence est exactement le genre de faux negatif que docs/HONESTY.md recense.
+#
+# TEXT_BUDGET est le plafond du texte VECTORISE, en-tete comprise. C'est ce
+# plafond qui compte : un en-tete de graphe riche (52 pools, 4 jumeaux, un
+# deployeur) fait 700 caracteres, et 700 + 1600 depasse la fenetre. La fenetre
+# de contenu est donc calculee PAR MORCEAU, budget moins en-tete.
+#
+# 2048 caracteres ~ 500 tokens sur du texte technique melant anglais, francais
+# et Solidity. `assert_within_budget()` verifie que la regle a tenu.
+TEXT_BUDGET = 2048
 MAX_CONTENT_CHARS = 1600
 MIN_CONTENT_CHARS = 40
+# Un en-tete ne doit jamais manger tout le budget : sous ce plancher on garde du
+# contenu quand meme, et le morceau est signale `oversize` plutot qu'ampute.
+MIN_WINDOW_CHARS = 320
 
 CORPUS_DOCS = "docs"
 CORPUS_REGISTRY = "registry"
@@ -60,6 +73,13 @@ class Chunk:
         return self.header.rstrip() + "\n\n" + self.content.strip()
 
     @property
+    def oversize(self) -> bool:
+        """Le texte depasse le budget du modele : sa fin sera ignoree par
+        l'embedding. Un morceau dans cet etat est COMPTE dans le rapport de
+        build, jamais laisse passer sans un mot."""
+        return len(self.text) > TEXT_BUDGET
+
+    @property
     def cite(self) -> str:
         return f"{self.source_file}:{self.line_start}-{self.line_end}"
 
@@ -78,7 +98,7 @@ class Chunk:
             "text": self.text, "n_chars": len(self.text), "chain_id": self.chain_id,
             "address": self.address, "graph_node": self.graph_node,
             "cite": self.cite, "replay": self.replay, "sha256": self.sha(),
-            "extra": self.extra,
+            "oversize": self.oversize, "extra": self.extra,
         }
 
 
@@ -132,7 +152,9 @@ def chunk_markdown(source: C.Source, gi: Optional[GH.GraphIndex] = None,
     rel = source.rel
     chunks: List[Chunk] = []
     for sec in _sections(lines):
-        wins = _windows(lines, sec["start"], sec["end"], max_chars)
+        # L'en-tete d'un document tient en deux lignes plus les hooks cites :
+        # on laisse 320 caracteres pour lui dans le budget.
+        wins = _windows(lines, sec["start"], sec["end"], min(max_chars, TEXT_BUDGET - 320))
         for k, (a, b) in enumerate(wins):
             body = "\n".join(lines[a - 1:b])
             if len(body.strip()) < MIN_CONTENT_CHARS:
@@ -243,14 +265,25 @@ _SOL_SYMBOL = re.compile(
 
 
 def chunk_solidity(source: C.Source, gi: Optional[GH.GraphIndex] = None,
-                   max_chars: int = MAX_CONTENT_CHARS) -> List[Chunk]:
+                   max_chars: int = MAX_CONTENT_CHARS,
+                   include_vendored: bool = False) -> List[Chunk]:
     """Le source verifie des hooks (docs/hooks-source/, lot P).
+
+    Deux choses que ce decoupage fait et que le decoupage naif ne fait pas.
+
+    1. Il ECARTE les dependances recopiees (`vendored` dans provenance.json).
+       Indexer SafeERC20.sol treize fois — une par hook — ferait remonter
+       OpenZeppelin sur toute question de transfert et enterrerait le seul
+       fichier qui repond.
+    2. Il calcule la fenetre de contenu APRES l'en-tete. Un hook a 52 pools
+       produit un en-tete de 700 caracteres ; 700 + 1600 depasse la fenetre du
+       modele et la fin du code serait ignoree sans que rien ne le signale.
 
     Le repertoire peut ne pas exister : `read_solidity` rend alors une liste
     vide et cette fonction rend zero morceau. Le rapport de build porte
     `present: false` — on ne pretend jamais avoir indexe du code qu'on n'a pas.
     """
-    files = C.read_solidity(source)
+    files = C.read_solidity(source, include_vendored=include_vendored)
     chunks: List[Chunk] = []
     for f in files:
         lines = f["text"].split("\n")
@@ -262,8 +295,25 @@ def chunk_solidity(source: C.Source, gi: Optional[GH.GraphIndex] = None,
             base = GH.render_absent_header(addr, chain_id, None, None)
         else:
             base = f"SOURCE SOLIDITY {f['rel']} — aucune adresse deduite du chemin"
+        prov = f.get("provenance") or {}
+        if prov.get("provider"):
+            base += (f"\nsource verifiee: {prov['provider']}, correspondance runtime "
+                     f"{prov.get('runtime_match')}, creation {prov.get('creation_match')}, "
+                     f"verifiee le {prov.get('verified_at')}")
+        sub = f.get("sub_path") or f["rel"]
+        # Budget : le texte vectorise = en-tete + ligne SOURCE + contenu. On ne
+        # l'ESTIME pas — une estimation courte de 160 caracteres laissait passer
+        # 93 morceaux hors budget. On construit un en-tete temoin, au pire cas
+        # (le symbole le plus long du fichier, un numero de ligne a 5 chiffres),
+        # et on mesure.
+        longest_symbol = max((len(m.group(2) or m.group(3) or "")
+                              for m in (_SOL_SYMBOL.match(ln) for ln in lines) if m),
+                             default=len("(sommet du fichier)"))
+        probe = (base + f"\nSOURCE {sub} — " + "X" * max(longest_symbol, 20)
+                 + f"\nlignes 99999-99999, rejeu: sed -n '99999,99999p' {f['rel']}\n\n")
+        window = max(MIN_WINDOW_CHARS, min(max_chars, TEXT_BUDGET - len(probe)))
         symbol = "(sommet du fichier)"
-        for (a, b) in _windows(lines, 1, len(lines), max_chars):
+        for (a, b) in _windows(lines, 1, len(lines), window):
             for ln in lines[a - 1:b]:
                 m = _SOL_SYMBOL.match(ln)
                 if m:
@@ -272,13 +322,15 @@ def chunk_solidity(source: C.Source, gi: Optional[GH.GraphIndex] = None,
             body = "\n".join(lines[a - 1:b])
             if len(body.strip()) < MIN_CONTENT_CHARS:
                 continue
-            header = (base + f"\nSOURCE {f['rel']} — {symbol}\n"
+            header = (base + f"\nSOURCE {sub} — {symbol}\n"
                       f"lignes {a}-{b}, rejeu: sed -n '{a},{b}p' {f['rel']}")
             chunks.append(Chunk(
                 id=f"{f['rel']}#{a}-{b}", corpus=CORPUS_HOOK_SOURCE, doc_id=f["rel"],
-                title=symbol, source_file=f["rel"], line_start=a, line_end=b,
-                header=header, content=body, chain_id=chain_id, address=addr,
-                graph_node=node, extra={"symbol": symbol},
+                title=f"{symbol} ({Path(sub).name})", source_file=f["rel"],
+                line_start=a, line_end=b, header=header, content=body,
+                chain_id=chain_id, address=addr, graph_node=node,
+                extra={"symbol": symbol, "vendored": f.get("vendored", False),
+                       "sub_path": sub, "provenance": prov},
             ))
     return chunks
 
@@ -316,4 +368,36 @@ def chunk_corpus(gi: Optional[GH.GraphIndex] = None,
             c.id = f"{c.id}~{seen[c.id]}"
         else:
             seen[c.id] = 0
+    mark_oversize(out)
     return out
+
+
+def mark_oversize(chunks: List[Chunk]) -> int:
+    """Le decoupage aligne les fenetres sur les LIGNES, pour que
+    `sed -n 'a,bp'` rende exactement ce qui a ete indexe. Une ligne unique plus
+    longue que le budget est donc insecable : CoinConstants.sol:107 est un
+    litteral hexadecimal de 1 422 caracteres sur une seule ligne.
+
+    On ne la coupe pas en silence — la fin du morceau ne sera pas dans le
+    vecteur, et c'est ecrit EN TETE du morceau, la ou le lecteur d'un passage le
+    verra. Le rapport de build les compte. Un morceau tronque sans un mot est un
+    faux negatif que personne ne decouvre jamais.
+    """
+    n = 0
+    for c in chunks:
+        if not c.oversize:
+            continue
+        n += 1
+        c.header = (f"AVERTISSEMENT: morceau de {len(c.text)} caracteres, au-dela du budget "
+                    f"de {TEXT_BUDGET} du modele d'embedding. Sa fin n'est PAS dans le "
+                    f"vecteur (ligne unique insecable). Le texte complet: {c.replay}\n"
+                    + c.header)
+        c.extra["oversize"] = True
+    return n
+
+
+def oversize(chunks: List[Chunk]) -> List[Chunk]:
+    """Les morceaux dont la fin sera ignoree par l'embedding. Le rapport de
+    build les compte et les nomme : un morceau tronque en silence est un faux
+    negatif que personne ne verra jamais."""
+    return [c for c in chunks if c.oversize]

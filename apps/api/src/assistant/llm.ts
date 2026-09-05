@@ -82,6 +82,7 @@ const INTENTS: Intent[] = [
   "orphans",
   "evidence",
   "measure-request",
+  "route",
   "open",
   "filter",
   "sort",
@@ -150,6 +151,14 @@ const FEW_SHOT = [
     a: '{"intent":"curve","actions":[{"type":"open","hook":"0x1111111111111111111111111111111111111111","pool":"0x2222222222222222222222222222222222222222222222222222222222222222"},{"type":"plotCurve","hook":"0x1111111111111111111111111111111111111111","pool":"0x2222222222222222222222222222222222222222222222222222222222222222","direction":null}],"say":"Je trace le prelevement en fonction de la taille du swap."}',
   },
   {
+    q: "je veux echanger de l'ETH contre de l'USDC, par quel pool passer ?",
+    a: '{"intent":"route","actions":[{"type":"reset"},{"type":"highlight","hooks":["0x0000000000000000000000000000000000000000","0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"]}],"say":"Je regarde les portes de cette paire, et je dis s\'il n\'y en a qu\'une."}',
+  },
+  {
+    q: "par quel pool passer entre 0x4200000000000000000000000000000000000006 et 0x833589fcd6edb6e08f4c7c32d4f71b54bda02913 ?",
+    a: '{"intent":"route","actions":[{"type":"reset"},{"type":"highlight","hooks":["0x4200000000000000000000000000000000000006","0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"]}],"say":"Je cherche les portes de cette paire."}',
+  },
+  {
     q: "pourquoi vous remplacez le hook et pas le pool ?",
     a: '{"intent":"explain","actions":[],"say":"Je t\'explique la methode."}',
   },
@@ -195,6 +204,14 @@ export function buildSystemPrompt(store: StoreView): string {
     "Colonnes de sort : hook, registre, mesure, pools, mesures, etiquette, audit. Sens : asc|desc.",
     "",
     "Intentions possibles : " + INTENTS.join(", "),
+    "",
+    "QUAND LA QUESTION EST \"je veux echanger A contre B, par quel pool passer ?\" :",
+    "reponds intent=\"route\". Tu ne connais NI les pools NI les couts : tu nommes seulement",
+    "les DEUX JETONS, dans l'ordre de la phrase (le premier est celui qu'on vend), en les",
+    "mettant dans les adresses d'une action highlight. Le produit resout la paire, appelle",
+    "sa route mesuree et ecrit la reponse. Une adresse que le recensement ne connait pas",
+    "comme jeton est ignoree : inventer une adresse ne fabrique pas une paire.",
+    "Si la question ne donne qu'un seul jeton, n'en invente pas un second.",
     "",
     "Quand la question porte sur LA METHODE, LES ETIQUETTES, LES LIMITES ou LE PRODUIT",
     "plutot que sur le jeu de mesures, reponds intent=\"explain\" avec actions=[] :",
@@ -917,12 +934,19 @@ export async function planExplain(
       chosenBy = "modele";
       why.push(`sujet choisi par le modele${choice.provider ? ` (${choice.provider})` : ""}`);
       if (choice.note) why.push(choice.note);
+    } else if (choice.error) {
+      // Le modele n'a pas pu repondre : panne, delai, JSON illisible, sujet hors catalogue.
+      degraded = { reason: "aiguillage_modele_indisponible", detail: choice.error };
+      why.push(`repli sur les regles : ${choice.error}`);
     } else {
-      degraded = {
-        reason: "aiguillage_modele_indisponible",
-        detail: choice.error ?? "le modele n'a designe aucun sujet",
-      };
-      why.push(`repli sur les regles : ${choice.error ?? "aucun sujet rendu par le modele"}`);
+      // Le modele A repondu, et il a repondu « aucun de ces sujets ». Ce n'est pas une
+      // panne : c'est un choix, et souvent le bon — la question ne porte sur aucun des
+      // seize sujets du catalogue. L'appeler « modele indisponible » accuse un composant
+      // qui a parfaitement fonctionne, et envoie chercher la panne la ou il n'y en a pas.
+      why.push(
+        "le modele a examine la question et n'a retenu aucun des sujets du catalogue : " +
+          "on explique le produit dans son ensemble",
+      );
     }
     say = choice.say;
   } else {

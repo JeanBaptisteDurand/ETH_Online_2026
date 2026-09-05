@@ -381,15 +381,46 @@ class TestConcordanceRules(unittest.TestCase):
 
 class TestPublishedArtefact(unittest.TestCase):
     def test_the_report_never_prints_a_rate_for_an_unread_hook(self):
+        """Un hook dont on n'a pas lu le code ne recoit ni taux ni verdict, nulle part.
+
+        Le rapport contient PLUSIEURS tables — provenance, classification — et une version
+        anterieure de ce test prenait la premiere ligne venue, donc la table de provenance,
+        et echouait sur un rapport correct. On verifie donc les deux choses separement :
+        la ligne de classification porte l'etiquette, et AUCUNE ligne, dans aucune table,
+        ne lui attribue un taux chiffre ou un verdict de concordance.
+        """
+        import re
+
         analysis = _analysis()
         md = report.render(analysis)
+        rows = [l for l in md.splitlines() if l.startswith("|")]
         for h in analysis["hooks"]:
             if h["read"]:
                 continue
-            short = h["hook"][:10]
-            line = next(l for l in md.splitlines() if short in l and l.startswith("|"))
-            self.assertIn("behaviour not read", line)
-            self.assertIn("not read", line)
+            addr = h["hook"].lower()
+            short = addr[:10]
+            mine = [l for l in rows if short in l.lower()]
+            self.assertTrue(mine, f"{addr} n'apparait dans aucune table")
+
+            # 1. la ligne de classification existe et porte l'etiquette
+            etiquetees = [l for l in mine if "behaviour not read" in l]
+            self.assertEqual(
+                len(etiquetees), 1,
+                f"{addr} doit avoir exactement une ligne de classification etiquetee "
+                f"« behaviour not read », trouve {len(etiquetees)} dans :\n" + "\n".join(mine))
+
+            # 2. aucune ligne ne lui attribue un verdict de concordance
+            for l in mine:
+                for interdit in ("CONCORDANT", "DISCORDANT", "concordant"):
+                    self.assertNotIn(interdit, l, f"verdict attribue a un hook non lu : {l}")
+
+            # 3. aucune ligne ne lui attribue un taux DECLARE. La mediane MESUREE reste
+            #    legitime — elle vient du fork, pas du code source non lu.
+            for l in etiquetees:
+                apres = l.split("behaviour not read", 1)[1]
+                self.assertIsNone(
+                    re.search(r"\d+\.\d+|\b\d{2,}\b", apres),
+                    f"un nombre suit l'etiquette « behaviour not read » : {l}")
 
     def test_the_analysis_pins_the_corpus_it_was_computed_from(self):
         analysis = _analysis()

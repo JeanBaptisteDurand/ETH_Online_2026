@@ -101,11 +101,13 @@ These are enforced, not aspirational.
    value on screen carries its block, its size and its direction, and replays with one command.
 2. **Every measurement is labelled** — `MEASURED` · `INTERPOLATED` · `NOT_MEASURABLE` · `NOT_QUOTABLE`
    — and a label is never upgraded to make a point.
-3. **Never conclude on a truncated response.** This project has produced eight false findings, and
-   four of the eight came from a bounded read (a `[:3]` slice, a 2,000-byte body, a `head -c 220`, a
-   200-character error string that cut a revert selector in half). All eight are written up in
-   [`docs/HONESTY.md`](docs/HONESTY.md) — what was claimed, how it was caught, what makes it
-   impossible now. A bounded read is a `NOT_MEASURABLE`, never a value, and never a zero.
+3. **Never conclude on a truncated response.** This project has produced nine false findings, and
+   five of the nine were the same mistake: a read was silently bounded, and the truncated result
+   parsed cleanly — a `[:3]` slice, a 2,000-byte body, a `head -c 220`, a 200-character error
+   string that cut a revert selector in half. None of them raised an exception; all of them
+   produced a plausible number. All nine are written up in [`docs/HONESTY.md`](docs/HONESTY.md) —
+   what was claimed, how it was caught, what makes it impossible now. A bounded read is a
+   `NOT_MEASURABLE`, never a value, and never a zero.
 4. **Known limits are published, not hidden.** A hook with custom accounting *is* the liquidity;
    removing it does not measure what it takes, it destroys the pool. Those are `NOT_MEASURABLE`.
 

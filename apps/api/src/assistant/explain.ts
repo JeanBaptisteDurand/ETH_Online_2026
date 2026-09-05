@@ -896,8 +896,17 @@ export interface RagOptions {
   fetchImpl?: typeof fetch;
 }
 
+/**
+ * Le RAG vectoriel, servi par `python3 -m tare.rag.serve` (engine/tare/rag/serve.py).
+ *
+ * Cette constante a pointe pendant des jours vers 8787/rag/search, ou RIEN n'ecoutait :
+ * l'API Hono n'a jamais expose cette route. Chaque explication repartait donc avec
+ * « RAG indisponible : HTTP 404 » dans son journal et se rabattait sur les regles, sans que
+ * personne le remarque — le repli fonctionnait trop bien. Le RAG etait construit, indexe,
+ * mesure, et jamais interroge par la seule surface qui en avait besoin.
+ */
 export const DEFAULT_RAG_URL =
-  process.env.TARE_RAG_URL ?? "http://127.0.0.1:8787/rag/search";
+  process.env.TARE_RAG_URL ?? "http://127.0.0.1:8789/search";
 
 function str(v: unknown): string | null {
   return typeof v === "string" && v.trim() !== "" ? v.trim() : null;
@@ -959,7 +968,10 @@ export async function ragSearch(query: string, opts: RagOptions = {}): Promise<R
       detail: "aucune URL de RAG configuree",
       url: null,
     };
-  const timeoutMs = opts.timeoutMs ?? 4000;
+  // 4 000 ms etait sous le temps de reponse REEL du RAG : mesure entre 3,2 et 9,6 s sur
+  // cette machine pendant qu'elle porte quatre balayages. Un delai trop court transforme un
+  // RAG qui marche en « RAG indisponible », et fait chercher la panne au mauvais endroit.
+  const timeoutMs = opts.timeoutMs ?? 12_000;
   const topK = opts.topK ?? 4;
   const url = `${base}${base.includes("?") ? "&" : "?"}q=${encodeURIComponent(query)}&k=${topK}`;
   const f = opts.fetchImpl ?? fetch;

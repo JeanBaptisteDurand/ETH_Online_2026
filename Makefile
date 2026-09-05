@@ -22,6 +22,12 @@ up:                         ## start the fork, db and queue
 down:
 	docker compose down
 
+.PHONY: rag-serve
+rag-serve:                  ## the vector RAG behind HTTP — the chat needs it to cite documents
+	@echo "Sans ce serveur, /assistant/ask repond quand meme, mais sans les passages :"
+	@echo "son journal porte alors « RAG indisponible » et il se rabat sur les regles."
+	cd engine && python3 -m tare.rag.serve --port $${RAG_PORT:-8789}
+
 .PHONY: gate-a3
 gate-a3:                    ## reproduce the five known bps for hook 0x1aea38f0 — cannot be faked
 	@cd engine && python3 -m tare.gates.a3 --rpc $(RPC) --block $(BLOCK)

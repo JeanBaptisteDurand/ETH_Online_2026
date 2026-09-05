@@ -41,6 +41,9 @@ DEFAULT_BATCH = 16
 DEFAULT_TIMEOUT = 120.0
 
 
+# Duree pendant laquelle Ollama garde le modele en memoire apres un appel.
+OLLAMA_KEEP_ALIVE = "30m"
+
 class EmbedError(RuntimeError):
     """L'embedding n'a pas eu lieu. Ce n'est PAS un vecteur nul."""
 
@@ -129,7 +132,12 @@ class OllamaEmbedder(Embedder):
             part = list(texts[i:i + self.batch])
             try:
                 r = _post(f"{self.url}/api/embed",
-                          {"model": self.model, "input": part}, self.timeout)
+                          # keep_alive : sans lui, Ollama decharge le modele apres cinq
+                          # minutes d'inactivite et la question suivante paie trente
+                          # secondes de rechargement. Le serveur RAG tourne en continu ;
+                          # le modele doit y rester.
+                          {"model": self.model, "input": part,
+                           "keep_alive": OLLAMA_KEEP_ALIVE}, self.timeout)
             except urllib.error.HTTPError as exc:
                 raise EmbedError(f"ollama HTTP {exc.code}: {exc.read()[:200]!r}") from exc
             except Exception as exc:

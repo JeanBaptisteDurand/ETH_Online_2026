@@ -42,10 +42,10 @@ echo "== 5/7 index RAG (les en-tetes citent le graphe, donc apres lui) =="
 echo "== 6/7 banc des deux recuperateurs =="
 ( cd engine && python3 -m tare.rag.split --write --quiet )
 
-echo "== 7/8 jeu embarque par le site =="
+echo "== 8/9 jeu embarque par le site =="
 node apps/web/scripts/build-dataset.mjs
 
-echo "== 8/8 texte de soumission =="
+echo "== 9/9 texte de soumission =="
 ( cd engine && python3 -m tare.submission.build --write )
 
 echo

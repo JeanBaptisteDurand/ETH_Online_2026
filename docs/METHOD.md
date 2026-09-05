@@ -106,6 +106,33 @@ back to `slot0.lpFee` — the *stored* fee — not to nothing. The note lives wi
 on it, [`engine/tare/stub.py:16-19`](../engine/tare/stub.py). (`Pool.sol` is likewise upstream and
 not vendored here.)
 
+### The stub has to actually be there, and that is checked twice
+
+`anvil_setCode` returning cleanly does not prove the code was written. If the write is accepted and
+not applied — or if a second process restores the hook between the write and the quote, which is
+exactly [false finding #5](HONESTY.md) — then the "without hook" quote runs against the **real
+hook**. The two quotes are identical, the difference is exactly zero, and the row is published as
+`MEASURED 0.00 bps`.
+
+That is the worst shape a failure can take here, because it is indistinguishable from a true result:
+hooks that take nothing do exist. Four of them sit on ETH/USDC, with `BEFORE_SWAP`, `AFTER_SWAP` and
+`AFTER_SWAP_RETURNS_DELTA` all set — permitted to take, and taking nothing.
+
+So the code at the hook's address is read back **after the write and again after the quote**
+([`engine/tare/measure.py:82-110`](../engine/tare/measure.py)). If it is not the stub, byte for
+byte, the row is `NOT_MEASURABLE` and carries which of the two checks failed — never a zero.
+
+The guard was added after 8,681 `MEASURED` rows had already been published, 51 of them exactly
+`0.0000`. Three hooks were zero across every one of their measurements — the profile a silent stub
+failure would produce. **All 26 of those rows were replayed with the guard active and reproduced
+identically**, so no published zero was an artefact. The check is there for the next run, not to
+repair this one.
+
+```bash
+cd engine && python3 -m unittest tests.test_measure.TestLeTalonDoitEtreLa -v
+```
+
+
 ## 4. From the log to the pool list
 
 ```

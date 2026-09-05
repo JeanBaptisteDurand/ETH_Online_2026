@@ -84,8 +84,29 @@ def measure(url: str, key: PoolKey, zero_for_one: bool, amount_in: int, block: i
 
     original = get_code(url, key.hooks)
     set_code(url, key.hooks, STUB)
+
+    # Le talon est-il VRAIMENT en place ? Sans cette relecture, un anvil_setCode qui echoue
+    # sans bruit — ou un autre mesureur qui restaure le hook entre l'ecriture et la cotation,
+    # ce qui est exactement le faux resultat #5 — fait recoter le VRAI hook. La difference
+    # vaut alors zero et la ligne sort etiquetee MEASURED a 0.00 bps : une panne deguisee en
+    # mesure, et la plus credible de toutes, puisqu'un hook qui ne preleve rien existe.
+    # On relit donc le code a l'adresse et on exige qu'il soit celui du talon.
+    installe = get_code(url, key.hooks)
+    if (installe or "").lower() != STUB.lower():
+        set_code(url, key.hooks, original)
+        vu = (installe or "0x")
+        return Measurement(**base, out_with=str(with_hook), out_without=None, bps=None,
+                           label="NOT_MEASURABLE",
+                           reason=f"stub_absent_apres_setCode:{len(vu)//2 - 1}o_a_l_adresse")
+
     try:
         without_hook, err2 = quote(url, key, zero_for_one, amount_in)
+        # Et toujours en place APRES la cotation : un mesureur concurrent a pu restaurer le
+        # hook pendant l'appel. La cotation serait alors celle du vrai hook, pas du talon.
+        if (get_code(url, key.hooks) or "").lower() != STUB.lower():
+            return Measurement(**base, out_with=str(with_hook), out_without=None, bps=None,
+                               label="NOT_MEASURABLE",
+                               reason="stub_remplace_pendant_la_cotation:un_seul_mesureur_par_fork")
     finally:
         set_code(url, key.hooks, original)      # always restore, even on failure
 

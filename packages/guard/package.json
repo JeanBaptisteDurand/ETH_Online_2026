@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "license": "Apache-2.0",
-  "description": "TARE Guard — intercepte un swap Uniswap v4 avant signature, decode la PoolKey du calldata, consulte la table de mesures TARE et rend un verdict.",
+  "description": "TARE Guard \u2014 intercepte un swap Uniswap v4 avant signature, decode la PoolKey du calldata, consulte la table de mesures TARE et rend un verdict.",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
@@ -23,7 +23,8 @@
     "build": "npm run build:table && npm run build:bundle",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "example": "node scripts/serve-example.mjs"
+    "example": "node scripts/serve-example.mjs",
+    "build:extension": "esbuild extension/inject.src.ts --bundle --format=iife --target=chrome110 --outfile=extension/inject.js"
   },
   "devDependencies": {
     "@types/node": "^22.20.1",

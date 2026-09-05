@@ -4,3 +4,4 @@ __pycache__/
 .venv/
 node_modules/
 dist/
+packages/guard/extension/inject.js

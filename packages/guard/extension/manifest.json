@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "TARE Guard",
+  "version": "0.1.0",
+  "description": "Dit ce qu'un hook Uniswap v4 prend sur ton swap, avant que tu signes.",
+  "icons": { "128": "icon128.png" },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["inject.js"],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": true
+    }
+  ]
+}

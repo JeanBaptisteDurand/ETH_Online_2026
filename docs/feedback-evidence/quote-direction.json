@@ -1,0 +1,21 @@
+{
+ "_what": "sens de cotation disponibles par pool, V4Quoter.quoteExactInputSingle",
+ "_replay": "python3 docs/feedback-evidence/quote_direction.py 4",
+ "_source_pools": "docs/pools-liquides.json",
+ "quoter": "0x0d5e0f971ed27fbff6c2837bf31316121532048d",
+ "chain_id": 8453,
+ "block_number": 50614000,
+ "sizes_wei": [
+  "100000000000000",
+  "1000000000000000",
+  "10000000000000000",
+  "100000000000000000",
+  "1000000000000000000"
+ ],
+ "pools_testes": 4,
+ "cotent_dans_les_deux_sens": 3,
+ "cotent_dans_un_seul_sens": 0,
+ "ne_cotent_dans_aucun_sens": 0,
+ "indetermine_infra": 1,
+ "pct_un_seul_sens": 0.0
+}

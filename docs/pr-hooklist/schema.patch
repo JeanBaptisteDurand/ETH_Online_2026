@@ -1,0 +1,63 @@
+--- a/schema.json
++++ b/schema.json
+@@ -3,11 +3,12 @@
+   "title": "Uniswap v4 Hook",
+   "type": "object",
+   "required": [
+     "hook",
+     "flags",
+     "properties"
+   ],
+   "additionalProperties": false,
+   "properties": {
+     "hook": {
+       "type": "object",
+@@ -71,10 +72,68 @@
+         "verifiedSource": {
+           "type": "boolean"
+         },
+         "auditUrl": {
+           "type": "string",
+           "default": "",
+           "pattern": "^(https://.*)?$"
++        },
++        "measuredExtraction": {
++          "type": "object",
++          "description": "An observed measurement of how much this hook removed from a swap, relative to the same swap on the same pool with the hook's code replaced by a protocol-compliant no-op. Optional. A magnitude with no block, no method and no source is not admissible, so all four members are required once the object is present.",
++          "required": [
++            "bps",
++            "block",
++            "method",
++            "sourceUrl"
++          ],
++          "additionalProperties": false,
++          "properties": {
++            "bps": {
++              "type": "number",
++              "description": "Median observed extraction in basis points of the swap output, across the measured pools and sizes described by sourceUrl. Negative values are not admissible: a hook that returns more than it takes is running custom accounting, which this field cannot describe.",
++              "minimum": 0,
++              "maximum": 10000
++            },
++            "block": {
++              "type": "integer",
++              "description": "Block number on this entry's chainId at which the measurement was taken. A magnitude without a block is not reproducible.",
++              "minimum": 0
++            },
++            "method": {
++              "type": "string",
++              "description": "How the magnitude was obtained. 'counterfactual' = the same swap quoted twice on a pinned fork, once with the hook's real bytecode and once with a compliant no-op at the same address. 'declared' = stated by the deployer, unverified. 'events' = derived from HookSwap / HookFee emissions.",
++              "enum": [
++                "counterfactual",
++                "declared",
++                "events"
++              ]
++            },
++            "sourceUrl": {
++              "type": "string",
++              "description": "Public URL of the dataset or report the magnitude comes from, carrying the pools, sizes and directions it was computed over, and reproducible by a third party.",
++              "pattern": "^https://.*"
++            }
++          }
+         }
+       }
+     },

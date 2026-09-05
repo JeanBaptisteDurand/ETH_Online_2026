@@ -1,0 +1,197 @@
+{
+ "_what": "hooks mesures par TARE, croises avec l'allowlist de routage et le registre",
+ "_replay": "python3 docs/feedback-evidence/routing_allowlist.py",
+ "_sources": {
+  "allowlist": "https://raw.githubusercontent.com/Uniswap/routing-api/f5a81893b812b6745b1f8b7fa3a55a714cb9d89b/lib/util/hooksAddressesAllowlist.ts",
+  "hooklist": "https://raw.githubusercontent.com/Uniswap/hooklist/862303733d34aa36fad0d8c5275163c387be80d6/hooklist.json",
+  "schema": "https://raw.githubusercontent.com/Uniswap/hooklist/862303733d34aa36fad0d8c5275163c387be80d6/schema.json"
+ },
+ "measurements": {
+  "file": "docs/dataset/measurements.jsonl",
+  "rows": 995,
+  "chain_id": 8453,
+  "block_number": 50614000
+ },
+ "routing_allowlist_base": {
+  "entries": 59,
+  "address_constants_in_file": 117,
+  "file_lines": 395,
+  "chain_block_line": 301,
+  "denylist_occurrences": 0,
+  "resolved_addresses": 58
+ },
+ "registry": {
+  "entries": 869,
+  "entries_chain_8453": 234,
+  "verifiedSource_true": 869,
+  "auditUrl_non_empty": 30,
+  "leaf_fields": 27,
+  "numeric_fields": [
+   "hook.chainId"
+  ],
+  "boolean_fields": 19,
+  "quantitative_fields": [],
+  "schema_additionalProperties_false": 4
+ },
+ "hooks": [
+  {
+   "hook": "0x0469a4bd3724dc86c9542f4694c976da13c450c0",
+   "rows": 260,
+   "measured": 255,
+   "rows_over_1bps_at_zero_stored_lp_fee": 255,
+   "bps_median": 100.0,
+   "bps_max": 100.0,
+   "in_routing_allowlist_base": false,
+   "in_registry_base": true,
+   "registry_name": "Zora Hook",
+   "registry_auditUrl": "",
+   "registry_swapAccess": "none"
+  },
+  {
+   "hook": "0x1aea38f06dece45c252ef1ac5af989d51dc8e8cc",
+   "rows": 10,
+   "measured": 10,
+   "rows_over_1bps_at_zero_stored_lp_fee": 10,
+   "bps_median": 253.31,
+   "bps_max": 689.95,
+   "in_routing_allowlist_base": false,
+   "in_registry_base": true,
+   "registry_name": "ClankerHookStaticFeeV2",
+   "registry_auditUrl": "",
+   "registry_swapAccess": "none"
+  },
+  {
+   "hook": "0x3b2b979df21036cee51b8debb13100e2cb8deacc",
+   "rows": 20,
+   "measured": 20,
+   "rows_over_1bps_at_zero_stored_lp_fee": 0,
+   "bps_median": null,
+   "bps_max": null,
+   "in_routing_allowlist_base": false,
+   "in_registry_base": true,
+   "registry_name": "LaunchHook",
+   "registry_auditUrl": "",
+   "registry_swapAccess": "temporal"
+  },
+  {
+   "hook": "0x9811f10cd549c754fa9e5785989c422a762c28cc",
+   "rows": 20,
+   "measured": 20,
+   "rows_over_1bps_at_zero_stored_lp_fee": 0,
+   "bps_median": null,
+   "bps_max": null,
+   "in_routing_allowlist_base": false,
+   "in_registry_base": true,
+   "registry_name": "LiquidHookStaticFeeV2",
+   "registry_auditUrl": "",
+   "registry_swapAccess": "none"
+  },
+  {
+   "hook": "0x985c14baa2a18316ffda0aefb3a632fadfca2acc",
+   "rows": 125,
+   "measured": 125,
+   "rows_over_1bps_at_zero_stored_lp_fee": 125,
+   "bps_median": 99.56,
+   "bps_max": 100.0,
+   "in_routing_allowlist_base": false,
+   "in_registry_base": true,
+   "registry_name": "LaunchHook",
+   "registry_auditUrl": "",
+   "registry_swapAccess": "temporal"
+  },
+  {
+   "hook": "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+   "rows": 155,
+   "measured": 150,
+   "rows_over_1bps_at_zero_stored_lp_fee": 95,
+   "bps_median": 119.7,
+   "bps_max": 1176.46,
+   "in_routing_allowlist_base": true,
+   "in_registry_base": true,
+   "registry_name": "Clanker Static Fee Hook v2 (Base)",
+   "registry_auditUrl": "",
+   "registry_swapAccess": "none"
+  },
+  {
+   "hook": "0xb995b9efcc8021300bdc93fbd0c156e9a5ca0088",
+   "rows": 5,
+   "measured": 5,
+   "rows_over_1bps_at_zero_stored_lp_fee": 0,
+   "bps_median": null,
+   "bps_max": null,
+   "in_routing_allowlist_base": false,
+   "in_registry_base": false,
+   "registry_name": null,
+   "registry_auditUrl": null,
+   "registry_swapAccess": null
+  },
+  {
+   "hook": "0xbb7784a4d481184283ed89619a3e3ed143e1adc0",
+   "rows": 15,
+   "measured": 0,
+   "rows_over_1bps_at_zero_stored_lp_fee": 0,
+   "bps_median": null,
+   "bps_max": null,
+   "in_routing_allowlist_base": true,
+   "in_registry_base": true,
+   "registry_name": "DecayMulticurveInitializerHook",
+   "registry_auditUrl": "",
+   "registry_swapAccess": "none"
+  },
+  {
+   "hook": "0xbdf938149ac6a781f94faa0ed45e6a0e984c6544",
+   "rows": 365,
+   "measured": 115,
+   "rows_over_1bps_at_zero_stored_lp_fee": 50,
+   "bps_median": 150.0,
+   "bps_max": 175.0,
+   "in_routing_allowlist_base": false,
+   "in_registry_base": true,
+   "registry_name": "DopplerHookInitializer",
+   "registry_auditUrl": "",
+   "registry_swapAccess": "none"
+  },
+  {
+   "hook": "0xc71b7fa56c92b05fbe2448a8bfeb2e9c085fe000",
+   "rows": 5,
+   "measured": 5,
+   "rows_over_1bps_at_zero_stored_lp_fee": 0,
+   "bps_median": null,
+   "bps_max": null,
+   "in_routing_allowlist_base": false,
+   "in_registry_base": false,
+   "registry_name": null,
+   "registry_auditUrl": null,
+   "registry_swapAccess": null
+  },
+  {
+   "hook": "0xdd5eeaff7bd481ad55db083062b13a3cdf0a68cc",
+   "rows": 5,
+   "measured": 5,
+   "rows_over_1bps_at_zero_stored_lp_fee": 0,
+   "bps_median": null,
+   "bps_max": null,
+   "in_routing_allowlist_base": true,
+   "in_registry_base": true,
+   "registry_name": "Clanker Static Fee Hook (Base)",
+   "registry_auditUrl": "",
+   "registry_swapAccess": "none"
+  },
+  {
+   "hook": "0xdda9bc41e324ef379e774ae1f7b062d23ea8aacc",
+   "rows": 10,
+   "measured": 10,
+   "rows_over_1bps_at_zero_stored_lp_fee": 10,
+   "bps_median": 99.38,
+   "bps_max": 99.99,
+   "in_routing_allowlist_base": false,
+   "in_registry_base": true,
+   "registry_name": "LaunchHook",
+   "registry_auditUrl": "",
+   "registry_swapAccess": "temporal"
+  }
+ ],
+ "hooks_routed_and_extracting_over_1bps_at_zero_stored_lp_fee": [
+  "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc"
+ ]
+}

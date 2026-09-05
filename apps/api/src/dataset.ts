@@ -168,6 +168,21 @@ function extractAddress(o: Record<string, unknown>): string | null {
   return null;
 }
 
+/** La chaine sur laquelle le jeu de mesures a ete produit. */
+const MEASURED_CHAIN_ID = 8453;
+
+/** chainId de la fiche, qu'il soit a la racine ou sous `hook`. */
+function chainIdOf(rec: Record<string, unknown>): number | null {
+  const direct = rec["chainId"];
+  if (typeof direct === "number") return direct;
+  const nested = rec["hook"];
+  if (nested && typeof nested === "object") {
+    const c = (nested as Record<string, unknown>)["chainId"];
+    if (typeof c === "number") return c;
+  }
+  return null;
+}
+
 function collectEntries(parsed: unknown): Map<string, RegistryEntry> {
   const out = new Map<string, RegistryEntry>();
   let arr: unknown[] = [];
@@ -195,7 +210,16 @@ function collectEntries(parsed: unknown): Map<string, RegistryEntry> {
     const rec = item as Record<string, unknown>;
     const addr = extractAddress(rec);
     if (!addr) continue;
-    out.set(addr, { address: addr, fields: rec });
+    // 27 adresses sur 866 existent sur PLUSIEURS chaines (l'une sur 18) : les hooks sont mines
+    // en CREATE2 pour leurs bits de permission, donc la meme adresse se redeploie ailleurs.
+    // Nos mesures sont sur Base : entre deux fiches, on garde CELLE DE LA CHAINE MESUREE, sinon
+    // un hook mesure sur Base herite de la description d'Ethereum. Le choix se fait ici plutot
+    // qu'a la lecture, pour que la carte reste indexee par adresse et ne fuie pas dans le code
+    // qui traite ses cles comme des adresses (decodeFlags, par exemple).
+    const chainId = chainIdOf(rec);
+    const existing = out.get(addr);
+    if (!existing || (chainId === MEASURED_CHAIN_ID && chainIdOf(existing.fields) !== MEASURED_CHAIN_ID))
+      out.set(addr, { address: addr, fields: rec });
   }
   return out;
 }
@@ -206,9 +230,14 @@ let registryCache: { key: string; value: Registry } | null = null;
 export function loadRegistry(force = false): Registry {
   let candidate: string | null = null;
   try {
+    // Le plus RECENT, pas le premier alphabetique : un instantane date
+    // (hooklist-live-20260905.json) doit primer sur un clone plus ancien, et l'ordre
+    // alphabetique donnait ce resultat par chance plutot que par regle.
     const names = readdirSync(DOCS_DIR).filter((n) => n.endsWith(".json") && REGISTRY_NAME.test(n));
-    names.sort();
-    if (names[0]) candidate = join(DOCS_DIR, names[0]);
+    const ranked = names
+      .map((n) => ({ n, m: mtimeOf(join(DOCS_DIR, n)) }))
+      .sort((a, b) => b.m - a.m || a.n.localeCompare(b.n));
+    if (ranked[0]) candidate = join(DOCS_DIR, ranked[0].n);
   } catch {
     candidate = null;
   }

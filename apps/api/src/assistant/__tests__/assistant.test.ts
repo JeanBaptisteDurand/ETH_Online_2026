@@ -43,7 +43,10 @@ describe("le modele de lecture", () => {
   });
 
   it("aucun hook mesure n'herite de la fiche d'une autre chaine", () => {
-    const raw = JSON.parse(readFileSync(resolve(DOCS_DIR, "hooklist.json"), "utf8")) as {
+    // Meme source que le magasin : dataset.ts retient le fichier de registre le plus recent,
+    // et lire un clone plus ancien ferait echouer ce test sur des hooks absents de l'ancien.
+    const store = getStore();
+    const raw = JSON.parse(readFileSync(store.registry.path!, "utf8")) as {
       hook: { address: string; chain: string };
     }[];
     const chains = new Map<string, Set<string>>();
@@ -52,11 +55,14 @@ describe("le modele de lecture", () => {
       if (!chains.has(a)) chains.set(a, new Set());
       chains.get(a)!.add(e.hook.chain);
     }
+    // L'invariant s'est renforce : 27 adresses sur 866 sont declarees sur PLUSIEURS chaines
+    // (l'une sur 18), et l'un de nos hooks mesures, 0xbdf938149a..., est sur base ET ethereum.
+    // On n'exige donc plus qu'une seule chaine les declare — on exige que la fiche RETENUE soit
+    // celle de la chaine ou la mesure a ete prise.
     for (const h of getStore().hooks) {
       if (h.registry === null) continue;
-      const declared = chains.get(h.hook)!;
-      expect(declared.size, `${h.hook} est declare sur plusieurs chaines`).toBe(1);
-      expect(h.registry.chain).toBe("base");
+      expect(chains.has(h.hook), `${h.hook} absent du registre lu`).toBe(true);
+      expect(h.registry.chain, `${h.hook} a herite d'une fiche d'une autre chaine`).toBe("base");
     }
   });
 

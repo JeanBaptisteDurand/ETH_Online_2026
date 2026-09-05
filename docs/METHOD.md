@@ -1,264 +1,310 @@
-# Method, limits, and the five false findings
+# METHOD — from an `Initialize` log to a basis point
 
-## 1. The counterfactual
+Every claim in this file names a file **and a line**. If a line number does not say what this file
+says it says, this file is wrong and the code is right.
+
+Companion documents: what the method **cannot** say is [`LIMITS.md`](LIMITS.md); the four labels and
+the eight false results this project produced are [`HONESTY.md`](HONESTY.md).
+
+---
+
+## 1. The wall
 
 A Uniswap v4 pool's identity is its `PoolKey`, and the hook's address is one of the five fields
-inside it. `poolId = keccak256(abi.encode(key))`. So "this pool without its hook" is not a pool that
-exists, cannot be constructed, and cannot be quoted. Any comparison against a hookless pool compares
-two different venues with different liquidity and calls the difference a fee.
+inside it:
+
+```
+poolId = keccak256(abi.encode(currency0, currency1, fee, tickSpacing, hooks))
+                                                             ^^^^^^^^^^^^^^ the hook
+```
+
+[`engine/tare/poolid.py:33-37`](../engine/tare/poolid.py).
+
+So **"this pool without its hook" is not a pool that exists.** Change the `hooks` field and you get a
+different `poolId`, which addresses different storage, holds different liquidity, and quotes a
+different price. That is pinned as a test rather than asserted:
+[`engine/tests/test_poolid.py:37-40`](../engine/tests/test_poolid.py) —
+`test_hook_address_changes_pool_id`.
+
+Any tool that compares a hooked pool against "the same pool without a hook" is comparing two
+different venues and calling the difference a fee.
+
+## 2. The trick
 
 TARE does not change the pool. **It changes the hook.**
 
 ```
-                fork pinned at block 50,614,000 (Base, chain 8453)
-                          |
-      quote #1 -----------+----------- quote #2
-   hook bytecode = real            hook bytecode = 89-byte inert stub
-             \                            /
-              \                          /
-        same PoolKey, same poolId, same slot0, same liquidity, same reserves
-                  the only difference is the code that runs
+              fork pinned at block 50,614,000 (Base, chain 8453)
+                                  |
+        quote #1 ─────────────────┴───────────────── quote #2
+   hook bytecode = real                     hook bytecode = 89-byte inert stub
+              \                                          /
+               \                                        /
+      same PoolKey · same poolId · same slot0 · same liquidity · same reserves
+                 the only difference is the code that runs
 ```
 
-`anvil_setCode` rewrites the bytecode at the hook's address. The `PoolKey` is untouched, so the
-`poolId` is byte-identical; `slot0`, the tick, the fee fields and the position map are untouched, so
-the pool is the same pool. Two calls to `V4Quoter.quoteExactInputSingle` with identical arguments
-then differ by exactly one thing.
+`anvil_setCode` rewrites the bytecode **at the hook's address**
+([`engine/tare/rpc.py:61-62`](../engine/tare/rpc.py)). The `PoolKey` is untouched, so the `poolId` is
+byte-identical; `slot0`, the tick, the fee fields and the position map are untouched, so the pool is
+the same pool. Two calls to `V4Quoter.quoteExactInputSingle` with identical arguments then differ by
+exactly one thing.
 
 ```
 bps = (out_without − out_with) / out_without × 10 000
 ```
 
-Implementation: [`engine/tare/measure.py:68–102`](../engine/tare/measure.py). The original bytecode
-is captured before the write and restored in a `finally`
-([`engine/tare/measure.py:85–90`](../engine/tare/measure.py)), so a crash mid-quote cannot leave a
+[`engine/tare/measure.py:96`](../engine/tare/measure.py). The original bytecode is captured before
+the write and restored in a `finally`
+([`engine/tare/measure.py:85-90`](../engine/tare/measure.py)), so a crash mid-quote cannot leave a
 hook stubbed.
 
-### The stub
+A negative result is **not** negative extraction. Below −100 bps the row is `NOT_MEASURABLE` with
+reason `custom accounting` and carries no number at all
+([`engine/tare/measure.py:28`](../engine/tare/measure.py) for the threshold,
+[`:97-99`](../engine/tare/measure.py) for the branch). Why, in [`LIMITS.md`](LIMITS.md), section 4.
+
+## 3. The stub, and the invariants it has to satisfy
 
 `v4-core/src/libraries/Hooks.sol` does not check what a hook *does*. It checks what a hook
-*returns*: every hook call must return at least 32 bytes whose first word is the selector that was
-called; `beforeSwap` must return exactly 96 bytes; the delta-returning path requires exactly 64.
+*returns*:
+
+| invariant | upstream | what the stub does |
+|---|---|---|
+| every hook call returns ≥ 32 bytes, word 0 = the selector called | `Hooks.sol:153` | masks `CALLDATALOAD 0`, `MSTORE` at 0 |
+| `beforeSwap` returns exactly 96 bytes — selector, `BeforeSwapDelta`, `lpFeeOverride` | `Hooks.sol:166` | `60606000f3` |
+| the delta-returning path requires exactly 64 bytes | `Hooks.sol:259` | `60406000f3` |
 
 The smallest program satisfying the protocol while doing nothing is therefore: read the incoming
-selector, echo it in word 0, return 96 bytes for `beforeSwap` and 64 otherwise. That is 89 bytes of
-EVM, written out opcode by opcode in [`engine/tare/stub.py:25–36`](../engine/tare/stub.py).
+selector, echo it in word 0, return 96 bytes for `beforeSwap` and 64 otherwise. That is **89 bytes**
+of EVM, written out opcode by opcode in
+[`engine/tare/stub.py:25-36`](../engine/tare/stub.py) and taken apart assertion by assertion in
+[`engine/tests/test_stub.py:6-35`](../engine/tests/test_stub.py).
+
+> `v4-core` is **not vendored in this repository**. The three `Hooks.sol` line numbers above are
+> upstream references and are not verified by this repo's test suite. What *is* verified here is the
+> stub's own byte sequences and its size and hash
+> ([`engine/tests/test_stub.py:10-28`](../engine/tests/test_stub.py)).
 
 `keccak256` of the stub is
-`0x8e39b2ad4344342b4f7dc5cf31df0aec9bd5b5f8ec7fccd241256cf1fda637a4`, and **every row of the corpus
-carries it** in its `stub_hash` field. A change to the stub invalidates the corpus visibly instead
-of silently.
 
-One subtlety, and it was checked because an earlier version of this project got it backwards: the
-stub returns `lpFeeOverride = 0`, and zero does **not** mean "zero fee". `Pool.sol` only applies the
-override when the `0x400000` flag is set, so a dynamic-fee pool quoted against the stub falls back
-to `slot0.lpFee` — the stored fee — not to nothing.
-
-### Replay
-
-Every number replays with one command:
-
-```bash
-make gate-a3                                   # reproduces five known bps, cannot be faked
-make measure HOOK=0x985c14baa2a18316ffda0aefb3a632fadfca2acc BLOCK=50614000
-python3 -m tare.cli sweep --rpc http://127.0.0.1:8545 --block 50614000
+```
+0x8e39b2ad4344342b4f7dc5cf31df0aec9bd5b5f8ec7fccd241256cf1fda637a4
 ```
 
-`make gate-a3` is the one an agent cannot fake: the five expected values in
-[`engine/tare/gates/a3.py:16`](../engine/tare/gates/a3.py) were produced by an independent rewrite of
-this engine before the current code existed, and the tolerance is 0.05 bps.
+([`engine/tare/stub.py:41-42`](../engine/tare/stub.py), pinned at
+[`engine/tests/test_stub.py:14-16`](../engine/tests/test_stub.py)) and **every row of the corpus
+carries it** in its `stub_hash` field
+([`engine/tare/measure.py:76`](../engine/tare/measure.py)). Changing the stub invalidates the corpus
+visibly instead of silently.
 
----
+### The one subtlety, and it was checked because an earlier version got it backwards
 
-## 2. The corpus
+The stub returns `lpFeeOverride = 0`, and **zero does not mean "zero fee"**. `Pool.sol` only applies
+the override when the `0x400000` flag is set, so a dynamic-fee pool quoted against the stub falls
+back to `slot0.lpFee` — the *stored* fee — not to nothing. The note lives with the code that depends
+on it, [`engine/tare/stub.py:16-19`](../engine/tare/stub.py). (`Pool.sol` is likewise upstream and
+not vendored here.)
+
+## 4. From the log to the pool list
+
+```
+eth_getLogs(PoolManager, topic0 = Initialize)          collect.py:26-28   consts.py:25
+        │
+        ├─ decode the PoolKey out of the log            rescan.py:27-34
+        │      topics[2] = currency0   topics[3] = currency1
+        │      data[0:64] = fee   data[64:128] = tickSpacing (signed)   data[128+24:192] = hook
+        │
+        ├─ poolId  = keccak256(abi.encode(key))         poolid.py:33-37
+        ├─ stateSlot = keccak256(poolId ‖ uint256(6))   poolid.py:39-43
+        ├─ liquidity = extsload(stateSlot + 3)          poolid.py:48-49, rescan.py:41-49
+        │
+        └─ liquidity > 0  ->  docs/pools-liquides.json  (199 pools)      rescan.py:76-78
+```
+
+**Slot 6.** `PoolManager` holds `mapping(PoolId => Pool.State) pools` at storage slot 6; within
+`Pool.State`, `slot0` is at `+0`, `feeGrowthGlobal0` at `+1`, `feeGrowthGlobal1` at `+2` and
+`liquidity` at `+3`. The three constants are
+[`engine/tare/consts.py:10-12`](../engine/tare/consts.py); the derivation is
+[`engine/tare/poolid.py:39-49`](../engine/tare/poolid.py).
+
+**`extsload`.** `PoolManager` exposes raw storage through `extsload(bytes32)`. The selector is
+computed, not typed: `keccak256("extsload(bytes32)")[:4]`
+([`engine/tare/measure.py:25`](../engine/tare/measure.py)).
+
+**Why this is checked against a live pool and not against itself.** A wrong slot derivation returns
+a plausible **zero**, not an error — which is exactly how an earlier version of this project
+concluded that 100 % of pools were empty. So the derivation is pinned to a real Base pool whose
+`poolId` was read off the chain: [`engine/tests/test_poolid.py:6-24`](../engine/tests/test_poolid.py)
+asserts both the `poolId` and that `liquidity_slot − slot0 == 3`.
+
+**A failure is never a zero.** `rescan.read` returns `None` (UNKNOWN) on an RPC error or an empty
+return, never `0` ([`engine/tare/rescan.py:41-49`](../engine/tare/rescan.py)), and the scan prints
+the unreadable count next to the result
+([`engine/tare/rescan.py:71-73`](../engine/tare/rescan.py)). The log collector does the same with
+its window: every failed chunk is reported and the real coverage is printed
+([`engine/tare/collect.py:46-48`](../engine/tare/collect.py)).
+
+## 5. The stored fee — lpFee at bits 208-231
+
+Every measured row records what the pool's fee field says on-chain, so that a reader can put the
+measurement next to the declaration.
+
+`slot0` is one packed word (v4-core `Slot0.sol`), read from the low end:
+
+```
+ bits   0..159   sqrtPriceX96
+ bits 160..183   tick
+ bits 184..207   protocolFee
+ bits 208..231   lpFee          <- the pool's stored LP fee, uint24
+```
+
+[`engine/tare/consts.py:14-19`](../engine/tare/consts.py). The read is one `extsload` at
+`stateSlot + 0`, shifted and masked to 24 bits:
+[`engine/tare/measure.py:57-62`](../engine/tare/measure.py). It lands in the row as
+`stored_lp_fee` / `stored_protocol_fee`
+([`engine/tare/measure.py:74`](../engine/tare/measure.py)), and it is `None` — not `0` — whenever the
+node could not serve it ([`engine/tare/sweep.py:154-158`](../engine/tare/sweep.py); the docstring at
+[`:148-152`](../engine/tare/sweep.py) says why a zero there would fabricate a hidden fee).
+
+Separately, the `fee` field **of the PoolKey** carries `0x800000` when the hook is meant to set the
+price per swap ([`engine/tare/consts.py:22`](../engine/tare/consts.py),
+[`engine/tare/poolid.py:29-31`](../engine/tare/poolid.py)). That flag is recorded per row as
+`fee_is_dynamic`. It is the difference between "the fee field reads zero because nothing was set"
+and "the fee field reads zero because the protocol expects the hook to set it" — see
+[`LIMITS.md`](LIMITS.md), section 6.
+
+## 6. The quote
+
+```
+quoteExactInputSingle(((address,address,uint24,int24,address),bool,uint128,bytes))
+```
+
+Selector `aa9d21cb` ([`engine/tare/quote.py:12`](../engine/tare/quote.py), checked against
+`cast sig`). One dynamic member (`hookData`) makes the outer tuple dynamic, so the head is a single
+`0x20` offset followed by the struct: [`engine/tare/quote.py:28-36`](../engine/tare/quote.py).
+
+A quote either returns an amount or reverts. `V4Quoter` does **not** surface `NotEnoughLiquidity`
+directly: it re-wraps any non-`QuoteSwap` reason inside `UnexpectedRevertBytes(bytes)`, so the
+identifying selector sits deep inside the error string. Both selectors are constants
+([`engine/tare/quote.py:15`](../engine/tare/quote.py) and
+[`:20`](../engine/tare/quote.py)) and the second is derived from its signature in a test rather than
+trusted ([`engine/tests/test_quote.py:40-42`](../engine/tests/test_quote.py)). The full wire format,
+and the false finding it produced, are in
+[`HONESTY.md`](HONESTY.md), false result #7.
+
+## 7. The sweep
+
+The corpus is one measurement repeated. Four facts about the fork drive the design, and all four are
+stated in [`engine/tare/sweep.py:1-32`](../engine/tare/sweep.py):
+
+1. **A pool usually quotes in one direction only.** The direction is *probed*, at every size, before
+   a pool is called unquotable — a pool that cannot move 1e14 can still quote 1e18.
+   [`engine/tare/sweep.py:310-332`](../engine/tare/sweep.py). A rate-limited node encountered during
+   the probe is kept as `infra_reason` and forbids any conclusion about the pool
+   ([`:326-332`](../engine/tare/sweep.py), used at [`:360-364`](../engine/tare/sweep.py)).
+2. **The first RPC touch of a pool is expensive, the next ones are free** — anvil backfills the
+   pool's slots once. So the sweep is grouped **by pool**: all five sizes back to back
+   ([`engine/tare/sweep.py:337-368`](../engine/tare/sweep.py)).
+3. **A run gets interrupted.** Output is JSONL, one row per line, `flush` + `fsync` per row
+   ([`engine/tare/sweep.py:282-289`](../engine/tare/sweep.py)). The resume key is
+   `(pool_id, block_number, amount_in)` — direction excluded on purpose, because it is observed, not
+   chosen ([`engine/tare/sweep.py:230-238`](../engine/tare/sweep.py)). A row that only records a node
+   failure does **not** count as done ([`:246-254`](../engine/tare/sweep.py)).
+4. **A fork holds exactly one measurer.** The stub is global mutable state on the node. Parallelism
+   means several *forks*, one process each: `--shard i --of n`, one `--rpc` per shard
+   ([`engine/tare/cli.py:13-22`](../engine/tare/cli.py),
+   [`engine/tare/cli.py:51-55`](../engine/tare/cli.py)). Before each measurement,
+   `stub_is_installed` checks whether the hook already wears the stub
+   ([`engine/tare/sweep.py:137-142`](../engine/tare/sweep.py)); if it still does after a backoff the
+   row is `NOT_MEASURABLE` with reason `concurrent_measurer:` and **no number**
+   ([`:181-189`](../engine/tare/sweep.py)). This is false result #5 in
+   [`HONESTY.md`](HONESTY.md), false result #5.
+
+Sizes: `1e14 · 1e15 · 1e16 · 1e17 · 1e18` wei of currency-in
+([`engine/tare/sweep.py:51`](../engine/tare/sweep.py)) — 0.0001 to 1.0 token.
+
+Nothing invents a value and nothing disappears. A pool that refuses the swap produces five
+`NOT_QUOTABLE` lines carrying the revert reason; a pool the node could not serve produces five
+`NOT_MEASURABLE` lines saying so. Never zero lines, and never a zero
+([`engine/tare/sweep.py:145-164`](../engine/tare/sweep.py),
+[`:402-412`](../engine/tare/sweep.py)).
+
+The summary is recomputed from the rows every time, never carried over
+([`engine/tare/sweep.py:477-532`](../engine/tare/sweep.py)), after de-duplicating on the resume key —
+overlapping shards would otherwise inflate every figure
+([`engine/tare/sweep.py:458-474`](../engine/tare/sweep.py)). Instrument health is reported *next to*
+the results, not behind them: `n_rpc_unavailable` counts every line that describes the instrument
+instead of a pool ([`engine/tare/sweep.py:496-500`](../engine/tare/sweep.py)).
+
+## 8. The corpus
 
 | | |
 |---|---|
 | Rows | **995** — 720 `MEASURED`, 265 `NOT_QUOTABLE`, 10 `NOT_MEASURABLE`, 0 `INTERPOLATED` |
-| Pools | 199 discovered, 144 with at least one reading |
-| Hooks | 12 |
+| Pools | 199 discovered with non-zero liquidity, 144 with at least one reading |
+| Hooks | 12 present, 11 with at least one reading |
 | Chain / block | Base (8453), block **50,614,000**, pinned |
 | Sizes | 1e14 · 1e15 · 1e16 · 1e17 · 1e18 wei of currency-in |
 | Engine | `tare-engine/0.3.0`, stub `0x8e39b2ad…37a4` |
 
-File: [`docs/dataset/measurements.jsonl`](dataset/measurements.jsonl) — one JSON object per line,
-21 fields, flushed and `fsync`ed per row. Summary:
-[`docs/dataset/summary.json`](dataset/summary.json).
+Every figure in this table is a field of [`docs/dataset/summary.json`](dataset/summary.json), which
+is itself recomputed from [`docs/dataset/measurements.jsonl`](dataset/measurements.jsonl) — 21 fields
+per row ([`engine/tare/sweep.py:65-70`](../engine/tare/sweep.py)).
 
-**The finding.** 545 rows read above 1 bps on pools whose LP fee, read straight out of
-`PoolManager` storage, is **zero** — across 109 pools and 6 hooks. Median 100.00 bps, max
-1176.46 bps. 63 profiles are not flat across the size ramp; the sharpest runs 689.95 bps at 1e14
-down to 406.64 bps at 1e18.
+**The reading this corpus exists to support.** 545 rows read above 1 bps on pools whose LP fee, taken
+straight out of `PoolManager` storage, is **zero** — across 109 pools and 6 hooks
+(`n_gt_1bps_at_zero_stored_lp_fee`, `n_pools_…`, `n_hooks_…` in
+[`summary.json`](dataset/summary.json); the filter is
+[`engine/tare/sweep.py:494`](../engine/tare/sweep.py)). Median 100.00 bps, max 1176.46 bps. 63
+profiles travel more than 5 bps across the size ramp; the sharpest runs 689.95 bps at 1e14 down to
+406.64 bps at 1e18 (`non_flat_profiles[0]`).
 
-These are not accusations. Most of those pools carry `fee = 0x800000`, the dynamic-fee flag, which
-means the hook is *supposed* to set the price per swap and `slot0.lpFee` is *supposed* to read zero.
-That is exactly the point: the protocol has a legitimate mechanism whose magnitude nothing anywhere
-records, and this corpus is a reading of the magnitude.
+**These are readings, not accusations.** 410 of those 545 rows sit on a `PoolKey` that carries the
+dynamic-fee flag, which means the protocol *expects* the hook to set the price and `slot0.lpFee` is
+*supposed* to read zero. That is the point rather than a caveat: the protocol has a legitimate
+mechanism whose magnitude nothing anywhere records, and this corpus is a reading of the magnitude.
+What that does and does not license you to say is [`LIMITS.md`](LIMITS.md), section 6.
 
----
+## 9. Replay
 
-## 3. Known limits
+Every number replays with one command.
 
-**One block.** Everything here is block 50,614,000. A hook with a time-decaying fee — and at least
-one in this corpus is described that way in the registry — reads differently at another block. The
-block is in every row for that reason.
+```bash
+docker compose up -d                              # anvil, forked and pinned
 
-**One chain.** Base. 8453 is in every row.
-
-**Five sizes, two directions, and only the quotable one.** 140 of the 199 pools quote in exactly one
-direction ([`docs/feedback-evidence/quote-direction.json`](feedback-evidence/quote-direction.json)).
-The corpus records the direction it could read. The other side is unmeasured, not zero.
-
-**Custom accounting is out of reach, by construction.** When a hook *is* the liquidity, removing it
-does not expose a fee, it removes the venue. The stub quote then comes back better than the real
-one, and the counterfactual measures the destruction rather than the extraction. Those rows are
-`NOT_MEASURABLE` with reason `custom accounting`
-([`engine/tare/measure.py:97–99`](../engine/tare/measure.py)). 10 rows.
-
-**A quote is not a swap.** `V4Quoter` simulates. It does not pay gas, does not cross a real
-mempool, and does not experience the ordering a live swap experiences. What TARE measures is the
-price the protocol would quote, which is what a router reads and what a user is shown.
-
-**Coverage is not the population.** 12 hooks. There are hundreds deployed on Base alone. Silence
-about the rest is silence, not a zero.
-
-**One measurer per fork.** `measure` writes global state on the node. Two processes on one anvil
-read each other's stub. Parallelism means several forks, one process each
-(`--shard i --of n`, one `--rpc` per shard). The guard is
-[`engine/tare/sweep.py:137–142`](../engine/tare/sweep.py) and it refuses a reading rather than
-publishing a contended one. See false finding #5 below.
-
----
-
-## 4. The five false findings
-
-This project produced five wrong results and corrected all five. Each one is written here because
-each one is a class of error that a reader should assume is present in any measurement pipeline that
-does not name it, and because four of the five have the same shape: **a bounded read treated as a
-complete one**.
-
-### #1 — the `[:3]` slice
-
-An early discovery pass sliced a list of candidate pools to its first three entries while debugging,
-and the slice stayed. The counts printed afterwards — pools per hook, hooks per token — were all
-computed over three items and were all reported as totals. The numbers looked plausible, which is
-why it survived.
-
-**Class.** A debugging bound left in the data path.
-**Correction.** Enumeration is complete or the row is `NOT_MEASURABLE`; nothing in the pipeline
-silently limits a set. The sweep writes one line per (pool, size) whether or not it succeeded
-([`engine/tare/sweep.py:145–164`](../engine/tare/sweep.py), `unmeasurable`) so that a shrinking denominator is
-impossible to hide.
-
-### #2 — the 2,000-byte body
-
-An HTTP reader capped response bodies at 2,000 bytes. A registry page and an RPC response both came
-back longer than that. The parser did not fail — it parsed the prefix, found no match, and returned
-"absent". Two hooks were reported as absent from the registry when they were in it, past the cutoff.
-
-**Class.** A truncated body that parses cleanly.
-**Correction.** [`engine/tare/rpc.py:19–27`](../engine/tare/rpc.py) reads the whole body and never
-truncates; the comment above it says why.
-
-### #3 — the `head -c 220`
-
-A shell probe piped an RPC response through `head -c 220` to keep the terminal readable. The
-truncated output was then read as the result. It reported an empty error field, and the run was
-recorded as "no revert, quote succeeded, zero difference" for pools that had in fact reverted.
-
-**Class.** A display bound mistaken for a data bound.
-**Correction.** No verdict is ever taken from a shell one-liner. Every value in the corpus is
-produced by [`engine/tare/measure.py`](../engine/tare/measure.py) and written by
-[`engine/tare/sweep.py`](../engine/tare/sweep.py).
-
-### #4 — the 200-character error string, and the selector at byte 68
-
-This is the sharpest of the five, because the cutoff was *almost* long enough.
-
-`V4Quoter` does not surface `NotEnoughLiquidity` directly. `BaseV4Quoter.sol:16` declares
-`error NotEnoughLiquidity(PoolId)`; the revert bubbles up through
-`QuoterRevert.bubbleReason`, and `QuoterRevert.parseQuoteAmount`
-([`QuoterRevert.sol:35–40`](https://github.com/Uniswap/v4-periphery/blob/main/src/libraries/QuoterRevert.sol#L35-L40))
-re-wraps any reason that is not `QuoteSwap` inside `UnexpectedRevertBytes(bytes)`. The wire format
-is therefore:
-
-```
-0x6190b2b0                                                          selector UnexpectedRevertBytes  (4 bytes)
-  0000…0020                                                         offset of the bytes             (32 bytes)
-  0000…0024                                                         length = 36                     (32 bytes)
-  7a5ed734 706140c9…                                                NotEnoughLiquidity + poolId
-  ^ byte 68 of the revert data
+make gate-a3                                      # reproduces five known bps — cannot be faked
+make measure HOOK=0x985c14baa2a18316ffda0aefb3a632fadfca2acc BLOCK=50614000
+cd engine && python3 -m tare.cli sweep --rpc http://127.0.0.1:8545 --block 50614000
+cd engine && python3 -m tare.cli summary
 ```
 
-`rpc.py` truncated error strings to 200 characters. In the real revert captured from a Base fork,
-the selector `7a5ed734` **starts at index 197** of the error string and is 8 characters long — so a
-200-character cutoff sliced it in half, the substring match never fired, and every unquotable pool
-came back with an opaque reason. Pools that had said "not enough liquidity, try the other
-direction" were recorded as generic failures, and the sweep discarded them.
+`make gate-a3` ([`Makefile:17-19`](../Makefile)) is the one an agent cannot fake. It re-measures hook
+`0x1aea38f0…` on a named pool at the five sizes and compares against five values that are **not
+parameters**: they were produced by an independent rewrite of this engine before the current code
+existed, and the tolerance is 0.05 bps
+([`engine/tare/gates/a3.py:11-17`](../engine/tare/gates/a3.py)).
 
-**Class.** A bound that lands inside the identifying token.
-**Correction.** The truncation is gone, and the regression is pinned to the **real captured
-revert**, not a reconstruction:
-[`engine/tests/test_quote.py:45–82`](../engine/tests/test_quote.py) with
-[`engine/tests/fixture_revert.txt`](../engine/tests/fixture_revert.txt). One of the five assertions
-verifies that `rpc.py`'s own source contains no `[:200]`. An earlier version of that test hand-typed
-an approximation of the revert and asserted the wrong thing about it — which is a sixth mistake,
-caught before it produced a finding.
+```
+        1e14  expected  99.99      1e17  expected  93.10
+        1e15  expected  99.93      1e18  expected  57.44
+        1e16  expected  99.26
+```
 
-### #5 — a rate limit recorded as a property of the pool
+Every CLI command prints the one-liner that replays it
+([`engine/tare/cli.py:10-11`](../engine/tare/cli.py),
+[`engine/tare/cli.py:81`](../engine/tare/cli.py)). A value you cannot replay is a claim, not a
+measurement.
 
-The first real sweep produced ten `NOT_QUOTABLE` rows for two perfectly healthy pools. The `reason`
-field held `failed to get storage for 0x498…`: the upstream archive node behind the fork was
-rate-limiting anvil, anvil could not backfill the pool's storage slots, and the quote reverted.
+**The 14-bit decoder replays too.** A hook's permissions are not stored anywhere — they *are* the low
+14 bits of its address, which is why hooks are CREATE2-mined
+([`engine/tare/flags.py:8-46`](../engine/tare/flags.py)). Decoded addresses are compared bit by bit
+against the registry's own booleans:
+[`engine/tests/test_flags.py:30-52`](../engine/tests/test_flags.py) prints
+`8582 comparaisons de bits, 0 écart` over the 613-entry `docs/hooklist.json`. Re-run against the
+978-entry live snapshot `docs/hooklist-live-20260905.json`, the same decoder gives **13 692
+comparisons, 0 deviation** (978 × 14).
 
-`NOT_QUOTABLE` means *the pool said no*. What had happened is that **the instrument broke**. Written
-down as a property of the pool, it would have said "this pool cannot be swapped" about two pools
-that swap fine — and worse, it would have been indistinguishable from a real refusal in every
-statistic computed afterwards.
-
-**Class.** Instrument failure attributed to the subject.
-**Correction.** Every failure is classified before it is labelled
-([`engine/tare/sweep.py:88–119`](../engine/tare/sweep.py)). Twenty infrastructure markers route a
-failure to a retry; a failure that survives four attempts becomes `NOT_MEASURABLE` with an
-`rpc_unavailable:` reason, which says *we could not look*, and never `NOT_QUOTABLE`, which says
-*the pool said no*. Those rows are also excluded from the resume set
-([`engine/tare/sweep.py:246–254`](../engine/tare/sweep.py), `is_observation`), so a five-minute outage does not freeze
-a permanent hole that no later run would ever fill.
-
-### #6 — two measurers on one fork
-
-Not on the original list of five, and found last, and the most dangerous of all, because it does not
-produce an error — it produces a **clean, plausible, wrong number**.
-
-`measure` installs the stub, quotes, and restores the original. That is global mutable state on the
-node. With two processes on one anvil: A installs the stub, B quotes "with hook" and gets A's
-stubbed pool, B computes `out_with == out_without`, and B publishes **0.00 bps for a hook that takes
-100**.
-
-This was not hypothetical. Replaying three rows of the first dataset against an anvil that a shard
-was still sweeping reproduced one of them and destroyed the other two: 100.00 bps came back
-as 0.00.
-
-**Class.** Shared mutable state producing a valid-looking measurement.
-**Correction.** One measuring process per fork, and a guard that makes a violation loud instead of
-numeric: before each measurement, `stub_is_installed` checks whether the hook already wears the stub
-([`engine/tare/sweep.py:137–142`](../engine/tare/sweep.py)); if it does after a backoff, the row is
-`NOT_MEASURABLE` with reason `concurrent_measurer:` and no number at all
-([`engine/tare/sweep.py:181–189`](../engine/tare/sweep.py)). The same rule is stated at the top of
-the CLI ([`engine/tare/cli.py:13–19`](../engine/tare/cli.py)) and in the module docstring
-([`engine/tare/sweep.py:23–27`](../engine/tare/sweep.py)).
-
----
-
-## 5. What the five have in common
-
-Four of the six are the same mistake: **a read was bounded, the bound was invisible, and the
-truncated result parsed cleanly.** None of them raised an exception. All of them produced a number.
-That is why honesty rule 3 is stated as an absolute rather than as a preference:
-
-> A bounded read, a timeout, a rate limit → `NOT_MEASURABLE`. Never a value. Never a zero.
-
-The remaining two are the other half of the same problem: a failure of the instrument, and a
-collision between instruments, both silently attributed to the subject.
-
-Labels: [`HONESTY.md`](HONESTY.md). Feedback to the Uniswap stack: [`../FEEDBACK.md`](../FEEDBACK.md).
+```bash
+cd engine && python3 -m unittest discover -s tests -t .     # 168/168
+```

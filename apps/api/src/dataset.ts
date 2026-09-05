@@ -155,6 +155,16 @@ function extractAddress(o: Record<string, unknown>): string | null {
     const v = o[k];
     if (typeof v === "string" && /^0x[0-9a-fA-F]{40}$/.test(v.trim())) return v.trim().toLowerCase();
   }
+  // Le registre officiel d'Uniswap imbrique l'adresse d'un niveau : {hook:{address,chain,...}}.
+  // Sans cette branche, les 613 fiches se chargent en 0 entree et la colonne "ce que le registre
+  // dit" - qui est la moitie du produit - reste vide sans que rien ne signale l'erreur.
+  for (const k of ["hook", "entry", "meta"]) {
+    const nested = o[k];
+    if (nested && typeof nested === "object" && !Array.isArray(nested)) {
+      const a = (nested as Record<string, unknown>).address;
+      if (typeof a === "string" && /^0x[0-9a-fA-F]{40}$/.test(a.trim())) return a.trim().toLowerCase();
+    }
+  }
   return null;
 }
 

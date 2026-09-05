@@ -1,0 +1,9 @@
+{
+ "hook": "hook:8453:0x985c14baa2a18316ffda0aefb3a632fadfca2acc",
+ "found": true,
+ "status": "CODE",
+ "code_hash": "0xff338f6171e8c67fa03fc1b07bc2ebbed7dfbba32d719dddfb1a14a7c5bfb98e",
+ "code_size": 10342,
+ "n_twins": 0,
+ "twins": []
+}

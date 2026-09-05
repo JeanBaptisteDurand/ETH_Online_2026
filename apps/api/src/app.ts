@@ -14,6 +14,7 @@ import { buildPlan } from "./plan.js";
 import { normalizeMeasurement, buildReplay } from "./measurement.js";
 import { engineHealth, runPlans, type EngineHealth } from "./engine.js";
 import { createMetering, toMeasurementUnit } from "./metering/index.js";
+import { createGraphRouter } from "./graph-routes.js";
 import { createPaymentLayer, payerFromHeader, priceFor } from "./x402.js";
 import type { Label } from "./labels.js";
 
@@ -58,6 +59,7 @@ export function createApp(deps: AppDeps = {}) {
         "POST /measure             la mesure a la demande (payante, x402)",
         "GET  /usage               le compteur, unite = 1 mesure",
         "GET  /meta                sources, moteur, peage",
+        "GET  /graph               le graphe : ce que les traversees revelent",
       ],
     }),
   );
@@ -397,6 +399,13 @@ export function createApp(deps: AppDeps = {}) {
   // complet (rollups par payeur, reglements, ancrage HCS verifie sur le mirror) restait mort
   // derriere un resume qui ne connaissait ni les reglements ni le topic.
   app.route("/", metering.router);
+
+  /* --------------------------------------------------------------- graphe */
+
+  // Les traversees structurelles (rayon de souffle, clones, orphelins,
+  // contradictions, desaccord registre/mesure). Le graphe est charge UNE fois et
+  // memorise par (chemin, mtime, taille) : voir la note de tete de graph-routes.ts.
+  app.route("/", createGraphRouter({ chainId: cfg.chainId }));
 
   /* ------------------------------------------------------------ utilitaire */
 

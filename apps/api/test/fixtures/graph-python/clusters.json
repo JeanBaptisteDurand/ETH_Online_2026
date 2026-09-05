@@ -1,0 +1,22 @@
+[
+ {
+  "code_hash": "0x28efbe4b084cdb8b59aaa1df29bc289c1190ef2f9fad620aa88ff0942989a221",
+  "code_size": 15161,
+  "n_hooks": 2,
+  "hooks": [
+   "0x04e08a08bab77b389e970a65d91fba8bf4ef6080",
+   "0x167f77c0d015414f65bf3dde7198922c399e2080"
+  ],
+  "n_pools": 0
+ },
+ {
+  "code_hash": "0x6802c0ce45d667a8b02d0f5190d3b45bcf3e9d2c62cf767f2a2edc68fc392295",
+  "code_size": 23240,
+  "n_hooks": 2,
+  "hooks": [
+   "0x7fa49d29481b6d168505ccde26635e204c09e5cf",
+   "0xcd256a2f4574cb6aca4837313ad225d2fe1de5cf"
+  ],
+  "n_pools": 0
+ }
+]

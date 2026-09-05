@@ -1,0 +1,1141 @@
+{
+ "n_hooks_with_multiple_entries": 37,
+ "n_contradictory": 33,
+ "contradictions": [
+  {
+   "id": "hook:1:0x05388fb8b99b66867f08b2841d6baaea58b040cc",
+   "address": "0x05388fb8b99b66867f08b2841d6baaea58b040cc",
+   "chain_id": 1,
+   "names": [
+    "ETIMTaxHook",
+    "ETIMTaxHook"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:1:0x05388fb8b99b66867f08b2841d6baaea58b040cc#0",
+      "reg:1:0x05388fb8b99b66867f08b2841d6baaea58b040cc#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {},
+      "identity": {
+       "declared_deployer": [
+        "0x6f5c1f534f569a1cd00287c65fc4a0b86bf3c9e3",
+        null
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.declared_deployer"
+   ]
+  },
+  {
+   "id": "hook:1:0x3a3a9a072ab438335a52e0cf064f7ec91d824080",
+   "address": "0x3a3a9a072ab438335a52e0cf064f7ec91d824080",
+   "chain_id": 1,
+   "names": [
+    "CustomHook",
+    "Tetris Custom Dynamic Fee Hook"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:1:0x3a3a9a072ab438335a52e0cf064f7ec91d824080#0",
+      "reg:1:0x3a3a9a072ab438335a52e0cf064f7ec91d824080#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {},
+      "identity": {
+       "name": [
+        "CustomHook",
+        "Tetris Custom Dynamic Fee Hook"
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.name"
+   ]
+  },
+  {
+   "id": "hook:1:0x41a9bf2969af822942a553babd6d8dda0dff80cc",
+   "address": "0x41a9bf2969af822942a553babd6d8dda0dff80cc",
+   "chain_id": 1,
+   "names": [
+    "ETIM Tax Hook",
+    "ETIMTaxHook"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:1:0x41a9bf2969af822942a553babd6d8dda0dff80cc#0",
+      "reg:1:0x41a9bf2969af822942a553babd6d8dda0dff80cc#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {
+       "swapAccess": [
+        "governance",
+        "other"
+       ]
+      },
+      "identity": {
+       "declared_deployer": [
+        null,
+        "0x6f5c1f534f569a1cd00287c65fc4a0b86bf3c9e3"
+       ],
+       "name": [
+        "ETIM Tax Hook",
+        "ETIMTaxHook"
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.declared_deployer",
+    "identity.name",
+    "properties.swapAccess"
+   ]
+  },
+  {
+   "id": "hook:1:0x5725df570e0008997dacef46bc179bbfc4d125cc",
+   "address": "0x5725df570e0008997dacef46bc179bbfc4d125cc",
+   "chain_id": 1,
+   "names": [
+    "Auto Liquidity Generator",
+    "Auto Liquidity Generator Hook"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:1:0x5725df570e0008997dacef46bc179bbfc4d125cc#0",
+      "reg:1:0x5725df570e0008997dacef46bc179bbfc4d125cc#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {},
+      "identity": {
+       "name": [
+        "Auto Liquidity Generator",
+        "Auto Liquidity Generator Hook"
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.name"
+   ]
+  },
+  {
+   "id": "hook:1:0xa312884b73862377317f0071ec6eb5404025a8c4",
+   "address": "0xa312884b73862377317f0071ec6eb5404025a8c4",
+   "chain_id": 1,
+   "names": [
+    "999WHL Hook",
+    "ENSWheelHook"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:1:0xa312884b73862377317f0071ec6eb5404025a8c4#0",
+      "reg:1:0xa312884b73862377317f0071ec6eb5404025a8c4#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {
+       "swapAccess": [
+        "none",
+        "governance"
+       ]
+      },
+      "identity": {
+       "name": [
+        "999WHL Hook",
+        "ENSWheelHook"
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.name",
+    "properties.swapAccess"
+   ]
+  },
+  {
+   "id": "hook:1:0xb13250f0dc8ec6de297e81cda8142db51860bac4",
+   "address": "0xb13250f0dc8ec6de297e81cda8142db51860bac4",
+   "chain_id": 1,
+   "names": [
+    "BackGeoOracle",
+    "BackGeoOracle"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:1:0xb13250f0dc8ec6de297e81cda8142db51860bac4#0",
+      "reg:1:0xb13250f0dc8ec6de297e81cda8142db51860bac4#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {},
+      "identity": {
+       "auditUrl": [
+        null,
+        "https://github.com/RigoBlock/back-geo-oracle/blob/main/audits/33Audits_audit_back_geo_oracle.pdf"
+       ],
+       "declared_deployer": [
+        null,
+        "0x080f08076e8eadc66006c3cbfed28a34918a1fa6"
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.auditUrl",
+    "identity.declared_deployer"
+   ]
+  },
+  {
+   "id": "hook:1:0xe54082dfbf044b6a8f584bdddb90a22d5613c440",
+   "address": "0xe54082dfbf044b6a8f584bdddb90a22d5613c440",
+   "chain_id": 1,
+   "names": [
+    "UPeg Hook",
+    "UpegHook"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:1:0xe54082dfbf044b6a8f584bdddb90a22d5613c440#0",
+      "reg:1:0xe54082dfbf044b6a8f584bdddb90a22d5613c440#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {
+       "vanillaSwap": [
+        true,
+        false
+       ]
+      },
+      "identity": {
+       "auditUrl": [
+        null,
+        "https://github.com/ChainCreators/Upeg"
+       ],
+       "name": [
+        "UPeg Hook",
+        "UpegHook"
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.auditUrl",
+    "identity.name",
+    "properties.vanillaSwap"
+   ]
+  },
+  {
+   "id": "hook:1:0xebac1d1a384d3ae1a162fdf30788fcfa228380cc",
+   "address": "0xebac1d1a384d3ae1a162fdf30788fcfa228380cc",
+   "chain_id": 1,
+   "names": [
+    "Ash Hook",
+    "AshHook"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:1:0xebac1d1a384d3ae1a162fdf30788fcfa228380cc#0",
+      "reg:1:0xebac1d1a384d3ae1a162fdf30788fcfa228380cc#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {},
+      "identity": {
+       "name": [
+        "Ash Hook",
+        "AshHook"
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.name"
+   ]
+  },
+  {
+   "id": "hook:10:0x79234983ded8eaa571873fffe94e437e11c7fac4",
+   "address": "0x79234983ded8eaa571873fffe94e437e11c7fac4",
+   "chain_id": 10,
+   "names": [
+    "BackGeoOracle",
+    "BackGeoOracle"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:10:0x79234983ded8eaa571873fffe94e437e11c7fac4#0",
+      "reg:10:0x79234983ded8eaa571873fffe94e437e11c7fac4#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {
+       "swapAccess": [
+        "none",
+        "other"
+       ]
+      },
+      "identity": {
+       "auditUrl": [
+        "https://github.com/RigoBlock/back-geo-oracle/blob/main/audits/33Audits_audit_back_geo_oracle.pdf",
+        null
+       ],
+       "declared_deployer": [
+        "0x080f08076e8eadc66006c3cbfed28a34918a1fa6",
+        null
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.auditUrl",
+    "identity.declared_deployer",
+    "properties.swapAccess"
+   ]
+  },
+  {
+   "id": "hook:56:0x77b2051204306786934be8bec29a48584e133ac4",
+   "address": "0x77b2051204306786934be8bec29a48584e133ac4",
+   "chain_id": 56,
+   "names": [
+    "BackGeoOracle",
+    "BackGeoOracle"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:56:0x77b2051204306786934be8bec29a48584e133ac4#0",
+      "reg:56:0x77b2051204306786934be8bec29a48584e133ac4#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {},
+      "identity": {
+       "auditUrl": [
+        null,
+        "https://github.com/RigoBlock/back-geo-oracle/blob/main/audits/33Audits_audit_back_geo_oracle.pdf"
+       ],
+       "declared_deployer": [
+        null,
+        "0x080f08076e8eadc66006c3cbfed28a34918a1fa6"
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.auditUrl",
+    "identity.declared_deployer"
+   ]
+  },
+  {
+   "id": "hook:130:0x54bd666ea7fd8d5404c0593eab3dcf9b6e2a3ac4",
+   "address": "0x54bd666ea7fd8d5404c0593eab3dcf9b6e2a3ac4",
+   "chain_id": 130,
+   "names": [
+    "BackGeoOracle",
+    "BackGeoOracle"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:130:0x54bd666ea7fd8d5404c0593eab3dcf9b6e2a3ac4#0",
+      "reg:130:0x54bd666ea7fd8d5404c0593eab3dcf9b6e2a3ac4#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {},
+      "identity": {
+       "auditUrl": [
+        "https://github.com/RigoBlock/back-geo-oracle/blob/main/audits/33Audits_audit_back_geo_oracle.pdf",
+        null
+       ],
+       "declared_deployer": [
+        "0x080f08076e8eadc66006c3cbfed28a34918a1fa6",
+        null
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.auditUrl",
+    "identity.declared_deployer"
+   ]
+  },
+  {
+   "id": "hook:137:0x15cd9520d0faf71c938db4426f8c58b5cbaa9acc",
+   "address": "0x15cd9520d0faf71c938db4426f8c58b5cbaa9acc",
+   "chain_id": 137,
+   "names": [
+    "Aegis V1.1",
+    "Spot"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:137:0x15cd9520d0faf71c938db4426f8c58b5cbaa9acc#0",
+      "reg:137:0x15cd9520d0faf71c938db4426f8c58b5cbaa9acc#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {},
+      "identity": {
+       "auditUrl": [
+        "https://docs.aegis.markets/audits",
+        null
+       ],
+       "name": [
+        "Aegis V1.1",
+        "Spot"
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.auditUrl",
+    "identity.name"
+   ]
+  },
+  {
+   "id": "hook:143:0x580ca49389d83b019d07e17e99454f2f218e2dc0",
+   "address": "0x580ca49389d83b019d07e17e99454f2f218e2dc0",
+   "chain_id": 143,
+   "names": [
+    "UniswapV4ScheduledMulticurveInitializerHook",
+    "UniswapV4ScheduledMulticurveInitializerHook"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:143:0x580ca49389d83b019d07e17e99454f2f218e2dc0#0",
+      "reg:143:0x580ca49389d83b019d07e17e99454f2f218e2dc0#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {
+       "vanillaSwap": [
+        false,
+        true
+       ]
+      },
+      "identity": {}
+     }
+    }
+   ],
+   "fields": [
+    "properties.vanillaSwap"
+   ]
+  },
+  {
+   "id": "hook:8453:0x1f6c7744a0b0393db8e96d3aaa023146828028cc",
+   "address": "0x1f6c7744a0b0393db8e96d3aaa023146828028cc",
+   "chain_id": 8453,
+   "names": [
+    "tokens.fun HookStaticFeeV2",
+    "ClankerHookStaticFeeV2"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:8453:0x1f6c7744a0b0393db8e96d3aaa023146828028cc#0",
+      "reg:8453:0x1f6c7744a0b0393db8e96d3aaa023146828028cc#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {},
+      "identity": {
+       "declared_deployer": [
+        "0x3b5aedd9ab921e592d2fccaa6e33cf893e7eeb70",
+        null
+       ],
+       "name": [
+        "tokens.fun HookStaticFeeV2",
+        "ClankerHookStaticFeeV2"
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.declared_deployer",
+    "identity.name"
+   ]
+  },
+  {
+   "id": "hook:8453:0x2fd54aaf84023eda60bd65edb5914c1a306850cc",
+   "address": "0x2fd54aaf84023eda60bd65edb5914c1a306850cc",
+   "chain_id": 8453,
+   "names": [
+    "SeedifyFeeHook",
+    "Seedify Fee Hook"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:8453:0x2fd54aaf84023eda60bd65edb5914c1a306850cc#0",
+      "reg:8453:0x2fd54aaf84023eda60bd65edb5914c1a306850cc#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {},
+      "identity": {
+       "auditUrl": [
+        null,
+        "https://github.com/Seedifyfund/base-uniswap-hook"
+       ],
+       "name": [
+        "SeedifyFeeHook",
+        "Seedify Fee Hook"
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.auditUrl",
+    "identity.name"
+   ]
+  },
+  {
+   "id": "hook:8453:0x59f39091fd6f47e9d0bcb466f74e305f1709bac4",
+   "address": "0x59f39091fd6f47e9d0bcb466f74e305f1709bac4",
+   "chain_id": 8453,
+   "names": [
+    "BackGeoOracle",
+    "BackGeoOracle"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:8453:0x59f39091fd6f47e9d0bcb466f74e305f1709bac4#0",
+      "reg:8453:0x59f39091fd6f47e9d0bcb466f74e305f1709bac4#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {
+       "swapAccess": [
+        "other",
+        "none"
+       ]
+      },
+      "identity": {
+       "auditUrl": [
+        null,
+        "https://github.com/RigoBlock/back-geo-oracle/blob/main/audits/33Audits_audit_back_geo_oracle.pdf"
+       ],
+       "declared_deployer": [
+        null,
+        "0x080f08076e8eadc66006c3cbfed28a34918a1fa6"
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.auditUrl",
+    "identity.declared_deployer",
+    "properties.swapAccess"
+   ]
+  },
+  {
+   "id": "hook:8453:0x5c062f56e7f1a5cf25b95e626af15176f52fb0c8",
+   "address": "0x5c062f56e7f1a5cf25b95e626af15176f52fb0c8",
+   "chain_id": 8453,
+   "names": [
+    "Super Strategy v2 (Base)",
+    "SuperStrategy"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:8453:0x5c062f56e7f1a5cf25b95e626af15176f52fb0c8#0",
+      "reg:8453:0x5c062f56e7f1a5cf25b95e626af15176f52fb0c8#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {},
+      "identity": {
+       "name": [
+        "Super Strategy v2 (Base)",
+        "SuperStrategy"
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.name"
+   ]
+  },
+  {
+   "id": "hook:8453:0x631352aaa9d6554848af674106bcd8bb9e59a5cf",
+   "address": "0x631352aaa9d6554848af674106bcd8bb9e59a5cf",
+   "chain_id": 8453,
+   "names": [
+    "AngstromL2",
+    "Angstrom Hook"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:8453:0x631352aaa9d6554848af674106bcd8bb9e59a5cf#0",
+      "reg:8453:0x631352aaa9d6554848af674106bcd8bb9e59a5cf#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {
+       "swapAccess": [
+        "none",
+        "governance"
+       ]
+      },
+      "identity": {
+       "name": [
+        "AngstromL2",
+        "Angstrom Hook"
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.name",
+    "properties.swapAccess"
+   ]
+  },
+  {
+   "id": "hook:8453:0x6646b048fba0a70a692f7690ae6dad83bcacb0c8",
+   "address": "0x6646b048fba0a70a692f7690ae6dad83bcacb0c8",
+   "chain_id": 8453,
+   "names": [
+    "SuperStrategy",
+    "Super Strategy v3 (Base)"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:8453:0x6646b048fba0a70a692f7690ae6dad83bcacb0c8#0",
+      "reg:8453:0x6646b048fba0a70a692f7690ae6dad83bcacb0c8#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {},
+      "identity": {
+       "name": [
+        "SuperStrategy",
+        "Super Strategy v3 (Base)"
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.name"
+   ]
+  },
+  {
+   "id": "hook:8453:0x66e51deab56975bb1c64413bd3ab01fa95b82acc",
+   "address": "0x66e51deab56975bb1c64413bd3ab01fa95b82acc",
+   "chain_id": 8453,
+   "names": [
+    "XDHook",
+    "XDHook"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:8453:0x66e51deab56975bb1c64413bd3ab01fa95b82acc#0",
+      "reg:8453:0x66e51deab56975bb1c64413bd3ab01fa95b82acc#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {
+       "swapAccess": [
+        "none",
+        "allowlist"
+       ]
+      },
+      "identity": {}
+     }
+    }
+   ],
+   "fields": [
+    "properties.swapAccess"
+   ]
+  },
+  {
+   "id": "hook:8453:0x73e74c090446ad7c9745eba3c26f3e1a9680e8cc",
+   "address": "0x73e74c090446ad7c9745eba3c26f3e1a9680e8cc",
+   "chain_id": 8453,
+   "names": [
+    "tokens.fun HookStaticFee",
+    "ClankerHookStaticFee"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:8453:0x73e74c090446ad7c9745eba3c26f3e1a9680e8cc#0",
+      "reg:8453:0x73e74c090446ad7c9745eba3c26f3e1a9680e8cc#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {},
+      "identity": {
+       "declared_deployer": [
+        "0x3b5aedd9ab921e592d2fccaa6e33cf893e7eeb70",
+        null
+       ],
+       "name": [
+        "tokens.fun HookStaticFee",
+        "ClankerHookStaticFee"
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.declared_deployer",
+    "identity.name"
+   ]
+  },
+  {
+   "id": "hook:8453:0x7cbbff9c4fcd74b221c535f4fb4b1db04f1b9044",
+   "address": "0x7cbbff9c4fcd74b221c535f4fb4b1db04f1b9044",
+   "chain_id": 8453,
+   "names": [
+    "AlphixLVRFee",
+    "Alphix LVR Fee Hook"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:8453:0x7cbbff9c4fcd74b221c535f4fb4b1db04f1b9044#0",
+      "reg:8453:0x7cbbff9c4fcd74b221c535f4fb4b1db04f1b9044#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {},
+      "identity": {
+       "name": [
+        "AlphixLVRFee",
+        "Alphix LVR Fee Hook"
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.name"
+   ]
+  },
+  {
+   "id": "hook:8453:0x7debe6943acefe85c4ee81aadd736466e07528cc",
+   "address": "0x7debe6943acefe85c4ee81aadd736466e07528cc",
+   "chain_id": 8453,
+   "names": [
+    "tokens.fun HookDynamicFeeV2",
+    "ClankerHookDynamicFeeV2"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:8453:0x7debe6943acefe85c4ee81aadd736466e07528cc#0",
+      "reg:8453:0x7debe6943acefe85c4ee81aadd736466e07528cc#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {
+       "swapAccess": [
+        "temporal",
+        "none"
+       ]
+      },
+      "identity": {
+       "declared_deployer": [
+        "0x3b5aedd9ab921e592d2fccaa6e33cf893e7eeb70",
+        null
+       ],
+       "name": [
+        "tokens.fun HookDynamicFeeV2",
+        "ClankerHookDynamicFeeV2"
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.declared_deployer",
+    "identity.name",
+    "properties.swapAccess"
+   ]
+  },
+  {
+   "id": "hook:8453:0x80e2f7dc8c2c880bbc4bdf80a5fb0eb8b1db68cc",
+   "address": "0x80e2f7dc8c2c880bbc4bdf80a5fb0eb8b1db68cc",
+   "chain_id": 8453,
+   "names": [
+    "Liquid Dynamic Fee Hook V2",
+    "LiquidHookDynamicFeeV2"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:8453:0x80e2f7dc8c2c880bbc4bdf80a5fb0eb8b1db68cc#0",
+      "reg:8453:0x80e2f7dc8c2c880bbc4bdf80a5fb0eb8b1db68cc#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {},
+      "identity": {
+       "name": [
+        "Liquid Dynamic Fee Hook V2",
+        "LiquidHookDynamicFeeV2"
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.name"
+   ]
+  },
+  {
+   "id": "hook:8453:0x9811f10cd549c754fa9e5785989c422a762c28cc",
+   "address": "0x9811f10cd549c754fa9e5785989c422a762c28cc",
+   "chain_id": 8453,
+   "names": [
+    "Liquid Static Fee Hook V2",
+    "LiquidHookStaticFeeV2"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:8453:0x9811f10cd549c754fa9e5785989c422a762c28cc#0",
+      "reg:8453:0x9811f10cd549c754fa9e5785989c422a762c28cc#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {},
+      "identity": {
+       "name": [
+        "Liquid Static Fee Hook V2",
+        "LiquidHookStaticFeeV2"
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.name"
+   ]
+  },
+  {
+   "id": "hook:8453:0x9850de90445233c2561dd29fc67aaa353b48a888",
+   "address": "0x9850de90445233c2561dd29fc67aaa353b48a888",
+   "chain_id": 8453,
+   "names": [
+    "V4PoolHook",
+    "INT Fee Hook"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:8453:0x9850de90445233c2561dd29fc67aaa353b48a888#0",
+      "reg:8453:0x9850de90445233c2561dd29fc67aaa353b48a888#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {},
+      "identity": {
+       "name": [
+        "V4PoolHook",
+        "INT Fee Hook"
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.name"
+   ]
+  },
+  {
+   "id": "hook:8453:0xab29e4cb49980a6ac152515bb69470e0dedc68cc",
+   "address": "0xab29e4cb49980a6ac152515bb69470e0dedc68cc",
+   "chain_id": 8453,
+   "names": [
+    "tokens.fun HookDynamicFee",
+    "ClankerHookDynamicFee"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:8453:0xab29e4cb49980a6ac152515bb69470e0dedc68cc#0",
+      "reg:8453:0xab29e4cb49980a6ac152515bb69470e0dedc68cc#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {},
+      "identity": {
+       "declared_deployer": [
+        "0x3b5aedd9ab921e592d2fccaa6e33cf893e7eeb70",
+        null
+       ],
+       "name": [
+        "tokens.fun HookDynamicFee",
+        "ClankerHookDynamicFee"
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.declared_deployer",
+    "identity.name"
+   ]
+  },
+  {
+   "id": "hook:8453:0xca51c787e7136db1cbfd92a24287ea8e9363b0c8",
+   "address": "0xca51c787e7136db1cbfd92a24287ea8e9363b0c8",
+   "chain_id": 8453,
+   "names": [
+    "Super Strategy",
+    "Super Strategy"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:8453:0xca51c787e7136db1cbfd92a24287ea8e9363b0c8#0",
+      "reg:8453:0xca51c787e7136db1cbfd92a24287ea8e9363b0c8#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {
+       "swapAccess": [
+        "none",
+        "governance"
+       ]
+      },
+      "identity": {}
+     }
+    }
+   ],
+   "fields": [
+    "properties.swapAccess"
+   ]
+  },
+  {
+   "id": "hook:8453:0xcd256a2f4574cb6aca4837313ad225d2fe1de5cf",
+   "address": "0xcd256a2f4574cb6aca4837313ad225d2fe1de5cf",
+   "chain_id": 8453,
+   "names": [
+    "AngstromL2",
+    "Angstrom L2"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:8453:0xcd256a2f4574cb6aca4837313ad225d2fe1de5cf#0",
+      "reg:8453:0xcd256a2f4574cb6aca4837313ad225d2fe1de5cf#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {},
+      "identity": {
+       "name": [
+        "AngstromL2",
+        "Angstrom L2"
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.name"
+   ]
+  },
+  {
+   "id": "hook:8453:0xe0e522e5888e398d9e5d4d90a48c489425cb2888",
+   "address": "0xe0e522e5888e398d9e5d4d90a48c489425cb2888",
+   "chain_id": 8453,
+   "names": [
+    "sETH Hook",
+    "SETHHook"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:8453:0xe0e522e5888e398d9e5d4d90a48c489425cb2888#0",
+      "reg:8453:0xe0e522e5888e398d9e5d4d90a48c489425cb2888#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {},
+      "identity": {
+       "name": [
+        "sETH Hook",
+        "SETHHook"
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.name"
+   ]
+  },
+  {
+   "id": "hook:8453:0xea9346e83952840e69beb36df365c4e68de0e080",
+   "address": "0xea9346e83952840e69beb36df365c4e68de0e080",
+   "chain_id": 8453,
+   "names": [
+    "Liquid Launch Hook",
+    "LiquidLaunchHook"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:8453:0xea9346e83952840e69beb36df365c4e68de0e080#0",
+      "reg:8453:0xea9346e83952840e69beb36df365c4e68de0e080#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {},
+      "identity": {
+       "name": [
+        "Liquid Launch Hook",
+        "LiquidLaunchHook"
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.name"
+   ]
+  },
+  {
+   "id": "hook:8453:0xf6d0a13609bb5779bc5d639f2ba3bfda83d4d0c0",
+   "address": "0xf6d0a13609bb5779bc5d639f2ba3bfda83d4d0c0",
+   "chain_id": 8453,
+   "names": [
+    "ZoraV4CoinHook",
+    "ZoraV4CoinHook"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:8453:0xf6d0a13609bb5779bc5d639f2ba3bfda83d4d0c0#0",
+      "reg:8453:0xf6d0a13609bb5779bc5d639f2ba3bfda83d4d0c0#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {},
+      "identity": {
+       "auditUrl": [
+        "https://github.com/ourzora/zora-protocol/blob/main/packages/coins/src/hooks/ZoraV4CoinHook.sol",
+        null
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.auditUrl"
+   ]
+  },
+  {
+   "id": "hook:42161:0xbf4b4a83708474528a93c123f817e7f2a0637a88",
+   "address": "0xbf4b4a83708474528a93c123f817e7f2a0637a88",
+   "chain_id": 42161,
+   "names": [
+    "VTSwapHook",
+    "VTSwapHook(ATH-vATH)"
+   ],
+   "n_entries": 2,
+   "divergences": [
+    {
+     "entries": [
+      "reg:42161:0xbf4b4a83708474528a93c123f817e7f2a0637a88#0",
+      "reg:42161:0xbf4b4a83708474528a93c123f817e7f2a0637a88#1"
+     ],
+     "diff": {
+      "flags": {},
+      "properties": {},
+      "identity": {
+       "declared_deployer": [
+        null,
+        "0x1e1840f1eb9d9b89f4b1f2ad469e31e9877b820d"
+       ],
+       "name": [
+        "VTSwapHook",
+        "VTSwapHook(ATH-vATH)"
+       ]
+      }
+     }
+    }
+   ],
+   "fields": [
+    "identity.declared_deployer",
+    "identity.name"
+   ]
+  }
+ ]
+}

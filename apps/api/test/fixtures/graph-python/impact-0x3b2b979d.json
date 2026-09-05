@@ -1,0 +1,62 @@
+{
+ "hook": "hook:8453:0x3b2b979df21036cee51b8debb13100e2cb8deacc",
+ "found": true,
+ "address": "0x3b2b979df21036cee51b8debb13100e2cb8deacc",
+ "label": "LaunchHook",
+ "pools": [
+  "pool:8453:0x5110f10d5ef39d1e417f35ab690a5f2438c7c31caab3e43fe0398f618505ce12",
+  "pool:8453:0x8ffcf6bbe89c36ab57d5b0d8459e3239e55bb240b458301bc871c9c49096facd",
+  "pool:8453:0xe13c158616734f4b3368da7a016ba6fd677195364f6f318818e662c355d9b943",
+  "pool:8453:0xfbab36f7dd2edf414886016fa8954ede227e34463f596d8d51290799626d5ead"
+ ],
+ "n_pools": 4,
+ "tokens": [
+  "0xb2000000000000000000004dc67bb26246ba2a01",
+  "0xb20000000000000000000078ee7ce2fe4908108c",
+  "0xb2000000000000000000008bc8786b856e61707c",
+  "0xb2000000000000000000008ebf57cea9cf06da01",
+  "0xb200000000000000000000c1ebc9c7044764e901",
+  "0xb200000000000000000000f353487965144d5d01"
+ ],
+ "n_tokens": 6,
+ "measurements": {
+  "n": 20,
+  "by_label": {
+   "MEASURED": 20,
+   "INTERPOLATED": 0,
+   "NOT_MEASURABLE": 0,
+   "NOT_QUOTABLE": 0
+  },
+  "n_measured": 20,
+  "bps_min": 0.0,
+  "bps_max": 0.0019,
+  "bps_median": 0.0,
+  "flat": true
+ },
+ "bytecode": {
+  "status": "CODE",
+  "code_hash": "0x207f4c2210230ade783023d2ca476bdce8dbbe70136520d11f216c38f834d211",
+  "n_twins": 0,
+  "twins": []
+ },
+ "twin_pools": [],
+ "n_twin_pools": 0,
+ "deployer": {
+  "status": "ABSENT",
+  "deployers": [],
+  "n_siblings": 0,
+  "siblings": []
+ },
+ "sibling_pools": [],
+ "registry_entries": [
+  "reg:8453:0x3b2b979df21036cee51b8debb13100e2cb8deacc#0"
+ ],
+ "n_registry_entries": 1,
+ "pools_at_risk": [
+  "pool:8453:0x5110f10d5ef39d1e417f35ab690a5f2438c7c31caab3e43fe0398f618505ce12",
+  "pool:8453:0x8ffcf6bbe89c36ab57d5b0d8459e3239e55bb240b458301bc871c9c49096facd",
+  "pool:8453:0xe13c158616734f4b3368da7a016ba6fd677195364f6f318818e662c355d9b943",
+  "pool:8453:0xfbab36f7dd2edf414886016fa8954ede227e34463f596d8d51290799626d5ead"
+ ],
+ "n_pools_at_risk": 4
+}

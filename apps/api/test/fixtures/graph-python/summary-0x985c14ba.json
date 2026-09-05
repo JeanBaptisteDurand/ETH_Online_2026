@@ -1,0 +1,62 @@
+{
+ "hook": "hook:8453:0x985c14baa2a18316ffda0aefb3a632fadfca2acc",
+ "found": true,
+ "address": "0x985c14baa2a18316ffda0aefb3a632fadfca2acc",
+ "label": "LaunchHook",
+ "chain_id": 8453,
+ "address_flags": [
+  "AFTER_SWAP",
+  "AFTER_SWAP_RETURNS_DELTA",
+  "BEFORE_ADD_LIQUIDITY",
+  "BEFORE_INITIALIZE",
+  "BEFORE_REMOVE_LIQUIDITY",
+  "BEFORE_SWAP",
+  "BEFORE_SWAP_RETURNS_DELTA"
+ ],
+ "n_pools": 25,
+ "profile": {
+  "n": 125,
+  "by_label": {
+   "MEASURED": 125,
+   "INTERPOLATED": 0,
+   "NOT_MEASURABLE": 0,
+   "NOT_QUOTABLE": 0
+  },
+  "n_measured": 125,
+  "bps_min": 69.3028,
+  "bps_max": 99.9956,
+  "bps_median": 99.559,
+  "flat": false
+ },
+ "worst_measurement": {
+  "hook": "0x985c14baa2a18316ffda0aefb3a632fadfca2acc",
+  "pool_id": "0x145db3fe9affafb5acc654891a47d56ea487441ff664f65b2c6459a28fedf353",
+  "chain_id": 8453,
+  "block_number": 50614000,
+  "zero_for_one": true,
+  "amount_in": "100000000000000",
+  "bps": 99.9956,
+  "label": "MEASURED",
+  "reason": null,
+  "out_with": "44292430180884786275922",
+  "out_without": "44739808449026632251726",
+  "stored_lp_fee": 0,
+  "stub_hash": "0x8e39b2ad4344342b4f7dc5cf31df0aec9bd5b5f8ec7fccd241256cf1fda637a4",
+  "engine_ver": "tare-engine/0.3.0",
+  "observed_at": "2026-09-04T23:37:52+00:00",
+  "replay": "make measure HOOK=0x985c14baa2a18316ffda0aefb3a632fadfca2acc BLOCK=50614000   # pool 0x145db3fe9affafb5\u2026  0->1  100000000000000 wei"
+ },
+ "registry_names": [
+  "LaunchHook"
+ ],
+ "n_registry_entries": 1,
+ "bytecode": {
+  "status": "CODE",
+  "code_size": 10342
+ },
+ "deployer": {
+  "status": "CODE",
+  "factory": "0x4e59b44847b379578588920ca78fbf26c0b4956c",
+  "creation_block": 48451098
+ }
+}

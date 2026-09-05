@@ -1,0 +1,16 @@
+{
+ "hook": "hook:8453:0x04e08a08bab77b389e970a65d91fba8bf4ef6080",
+ "found": true,
+ "status": "CODE",
+ "code_hash": "0x28efbe4b084cdb8b59aaa1df29bc289c1190ef2f9fad620aa88ff0942989a221",
+ "code_size": 15161,
+ "n_twins": 1,
+ "twins": [
+  {
+   "id": "hook:8453:0x167f77c0d015414f65bf3dde7198922c399e2080",
+   "address": "0x167f77c0d015414f65bf3dde7198922c399e2080",
+   "label": "GovernedLBPStrategy",
+   "n_pools": 0
+  }
+ ]
+}

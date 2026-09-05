@@ -33,6 +33,35 @@ stub — and the difference **is** what the hook took.
 The registry has two failure modes and one figure shows both: **it describes without quantifying, and
 it does not see everything.**
 
+## What the graph reveals
+
+`engine/tare/graph/` joins the three sources into one graph — 2,931 nodes, 2,579 edges — and
+`apps/api/src/graph-routes.ts` serves it. Nodes: 579 hooks, 199 pools, 240 tokens, 158 distinct
+bytecodes, 147 deployers, 995 measurements, 613 registry entries. Sources: the published measurements
+at block **50,614,000**, `docs/hooklist.json` (613 entries), and 160 `eth_getCode` reads at that same
+block. Every number below is a traversal, not a model output, and each replays with one command.
+
+| What the traversal asks | What it finds |
+|---|---|
+| **Clone clusters** — hooks sharing a `keccak(eth_getCode)` | **2 clusters, 4 hooks.** `0x28efbe4b…` (15,161 bytes, 2 hooks) and `0x6802c0ce…` (23,240 bytes, 2 hooks). Neither cluster has a single measured pool: the duplicated code is deployed, not yet traded. |
+| **Orphans** — registry hooks on Base with no liquid pool we could measure | **148 of 157.** All 148 have `bytecode_status = CODE` — they exist on-chain. The registry lists far more hooks than anyone routes a swap through. |
+| **Contradictions** — one hook, two registry entries that disagree | **33 of the 37 hooks that carry two entries.** They differ on `name` (23), `declared_deployer` (12), `auditUrl` (9), `swapAccess` (8) — and on **`vanillaSwap` itself, twice**. The field TARE compares against is a field the registry contradicts itself on. |
+| **Disagreement** — registry says `vanillaSwap=false`, measurement finds ~0 bps | **1.** `0x3b2b979d…` (LaunchHook): the entry says the hook touches the swap; 20 `MEASURED` measurements across 4 pools peak at **0.0019 bps**, under the 1 bps rounding floor. The other direction — declared vanilla, measured extracting — is **0**. |
+| **Not comparable** | **149 hooks.** They have a `vanillaSwap` claim and no `MEASURED` measurement. They are listed as such and never counted as agreement. |
+
+That last row is the point: 149 registry claims that no one, including us, has checked.
+
+```bash
+curl localhost:8787/graph                                             # every count above
+curl localhost:8787/graph/impact/0x3b2b979df21036cee51b8debb13100e2cb8deacc
+PYTHONPATH=engine python3 -m tare.graph.cli disagreement               # the same, offline
+```
+
+The graph is loaded **once**, keyed by `(path, mtime_ns, size)`, and its scans are memoised. Measured
+on this dataset: 50.8 ms to read and index, then 0.02 ms to hand back, 0.19 ms for `impact` on a
+31-pool hook, 0.0001 ms for a memoised aggregate. Rebuilding per request costs 21.7 ms — the mistake
+this cache exists to avoid.
+
 ## The honesty rules
 
 These are enforced, not aspirational.

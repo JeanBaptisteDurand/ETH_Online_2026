@@ -1,0 +1,20 @@
+{
+ "hook": "hook:8453:0x985c14baa2a18316ffda0aefb3a632fadfca2acc",
+ "found": true,
+ "status": "CODE",
+ "factory": "0x4e59b44847b379578588920ca78fbf26c0b4956c",
+ "creation_block": 48451098,
+ "deployers": [
+  {
+   "deployer": "0x05edc8ce423533ff0ba6a2d286c6f3cd6fe05406",
+   "id": "dep:8453:0x05edc8ce423533ff0ba6a2d286c6f3cd6fe05406",
+   "sources": [
+    "blockscout+eth_getTransactionByHash"
+   ],
+   "n_siblings": 0
+  }
+ ],
+ "siblings": [],
+ "n_cross_chain_siblings": 0,
+ "cross_chain_siblings": []
+}

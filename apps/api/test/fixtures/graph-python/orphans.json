@@ -1,0 +1,1043 @@
+{
+ "scope": "chain_id=8453, pools connus = ceux de docs/dataset/measurements.jsonl",
+ "n_listed": 157,
+ "n_orphans": 148,
+ "orphans": [
+  {
+   "id": "hook:8453:0x04e08a08bab77b389e970a65d91fba8bf4ef6080",
+   "address": "0x04e08a08bab77b389e970a65d91fba8bf4ef6080",
+   "label": "GovernedLBPStrategy",
+   "bytecode_status": "CODE",
+   "code_size": 15161
+  },
+  {
+   "id": "hook:8453:0x07cd1505846bc1a0a7b38065684e7dcbde6f2000",
+   "address": "0x07cd1505846bc1a0a7b38065684e7dcbde6f2000",
+   "label": "LpGuardHook",
+   "bytecode_status": "CODE",
+   "code_size": 2871
+  },
+  {
+   "id": "hook:8453:0x0a914acb246063b4ed0f3a0fc13d0c0e8c8500c4",
+   "address": "0x0a914acb246063b4ed0f3a0fc13d0c0e8c8500c4",
+   "label": "CapGate",
+   "bytecode_status": "CODE",
+   "code_size": 1483
+  },
+  {
+   "id": "hook:8453:0x0b8fbfa9861af89d7d2cf2e55f61cee982a22080",
+   "address": "0x0b8fbfa9861af89d7d2cf2e55f61cee982a22080",
+   "label": "GovernedLBPStrategy",
+   "bytecode_status": "CODE",
+   "code_size": 15161
+  },
+  {
+   "id": "hook:8453:0x0fd17dc291cd04fedd6d2f1fa6c1f247e6546a40",
+   "address": "0x0fd17dc291cd04fedd6d2f1fa6c1f247e6546a40",
+   "label": "OwnerManagedRangeHook",
+   "bytecode_status": "CODE",
+   "code_size": 22918
+  },
+  {
+   "id": "hook:8453:0x1216eefa98a268d5c610ffdd9c0eb2d6b1290aec",
+   "address": "0x1216eefa98a268d5c610ffdd9c0eb2d6b1290aec",
+   "label": "Apex Yield",
+   "bytecode_status": "CODE",
+   "code_size": 11746
+  },
+  {
+   "id": "hook:8453:0x121f94835dab08ebaf084809a97e525b69e400cc",
+   "address": "0x121f94835dab08ebaf084809a97e525b69e400cc",
+   "label": "AI Protocol Swap Fee Hook v1 (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 7811
+  },
+  {
+   "id": "hook:8453:0x1258e5f3c71ca9dce95ce734ba5759532e46d040",
+   "address": "0x1258e5f3c71ca9dce95ce734ba5759532e46d040",
+   "label": "Zora Creator Hook v2.2.1 (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 21356
+  },
+  {
+   "id": "hook:8453:0x167f77c0d015414f65bf3dde7198922c399e2080",
+   "address": "0x167f77c0d015414f65bf3dde7198922c399e2080",
+   "label": "GovernedLBPStrategy",
+   "bytecode_status": "CODE",
+   "code_size": 15161
+  },
+  {
+   "id": "hook:8453:0x180d1981ee8d6cc878df230a05787cd831f70040",
+   "address": "0x180d1981ee8d6cc878df230a05787cd831f70040",
+   "label": "SpectraHook",
+   "bytecode_status": "CODE",
+   "code_size": 3239
+  },
+  {
+   "id": "hook:8453:0x192499a79cadb2e9ba221a252a3e3b7adc714880",
+   "address": "0x192499a79cadb2e9ba221a252a3e3b7adc714880",
+   "label": "ArrakisPrivateHook",
+   "bytecode_status": "CODE",
+   "code_size": 5392
+  },
+  {
+   "id": "hook:8453:0x1c0c00db76140b4e7deb997ccf1246d8d6b80440",
+   "address": "0x1c0c00db76140b4e7deb997ccf1246d8d6b80440",
+   "label": "A51peg Hook",
+   "bytecode_status": "CODE",
+   "code_size": 12901
+  },
+  {
+   "id": "hook:8453:0x1e0c810a30fb82391df936602c1161421381b0c8",
+   "address": "0x1e0c810a30fb82391df936602c1161421381b0c8",
+   "label": "SuperStrategy Hook (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 21296
+  },
+  {
+   "id": "hook:8453:0x1f6c7744a0b0393db8e96d3aaa023146828028cc",
+   "address": "0x1f6c7744a0b0393db8e96d3aaa023146828028cc",
+   "label": "tokens.fun HookStaticFeeV2",
+   "bytecode_status": "CODE",
+   "code_size": 16405
+  },
+  {
+   "id": "hook:8453:0x2063a2b535a59911532cdf4d1cf28501099f0aec",
+   "address": "0x2063a2b535a59911532cdf4d1cf28501099f0aec",
+   "label": "SnapBackHook",
+   "bytecode_status": "CODE",
+   "code_size": 13681
+  },
+  {
+   "id": "hook:8453:0x21411ada5ba2bf1ed416a2573e037cda070ce080",
+   "address": "0x21411ada5ba2bf1ed416a2573e037cda070ce080",
+   "label": "MoonsendFeeHook_BASE",
+   "bytecode_status": "CODE",
+   "code_size": 2981
+  },
+  {
+   "id": "hook:8453:0x22266a74902ef7546ab80156539e7a349ad20040",
+   "address": "0x22266a74902ef7546ab80156539e7a349ad20040",
+   "label": "BpegHook",
+   "bytecode_status": "CODE",
+   "code_size": 7000
+  },
+  {
+   "id": "hook:8453:0x23321f11a6d44fd1ab790044fdfde5758c902fdc",
+   "address": "0x23321f11a6d44fd1ab790044fdfde5758c902fdc",
+   "label": "Flaunch POSM v4 (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 24559
+  },
+  {
+   "id": "hook:8453:0x23ab2e6d4ab0c5f872567098671f1ffb46fd2500",
+   "address": "0x23ab2e6d4ab0c5f872567098671f1ffb46fd2500",
+   "label": "TELxIncentiveHook",
+   "bytecode_status": "CODE",
+   "code_size": 7546
+  },
+  {
+   "id": "hook:8453:0x2677fdcb72f59766d03d9ee4a6c7390bf3ed0800",
+   "address": "0x2677fdcb72f59766d03d9ee4a6c7390bf3ed0800",
+   "label": "DCAHook",
+   "bytecode_status": "CODE",
+   "code_size": 8850
+  },
+  {
+   "id": "hook:8453:0x26ebd6c282328625bce05dac77f9d5f2bc3568cc",
+   "address": "0x26ebd6c282328625bce05dac77f9d5f2bc3568cc",
+   "label": "WhaleAIHook",
+   "bytecode_status": "CODE",
+   "code_size": 10503
+  },
+  {
+   "id": "hook:8453:0x282b5e7d546b5e39963753d11b2bb6cd3c9da088",
+   "address": "0x282b5e7d546b5e39963753d11b2bb6cd3c9da088",
+   "label": "MoonpotHook",
+   "bytecode_status": "CODE",
+   "code_size": 16204
+  },
+  {
+   "id": "hook:8453:0x2934140dcf6ca98eed60e8e31d3816d038f92080",
+   "address": "0x2934140dcf6ca98eed60e8e31d3816d038f92080",
+   "label": "GovernedLBPStrategy",
+   "bytecode_status": "CODE",
+   "code_size": 15161
+  },
+  {
+   "id": "hook:8453:0x2ad6936032d4201fc74041afbc801faab1bf40c4",
+   "address": "0x2ad6936032d4201fc74041afbc801faab1bf40c4",
+   "label": "HeavierHand",
+   "bytecode_status": "CODE",
+   "code_size": 3611
+  },
+  {
+   "id": "hook:8453:0x2b15a16b3ef024005ba899bb51764fcd58cf9040",
+   "address": "0x2b15a16b3ef024005ba899bb51764fcd58cf9040",
+   "label": "Zora Post Hook v2.2.1 (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 21220
+  },
+  {
+   "id": "hook:8453:0x2c56c1302b6224b2bb1906c46f554622e12f10c4",
+   "address": "0x2c56c1302b6224b2bb1906c46f554622e12f10c4",
+   "label": "BVCC Dynamic Fee Hook (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 19711
+  },
+  {
+   "id": "hook:8453:0x2f9354bbb0edef5c2a5c4b78d0c59d73412a28cc",
+   "address": "0x2f9354bbb0edef5c2a5c4b78d0c59d73412a28cc",
+   "label": "ClawnchHookStaticFeeV2",
+   "bytecode_status": "CODE",
+   "code_size": 12814
+  },
+  {
+   "id": "hook:8453:0x2fd54aaf84023eda60bd65edb5914c1a306850cc",
+   "address": "0x2fd54aaf84023eda60bd65edb5914c1a306850cc",
+   "label": "SeedifyFeeHook",
+   "bytecode_status": "CODE",
+   "code_size": 10169
+  },
+  {
+   "id": "hook:8453:0x34a45c6b61876d739400bd71228cbcbd4f53e8cc",
+   "address": "0x34a45c6b61876d739400bd71228cbcbd4f53e8cc",
+   "label": "Clanker Dynamic Fee Hook (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 16816
+  },
+  {
+   "id": "hook:8453:0x35b9b5b023897da8c7375ba6141245b8416460cc",
+   "address": "0x35b9b5b023897da8c7375ba6141245b8416460cc",
+   "label": "Wassblaster Hook",
+   "bytecode_status": "CODE",
+   "code_size": 9596
+  },
+  {
+   "id": "hook:8453:0x367bf580a1a6cc784f30a77713e02eca76210044",
+   "address": "0x367bf580a1a6cc784f30a77713e02eca76210044",
+   "label": "UruLaunchHook",
+   "bytecode_status": "CODE",
+   "code_size": 4401
+  },
+  {
+   "id": "hook:8453:0x3e342a06f9592459d75721d6956b570f02ef2dc0",
+   "address": "0x3e342a06f9592459d75721d6956b570f02ef2dc0",
+   "label": "UniswapV4ScheduledMulticurveInitializerHook",
+   "bytecode_status": "CODE",
+   "code_size": 3315
+  },
+  {
+   "id": "hook:8453:0x440f4148e323de5d8196582628971bfff802e8cc",
+   "address": "0x440f4148e323de5d8196582628971bfff802e8cc",
+   "label": "LayerMeme Dynamic Fee Hook v2 (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 16575
+  },
+  {
+   "id": "hook:8453:0x4440854b2d02c57a0dc5c58b7a884562d875c0c4",
+   "address": "0x4440854b2d02c57a0dc5c58b7a884562d875c0c4",
+   "label": "UniswapV4KEMHook",
+   "bytecode_status": "CODE",
+   "code_size": 10180
+  },
+  {
+   "id": "hook:8453:0x4519e2b040ff1b64fa03abe2aef0bc99d7cceaa8",
+   "address": "0x4519e2b040ff1b64fa03abe2aef0bc99d7cceaa8",
+   "label": "GPX Hook (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 19046
+  },
+  {
+   "id": "hook:8453:0x4627812f40bdd47c8fa1a4daac8f40bc26ef8040",
+   "address": "0x4627812f40bdd47c8fa1a4daac8f40bc26ef8040",
+   "label": "Spectra Launchpad",
+   "bytecode_status": "CODE",
+   "code_size": 23695
+  },
+  {
+   "id": "hook:8453:0x46b8c74d89a647063311ad08c7456732d5e94888",
+   "address": "0x46b8c74d89a647063311ad08c7456732d5e94888",
+   "label": "WontonHook",
+   "bytecode_status": "CODE",
+   "code_size": 2670
+  },
+  {
+   "id": "hook:8453:0x47ec48c74f3069e9ae69406197821996d80200cc",
+   "address": "0x47ec48c74f3069e9ae69406197821996d80200cc",
+   "label": "StockifyFeeHook",
+   "bytecode_status": "CODE",
+   "code_size": 2873
+  },
+  {
+   "id": "hook:8453:0x49659b737c672324a221623f8d3f29e5687f28cc",
+   "address": "0x49659b737c672324a221623f8d3f29e5687f28cc",
+   "label": "JanpuHookDynamicFeeV2",
+   "bytecode_status": "CODE",
+   "code_size": 16515
+  },
+  {
+   "id": "hook:8453:0x4ab61d774b170d0610fdcc5559aae2c356c600c8",
+   "address": "0x4ab61d774b170d0610fdcc5559aae2c356c600c8",
+   "label": "Pubhouse Hook",
+   "bytecode_status": "CODE",
+   "code_size": 21626
+  },
+  {
+   "id": "hook:8453:0x51bba15255406cfe7099a42183302640ba7dafdc",
+   "address": "0x51bba15255406cfe7099a42183302640ba7dafdc",
+   "label": "Flaunch POSM v1",
+   "bytecode_status": "CODE",
+   "code_size": 24554
+  },
+  {
+   "id": "hook:8453:0x52a22cda1d1e77f8997fceb2165c6fc76b808440",
+   "address": "0x52a22cda1d1e77f8997fceb2165c6fc76b808440",
+   "label": "KPEGHook",
+   "bytecode_status": "CODE",
+   "code_size": 4177
+  },
+  {
+   "id": "hook:8453:0x5613c279e8db9815dbd0cdfbd10515eabd350088",
+   "address": "0x5613c279e8db9815dbd0cdfbd10515eabd350088",
+   "label": "GBPFv4Hook",
+   "bytecode_status": "CODE",
+   "code_size": 8544
+  },
+  {
+   "id": "hook:8453:0x570a48f96035c2874de1c0f13c5075a05683b0cc",
+   "address": "0x570a48f96035c2874de1c0f13c5075a05683b0cc",
+   "label": "Deli Hook (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 8730
+  },
+  {
+   "id": "hook:8453:0x5798a5e371346c8e4af1dbc166549d360e008044",
+   "address": "0x5798a5e371346c8e4af1dbc166549d360e008044",
+   "label": "Adaptive Burn Hook",
+   "bytecode_status": "CODE",
+   "code_size": 6875
+  },
+  {
+   "id": "hook:8453:0x58165a756a9e6a10a64db2b4a9bb47bdd62120cc",
+   "address": "0x58165a756a9e6a10a64db2b4a9bb47bdd62120cc",
+   "label": "PokeHook",
+   "bytecode_status": "CODE",
+   "code_size": 24466
+  },
+  {
+   "id": "hook:8453:0x59f39091fd6f47e9d0bcb466f74e305f1709bac4",
+   "address": "0x59f39091fd6f47e9d0bcb466f74e305f1709bac4",
+   "label": "BackGeoOracle",
+   "bytecode_status": "CODE",
+   "code_size": 11497
+  },
+  {
+   "id": "hook:8453:0x5b409184204b86f708d3aebb3cad3f02835f68cc",
+   "address": "0x5b409184204b86f708d3aebb3cad3f02835f68cc",
+   "label": "Fey Hook (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 13122
+  },
+  {
+   "id": "hook:8453:0x5bf219b3cc11e3f6dd8dc8fc89d7d1deb0431040",
+   "address": "0x5bf219b3cc11e3f6dd8dc8fc89d7d1deb0431040",
+   "label": "Zora Post Hook v1.1.1.1 (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 21095
+  },
+  {
+   "id": "hook:8453:0x5c062f56e7f1a5cf25b95e626af15176f52fb0c8",
+   "address": "0x5c062f56e7f1a5cf25b95e626af15176f52fb0c8",
+   "label": "Super Strategy v2 (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 20853
+  },
+  {
+   "id": "hook:8453:0x5ca33d75df69c4f46093b7eb7f0f6dacace62080",
+   "address": "0x5ca33d75df69c4f46093b7eb7f0f6dacace62080",
+   "label": "GovernedLBPStrategy",
+   "bytecode_status": "CODE",
+   "code_size": 15161
+  },
+  {
+   "id": "hook:8453:0x5cd525c621afca515bf58631d4733fba7b72aae4",
+   "address": "0x5cd525c621afca515bf58631d4733fba7b72aae4",
+   "label": "Coinbase Verified Hook (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 12265
+  },
+  {
+   "id": "hook:8453:0x5e48f905661d75501ca756edb3403da98f0400c4",
+   "address": "0x5e48f905661d75501ca756edb3403da98f0400c4",
+   "label": "BlockEcho",
+   "bytecode_status": "CODE",
+   "code_size": 1992
+  },
+  {
+   "id": "hook:8453:0x5e5d19d22c85a4aef7c1fdf25fb22a5a38f71040",
+   "address": "0x5e5d19d22c85a4aef7c1fdf25fb22a5a38f71040",
+   "label": "Zora Creator Hook v1.1.1.1 (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 20037
+  },
+  {
+   "id": "hook:8453:0x5fef75737d2c547c9ea11e750b207239954368cc",
+   "address": "0x5fef75737d2c547c9ea11e750b207239954368cc",
+   "label": "LayerMeme Static Fee Hook v2 (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 13068
+  },
+  {
+   "id": "hook:8453:0x6145a9cd8d6b597af774ea95b73684416848e088",
+   "address": "0x6145a9cd8d6b597af774ea95b73684416848e088",
+   "label": "MoonpotHook",
+   "bytecode_status": "CODE",
+   "code_size": 11745
+  },
+  {
+   "id": "hook:8453:0x631352aaa9d6554848af674106bcd8bb9e59a5cf",
+   "address": "0x631352aaa9d6554848af674106bcd8bb9e59a5cf",
+   "label": "AngstromL2",
+   "bytecode_status": "CODE",
+   "code_size": 23156
+  },
+  {
+   "id": "hook:8453:0x6646b048fba0a70a692f7690ae6dad83bcacb0c8",
+   "address": "0x6646b048fba0a70a692f7690ae6dad83bcacb0c8",
+   "label": "SuperStrategy",
+   "bytecode_status": "CODE",
+   "code_size": 20853
+  },
+  {
+   "id": "hook:8453:0x66799c2eb2590006820f6cb826133176ecdda888",
+   "address": "0x66799c2eb2590006820f6cb826133176ecdda888",
+   "label": "EstateHook",
+   "bytecode_status": "CODE",
+   "code_size": 6086
+  },
+  {
+   "id": "hook:8453:0x66e51deab56975bb1c64413bd3ab01fa95b82acc",
+   "address": "0x66e51deab56975bb1c64413bd3ab01fa95b82acc",
+   "label": "XDHook",
+   "bytecode_status": "CODE",
+   "code_size": 8055
+  },
+  {
+   "id": "hook:8453:0x6b4d98ca88fa0e3bb2b70582d5af1b59971f3acc",
+   "address": "0x6b4d98ca88fa0e3bb2b70582d5af1b59971f3acc",
+   "label": "BotcoinWethFeeHook",
+   "bytecode_status": "CODE",
+   "code_size": 24008
+  },
+  {
+   "id": "hook:8453:0x6b80ce7c95b0206b14ce9977c904e11918d48040",
+   "address": "0x6b80ce7c95b0206b14ce9977c904e11918d48040",
+   "label": "SpectraLaunch",
+   "bytecode_status": "CODE",
+   "code_size": 23695
+  },
+  {
+   "id": "hook:8453:0x6cabe2fd9fb60c5afcab7de732b0a224fc382eec",
+   "address": "0x6cabe2fd9fb60c5afcab7de732b0a224fc382eec",
+   "label": "GPO Hook (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 8290
+  },
+  {
+   "id": "hook:8453:0x704268ac7043aeef50f47b6a03ae68ccf808e044",
+   "address": "0x704268ac7043aeef50f47b6a03ae68ccf808e044",
+   "label": "BTC ACC Hook (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 6522
+  },
+  {
+   "id": "hook:8453:0x70e163cf92b4565a0eeba7d12d2cfcebd51c40cc",
+   "address": "0x70e163cf92b4565a0eeba7d12d2cfcebd51c40cc",
+   "label": "FloorPad Floor Hook",
+   "bytecode_status": "CODE",
+   "code_size": 9706
+  },
+  {
+   "id": "hook:8453:0x723b16ef13a1b9a2bd63238bec47cdf1d4a010c4",
+   "address": "0x723b16ef13a1b9a2bd63238bec47cdf1d4a010c4",
+   "label": "DynamicFee",
+   "bytecode_status": "CODE",
+   "code_size": 2516
+  },
+  {
+   "id": "hook:8453:0x73e74c090446ad7c9745eba3c26f3e1a9680e8cc",
+   "address": "0x73e74c090446ad7c9745eba3c26f3e1a9680e8cc",
+   "label": "tokens.fun HookStaticFee",
+   "bytecode_status": "CODE",
+   "code_size": 12558
+  },
+  {
+   "id": "hook:8453:0x755776c51399f7ee15d47ddaf47347d26f5ca840",
+   "address": "0x755776c51399f7ee15d47ddaf47347d26f5ca840",
+   "label": "Basememe Hook (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 4299
+  },
+  {
+   "id": "hook:8453:0x7624ac031ca94a9d6f732a74ef90ea10c5510040",
+   "address": "0x7624ac031ca94a9d6f732a74ef90ea10c5510040",
+   "label": "SpectraLaunch",
+   "bytecode_status": "CODE",
+   "code_size": 23695
+  },
+  {
+   "id": "hook:8453:0x7cbbff9c4fcd74b221c535f4fb4b1db04f1b9044",
+   "address": "0x7cbbff9c4fcd74b221c535f4fb4b1db04f1b9044",
+   "label": "AlphixLVRFee",
+   "bytecode_status": "CODE",
+   "code_size": 9149
+  },
+  {
+   "id": "hook:8453:0x7db23263e461fdfc08cecf03cdfa503391e64044",
+   "address": "0x7db23263e461fdfc08cecf03cdfa503391e64044",
+   "label": "VenaHook",
+   "bytecode_status": "CODE",
+   "code_size": 19632
+  },
+  {
+   "id": "hook:8453:0x7debe6943acefe85c4ee81aadd736466e07528cc",
+   "address": "0x7debe6943acefe85c4ee81aadd736466e07528cc",
+   "label": "tokens.fun HookDynamicFeeV2",
+   "bytecode_status": "CODE",
+   "code_size": 20230
+  },
+  {
+   "id": "hook:8453:0x7fa49d29481b6d168505ccde26635e204c09e5cf",
+   "address": "0x7fa49d29481b6d168505ccde26635e204c09e5cf",
+   "label": "AngstromL2",
+   "bytecode_status": "CODE",
+   "code_size": 23240
+  },
+  {
+   "id": "hook:8453:0x80e2f7dc8c2c880bbc4bdf80a5fb0eb8b1db68cc",
+   "address": "0x80e2f7dc8c2c880bbc4bdf80a5fb0eb8b1db68cc",
+   "label": "Liquid Dynamic Fee Hook V2",
+   "bytecode_status": "CODE",
+   "code_size": 20341
+  },
+  {
+   "id": "hook:8453:0x81542dc43aff247eff4a0ecefc286a2973ae1040",
+   "address": "0x81542dc43aff247eff4a0ecefc286a2973ae1040",
+   "label": "Zora Post Hook v1.1.1 (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 20957
+  },
+  {
+   "id": "hook:8453:0x8218fa8d7922e22aed3556a09d5a715f16ad5040",
+   "address": "0x8218fa8d7922e22aed3556a09d5a715f16ad5040",
+   "label": "Zora Creator Hook v2.2 (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 21259
+  },
+  {
+   "id": "hook:8453:0x84129dc46b712614471131e8b9dadd64c7d21bc0",
+   "address": "0x84129dc46b712614471131e8b9dadd64c7d21bc0",
+   "label": "Hook_V2",
+   "bytecode_status": "CODE",
+   "code_size": 9720
+  },
+  {
+   "id": "hook:8453:0x842212401b6c557cabe1986b04a921a71b969800",
+   "address": "0x842212401b6c557cabe1986b04a921a71b969800",
+   "label": "TrinityHookV10",
+   "bytecode_status": "CODE",
+   "code_size": 13954
+  },
+  {
+   "id": "hook:8453:0x84bbab8cac69bf6711ba81f9915dc346f4cf2088",
+   "address": "0x84bbab8cac69bf6711ba81f9915dc346f4cf2088",
+   "label": "RwagmiHookV2",
+   "bytecode_status": "CODE",
+   "code_size": 11991
+  },
+  {
+   "id": "hook:8453:0x854f820475b229b7805a386f758cfb285023d040",
+   "address": "0x854f820475b229b7805a386f758cfb285023d040",
+   "label": "Zora Creator Hook v1.0.0.1 (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 19819
+  },
+  {
+   "id": "hook:8453:0x880bfa436d722bfde337eafc7c22123c17b90088",
+   "address": "0x880bfa436d722bfde337eafc7c22123c17b90088",
+   "label": "BuffetAMM",
+   "bytecode_status": "CODE",
+   "code_size": 13237
+  },
+  {
+   "id": "hook:8453:0x88c9ff9fc0b22cca42265d3f1d1c2c39e41cdacc",
+   "address": "0x88c9ff9fc0b22cca42265d3f1d1c2c39e41cdacc",
+   "label": "Aegis v3 Hook (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 12200
+  },
+  {
+   "id": "hook:8453:0x892d3c2b4abeaaf67d52a7b29783e2161b7cad40",
+   "address": "0x892d3c2b4abeaaf67d52a7b29783e2161b7cad40",
+   "label": "UniswapV4MulticurveInitializerHook",
+   "bytecode_status": "CODE",
+   "code_size": 3011
+  },
+  {
+   "id": "hook:8453:0x8dc3b85e1dc1c846ebf3971179a751896842e5dc",
+   "address": "0x8dc3b85e1dc1c846ebf3971179a751896842e5dc",
+   "label": "Flaunch AnyPOSM v1 (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 20390
+  },
+  {
+   "id": "hook:8453:0x8f29bd5c8429730fa4c46e6295c4e679ededd0cc",
+   "address": "0x8f29bd5c8429730fa4c46e6295c4e679ededd0cc",
+   "label": "Aegis",
+   "bytecode_status": "CODE",
+   "code_size": 11512
+  },
+  {
+   "id": "hook:8453:0x9278f6e55ce58519c79dc1ab0ad3b29ea7821040",
+   "address": "0x9278f6e55ce58519c79dc1ab0ad3b29ea7821040",
+   "label": "CreatorCoinHook",
+   "bytecode_status": "CODE",
+   "code_size": 18466
+  },
+  {
+   "id": "hook:8453:0x9301690be9ac901de52c5ebff883862bbfc99040",
+   "address": "0x9301690be9ac901de52c5ebff883862bbfc99040",
+   "label": "Zora Creator Hook v1.1.1 (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 19927
+  },
+  {
+   "id": "hook:8453:0x95afbc0fccf974b41380f24e562f15b6dd90fac8",
+   "address": "0x95afbc0fccf974b41380f24e562f15b6dd90fac8",
+   "label": "Deli Constant Product Hook (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 23943
+  },
+  {
+   "id": "hook:8453:0x963e91a45148b39737b9df10c5b897b55ca9e8cc",
+   "address": "0x963e91a45148b39737b9df10c5b897b55ca9e8cc",
+   "label": "Bonker Dynamic Fee Hook (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 20347
+  },
+  {
+   "id": "hook:8453:0x972fd516470c0e1841211c51c37ab2f7dfe44040",
+   "address": "0x972fd516470c0e1841211c51c37ab2f7dfe44040",
+   "label": "SpectraHook",
+   "bytecode_status": "CODE",
+   "code_size": 3239
+  },
+  {
+   "id": "hook:8453:0x9818ddd1102c9606cd693ac17a7b8b17609480c4",
+   "address": "0x9818ddd1102c9606cd693ac17a7b8b17609480c4",
+   "label": "TailTwins",
+   "bytecode_status": "CODE",
+   "code_size": 2801
+  },
+  {
+   "id": "hook:8453:0x9850de90445233c2561dd29fc67aaa353b48a888",
+   "address": "0x9850de90445233c2561dd29fc67aaa353b48a888",
+   "label": "V4PoolHook",
+   "bytecode_status": "CODE",
+   "code_size": 11740
+  },
+  {
+   "id": "hook:8453:0x98aa253a44497dfa77ec1170e69f851cb17c2000",
+   "address": "0x98aa253a44497dfa77ec1170e69f851cb17c2000",
+   "label": "AquinasPoolHook",
+   "bytecode_status": "CODE",
+   "code_size": 4051
+  },
+  {
+   "id": "hook:8453:0x994f0eefe7a9857698218205b721466ef0038ac0",
+   "address": "0x994f0eefe7a9857698218205b721466ef0038ac0",
+   "label": "SwayHookJIT",
+   "bytecode_status": "CODE",
+   "code_size": 21979
+  },
+  {
+   "id": "hook:8453:0x9d11f9505ca92f4b6983c1285d1ac0aaff7ec0c0",
+   "address": "0x9d11f9505ca92f4b6983c1285d1ac0aaff7ec0c0",
+   "label": "Limit Order Hook (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 5472
+  },
+  {
+   "id": "hook:8453:0x9e433f32bb5481a9ca7dff5b3af74a7ed041a888",
+   "address": "0x9e433f32bb5481a9ca7dff5b3af74a7ed041a888",
+   "label": "ETH-flETH Auto Wrap Hook (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 4883
+  },
+  {
+   "id": "hook:8453:0x9ea932730a7787000042e34390b8e435dd839040",
+   "address": "0x9ea932730a7787000042e34390b8e435dd839040",
+   "label": "Zora Post Hook v1.1.2 (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 21155
+  },
+  {
+   "id": "hook:8453:0xa09ff20120d0dc9b9840c3260ea4f2be7e6ce888",
+   "address": "0xa09ff20120d0dc9b9840c3260ea4f2be7e6ce888",
+   "label": "SuperTokenWrapperHook",
+   "bytecode_status": "CODE",
+   "code_size": 6004
+  },
+  {
+   "id": "hook:8453:0xa1ebdd5ca6470bbd67114331387f2dda7bfad040",
+   "address": "0xa1ebdd5ca6470bbd67114331387f2dda7bfad040",
+   "label": "Zora Post Hook v1 (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 14844
+  },
+  {
+   "id": "hook:8453:0xa4e6f5500e88691fdcb289aa0e99067481434880",
+   "address": "0xa4e6f5500e88691fdcb289aa0e99067481434880",
+   "label": "ArrakisPrivateHook",
+   "bytecode_status": "CODE",
+   "code_size": 6187
+  },
+  {
+   "id": "hook:8453:0xa7a62422d13c7648ca53ad91e9268ac4bfc6c0c4",
+   "address": "0xa7a62422d13c7648ca53ad91e9268ac4bfc6c0c4",
+   "label": "TotalizerTrap",
+   "bytecode_status": "CODE",
+   "code_size": 2348
+  },
+  {
+   "id": "hook:8453:0xaa226363fb5b8718d125357ddc6539a82489e0c4",
+   "address": "0xaa226363fb5b8718d125357ddc6539a82489e0c4",
+   "label": "Loyalty Volatility Dynamic Fee Hook",
+   "bytecode_status": "CODE",
+   "code_size": 9988
+  },
+  {
+   "id": "hook:8453:0xab29e4cb49980a6ac152515bb69470e0dedc68cc",
+   "address": "0xab29e4cb49980a6ac152515bb69470e0dedc68cc",
+   "label": "tokens.fun HookDynamicFee",
+   "bytecode_status": "CODE",
+   "code_size": 16816
+  },
+  {
+   "id": "hook:8453:0xacf358b129423f0107b0bf892b3eff6c770128cc",
+   "address": "0xacf358b129423f0107b0bf892b3eff6c770128cc",
+   "label": "ZNS Launchpad",
+   "bytecode_status": "CODE",
+   "code_size": 14216
+  },
+  {
+   "id": "hook:8453:0xb030fd8c2f8576f8ab05cfbbe659285e7d7a1040",
+   "address": "0xb030fd8c2f8576f8ab05cfbbe659285e7d7a1040",
+   "label": "Zora Post Hook v1.0.0.1 (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 20811
+  },
+  {
+   "id": "hook:8453:0xb08211d57032dd10b1974d4b876851a7f7596888",
+   "address": "0xb08211d57032dd10b1974d4b876851a7f7596888",
+   "label": "WETH Hook",
+   "bytecode_status": "CODE",
+   "code_size": 6257
+  },
+  {
+   "id": "hook:8453:0xb216070c3509047ea597e2e626a29cea427a60c8",
+   "address": "0xb216070c3509047ea597e2e626a29cea427a60c8",
+   "label": "GlueHook",
+   "bytecode_status": "CODE",
+   "code_size": 23465
+  },
+  {
+   "id": "hook:8453:0xb3ae7c0495fe4d20786cf6d119c7a821f83f40cc",
+   "address": "0xb3ae7c0495fe4d20786cf6d119c7a821f83f40cc",
+   "label": "BurnOnSwapHook",
+   "bytecode_status": "CODE",
+   "code_size": 7311
+  },
+  {
+   "id": "hook:8453:0xb476c448da4453208df4e371fee26f4e630d3044",
+   "address": "0xb476c448da4453208df4e371fee26f4e630d3044",
+   "label": "SPAWN (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 11433
+  },
+  {
+   "id": "hook:8453:0xb4f4949e8d0a177bb6d2fea33e9516bb219610cc",
+   "address": "0xb4f4949e8d0a177bb6d2fea33e9516bb219610cc",
+   "label": "Spot",
+   "bytecode_status": "CODE",
+   "code_size": 11188
+  },
+  {
+   "id": "hook:8453:0xb67f057bfbcb27ff9908dbf2d3d9dbd89d29e8cc",
+   "address": "0xb67f057bfbcb27ff9908dbf2d3d9dbd89d29e8cc",
+   "label": "JanpuHookStaticFeeV2",
+   "bytecode_status": "CODE",
+   "code_size": 13007
+  },
+  {
+   "id": "hook:8453:0xb8b27a9cea9094cff605e6aa707c89120a240a80",
+   "address": "0xb8b27a9cea9094cff605e6aa707c89120a240a80",
+   "label": "CommodityCombinedHook",
+   "bytecode_status": "CODE",
+   "code_size": 415
+  },
+  {
+   "id": "hook:8453:0xb903b0ab7bcee8f5e4d8c9b10a71aac7135d6fdc",
+   "address": "0xb903b0ab7bcee8f5e4d8c9b10a71aac7135d6fdc",
+   "label": "Flaunch POSM v3 (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 24458
+  },
+  {
+   "id": "hook:8453:0xb91ca876220674c2efc20ced68de110a075250c0",
+   "address": "0xb91ca876220674c2efc20ced68de110a075250c0",
+   "label": "HomelanderUniV4Plugin",
+   "bytecode_status": "CODE",
+   "code_size": 6218
+  },
+  {
+   "id": "hook:8453:0xbd2597a08627f119ed50c1a252f888f5bfd31b80",
+   "address": "0xbd2597a08627f119ed50c1a252f888f5bfd31b80",
+   "label": "DynamicFeeHook",
+   "bytecode_status": "CODE",
+   "code_size": 9040
+  },
+  {
+   "id": "hook:8453:0xc3b8e77ac038aa260035a1911827086c34a9e844",
+   "address": "0xc3b8e77ac038aa260035a1911827086c34a9e844",
+   "label": "Farstr Hook (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 10144
+  },
+  {
+   "id": "hook:8453:0xc5a48b447f01e9ce3ede71e4c1c2038c38bd9000",
+   "address": "0xc5a48b447f01e9ce3ede71e4c1c2038c38bd9000",
+   "label": "Graduation Hook (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 2839
+  },
+  {
+   "id": "hook:8453:0xc8d077444625eb300a427a6dfb2b1dbf9b159040",
+   "address": "0xc8d077444625eb300a427a6dfb2b1dbf9b159040",
+   "label": "Zora Post Hook v2.3.0 (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 24065
+  },
+  {
+   "id": "hook:8453:0xc9156c1868e122ef5b3e6ed946e1e88ff7da68cc",
+   "address": "0xc9156c1868e122ef5b3e6ed946e1e88ff7da68cc",
+   "label": "Bonker Static Fee Hook (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 16514
+  },
+  {
+   "id": "hook:8453:0xca51c787e7136db1cbfd92a24287ea8e9363b0c8",
+   "address": "0xca51c787e7136db1cbfd92a24287ea8e9363b0c8",
+   "label": "Super Strategy",
+   "bytecode_status": "CODE",
+   "code_size": 19720
+  },
+  {
+   "id": "hook:8453:0xca975b9daf772c71161f3648437c3616e5be0088",
+   "address": "0xca975b9daf772c71161f3648437c3616e5be0088",
+   "label": "Simple Sell Tax Hook",
+   "bytecode_status": "CODE",
+   "code_size": 6035
+  },
+  {
+   "id": "hook:8453:0xcd256a2f4574cb6aca4837313ad225d2fe1de5cf",
+   "address": "0xcd256a2f4574cb6aca4837313ad225d2fe1de5cf",
+   "label": "AngstromL2",
+   "bytecode_status": "CODE",
+   "code_size": 23240
+  },
+  {
+   "id": "hook:8453:0xced494a8cc54d593dbc7bdc6f4c61a948c932080",
+   "address": "0xced494a8cc54d593dbc7bdc6f4c61a948c932080",
+   "label": "GovernedLBPStrategy",
+   "bytecode_status": "CODE",
+   "code_size": 15161
+  },
+  {
+   "id": "hook:8453:0xd24d29a47adb8786072ab2cb9925dc8ba36bc044",
+   "address": "0xd24d29a47adb8786072ab2cb9925dc8ba36bc044",
+   "label": "CrownClash",
+   "bytecode_status": "CODE",
+   "code_size": 2482
+  },
+  {
+   "id": "hook:8453:0xd3c1f2174f37f88811f99b1b1b4c1356c0246000",
+   "address": "0xd3c1f2174f37f88811f99b1b1b4c1356c0246000",
+   "label": "Aquinas Hook (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 4661
+  },
+  {
+   "id": "hook:8453:0xd577f945b6025ce1e60ac1a82f2ee8ff3fb428c4",
+   "address": "0xd577f945b6025ce1e60ac1a82f2ee8ff3fb428c4",
+   "label": "ArtacleIndexHook",
+   "bytecode_status": "CODE",
+   "code_size": 6152
+  },
+  {
+   "id": "hook:8453:0xd60d6b218116cfd801e28f78d011a203d2b068cc",
+   "address": "0xd60d6b218116cfd801e28f78d011a203d2b068cc",
+   "label": "Clanker Dynamic Fee Hook v2 (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 20230
+  },
+  {
+   "id": "hook:8453:0xd61a675f8a0c67a73dc3b54fb7318b4d91409040",
+   "address": "0xd61a675f8a0c67a73dc3b54fb7318b4d91409040",
+   "label": "Zora Creator Hook v1.1.2 (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 20091
+  },
+  {
+   "id": "hook:8453:0xd6fecff347c6203a41874e8d77de669b54e7a500",
+   "address": "0xd6fecff347c6203a41874e8d77de669b54e7a500",
+   "label": "UniswapV4MigratorHook",
+   "bytecode_status": "CODE",
+   "code_size": 2339
+  },
+  {
+   "id": "hook:8453:0xdb4a0eb0410407d6c22a35c27288834e0d9f4044",
+   "address": "0xdb4a0eb0410407d6c22a35c27288834e0d9f4044",
+   "label": "LegacyLedger",
+   "bytecode_status": "CODE",
+   "code_size": 2225
+  },
+  {
+   "id": "hook:8453:0xdfe0f6d6cdda8f8ea47d6c5bddbdea51425290c0",
+   "address": "0xdfe0f6d6cdda8f8ea47d6c5bddbdea51425290c0",
+   "label": "HomelanderUniV4Plugin",
+   "bytecode_status": "CODE",
+   "code_size": 6202
+  },
+  {
+   "id": "hook:8453:0xe0e522e5888e398d9e5d4d90a48c489425cb2888",
+   "address": "0xe0e522e5888e398d9e5d4d90a48c489425cb2888",
+   "label": "sETH Hook",
+   "bytecode_status": "CODE",
+   "code_size": 5802
+  },
+  {
+   "id": "hook:8453:0xe2b4100de1cd284bd364f738d1354715515c90c0",
+   "address": "0xe2b4100de1cd284bd364f738d1354715515c90c0",
+   "label": "Zora Post Hook v2.4.0 (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 23799
+  },
+  {
+   "id": "hook:8453:0xe61bdf0c9e665f02df20fede6dcef379cb751040",
+   "address": "0xe61bdf0c9e665f02df20fede6dcef379cb751040",
+   "label": "Zora Post Hook v1.0.0.2 (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 20848
+  },
+  {
+   "id": "hook:8453:0xe87be9bc8e462de016760aa83bac56d608836aa8",
+   "address": "0xe87be9bc8e462de016760aa83bac56d608836aa8",
+   "label": "RehypHook",
+   "bytecode_status": "CODE",
+   "code_size": 16072
+  },
+  {
+   "id": "hook:8453:0xea9346e83952840e69beb36df365c4e68de0e080",
+   "address": "0xea9346e83952840e69beb36df365c4e68de0e080",
+   "label": "Liquid Launch Hook",
+   "bytecode_status": "CODE",
+   "code_size": 9965
+  },
+  {
+   "id": "hook:8453:0xec78ee3f1fc117415a8006a0344ccaff30aa40c4",
+   "address": "0xec78ee3f1fc117415a8006a0344ccaff30aa40c4",
+   "label": "ExactInGate",
+   "bytecode_status": "CODE",
+   "code_size": 1672
+  },
+  {
+   "id": "hook:8453:0xed1698c29928a6c44cddb0c75ab0e5d47eb72a80",
+   "address": "0xed1698c29928a6c44cddb0c75ab0e5d47eb72a80",
+   "label": "TWAMM Hook (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 18500
+  },
+  {
+   "id": "hook:8453:0xf6d0a13609bb5779bc5d639f2ba3bfda83d4d0c0",
+   "address": "0xf6d0a13609bb5779bc5d639f2ba3bfda83d4d0c0",
+   "label": "ZoraV4CoinHook",
+   "bytecode_status": "CODE",
+   "code_size": 23799
+  },
+  {
+   "id": "hook:8453:0xf785bb58059fab6fb19bdda2cb9078d9e546efdc",
+   "address": "0xf785bb58059fab6fb19bdda2cb9078d9e546efdc",
+   "label": "Flaunch POSM v2 (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 24458
+  },
+  {
+   "id": "hook:8453:0xf9527fb5a34ac6fbc579e4fbc3bf292ed57d4880",
+   "address": "0xf9527fb5a34ac6fbc579e4fbc3bf292ed57d4880",
+   "label": "Arrakis Private Hook (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 4363
+  },
+  {
+   "id": "hook:8453:0xfad27bc5ef16a0a2aa3049953c25a48e8858b0c0",
+   "address": "0xfad27bc5ef16a0a2aa3049953c25a48e8858b0c0",
+   "label": "TransparentUpgradeableProxy",
+   "bytecode_status": "CODE",
+   "code_size": 2739
+  },
+  {
+   "id": "hook:8453:0xfba729a7d8fc48cbb261a845a0f26281ed7800c4",
+   "address": "0xfba729a7d8fc48cbb261a845a0f26281ed7800c4",
+   "label": "NoOp",
+   "bytecode_status": "CODE",
+   "code_size": 1442
+  },
+  {
+   "id": "hook:8453:0xfbce3d80c659c765bc6c55e29e87d839c7609040",
+   "address": "0xfbce3d80c659c765bc6c55e29e87d839c7609040",
+   "label": "Zora Creator Hook v1 (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 19775
+  },
+  {
+   "id": "hook:8453:0xfe6947cd46a7e8f068a6b6ca804fb986feda8040",
+   "address": "0xfe6947cd46a7e8f068a6b6ca804fb986feda8040",
+   "label": "BpegHook",
+   "bytecode_status": "CODE",
+   "code_size": 7313
+  },
+  {
+   "id": "hook:8453:0xfee99b847f90d7a7f87e273097b72e33d3490440",
+   "address": "0xfee99b847f90d7a7f87e273097b72e33d3490440",
+   "label": "BpegHook",
+   "bytecode_status": "CODE",
+   "code_size": 6949
+  },
+  {
+   "id": "hook:8453:0xff02680c7afe8c63e91c07efa985c81efa6b68c4",
+   "address": "0xff02680c7afe8c63e91c07efa985c81efa6b68c4",
+   "label": "StockTokenHook",
+   "bytecode_status": "CODE",
+   "code_size": 11566
+  },
+  {
+   "id": "hook:8453:0xff74be9d3596ea7a33bb4983dd7906fb34135040",
+   "address": "0xff74be9d3596ea7a33bb4983dd7906fb34135040",
+   "label": "Zora Post Hook v2.2 (Base)",
+   "bytecode_status": "CODE",
+   "code_size": 21123
+  }
+ ]
+}

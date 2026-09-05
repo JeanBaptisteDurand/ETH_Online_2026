@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { dataset } from './lib/dataset'
 import { PALIERS } from './lib/ramp'
 import { fmtBlock } from './lib/format'
@@ -6,6 +6,10 @@ import { HookTable } from './components/Table'
 import { Detail } from './components/Detail'
 import { LedWidget } from './components/Led'
 import { Panel } from './components/Prim'
+import { Chat } from './chat/Chat'
+import { buildModel } from './chat/model'
+import { decodeView, select } from './chat/engine'
+import { EMPTY_VIEW, type ChatView } from './chat/types'
 
 // LA REGLE ABSOLUE : un verdict utile a l'ecran en moins de 5 secondes, sans wallet, sans clic,
 // sans inscription. Tout ce qui est ci-dessous est deja dans le paquet JS : aucune requete reseau
@@ -122,9 +126,32 @@ export default function App() {
     [...dataset.hooks].sort((a, b) => (b.bpsMax ?? -1) - (a.bpsMax ?? -1))[0].address,
   )
 
+  // L'etat que l'assistant pilote. Il est lu depuis l'URL au chargement (permalien) et ne
+  // declenche AUCUNE requete : le verdict s'affiche sans rien attendre du chat.
+  const [view, setView] = useState<ChatView>(
+    () => decodeView(typeof window === 'undefined' ? '' : window.location.hash) ?? EMPTY_VIEW,
+  )
+
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
   }, [theme])
+
+  const model = useMemo(
+    () => buildModel(dataset.hooks, dataset.rows, dataset.provenance.registry.entries),
+    [],
+  )
+  const byAddress = useMemo(() => new Map(dataset.hooks.map((h) => [h.address, h])), [])
+  const rows = useMemo(() => {
+    if (!view.filter && !view.sort) return dataset.hooks
+    return select(model, view)
+      .rows.map((n) => byAddress.get(n.address))
+      .filter((h): h is (typeof dataset.hooks)[number] => Boolean(h))
+  }, [model, byAddress, view])
+
+  // Quand l'assistant ouvre une fiche, la fiche s'ouvre. C'est la seule chose qu'il impose ici.
+  useEffect(() => {
+    if (view.open && byAddress.has(view.open.hook)) setSelected(view.open.hook)
+  }, [view.open?.hook, byAddress])
 
   const hook = dataset.hooks.find((h) => h.address === selected)!
 
@@ -160,18 +187,47 @@ export default function App() {
           index="02"
           title="ce que le registre declare · ce que la mesure trouve"
           right={
-            <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
-              cliquer une ligne pour ouvrir sa fiche
-            </span>
+            view.filter || view.columns || view.highlight.length ? (
+              <span className="t-data-xs flex items-center gap-[8px]" style={{ color: 'var(--ink-2)' }}>
+                assistant&nbsp;: {rows.length}/{dataset.hooks.length} lignes
+                <button
+                  type="button"
+                  onClick={() => setView(EMPTY_VIEW)}
+                  className="t-label px-[6px] py-[2px] cursor-pointer"
+                  style={{ border: '1px solid var(--line-strong)', background: 'var(--bg-1)', color: 'var(--ink-2)' }}
+                >
+                  retirer
+                </button>
+              </span>
+            ) : (
+              <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+                cliquer une ligne pour ouvrir sa fiche
+              </span>
+            )
           }
         >
-          <HookTable selected={selected} onSelect={setSelected} />
+          <HookTable
+            selected={selected}
+            onSelect={setSelected}
+            rows={rows}
+            visibleColumns={view.columns}
+            sort={view.sort}
+            highlight={view.highlight}
+          />
           <Legend />
         </Panel>
 
         <LedWidget />
 
-        <Detail hook={hook} theme={theme} />
+        <Detail
+          hook={hook}
+          theme={theme}
+          focus={
+            view.curve && view.curve.hook === hook.address
+              ? { pool: view.curve.pool, direction: view.curve.direction }
+              : null
+          }
+        />
 
         <footer
           className="t-data-xs px-[16px] py-[12px] flex flex-col gap-[3px]"
@@ -202,6 +258,8 @@ export default function App() {
           <span>jeu de donnees compile le {P.built_at}</span>
         </footer>
       </main>
+
+      <Chat model={model} view={view} onView={setView} />
     </div>
   )
 }

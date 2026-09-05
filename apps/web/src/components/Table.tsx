@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   createColumnHelper,
   flexRender,
@@ -6,8 +6,10 @@ import {
   getSortedRowModel,
   useReactTable,
   type SortingState,
+  type VisibilityState,
 } from '@tanstack/react-table'
 import { dataset, rowsById, type Hook } from '../lib/dataset'
+import type { ColumnName, SortDir } from '../chat/types'
 import { rampCell } from '../lib/ramp'
 import { fmtBlock, powerOfTen, groupDigits, shortAddr } from '../lib/format'
 import { Chip } from './Prim'
@@ -40,14 +42,38 @@ function Bool({ on, label, title }: { on: boolean; label: string; title: string 
   )
 }
 
+/**
+ * Le tableau est pilotable par l'assistant : `rows` restreint la selection, `visibleColumns`
+ * choisit les colonnes, `sort` impose le tri, `highlight` marque des lignes. Sans ces
+ * proprietes il se comporte exactement comme avant — le verdict initial ne depend d'aucune d'elles.
+ */
 export function HookTable({
   selected,
   onSelect,
+  rows,
+  visibleColumns,
+  sort,
+  highlight,
 }: {
   selected: string | null
   onSelect: (address: string) => void
+  rows?: Hook[]
+  visibleColumns?: ColumnName[] | null
+  sort?: { col: ColumnName; dir: SortDir } | null
+  highlight?: string[]
 }) {
   const [sorting, setSorting] = useState<SortingState>([{ id: 'mesure', desc: true }])
+  // Le tri demande par l'assistant s'applique au tableau, et reste ensuite manipulable a la main.
+  useEffect(() => {
+    if (sort) setSorting([{ id: sort.col, desc: sort.dir === 'desc' }])
+  }, [sort?.col, sort?.dir])
+  const marques = useMemo(() => new Set(highlight ?? []), [highlight])
+  const data = rows ?? dataset.hooks
+  const columnVisibility = useMemo<VisibilityState>(() => {
+    if (!visibleColumns || visibleColumns.length === 0) return {}
+    const all: ColumnName[] = ['hook', 'registre', 'mesure', 'pools', 'mesures', 'etiquette', 'audit']
+    return Object.fromEntries(all.map((c) => [c, visibleColumns.includes(c)]))
+  }, [visibleColumns])
 
   const columns = useMemo(
     () => [
@@ -239,9 +265,9 @@ export function HookTable({
   )
 
   const table = useReactTable({
-    data: dataset.hooks,
+    data,
     columns,
-    state: { sorting },
+    state: { sorting, columnVisibility },
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -277,9 +303,21 @@ export function HookTable({
           </tr>
         </thead>
         <tbody>
+          {table.getRowModel().rows.length === 0 && (
+            <tr>
+              <td
+                colSpan={table.getVisibleFlatColumns().length}
+                className="t-data-sm px-[10px] py-[12px]"
+                style={{ color: 'var(--ink-2)', borderBottom: '1px solid var(--line)' }}
+              >
+                Aucune ligne ne satisfait ce critere. Ce n'est pas un zero : c'est une selection vide.
+              </td>
+            </tr>
+          )}
           {table.getRowModel().rows.map((row, i) => {
             const h = row.original
             const isSel = selected === h.address
+            const isMarque = marques.has(h.address)
             return (
               <tr
                 key={row.id}
@@ -294,18 +332,23 @@ export function HookTable({
                 onClick={() => onSelect(h.address)}
                 className="cursor-pointer"
                 style={{
-                  background: isSel ? 'var(--bg-3)' : i % 2 ? 'var(--bg-1)' : 'transparent',
+                  background: isSel || isMarque ? 'var(--bg-3)' : i % 2 ? 'var(--bg-1)' : 'transparent',
                   borderBottom: '1px solid var(--line)',
                   outline: isSel ? '1px solid var(--line-strong)' : undefined,
                 }}
               >
-                {row.getVisibleCells().map((cell) => (
+                {row.getVisibleCells().map((cell, ci) => (
                   <td
                     key={cell.id}
                     className="align-top"
                     style={{
+                      // le surlignage de l'assistant est ACHROMATIQUE : il designe, il ne mesure pas
                       borderLeft:
-                        cell.column.id === 'mesure' ? '1px solid var(--line-strong)' : undefined,
+                        ci === 0 && isMarque
+                          ? '3px solid var(--ink-2)'
+                          : cell.column.id === 'mesure'
+                            ? '1px solid var(--line-strong)'
+                            : undefined,
                     }}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}

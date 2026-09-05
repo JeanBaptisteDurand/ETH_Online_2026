@@ -28,7 +28,19 @@ function disagreement(h: Hook): string {
   return parts.join(' ')
 }
 
-export function Detail({ hook, theme }: { hook: Hook; theme: string }) {
+/**
+ * `focus` vient de l'action plotCurve de l'assistant : elle restreint la courbe a un pool et,
+ * eventuellement, a un sens. Elle ne cache aucune ligne du tableau brut ci-dessous.
+ */
+export function Detail({
+  hook,
+  theme,
+  focus,
+}: {
+  hook: Hook
+  theme: string
+  focus?: { pool: string; direction: '0->1' | '1->0' | null } | null
+}) {
   const rows = useMemo(() => {
     const r = rowsOfHook(hook.address)
     return [...r].sort((a, b) => {
@@ -38,7 +50,17 @@ export function Detail({ hook, theme }: { hook: Hook; theme: string }) {
     })
   }, [hook.address])
 
-  const series = useMemo(() => profileOf(hook.address), [hook.address])
+  const toutes = useMemo(() => profileOf(hook.address), [hook.address])
+  const series = useMemo(() => {
+    if (!focus) return toutes
+    const gardees = toutes.filter(
+      (s) =>
+        s.poolId === focus.pool &&
+        (focus.direction === null || (focus.direction === '0->1') === s.zeroForOne),
+    )
+    // Un focus qui ne correspond a rien ne vide pas la courbe : il ne s'applique pas.
+    return gardees.length ? gardees : toutes
+  }, [toutes, focus?.pool, focus?.direction])
   const [openRow, setOpenRow] = useState<number | null>(hook.worstRowId)
 
   const current = openRow === null ? null : (rows.find((r) => r.id === openRow) ?? null)
@@ -99,7 +121,9 @@ export function Detail({ hook, theme }: { hook: Hook; theme: string }) {
         title="profil taille → bps"
         right={
           <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
-            canvas nu · aucune spline · aucune valeur animee
+            {focus && series.length < toutes.length
+              ? `assistant : ${series.length}/${toutes.length} serie(s) · pool ${shortAddr(focus.pool, 8, 6)}${focus.direction ? ` · ${focus.direction}` : ''}`
+              : 'canvas nu · aucune spline · aucune valeur animee'}
           </span>
         }
       >

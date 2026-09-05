@@ -494,24 +494,51 @@ class TestCache(unittest.TestCase):
 
 @unittest.skipUnless(GRAPH_JSON.exists(), f"{GRAPH_JSON} absent : lancer tare.graph.cli build")
 class TestGrapheReel(unittest.TestCase):
-    """Les chiffres publies. S'ils bougent, c'est que les donnees ont bouge —
-    et il faut le dire, pas le rattraper."""
+    """Le graphe publie, verifie contre SES SOURCES et non contre des constantes.
+
+    Une premiere version de cette classe figeait les nombres du jour : 995 mesures, 199 pools,
+    613 fiches, 157 hooks listes. Ils etaient exacts une journee. Le corpus a ete multiplie par
+    onze pendant la semaine et les cinq tests se sont mis a echouer sur un graphe parfaitement
+    correct — en signalant un changement de donnees comme s'il s'agissait d'une regression.
+
+    Un test qui fige un total ne verifie pas le graphe, il verifie la date. Ce qui doit tenir
+    quelle que soit la taille du corpus, c'est l'ACCORD entre le graphe et ce dont il est fait :
+    autant de noeuds Measurement que de lignes lues, la meme repartition d'etiquettes, autant de
+    fiches que le registre en publie. C'est ce que ces tests verifient maintenant, et cela
+    attrape strictement plus de choses qu'un nombre grave dans le marbre.
+    """
 
     @classmethod
     def setUpClass(cls):
         cls.s = ST.load_store(GRAPH_JSON)
         cls.g = cls.s.g
+        cls.meta = cls.s.meta
+        cls.registry = S.read_registry(S.DEFAULT_HOOKLIST)
+        # Les mesures TELLES QUE LE GRAPHE LES PORTE. On ne relit pas le jeu vivant pour
+        # compter : un balayage y ajoute des lignes pendant que le test tourne, et le graphe
+        # serait declare faux pour avoir ete construit une minute plus tot.
+        cls.mes = [d["attrs"] for _, d in cls.g.nodes(data=True)
+                   if d.get("kind") == NodeKind.MEASUREMENT]
 
     def test_le_compte_des_noeuds_et_des_aretes(self):
+        """Le graphe contient exactement ce que ses sources contiennent."""
         st = self.s.stats()
-        self.assertEqual(st["by_node_kind"][NodeKind.MEASUREMENT], 995)
-        self.assertEqual(st["by_node_kind"][NodeKind.POOL], 199)
-        self.assertEqual(st["by_node_kind"][NodeKind.REGISTRY_ENTRY], 613)
-        self.assertEqual(st["by_edge_kind"][EdgeKind.MEASURED_AS], 995)
-        self.assertEqual(st["by_edge_kind"][EdgeKind.ATTACHED_TO], 199)
-        self.assertEqual(st["by_edge_kind"][EdgeKind.LISTED_IN], 613)
-        # 613 fiches pour 576 couples (adresse, chainId) : 37 doublons.
-        self.assertEqual(self.s.contradictions()["n_hooks_with_multiple_entries"], 37)
+        n_pools = len({m["pool_id"] for m in self.mes})
+        # Le graphe est-il ce qu'il DIT etre ? Sa meta annonce un nombre de mesures et de
+        # fiches ; ses noeuds doivent les porter exactement.
+        self.assertEqual(st["by_node_kind"][NodeKind.MEASUREMENT], self.meta["n_measurements"])
+        self.assertEqual(st["by_node_kind"][NodeKind.REGISTRY_ENTRY],
+                         self.meta["n_registry_entries"])
+        self.assertEqual(st["by_node_kind"][NodeKind.POOL], n_pools)
+        self.assertEqual(st["by_edge_kind"][EdgeKind.MEASURED_AS], self.meta["n_measurements"])
+        self.assertEqual(st["by_edge_kind"][EdgeKind.ATTACHED_TO], n_pools)
+        self.assertEqual(st["by_edge_kind"][EdgeKind.LISTED_IN], len(self.registry))
+        # Des fiches en double existent : autant de couples (adresse, chainId) distincts que
+        # de fiches signifierait qu'aucun hook n'est decrit deux fois, ce qui est faux.
+        couples = {(e["hook"]["address"].lower(), e["hook"]["chainId"]) for e in self.registry}
+        n_multi = self.s.contradictions()["n_hooks_with_multiple_entries"]
+        self.assertEqual(len(self.registry) - len(couples), n_multi,
+                         "les doublons du registre doivent expliquer exactement l'ecart")
 
     def test_tout_noeud_a_un_type_connu(self):
         connus = {v for k, v in vars(NodeKind).items() if not k.startswith("_")}
@@ -524,7 +551,8 @@ class TestGrapheReel(unittest.TestCase):
             if d.get("kind") == EdgeKind.MEASURED_AS:
                 n += 1
                 self.assertEqual(self.g.nodes[u]["kind"], NodeKind.POOL)
-        self.assertEqual(n, 995)
+        # Toutes les mesures, sans exception : une seule orpheline serait un bps sans pool.
+        self.assertEqual(n, self.meta["n_measurements"])
 
     def test_chaque_mesure_se_rejoue_en_une_commande(self):
         for n, d in self.g.nodes(data=True):
@@ -541,8 +569,28 @@ class TestGrapheReel(unittest.TestCase):
         for n, d in self.g.nodes(data=True):
             if d.get("kind") == NodeKind.MEASUREMENT:
                 compte[d["attrs"]["label"]] += 1
-        self.assertEqual(compte, {"MEASURED": 720, "INTERPOLATED": 0,
-                                  "NOT_MEASURABLE": 10, "NOT_QUOTABLE": 265})
+        # 1. Rien ne se perd et rien ne s'invente : la somme fait le compte annonce.
+        self.assertEqual(sum(compte.values()), self.meta["n_measurements"])
+
+        # 2. Aucune etiquette n'a ete PROMUE. C'est la faute que ce projet redoute le plus :
+        #    un NOT_QUOTABLE devenu MEASURED, un timeout devenu zero. On relit le jeu vivant
+        #    et on exige que chaque mesure du graphe y porte LA MEME etiquette. Le jeu peut
+        #    avoir grandi depuis — c'est une inclusion, pas une egalite — mais une seule
+        #    etiquette differente est une regression, et un noeud introuvable aussi.
+        vivant = {}
+        for r in S.read_measurements():
+            vivant[(r["pool_id"], r["block_number"], r["amount_in"],
+                    r["zero_for_one"])] = r["label"]
+        manquants, promus = 0, []
+        for m in self.mes:
+            cle = (m["pool_id"], m["block_number"], m["amount_in"], m["zero_for_one"])
+            if cle not in vivant:
+                manquants += 1
+            elif vivant[cle] != m["label"]:
+                promus.append((cle, m["label"], vivant[cle]))
+        self.assertEqual(promus, [], f"etiquette changee entre le jeu et le graphe : {promus[:3]}")
+        self.assertEqual(manquants, 0,
+                         f"{manquants} mesures du graphe ne sont plus dans le jeu publie")
 
     def test_le_hook_le_plus_preleveur(self):
         r = self.s.hook_summary("0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc")
@@ -553,8 +601,13 @@ class TestGrapheReel(unittest.TestCase):
 
     def test_orphelins_sur_base(self):
         r = self.s.orphans(8453)
-        self.assertEqual(r["n_listed"], 157)
-        self.assertEqual(r["n_orphans"], 148)
+        listes = {e["hook"]["address"].lower() for e in self.registry
+                  if e["hook"].get("chainId") == 8453}
+        mesures = {m["hook"].lower() for m in self.mes if m["chain_id"] == 8453}
+        self.assertEqual(r["n_listed"], len(listes))
+        # Un orphelin est une fiche Base sans aucun pool mesure. Le compte se deduit.
+        self.assertEqual(r["n_orphans"], len(listes - mesures))
+        self.assertLessEqual(r["n_orphans"], r["n_listed"])
         self.assertIn("chain_id=8453", r["scope"])
 
     def test_contradictions_du_registre(self):
@@ -574,9 +627,17 @@ class TestGrapheReel(unittest.TestCase):
         self.assertEqual(plats, ["0x3b2b979df21036cee51b8debb13100e2cb8deacc"])
         self.assertEqual(r["registry_says_active_measure_says_flat"][0]["profile"]["bps_max"],
                          0.0019)
-        # 149 hooks du registre n'ont aucune mesure MEASURED : ils ne sont
-        # comptes ni d'un cote ni de l'autre.
-        self.assertEqual(r["n_not_comparable"], 149)
+        # Les hooks que l'on ne peut PAS comparer : une revendication vanillaSwap, et aucune
+        # mesure MEASURED. Ils ne comptent ni comme accord ni comme desaccord — c'est la
+        # troisieme colonne que le projet refuse de laisser tomber dans l'une des deux autres.
+        mesures_ok = {m["hook"].lower() for m in self.mes
+                      if m["chain_id"] == 8453 and m["label"] == "MEASURED"}
+        revendiquent = {e["hook"]["address"].lower() for e in self.registry
+                        if e["hook"].get("chainId") == 8453
+                        and (e.get("properties") or {}).get("vanillaSwap") is not None}
+        self.assertEqual(r["n_not_comparable"], len(revendiquent - mesures_ok))
+        self.assertGreater(r["n_not_comparable"], 0,
+                           "si plus rien n'est incomparable, la troisieme colonne a disparu")
 
     def test_les_clones_reels(self):
         cs = self.s.clusters(min_size=2)

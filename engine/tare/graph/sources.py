@@ -22,20 +22,49 @@ from .schema import (Edge, EdgeKind, LABELS, Node, NodeKind, bytecode_id, deploy
 
 REPO = Path(__file__).resolve().parents[3]
 DEFAULT_MEASUREMENTS = REPO / "docs" / "dataset" / "measurements.jsonl"
-DEFAULT_HOOKLIST = REPO / "docs" / "hooklist.json"
+# Le balayage des paires contestees vit dans son propre fichier — il vise 23 pools choisis
+# pour une raison precise (les seules paires ou plusieurs pools existent), pas la population.
+# Mais ses mesures sont des mesures : le graphe doit les voir, sinon il decrit un corpus que
+# le depot ne publie pas. Un fichier absent est ignore en silence, jamais invente.
+EXTRA_MEASUREMENTS = (REPO / "docs" / "dataset" / "measurements-contestes.jsonl",)
+def _latest_hooklist() -> Path:
+    """Le registre le plus recent, meme regle que `tare.rag.corpus.registry_path`.
+
+    Le graphe a longtemps ete construit sur docs/hooklist.json (613 fiches) pendant que le
+    RAG indexait l'instantane vivant (978). Deux sous-systemes du meme projet decrivaient
+    donc deux registres differents, et le README citait les deux nombres sans le dire. Une
+    seule regle, partagee, plutot que deux constantes qui derivent."""
+    docs = REPO / "docs"
+    live = sorted(docs.glob("hooklist-live-*.json"))
+    return live[-1] if live else docs / "hooklist.json"
+
+
+DEFAULT_HOOKLIST = _latest_hooklist()
 
 # Les proprietes du registre que l'on compare d'une fiche a l'autre.
 REGISTRY_PROPERTIES = ("dynamicFee", "upgradeable", "requiresCustomSwapData",
                        "vanillaSwap", "swapAccess")
 
 
-def read_measurements(path: Path = DEFAULT_MEASUREMENTS) -> List[dict]:
+def read_measurements(path: Path = DEFAULT_MEASUREMENTS,
+                      extra: Iterable[Path] = EXTRA_MEASUREMENTS) -> List[dict]:
+    """Toutes les mesures publiees, jamais un sous-ensemble choisi.
+
+    `extra` n'est lu que si le chemin existe : un fichier absent est une absence, pas une
+    erreur, et surtout pas un zero. Quand l'appelant donne un `path` explicite (un instantane
+    fige, par exemple), il donne aussi `extra` explicitement — sinon on melangerait un
+    instantane et un fichier vivant, et les deux nombres du README se contrediraient.
+    """
+    paths = [Path(path)]
+    if path == DEFAULT_MEASUREMENTS:
+        paths += [Path(p) for p in extra if Path(p).exists()]
     rows = []
-    with open(path) as fh:
-        for line in fh:
-            line = line.strip()
-            if line:
-                rows.append(json.loads(line))
+    for p in paths:
+        with open(p) as fh:
+            for line in fh:
+                line = line.strip()
+                if line:
+                    rows.append(json.loads(line))
     return rows
 
 

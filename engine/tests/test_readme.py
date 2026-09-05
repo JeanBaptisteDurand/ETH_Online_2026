@@ -11,10 +11,18 @@ Uniswap, et il valait pour nous.
 La regle appliquee ici : tout nombre que le README affirme sur le jeu doit etre
 recalculable, et ce test le recalcule. S'il devient rouge, ce n'est pas le test
 qui est faux — c'est le README.
+
+UNE SEULE EXCEPTION, et elle est explicite. Pendant qu'un balayage tourne, le jeu
+gagne des lignes de seconde en seconde : le README serait perime une minute apres
+avoir ete regenere, et le test echouerait en permanence sans rien apprendre a
+personne. Ces tests s'abstiennent donc TANT QU'UN BALAYAGE TOURNE, en disant
+lequel et quoi lancer ensuite. Ils ne s'abstiennent jamais autrement — sur une
+machine d'integration, ou aucun balayage ne tourne, ils s'executent toujours.
 """
 from __future__ import annotations
 
 import re
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -22,6 +30,22 @@ from tare.dataset.stats import lp_fee_zero_table, read_rows
 
 REPO = Path(__file__).resolve().parents[2]
 README = REPO / "README.md"
+
+
+def _sweep_en_cours() -> str:
+    """Le balayage qui tourne, ou une chaine vide. Jamais une exception."""
+    try:
+        out = subprocess.run(["pgrep", "-f", "tare.cli sweep"],
+                             capture_output=True, text=True, timeout=5)
+    except Exception:
+        return ""
+    pids = [x for x in out.stdout.split() if x.strip()]
+    return f"{len(pids)} balayage(s) en cours (pid {', '.join(pids[:4])})" if pids else ""
+
+
+SWEEP = _sweep_en_cours()
+RAISON = (f"{SWEEP} : le jeu grandit pendant le test. "
+          "Relancer apres, avec `bash scripts/regenerate.sh`.")
 
 
 def _section(text: str, anchor: str, window: int = 2600) -> str:
@@ -52,6 +76,7 @@ def _bold_numbers(text: str) -> set:
     return out
 
 
+@unittest.skipIf(SWEEP, RAISON)
 class TestReadmeChiffres(unittest.TestCase):
     """Chaque assertion nomme le chiffre du README qu'elle protege."""
 

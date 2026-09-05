@@ -24,9 +24,9 @@ stub — and the difference **is** what the hook took.
 
 | | |
 |---|---|
-| Published measurements | **4219** across **398 pools** and **16 hooks**, block **50,614,000** (Base) |
-| of which | **3385** `MEASURED` · **820** `NOT_QUOTABLE` · **14** `NOT_MEASURABLE` |
-| `MEASURED` above 1 bps on pools with `stored_lp_fee == 0` | **2435**, across **240 pools** and **8 hooks** |
+| Published measurements | **10964** across **810 pools** and **16 hooks**, block **50,614,000** (Base) |
+| of which | **8059** `MEASURED` · **2806** `NOT_QUOTABLE` · **99** `NOT_MEASURABLE` |
+| `MEASURED` above 1 bps on pools with `stored_lp_fee == 0` | **6997**, across **629 pools** and **8 hooks** |
 | min / median / max on those | **51.40 / 100.00 / 1176.46 bps** |
 
 Per hook, worst first — every row is `MEASURED`, on pools whose stored LP fee is zero:
@@ -37,7 +37,7 @@ Per hook, worst first — every row is `MEASURED`, on pools whose stored LP fee 
 | `0x1aea38f0…` ClankerHookStaticFeeV2 | 10 / 2 | 57.44 · 253.31 · **689.95** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
 | `0xbdf93814…` DopplerHookInitializer | 172 / 20 | 150.00 · 175.00 · **175.00** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
 | `0x6e4e217a…` (unnamed) | 6 / 1 | 98.44 · 100.00 · **103.61** | **not in the registry at all** |
-| `0x0469a4bd…` Zora Hook | 2009 / 170 | 51.40 · 100.00 · **100.00** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
+| `0x0469a4bd…` Zora Hook | 6571 / 559 | 51.40 · 100.00 · **100.00** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
 | `0x4951d0e1…` (unnamed) | 8 / 1 | 100.00 · 100.00 · **100.00** | **not in the registry at all** |
 | `0x985c14ba…` LaunchHook | 125 / 25 | 69.30 · 99.56 · **100.00** | `vanillaSwap=false`, `swapAccess=temporal`, **no audit link** |
 | `0xdda9bc41…` (unnamed) | 10 / 2 | 61.64 · 99.38 · **99.99** | **not in the registry at all** |
@@ -55,27 +55,28 @@ PYTHONPATH=engine python3 -m tare.dataset.stats --lp-fee-zero --above-bps 1   # 
 
 ## What the graph reveals
 
-`engine/tare/graph/` joins the three sources into one graph — 2,931 nodes, 2,579 edges — and
-`apps/api/src/graph-routes.ts` serves it. Nodes: 579 hooks, 199 pools, 240 tokens, 158 distinct
-bytecodes, 147 deployers, 995 measurements, 613 registry entries. Sources: the published measurements
-at block **50,614,000**, `docs/hooklist.json` (613 entries), and 160 `eth_getCode` reads at that same
-block. Every number below is a traversal, not a model output, and each replays with one command.
+<!-- FACTS:graph -->
+
+`engine/tare/graph/` joins the three sources into one graph — **15,541 nodes, 15,138 edges** — and `apps/api/src/graph-routes.ts` serves it. Nodes: 961 hooks, 830 pools, 1,189 tokens, 158 distinct bytecodes, 158 deployers, 11,267 measurements, 978 registry entries. Every number below is a traversal, not a model output, and each replays with one command.
+
+Its measurements are every one this repository publishes — `docs/dataset/measurements.jsonl` (10,964) + `docs/dataset/measurements-contestes.jsonl` (309) — against `docs/hooklist-live-20260905.json`. The table above counts the main sweep only, which is why its total is the smaller of the two.
 
 | What the traversal asks | What it finds |
 |---|---|
-| **Clone clusters** — hooks sharing a `keccak(eth_getCode)` | **2 clusters, 4 hooks.** `0x28efbe4b…` (15,161 bytes, 2 hooks) and `0x6802c0ce…` (23,240 bytes, 2 hooks). Neither cluster has a single measured pool: the duplicated code is deployed, not yet traded. |
-| **Orphans** — registry hooks on Base with no liquid pool we could measure | **148 of 157.** All 148 have `bytecode_status = CODE` — they exist on-chain. The registry lists far more hooks than anyone routes a swap through. |
-| **Contradictions** — one hook, two registry entries that disagree | **33 of the 37 hooks that carry two entries.** They differ on `name` (23), `declared_deployer` (12), `auditUrl` (9), `swapAccess` (8) — and on **`vanillaSwap` itself, twice**. The field TARE compares against is a field the registry contradicts itself on. |
-| **Disagreement** — registry says `vanillaSwap=false`, measurement finds ~0 bps | **1.** `0x3b2b979d…` (LaunchHook): the entry says the hook touches the swap; 20 `MEASURED` measurements across 4 pools peak at **0.0019 bps**, under the 1 bps rounding floor. The other direction — declared vanilla, measured extracting — is **0**. |
-| **Not comparable** | **149 hooks.** They have a `vanillaSwap` claim and no `MEASURED` measurement. They are listed as such and never counted as agreement. |
+| **Clone clusters** — hooks sharing a `keccak(eth_getCode)` | **2 clusters, 4 hooks.** `0x28efbe4b…` (15,161 bytes, 2 hooks), `0x6802c0ce…` (23,240 bytes, 2 hooks). 2 of the 2 clusters have no measured pool at all: the duplicated code is deployed, not yet traded. |
+| **Orphans** — registry hooks on Base with no liquid pool we could measure | **259 of 272.** 148 of them have `bytecode_status = CODE` — they exist on-chain. The registry lists far more hooks than anyone routes a swap through. |
+| **Contradictions** — one hook, two registry entries that disagree | **33 of the 37 hooks that carry more than one entry.** They differ on `name` (23), `declared_deployer` (12), `auditUrl` (9), `swapAccess` (8) — and on **`vanillaSwap` itself, 2 times**. |
+| **Disagreement** — registry says `vanillaSwap=false`, measurement finds ~0 bps | **1.** `0x3b2b979d…` (LaunchHook): the entry says the hook touches the swap; 20 `MEASURED` across 4 pools peak at **0.0019 bps**, under the 1 bps rounding floor. The other direction — declared vanilla, measured extracting — is **0**. |
+| **Not comparable** | **260 hooks.** They carry a `vanillaSwap` claim and no `MEASURED` measurement. They are listed as such and never counted as agreement. |
 
-That last row is the point: 149 registry claims that no one, including us, has checked.
+That last row is the point: **260 registry claims that no one, including us, has checked.**
 
 ```bash
-curl localhost:8787/graph                                             # every count above
-curl localhost:8787/graph/impact/0x3b2b979df21036cee51b8debb13100e2cb8deacc
-PYTHONPATH=engine python3 -m tare.graph.cli disagreement               # the same, offline
+curl localhost:8787/graph                                # every count above
+PYTHONPATH=engine python3 -m tare.graph.cli disagreement  # the same, offline
 ```
+
+<!-- /FACTS:graph -->
 
 The graph is loaded **once**, keyed by `(path, mtime_ns, size)`, and its scans are memoised. These are
 medians over 21 runs on one laptop, not a constant — the point is the ratio, and the command prints

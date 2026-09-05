@@ -61,9 +61,9 @@ class Source:
 
 def registry_path(docs: Path = DOCS) -> Optional[Path]:
     """Le registre le plus recent : docs/hooklist-live-AAAAMMJJ.json s'il y en a,
-    sinon docs/hooklist.json. Le graphe sur disque a ete construit avec le
-    second (613 fiches) ; le registre vivant en compte 978. On indexe le vivant
-    et on le dit dans le rapport, plutot que d'indexer silencieusement l'ancien."""
+    sinon docs/hooklist.json. `tare.graph.sources` applique la MEME regle depuis
+    qu'il a ete corrige : les deux sous-systemes decrivaient auparavant deux
+    registres differents (613 fiches contre 978) sans que rien ne le signale."""
     live = sorted(docs.glob("hooklist-live-*.json"))
     if live:
         return live[-1]

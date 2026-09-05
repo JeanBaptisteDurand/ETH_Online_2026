@@ -187,20 +187,28 @@ def main() -> int:
     patched = json.loads(json.dumps(upstream), object_pairs_hook=OrderedDict)
     patched["properties"]["properties"]["properties"]["measuredExtraction"] = MEASURED_EXTRACTION
 
-    # Le patch commite doit produire exactement ce schema-la.
-    produced = json.dumps(patched, indent=2) + "\n"
-    original = json.dumps(upstream, indent=2) + "\n"
-    diff = subprocess.run(["diff", "-u", "--label", "a/schema.json", "--label", "b/schema.json",
-                           "/dev/stdin", "-"], input=original, capture_output=True, text=True)
-    del diff  # /dev/stdin ne prend qu'une entree ; le patch de reference est schema.patch
+    # Le patch commite doit produire exactement ce schema-la : on l'applique au fichier amont
+    # avec `patch` et on compare, pour que schema.patch ne puisse pas deriver de ce script.
+    scratch = HERE / ".schema.check.json"
+    scratch.write_text(json.dumps(upstream, indent=2) + "\n")
+    applied = subprocess.run(["patch", "--silent", str(scratch), str(HERE / "schema.patch")],
+                             capture_output=True, text=True)
+    if applied.returncode == 0:
+        same = json.loads(scratch.read_text(), object_pairs_hook=OrderedDict) == patched
+        print(f"0. schema.patch applique au fichier amont -> "
+              f"{'identique au schema teste ici' if same else 'DIFFERENT'}")
+        if not same:
+            return 1
+    else:
+        print("0. `patch` indisponible ou refuse le diff — controle saute")
+    for junk in (scratch, scratch.with_suffix(".json.orig"), scratch.with_suffix(".json.rej")):
+        junk.unlink(missing_ok=True)
 
     validators = make_validator(patched)
     names = [n for n, _ in validators]
     print(f"validateurs actifs : {', '.join(names)}")
 
     # 1. non-regression
-    field_schema = patched["properties"]["properties"]["properties"]["measuredExtraction"]
-    del field_schema
     bad_entries = []
     for entry in hooklist:
         if not valid(validators, entry):

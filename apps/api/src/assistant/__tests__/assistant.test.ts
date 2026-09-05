@@ -36,11 +36,33 @@ describe("le modele de lecture", () => {
     expect(s.dataset.measurements).toBeGreaterThan(900);
     expect(s.hooks.length).toBeGreaterThanOrEqual(12);
     expect(s.registry.available).toBe(true);
-    expect(s.registry.entries).toBeGreaterThan(600);
+    // Le registre compte 613 fiches mais 528 ADRESSES : une meme adresse peut etre
+    // deployee sur plusieurs chaines, et l'index de dataset.ts est keye par adresse.
+    // On le verifie plutot que de le supposer.
+    expect(s.registry.entries).toBeGreaterThan(500);
+  });
+
+  it("aucun hook mesure n'herite de la fiche d'une autre chaine", () => {
+    const raw = JSON.parse(readFileSync(resolve(DOCS_DIR, "hooklist.json"), "utf8")) as {
+      hook: { address: string; chain: string };
+    }[];
+    const chains = new Map<string, Set<string>>();
+    for (const e of raw) {
+      const a = e.hook.address.toLowerCase();
+      if (!chains.has(a)) chains.set(a, new Set());
+      chains.get(a)!.add(e.hook.chain);
+    }
+    for (const h of getStore().hooks) {
+      if (h.registry === null) continue;
+      const declared = chains.get(h.hook)!;
+      expect(declared.size, `${h.hook} est declare sur plusieurs chaines`).toBe(1);
+      expect(h.registry.chain).toBe("base");
+    }
   });
 
   it("ne construit la vue et le graphe QU'UNE fois par version du jeu", () => {
     const a = getStore();
+    getGraph(a); // premier montage : c'est celui-la qu'on veut voir NE PAS se repeter
     const sBuilds = storeBuildCount();
     const gBuilds = graphBuildCount();
     for (let i = 0; i < 50; i += 1) {
@@ -245,9 +267,9 @@ describe("la mesure a la demande", () => {
 
   it("coupe le chat quand le quota de questions est atteint, sans rien affirmer", async () => {
     const bag = new SessionStore({ ...DEFAULT_QUOTA, questions: 2 });
-    await ask(DEMO, { sessionId: "s_q", sessions: bag });
-    await ask(DEMO, { sessionId: "s_q", sessions: bag });
-    const trois = await ask(DEMO, { sessionId: "s_q", sessions: bag });
+    await ask(DEMO, { sessionId: "s_quota", sessions: bag });
+    await ask(DEMO, { sessionId: "s_quota", sessions: bag });
+    const trois = await ask(DEMO, { sessionId: "s_quota", sessions: bag });
     expect(trois.ok).toBe(false);
     expect(trois.citations).toEqual([]);
     expect(trois.data.rows).toEqual([]);

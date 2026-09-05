@@ -8,9 +8,15 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
+    "./browser": "./src/browser.ts",
     "./table": "./data/table.json"
   },
-  "files": ["src", "data", "README.md"],
+  "files": [
+    "src",
+    "data",
+    "extension",
+    "README.md"
+  ],
   "scripts": {
     "build:table": "node scripts/build-table.mjs",
     "build:bundle": "node scripts/build-bundle.mjs",

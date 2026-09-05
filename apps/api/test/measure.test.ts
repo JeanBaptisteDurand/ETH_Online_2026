@@ -144,26 +144,38 @@ describe("POST /measure execute", () => {
 });
 
 describe("compteur d'usage", () => {
+  // Le compteur vit maintenant dans src/metering (une ligne PAR MESURE, pas par appel).
+  // L'intention de ces tests ne change pas : deux requetes de 1 et 4 tailles doivent facturer
+  // CINQ unites, pas deux. Seuls les chemins du contrat ont bouge.
   it("compte des mesures et non des requetes plates", async () => {
     const { app } = freeApp();
     await post(app, { pool: POOL, sizes: ["1"] });
     await post(app, { pool: POOL, sizes: ["1", "2", "3", "4"] });
     const u = await (await app.request("/usage")).json() as any;
-    expect(u.calls).toBe(2);
-    expect(u.units_requested).toBe(5);
-    expect(u.units_executed).toBe(5);
-    expect(u.amount_usd).toBe(0.005);
-    expect(u.unit).toBe("measurement");
+    expect(u.billing.unit).toBe("measurement");
+    expect(u.totals.batches).toBe(2);          // deux requetes
+    expect(u.totals.units_recorded).toBe(5);   // mais cinq mesures
+    expect(u.totals.units_billed).toBe(5);
+    expect(u.totals.amount_usd).toBeCloseTo(0.005, 10);
     expect(u.by_label.MEASURED).toBe(5);
   });
 
-  it("journalise chaque appel avec ses unites", async () => {
+  it("journalise chaque mesure, pas chaque appel", async () => {
     const { app } = freeApp();
     await post(app, { pool: POOL, sizes: ["1", "2", "3"] });
     const log = await (await app.request("/usage/log?limit=10")).json() as any;
-    expect(log.entries.length).toBe(1);
-    expect(log.entries[0].units_requested).toBe(3);
-    expect(log.entries[0].unit_price_usd).toBe(0.001);
-    expect(log.entries[0].amount_usd).toBe(0.003);
+    expect(log.unit).toBe("measurement");
+    expect(log.rows.length).toBe(3);           // trois lignes pour UNE requete
+    expect(new Set(log.rows.map((r: any) => r.batch_id)).size).toBe(1);
+    for (const r of log.rows) expect(r.unit_price_usd).toBe(0.001);
+  });
+
+  it("n'annonce jamais un lot ancre sans verification du mirror", async () => {
+    const { app } = freeApp();
+    await post(app, { pool: POOL, sizes: ["1"] });
+    const u = await (await app.request("/usage")).json() as any;
+    // sans publication reelle, aucun lot ne peut se dire ancre
+    expect(u.hcs.anchored_batches).toBe(0);
+    expect(u.hcs.unanchored_batches).toBeGreaterThanOrEqual(0);
   });
 });

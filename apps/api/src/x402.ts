@@ -40,7 +40,12 @@ export interface PaymentLayer {
 
 export function createPaymentLayer(
   cfg: Config,
-  opts: { facilitator?: FacilitatorClient; meter?: UsageMeter } = {},
+  // Le compteur a la mesure vit dans ./metering ; la couche de paiement n'a besoin que de
+  // savoir raccrocher un hash de reglement, pas du compteur entier.
+  opts: {
+    facilitator?: FacilitatorClient;
+    onSettled?: (payer: string | null, s: { success: boolean; transaction: string | null }) => void;
+  } = {},
 ): PaymentLayer {
   const network = normalizeNetwork(cfg.x402Network) as Network;
   const facilitator =
@@ -48,10 +53,10 @@ export function createPaymentLayer(
 
   const server = new x402ResourceServer(facilitator).register(network, new ExactHederaScheme());
 
-  if (opts.meter) {
-    const meter = opts.meter;
+  if (opts.onSettled) {
+    const onSettled = opts.onSettled;
     server.onAfterSettle(async (ctx) => {
-      meter.attachSettlement(ctx.result.payer ?? null, {
+      onSettled(ctx.result.payer ?? null, {
         success: ctx.result.success,
         transaction: ctx.result.transaction ?? null,
       });

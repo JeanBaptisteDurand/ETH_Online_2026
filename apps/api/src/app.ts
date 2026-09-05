@@ -13,7 +13,7 @@ import { buildRanking } from "./rank.js";
 import { buildPlan } from "./plan.js";
 import { normalizeMeasurement, buildReplay } from "./measurement.js";
 import { engineHealth, runPlans, type EngineHealth } from "./engine.js";
-import { UsageMeter } from "./usage.js";
+import { createMetering, toMeasurementUnit } from "./metering/index.js";
 import { createPaymentLayer, payerFromHeader, priceFor } from "./x402.js";
 import type { Label } from "./labels.js";
 
@@ -37,7 +37,6 @@ const HONESTY = [
 
 export function createApp(deps: AppDeps = {}) {
   const cfg = loadConfig(deps.config ?? {});
-  const meter = new UsageMeter(cfg.usageLogPath, cfg.unitPriceUsd);
   const engine = deps.engine ?? { health: engineHealth, run: runPlans };
 
   const app = new Hono();
@@ -243,7 +242,15 @@ export function createApp(deps: AppDeps = {}) {
 
   /* ------------------------------------------------------- la route payante */
 
-  const layer = createPaymentLayer(cfg, { facilitator: deps.facilitator, meter });
+  const metering = createMetering({ unitPriceUsd: cfg.unitPriceUsd });
+  let lastBatchId: string | null = null;
+  const layer = createPaymentLayer(cfg, {
+    facilitator: deps.facilitator,
+    // Le hash de reglement x402 arrive APRES la reponse : on le raccroche au dernier lot.
+    onSettled: (payer, st) => {
+      if (lastBatchId) metering.service.attachSettlement(lastBatchId, { ...st, payer });
+    },
+  });
 
   // 1) on valide le plan AVANT le peage : personne ne paie pour une requete
   //    qu'on ne saurait pas executer.
@@ -320,19 +327,17 @@ export function createApp(deps: AppDeps = {}) {
     try {
       raws = await engine.run(cfg.python, cfg.rpcUrl, plan.block, plan.items);
     } catch (e) {
-      meter.record({
+      lastBatchId = (metering.ledger.recordFailure({
         route: "/measure",
         method: "POST",
-        paid,
         payer: who.payer,
         network: who.network,
         scheme: who.scheme,
         units_requested: plan.units,
-        units_executed: 0,
-        labels: {},
-        settlement: null,
-        note: `engine_unavailable: ${(e as Error).message.slice(0, 200)}`,
-      });
+        unit_price_usd: cfg.unitPriceUsd,
+        latency_ms: null,
+        error: (e as Error).message.slice(0, 200),
+      })).batch_id;
       return c.json(
         {
           error: "moteur indisponible",
@@ -350,18 +355,17 @@ export function createApp(deps: AppDeps = {}) {
     const labels: Partial<Record<Label, number>> = {};
     for (const m of measurements) labels[m.label] = (labels[m.label] ?? 0) + 1;
 
-    const entry = meter.record({
+    const entry = metering.service.recordBatch({
       route: "/measure",
       method: "POST",
-      paid,
       payer: who.payer,
       network: who.network,
       scheme: who.scheme,
       units_requested: plan.units,
-      units_executed: measurements.length,
-      labels,
-      settlement: null,
-      note: null,
+      units: measurements.map(toMeasurementUnit),
+      unit_price_usd: cfg.unitPriceUsd,
+      latency_ms: null,
+      error: null,
     });
 
     c.header("X-Tare-Units", String(plan.units));
@@ -369,7 +373,7 @@ export function createApp(deps: AppDeps = {}) {
     c.header("X-Tare-Amount-Usd", String(entry.amount_usd));
 
     return c.json({
-      usage_id: entry.id,
+      usage_id: entry.batch_id,
       billing: {
         unit: "measurement",
         model: "per-measurement",
@@ -388,18 +392,11 @@ export function createApp(deps: AppDeps = {}) {
 
   /* ------------------------------------------------------------- compteur */
 
-  app.get("/usage", (c) =>
-    c.json({
-      ...meter.summary(),
-      unit_price_usd: cfg.unitPriceUsd,
-      note: "L'unite facturee est la mesure, pas la requete : une requete de 5 tailles compte 5 unites.",
-    }),
-  );
-
-  app.get("/usage/log", (c) => {
-    const limit = Math.min(Number(c.req.query("limit") ?? 50) || 50, 500);
-    return c.json({ limit, entries: meter.list(limit) });
-  });
+  // Le compteur a la mesure et le journal HCS vivent dans ./metering. Hono sert la PREMIERE
+  // route enregistree, donc les anciens app.get("/usage") ont ete retires : sans ca le routeur
+  // complet (rollups par payeur, reglements, ancrage HCS verifie sur le mirror) restait mort
+  // derriere un resume qui ne connaissait ni les reglements ni le topic.
+  app.route("/", metering.router);
 
   /* ------------------------------------------------------------ utilitaire */
 
@@ -409,5 +406,5 @@ export function createApp(deps: AppDeps = {}) {
     return c.text(m.replay.command_exact + "\n");
   });
 
-  return { app, cfg, meter, layer, buildReplay };
+  return { app, cfg, metering, layer, buildReplay };
 }

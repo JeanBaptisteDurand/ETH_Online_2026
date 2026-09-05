@@ -40,3 +40,8 @@ export {
 } from "./encode.js";
 export type { ExactInSingle, EncodeSwapOptions } from "./encode.js";
 export * from "./types.js";
+
+/**
+ * La couche navigateur vit dans "@tare/guard/browser" : elle touche au DOM et a
+ * window.ethereum, et n'a rien a faire dans un import cote serveur.
+ */

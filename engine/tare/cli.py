@@ -34,6 +34,8 @@ from .sweep import (DEFAULT_OUT, DEFAULT_POOLS, DEFAULT_SUMMARY, DIRECTIONS, SIZ
                     measure_resilient, probe_direction, read_done, read_jsonl, summarise,
                     sweep, write_summary)
 
+from .poolid import PoolKey
+
 BLOCK = 50614000
 
 
@@ -170,6 +172,89 @@ def cmd_verify(a) -> int:
     return 0 if not differ else 1
 
 
+
+# ----------------------------------------------------------------------------- replay
+
+def cmd_replay(a) -> int:
+    """Rejouer UNE mesure nommee, et rien d'autre.
+
+    Ce projet promet sur chaque ligne que la valeur « se rejoue en une commande ». La commande
+    publiee etait `make measure HOOK=0x...`, qui remesure TOUS les pools du hook : pour Zora
+    cela fait 1 471 pools, huit tailles, deux sens — plus de vingt mille cotations, des heures.
+    La promesse etait vraie et inutilisable, ce qui revient a ne pas la tenir.
+
+    Ici on rejoue exactement la cellule demandee. La `PoolKey` est DANS la ligne (currency0,
+    currency1, key_fee, tick_spacing, hook) : il n'y a aucun recensement a charger, aucune
+    correspondance a deviner. Le programme sort en 1 si la valeur differe — un rejeu qui ne
+    peut pas echouer ne prouve rien.
+    """
+    # On filtre EN LISANT. Charger les 80 000 lignes pour en garder une coutait onze
+    # secondes sur les quinze de la commande — pour un outil dont l'unique raison d'etre
+    # est qu'on l'utilise sans y penser, c'etait la moitie du prix.
+    want = None if a.direction is None else a.direction in ("0>1", "0-1", "zeroForOne", "true")
+    taille = None if a.size is None else str(a.size)
+    sel = []
+    with open(a.infile) as fh:
+        for line in fh:
+            if a.pool not in line:          # test bon marche avant de payer le JSON
+                continue
+            r = json.loads(line)
+            if r["pool_id"] != a.pool:
+                continue
+            if taille is not None and str(r["amount_in"]) != taille:
+                continue
+            if want is not None and bool(r["zero_for_one"]) is not want:
+                continue
+            sel.append(r)
+    if not sel:
+        print(f"aucune ligne pour pool={a.pool} taille={a.size} sens={a.direction} "
+              f"dans {a.infile}", file=sys.stderr)
+        return 2
+    if len(sel) > 1 and not a.all:
+        print(f"{len(sel)} lignes correspondent — precise --size et --direction, "
+              f"ou passe --all", file=sys.stderr)
+        for r in sel[:8]:
+            print(f"   taille {r['amount_in']:>22}  "
+                  f"{'0>1' if r['zero_for_one'] else '1>0'}  {r['label']}  {r['bps']}",
+                  file=sys.stderr)
+        return 2
+
+    ecarts = 0
+    print(f"{'taille':>22} {'sens':<5} {'fichier':>12} {'rejeu':>12}  verdict")
+    for r in sel:
+        key = PoolKey(r["currency0"], r["currency1"], r["key_fee"], r["tick_spacing"], r["hook"])
+        # La cle se re-derive : si le pool_id recalcule ne retombe pas sur celui du fichier,
+        # la ligne decrit un autre pool que celui qu'elle nomme, et on s'arrete la.
+        recalc = "0x" + key.pool_id().hex()
+        if recalc != r["pool_id"]:
+            print(f"pool_id incoherent : la ligne dit {r['pool_id']}, sa PoolKey donne {recalc}",
+                  file=sys.stderr)
+            return 1
+        m = measure_resilient(a.rpc, key, r["zero_for_one"], int(r["amount_in"]),
+                              r["block_number"])
+        sens = "0>1" if r["zero_for_one"] else "1>0"
+        av = "—" if r["bps"] is None else f"{r['bps']:.4f}"
+        ap = "—" if m.bps is None else f"{m.bps:.4f}"
+        if m.label != r["label"]:
+            verdict = f"ETIQUETTE DIFFERENTE ({r['label']} -> {m.label})"
+            ecarts += 1
+        elif m.bps == r["bps"] and m.out_with == r["out_with"] and m.out_without == r["out_without"]:
+            verdict = "identique, au wei pres"
+        else:
+            verdict = "DIFFERENT"
+            ecarts += 1
+        print(f"{r['amount_in']:>22} {sens:<5} {av:>12} {ap:>12}  {verdict}")
+        if a.verbose:
+            print(f"{'':>22} out_avec  fichier={r['out_with']}  rejeu={m.out_with}")
+            print(f"{'':>22} out_sans  fichier={r['out_without']}  rejeu={m.out_without}")
+            print(f"{'':>22} talon     {m.stub_hash}")
+
+    if ecarts:
+        print(f"\n{ecarts} ecart(s). Le fichier ou le fork ment ; trouve lequel avant de "
+              f"publier quoi que ce soit.", file=sys.stderr)
+    return 1 if ecarts else 0
+
+
 # ----------------------------------------------------------------------------- summary
 
 def cmd_summary(a) -> int:
@@ -273,6 +358,16 @@ def build_parser() -> argparse.ArgumentParser:
     common(m)
     m.add_argument("--hook", required=True)
     m.set_defaults(fn=cmd_measure)
+
+    rp = sub.add_parser("replay", help="rejouer UNE mesure nommee et comparer au fichier")
+    rp.add_argument("--pool", required=True, help="pool_id de la ligne a rejouer")
+    rp.add_argument("--size", default=None, help="amount_in en wei")
+    rp.add_argument("--direction", default=None, choices=["0>1", "1>0"])
+    rp.add_argument("--all", action="store_true", help="rejouer toutes les lignes du pool")
+    rp.add_argument("--verbose", action="store_true", help="montrer les sorties brutes")
+    rp.add_argument("--rpc", default="http://127.0.0.1:8545")
+    rp.add_argument("--in", dest="infile", default=str(DEFAULT_OUT))
+    rp.set_defaults(fn=cmd_replay)
 
     v = sub.add_parser("verify", help="rejouer un echantillon du fichier et comparer")
     common(v)

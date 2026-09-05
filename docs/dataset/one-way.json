@@ -6,9 +6,9 @@
   "note": "heavy_bps est un seuil de PUBLICATION, pas une frontiere naturelle : le bouger change la liste, et le rapport le porte pour qu'on puisse le verifier."
  },
  "portee": {
-  "pools_mesures_dans_les_deux_sens": 2049,
-  "pools_retenus": 5,
-  "hooks_retenus": 5
+  "pools_mesures_dans_les_deux_sens": 2298,
+  "pools_retenus": 6,
+  "hooks_retenus": 6
  },
  "pools": [
   {
@@ -91,7 +91,7 @@
      "bps": 0.0
     }
    ],
-   "replay": "make measure HOOK=0xd7b5de859876c8c2748271c2f5f7b765d24340cc BLOCK=50614000"
+   "replay": "make replay POOL=0x59c65b1af1d60ff840991d8ba18ca1f6f577cf262bc86abccfd7b3140171c463 SIZE=1000000000000 DIR=1>0"
   },
   {
    "hook": "0x376b786aa1c1deaae37ad6976784eb12988980cc",
@@ -173,7 +173,7 @@
      "bps": 0.0
     }
    ],
-   "replay": "make measure HOOK=0x376b786aa1c1deaae37ad6976784eb12988980cc BLOCK=50614000"
+   "replay": "make replay POOL=0xafb6c01f4cab869c9291d4928055b15618ccf474ddf23fd8a4e04ff00a0ff842 SIZE=1000000000000 DIR=1>0"
   },
   {
    "hook": "0x13b399b5c738a591ae23039ee1ebbb7f660f80cc",
@@ -255,7 +255,7 @@
      "bps": 0.0
     }
    ],
-   "replay": "make measure HOOK=0x13b399b5c738a591ae23039ee1ebbb7f660f80cc BLOCK=50614000"
+   "replay": "make replay POOL=0xa5a63da439dd92bc607bb926ea314e871fe2f48bcd44195e9be795edd29f6e9e SIZE=1000000000000 DIR=1>0"
   },
   {
    "hook": "0xa4b8ceab9b8663394d48f1df0fdcc1e7237680cc",
@@ -337,7 +337,89 @@
      "bps": 0.0
     }
    ],
-   "replay": "make measure HOOK=0xa4b8ceab9b8663394d48f1df0fdcc1e7237680cc BLOCK=50614000"
+   "replay": "make replay POOL=0x8397fa99afb21eaec867506354820dc5186b6470c9595fddbb18d75adb414f68 SIZE=1000000000000 DIR=1>0"
+  },
+  {
+   "hook": "0xf52c1d5f3b0e985248870b648dc374a3c77c80cc",
+   "pool_id": "0x8289b4e5c86765ee4decba61d6dcd5fe5bb07fe380d8d3fa70c8e1f32ec7864d",
+   "currency0": "0x0000000000000000000000000000000000000000",
+   "currency1": "0xb20000000000000000000035f24d6ca214698b37",
+   "stored_lp_fee": 3000,
+   "block_number": 50614000,
+   "sens_lourd": "1->0",
+   "bps_median_lourd": 9998.9964,
+   "bps_median_leger": 0.0,
+   "n_tailles_lourd": 8,
+   "n_tailles_leger": 8,
+   "par_taille_lourd": [
+    {
+     "amount_in": "1000000000000",
+     "bps": 9988.2904
+    },
+    {
+     "amount_in": "10000000000000",
+     "bps": 9998.8296
+    },
+    {
+     "amount_in": "100000000000000",
+     "bps": 9998.9466
+    },
+    {
+     "amount_in": "1000000000000000",
+     "bps": 9998.9935
+    },
+    {
+     "amount_in": "10000000000000000",
+     "bps": 9998.9993
+    },
+    {
+     "amount_in": "100000000000000000",
+     "bps": 9998.9999
+    },
+    {
+     "amount_in": "1000000000000000000",
+     "bps": 9999.0
+    },
+    {
+     "amount_in": "10000000000000000000",
+     "bps": 9999.0
+    }
+   ],
+   "par_taille_leger": [
+    {
+     "amount_in": "1000000000000",
+     "bps": 0.0
+    },
+    {
+     "amount_in": "10000000000000",
+     "bps": 0.0
+    },
+    {
+     "amount_in": "100000000000000",
+     "bps": 0.0
+    },
+    {
+     "amount_in": "1000000000000000",
+     "bps": 0.0
+    },
+    {
+     "amount_in": "10000000000000000",
+     "bps": 0.0
+    },
+    {
+     "amount_in": "100000000000000000",
+     "bps": 0.0
+    },
+    {
+     "amount_in": "1000000000000000000",
+     "bps": 0.0
+    },
+    {
+     "amount_in": "10000000000000000000",
+     "bps": 0.0
+    }
+   ],
+   "replay": "make replay POOL=0x8289b4e5c86765ee4decba61d6dcd5fe5bb07fe380d8d3fa70c8e1f32ec7864d SIZE=1000000000000 DIR=1>0"
   },
   {
    "hook": "0x9ce0e33e68c7bfc035b31961e4f1ddc55f0c0145",
@@ -419,19 +501,20 @@
      "bps": 0.0
     }
    ],
-   "replay": "make measure HOOK=0x9ce0e33e68c7bfc035b31961e4f1ddc55f0c0145 BLOCK=50614000"
+   "replay": "make replay POOL=0xbbe6d85795219745d3a06fff89509941a6b938cafb5e14430317656624a0e7fd SIZE=1000000000000 DIR=1>0"
   }
  ],
- "n_mesures_lues": 75333,
+ "n_mesures_lues": 83586,
  "groupes_de_bytecode": [
   {
    "code_hash": "a0a9a3c0a9672c564cb345cc2f9a8fa527164348796b345e51348c3349c80c18",
-   "n_hooks": 4,
+   "n_hooks": 5,
    "hooks": [
     "0x13b399b5c738a591ae23039ee1ebbb7f660f80cc",
     "0x376b786aa1c1deaae37ad6976784eb12988980cc",
     "0xa4b8ceab9b8663394d48f1df0fdcc1e7237680cc",
-    "0xd7b5de859876c8c2748271c2f5f7b765d24340cc"
+    "0xd7b5de859876c8c2748271c2f5f7b765d24340cc",
+    "0xf52c1d5f3b0e985248870b648dc374a3c77c80cc"
    ],
    "note": null
   },
@@ -449,7 +532,7 @@
   "disponible": true,
   "fichier": "docs/hooklist-live-20260905.json",
   "fiches": 978,
-  "absents": 5,
+  "absents": 6,
   "presents": []
  }
 }

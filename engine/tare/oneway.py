@@ -105,7 +105,9 @@ def classify(rows: List[dict], flat_bps: float = FLAT_BPS, heavy_bps: float = HE
             "par_taille_leger": sorted(
                 ({"amount_in": x["amount_in"], "bps": x["bps"]} for x in leger),
                 key=lambda t: int(t["amount_in"])),
-            "replay": (f"make measure HOOK={ref['hook']} BLOCK={ref['block_number']}"),
+            # La cellule exacte, pas le hook entier : voir tare.graph.sources.replay_command.
+            "replay": (f"make replay POOL={pool_id} SIZE={ref['amount_in']} "
+                       f"DIR={'0>1' if ref['zero_for_one'] else '1>0'}"),
         })
 
     trouves.sort(key=lambda t: -t["bps_median_lourd"])

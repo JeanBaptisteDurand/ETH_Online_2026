@@ -27,5 +27,10 @@ gate-a3:                    ## reproduce the five known bps for hook 0x1aea38f0 
 	@cd engine && python3 -m tare.gates.a3 --rpc $(RPC) --block $(BLOCK)
 
 .PHONY: measure
-measure:                    ## make measure HOOK=0x... [BLOCK=...]
+measure:                    ## make measure HOOK=0x... [BLOCK=...] — tous les pools d'un hook
 	@cd engine && python3 -m tare.cli measure --hook $(HOOK) --rpc $(RPC) --block $(BLOCK)
+
+.PHONY: replay
+replay:                     ## make replay POOL=0x... SIZE=... DIR=0>1 — UNE mesure, ~7 s
+	@cd engine && python3 -m tare.cli replay --pool $(POOL) --size $(SIZE) \
+		--direction "$(DIR)" --rpc $(RPC)

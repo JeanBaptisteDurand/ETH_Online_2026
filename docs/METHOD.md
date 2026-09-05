@@ -360,7 +360,9 @@ Every number replays with one command.
 docker compose up -d                              # anvil, forked and pinned
 
 make gate-a3                                      # reproduces five known bps — cannot be faked
-make measure HOOK=0x985c14baa2a18316ffda0aefb3a632fadfca2acc BLOCK=50614000
+make replay POOL=0x010d0023c9e072f62720b6627a13973b9505a3d80dccd59acdb2ca803826c538 \
+           SIZE=100000000000000 DIR='0>1'
+# -> 99.9942 bps, identical to the wei, in about six seconds
 cd engine && python3 -m tare.cli sweep --rpc http://127.0.0.1:8545 --block 50614000
 cd engine && python3 -m tare.cli summary
 ```

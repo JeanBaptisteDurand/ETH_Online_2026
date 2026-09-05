@@ -20,29 +20,52 @@ stub — and the difference **is** what the hook took.
 
 <!-- FACTS:what-we-found -->
 
-**Eight hooks take between 0.5% and 11.8% of your swap on pools whose LP fee, read on-chain, is zero.**
+**31 hooks take between 0% and 11.8% of your swap on pools whose LP fee, read on-chain, is zero.**
 
 | | |
 |---|---|
-| Published measurements | **10964** across **810 pools** and **16 hooks**, block **50,614,000** (Base) |
-| of which | **8059** `MEASURED` · **2806** `NOT_QUOTABLE` · **99** `NOT_MEASURABLE` |
-| `MEASURED` above 1 bps on pools with `stored_lp_fee == 0` | **6997**, across **629 pools** and **8 hooks** |
-| min / median / max on those | **51.40 / 100.00 / 1176.46 bps** |
+| Published measurements | **83343** across **5250 pools** and **73 hooks**, block **50,614,000** (Base) |
+| of which | **58966** `MEASURED` · **24053** `NOT_QUOTABLE` · **324** `NOT_MEASURABLE` |
+| `MEASURED` above 1 bps on pools with `stored_lp_fee == 0` | **38452**, across **3631 pools** and **31 hooks** |
+| min / median / max on those | **2.45 / 100.00 / 1176.47 bps** |
 
 Per hook, worst first — every row is `MEASURED`, on pools whose stored LP fee is zero:
 
 | Hook | n / pools | min · median · max (bps) | Registry says |
 |---|---|---|---|
-| `0xb429d62f…` Clanker Static Fee Hook v2 (Base) | 95 / 19 | 79.58 · 119.70 · **1176.46** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
-| `0x1aea38f0…` ClankerHookStaticFeeV2 | 10 / 2 | 57.44 · 253.31 · **689.95** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
-| `0xbdf93814…` DopplerHookInitializer | 172 / 20 | 150.00 · 175.00 · **175.00** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
+| `0xb429d62f…` Clanker Static Fee Hook v2 (Base) | 3146 / 407 | 2.45 · 119.70 · **1176.47** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
+| `0x963e91a4…` Bonker Dynamic Fee Hook (Base) | 48 / 6 | 119.75 · 123.09 · **784.22** | `vanillaSwap=false`, `swapAccess=none`, **audit link** |
+| `0x1aea38f0…` ClankerHookStaticFeeV2 | 88 / 11 | 11.89 · 99.93 · **690.00** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
+| `0xd60d6b21…` Clanker Dynamic Fee Hook v2 (Base) | 160 / 20 | 119.75 · 119.81 · **542.57** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
+| `0x4db26380…` (unnamed) | 16 / 1 | 76.70 · 300.00 · **300.20** | **not in the registry at all** |
+| `0xd3200486…` (unnamed) | 8 / 1 | 35.48 · 298.78 · **300.00** | **not in the registry at all** |
+| `0x331c79a4…` (unnamed) | 8 / 1 | 35.31 · 298.77 · **300.00** | **not in the registry at all** |
+| `0x78a9763f…` (unnamed) | 16 / 1 | 25.04 · 149.95 · **250.00** | **not in the registry at all** |
+| `0x802b438d…` (unnamed) | 8 / 1 | 249.90 · 250.00 · **250.00** | **not in the registry at all** |
+| `0xfdc5cb0b…` (unnamed) | 15 / 1 | 45.47 · 249.90 · **250.00** | **not in the registry at all** |
+| `0x0469a4bd…` Zora Hook | 18725 / 1585 | 3.56 · 100.00 · **250.00** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
+| `0x5f3e9830…` (unnamed) | 16 / 1 | 25.04 · 149.95 · **250.00** | **not in the registry at all** |
+| `0xcee1c806…` (unnamed) | 9 / 1 | 248.35 · 250.00 · **250.00** | **not in the registry at all** |
+| `0xbdf93814…` DopplerHookInitializer | 3551 / 370 | 114.94 · 150.00 · **200.00** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
+| `0xa7456286…` (unnamed) | 16 / 1 | 18.69 · 199.94 · **200.00** | **not in the registry at all** |
+| `0x9811f10c…` Liquid Static Fee Hook V2 | 48 / 6 | 12.00 · 119.72 · **179.46** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
+| `0x80e2f7dc…` Liquid Dynamic Fee Hook V2 | 88 / 11 | 64.54 · 119.70 · **119.76** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
 | `0x6e4e217a…` (unnamed) | 6 / 1 | 98.44 · 100.00 · **103.61** | **not in the registry at all** |
-| `0x0469a4bd…` Zora Hook | 6571 / 559 | 51.40 · 100.00 · **100.00** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
+| `0x588c683e…` (unnamed) | 15 / 1 | 99.68 · 100.00 · **100.09** | **not in the registry at all** |
+| `0x985c14ba…` LaunchHook | 11888 / 1158 | 2.82 · 99.96 · **100.00** | `vanillaSwap=false`, `swapAccess=temporal`, **no audit link** |
+| `0xdda9bc41…` (unnamed) | 128 / 10 | 13.84 · 99.99 · **100.00** | **not in the registry at all** |
 | `0x4951d0e1…` (unnamed) | 8 / 1 | 100.00 · 100.00 · **100.00** | **not in the registry at all** |
-| `0x985c14ba…` LaunchHook | 125 / 25 | 69.30 · 99.56 · **100.00** | `vanillaSwap=false`, `swapAccess=temporal`, **no audit link** |
-| `0xdda9bc41…` (unnamed) | 10 / 2 | 61.64 · 99.38 · **99.99** | **not in the registry at all** |
+| `0xc783f473…` (unnamed) | 16 / 1 | 100.00 · 100.00 · **100.00** | **not in the registry at all** |
+| `0xacf358b1…` ZNS Launchpad | 48 / 6 | 35.98 · 99.90 · **100.00** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
+| `0x23321f11…` Flaunch POSM v4 (Base) | 135 / 9 | 93.46 · 99.95 · **100.00** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
+| `0x1f91c998…` (unnamed) | 56 / 5 | 14.33 · 99.94 · **100.00** | **not in the registry at all** |
+| `0x99a680fb…` (unnamed) | 8 / 1 | 96.86 · 100.00 · **100.00** | **not in the registry at all** |
+| `0xf85f1f30…` (unnamed) | 130 / 9 | 9.21 · 99.97 · **100.00** | **not in the registry at all** |
+| `0x7f1d86c9…` (unnamed) | 8 / 1 | 95.76 · 100.00 · **100.00** | **not in the registry at all** |
+| `0xbd00cfb2…` (unnamed) | 8 / 1 | 99.44 · 100.00 · **100.00** | **not in the registry at all** |
+| `0x8f29bd5c…` Aegis | 32 / 2 | 8.63 · 29.96 · **29.97** | `vanillaSwap=false`, `swapAccess=none`, **no audit link** |
 
-5 of the 8 are described by the registry — every one of them as `vanillaSwap: false`, with no audit link — and they take **1176 / 690 / 175 / 100 / 100 bps**. The remaining 3 are not described at all.
+12 of the 31 are described by the registry — every one of them as `vanillaSwap: false` — and they take **1176 / 784 / 690 / 543 / 250 / 200 / 179 / 120 / 100 / 100 / 100 / 30 bps**. The remaining 19 are not described at all.
 
 The registry has two failure modes and this table shows both: **it describes without quantifying, and
 it does not see everything.**
@@ -57,19 +80,19 @@ PYTHONPATH=engine python3 -m tare.dataset.stats --lp-fee-zero --above-bps 1   # 
 
 <!-- FACTS:graph -->
 
-`engine/tare/graph/` joins the three sources into one graph — **15,541 nodes, 15,138 edges** — and `apps/api/src/graph-routes.ts` serves it. Nodes: 961 hooks, 830 pools, 1,189 tokens, 158 distinct bytecodes, 158 deployers, 11,267 measurements, 978 registry entries. Every number below is a traversal, not a model output, and each replays with one command.
+`engine/tare/graph/` joins the three sources into one graph — **96,151 nodes, 99,682 edges** — and `apps/api/src/graph-routes.ts` serves it. Nodes: 999 hooks, 5,209 pools, 5,975 tokens, 158 distinct bytecodes, 158 deployers, 82,674 measurements, 978 registry entries. Every number below is a traversal, not a model output, and each replays with one command.
 
-Its measurements are every one this repository publishes — `docs/dataset/measurements.jsonl` (10,964) + `docs/dataset/measurements-contestes.jsonl` (309) — against `docs/hooklist-live-20260905.json`. The table above counts the main sweep only, which is why its total is the smaller of the two.
+Its measurements are every one this repository publishes — `docs/dataset/measurements.jsonl` (83,317) + `docs/dataset/measurements-contestes.jsonl` (368) — against `docs/hooklist-live-20260905.json`. The table above counts the main sweep only, which is why its total is the smaller of the two.
 
 | What the traversal asks | What it finds |
 |---|---|
 | **Clone clusters** — hooks sharing a `keccak(eth_getCode)` | **2 clusters, 4 hooks.** `0x28efbe4b…` (15,161 bytes, 2 hooks), `0x6802c0ce…` (23,240 bytes, 2 hooks). 2 of the 2 clusters have no measured pool at all: the duplicated code is deployed, not yet traded. |
-| **Orphans** — registry hooks on Base with no liquid pool we could measure | **259 of 272.** 148 of them have `bytecode_status = CODE` — they exist on-chain. The registry lists far more hooks than anyone routes a swap through. |
+| **Orphans** — registry hooks on Base with no liquid pool we could measure | **246 of 272.** 141 of them have `bytecode_status = CODE` — they exist on-chain. The registry lists far more hooks than anyone routes a swap through. |
 | **Contradictions** — one hook, two registry entries that disagree | **33 of the 37 hooks that carry more than one entry.** They differ on `name` (23), `declared_deployer` (12), `auditUrl` (9), `swapAccess` (8) — and on **`vanillaSwap` itself, 2 times**. |
-| **Disagreement** — registry says `vanillaSwap=false`, measurement finds ~0 bps | **1.** `0x3b2b979d…` (LaunchHook): the entry says the hook touches the swap; 20 `MEASURED` across 4 pools peak at **0.0019 bps**, under the 1 bps rounding floor. The other direction — declared vanilla, measured extracting — is **0**. |
-| **Not comparable** | **260 hooks.** They carry a `vanillaSwap` claim and no `MEASURED` measurement. They are listed as such and never counted as agreement. |
+| **Disagreement** — registry says `vanillaSwap=false`, measurement finds ~0 bps | **3.** `0x3b2b979d…` (LaunchHook): the entry says the hook touches the swap; 20 `MEASURED` across 4 pools peak at **0.0019 bps**, under the 1 bps rounding floor. The other direction — declared vanilla, measured extracting — is **0**. |
+| **Not comparable** | **247 hooks.** They carry a `vanillaSwap` claim and no `MEASURED` measurement. They are listed as such and never counted as agreement. |
 
-That last row is the point: **260 registry claims that no one, including us, has checked.**
+That last row is the point: **247 registry claims that no one, including us, has checked.**
 
 ```bash
 curl localhost:8787/graph                                # every count above
@@ -116,7 +139,9 @@ These are enforced, not aspirational.
 
 ```bash
 docker compose up -d
-make measure HOOK=0x985c14baa2a18316ffda0aefb3a632fadfca2acc BLOCK=50614000
+make replay POOL=0x010d0023c9e072f62720b6627a13973b9505a3d80dccd59acdb2ca803826c538 \
+           SIZE=100000000000000 DIR='0>1'
+# -> 99.9942 bps, identical to the wei, in about six seconds
 ```
 
 ## Layout

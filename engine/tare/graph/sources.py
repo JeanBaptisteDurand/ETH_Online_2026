@@ -73,10 +73,17 @@ def read_registry(path: Path = DEFAULT_HOOKLIST) -> List[dict]:
 
 
 def replay_command(row: dict) -> str:
-    """Regle 4 : chaque valeur se rejoue en une commande."""
-    return (f"make measure HOOK={row['hook']} BLOCK={row['block_number']}"
-            f"   # pool {row['pool_id'][:18]}…  "
-            f"{'0->1' if row['zero_for_one'] else '1->0'}  {row['amount_in']} wei")
+    """Regle 4 : chaque valeur se rejoue en une commande — et en quelques secondes.
+
+    La commande publiee ici a longtemps ete `make measure HOOK=0x...`, qui remesure TOUS les
+    pools du hook. Pour Zora cela fait 1 471 pools, huit tailles, deux sens : la commande
+    depassait dix minutes et personne ne l'a jamais lancee. Une promesse qu'on ne peut pas
+    tenir en pratique n'est pas tenue. Celle-ci rejoue exactement LA cellule, en sept
+    secondes, et sort en 1 si la valeur differe.
+    """
+    sens = "0>1" if row["zero_for_one"] else "1>0"
+    return (f"make replay POOL={row['pool_id']} SIZE={row['amount_in']} DIR={sens}"
+            f"   # {row['bps']} bps au bloc {row['block_number']}")
 
 
 # --------------------------------------------------------------- measurements

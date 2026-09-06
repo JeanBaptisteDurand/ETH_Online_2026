@@ -202,6 +202,15 @@ earlier direction being abandoned after its own figures failed review.
 What is not AI-generated is the measurement: every number in `docs/dataset/` comes from an EVM fork,
 and [`engine/tare/gates/a3.py`](engine/tare/gates/a3.py) recomputes five of them on every run.
 
+## What we could not do, and where the fix belongs upstream
+
+The guard's hardware leg stops one step short of a Ledger screen, and the step is not ours to take
+alone: the Ethereum app displays an arbitrary EIP-712 struct field by field only when Ledger holds
+filter descriptors for that schema. Ours is new, so the device offers blind signing instead — which
+this project refuses. Run against Speculos with the official app 1.22.3, the screen says so in its
+own words. [`docs/OPEN-SOURCE.md`](docs/OPEN-SOURCE.md) is the write-up, with what could be
+contributed upstream and where.
+
 ## License
 
 Apache-2.0

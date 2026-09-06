@@ -143,6 +143,32 @@ These are enforced, not aspirational.
 4. **Known limits are published, not hidden.** A hook with custom accounting *is* the liquidity;
    removing it does not measure what it takes, it destroys the pool. Those are `NOT_MEASURABLE`.
 
+## From a fresh clone
+
+The repository ships the **evidence** — `docs/dataset/measurements.jsonl`, 125,072 measurements,
+86 MB — and the code that produced it. It does not ship what that evidence generates: the graph
+(189 MB), the guard's lookup table (21 MB) and the instrument's bundled dataset (87 MB) are
+recomputed, not versioned. One of them is over GitHub's file limit, and versioning a derived file
+is how the graph once came to carry ten numbers the dataset had already retracted.
+
+```bash
+bash scripts/regenerate.sh      # rebuilds all three, in dependency order, then runs every suite
+```
+
+It refuses to run while a sweep is writing to the corpus: artefacts built from a moving dataset
+disagree with each other, which is worse than artefacts that are merely old.
+
+To rebuild just one:
+
+```bash
+cd engine && python3 -m tare.graph.cli build          # the graph
+cd packages/guard && npm run build:table              # the guard's table
+node apps/web/scripts/build-dataset.mjs               # the instrument's data
+```
+
+The two published surfaces need none of this: `apps/web` and `apps/landing` regenerate their own
+data as the first step of `npm run build`, which is why GitHub Pages deploys from a clean checkout.
+
 ## Reproduce any number
 
 ```bash

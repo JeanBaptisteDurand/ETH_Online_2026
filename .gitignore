@@ -3,6 +3,15 @@ __pycache__/
 .env
 .venv/
 node_modules/
+
+# EXCEPTION. Les sources verifiees recuperees sur Sourcify vivent parfois sous un chemin
+# `node_modules/` — c'est ainsi que le projet d'origine avait range ses dependances, et
+# Sourcify restitue l'arborescence telle quelle. Ce ne sont PAS des dependances installees :
+# c'est la preuve que l'analyse cite. Le filtre global en excluait 85 fichiers .sol, et
+# 20 des 543 citations publiees pointaient donc vers des lignes qu'un lecteur ne pouvait
+# pas ouvrir. Une citation qu'on ne peut pas suivre n'est pas une citation.
+!docs/hooks-source/**/node_modules/
+!docs/hooks-source/**/node_modules/**
 dist/
 packages/guard/extension/inject.js
 

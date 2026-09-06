@@ -21,12 +21,13 @@ from .schema import (Edge, EdgeKind, LABELS, Node, NodeKind, bytecode_id, deploy
                      measurement_id, pool_node_id, registry_id, token_id)
 
 REPO = Path(__file__).resolve().parents[3]
-DEFAULT_MEASUREMENTS = REPO / "docs" / "dataset" / "measurements.jsonl"
+# Une seule declaration pour tout le depot : voir tare/corpus.py.
+from ..corpus import EXTRA as _EXTRA, MEASUREMENTS as DEFAULT_MEASUREMENTS  # noqa: E402
 # Le balayage des paires contestees vit dans son propre fichier — il vise 23 pools choisis
 # pour une raison precise (les seules paires ou plusieurs pools existent), pas la population.
 # Mais ses mesures sont des mesures : le graphe doit les voir, sinon il decrit un corpus que
 # le depot ne publie pas. Un fichier absent est ignore en silence, jamais invente.
-EXTRA_MEASUREMENTS = (REPO / "docs" / "dataset" / "measurements-contestes.jsonl",)
+EXTRA_MEASUREMENTS = _EXTRA
 def _latest_hooklist() -> Path:
     """Le registre le plus recent, meme regle que `tare.rag.corpus.registry_path`.
 

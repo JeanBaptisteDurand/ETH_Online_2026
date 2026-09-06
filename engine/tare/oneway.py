@@ -34,8 +34,8 @@ from typing import Any, Dict, Iterable, List, Optional
 
 REPO = Path(__file__).resolve().parents[2]
 DEFAULT_OUT = REPO / "docs" / "dataset" / "one-way.json"
-MEASUREMENTS = REPO / "docs" / "dataset" / "measurements.jsonl"
-EXTRA = (REPO / "docs" / "dataset" / "measurements-contestes.jsonl",)
+# Une seule declaration pour tout le depot : voir tare/corpus.py.
+from .corpus import EXTRA, MEASUREMENTS  # noqa: E402
 
 FLAT_BPS = 1.0
 HEAVY_BPS = 1000.0

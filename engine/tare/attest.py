@@ -35,8 +35,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 REPO = Path(__file__).resolve().parents[2]
-CORPUS = REPO / "docs" / "dataset" / "measurements.jsonl"
-EXTRA = REPO / "docs" / "dataset" / "measurements-contestes.jsonl"
+# Une seule declaration pour tout le depot : voir tare/corpus.py. `EXTRA` y est une
+# SEQUENCE — ce module la traitait comme un chemin unique, l'autre comme un tuple.
+from .corpus import EXTRA, MEASUREMENTS as CORPUS  # noqa: E402
 BPS_SCALE = 10_000
 DEFAULT_RPC = "https://testnet.hashio.io/api"
 
@@ -186,7 +187,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap.add_argument("--out", type=Path, default=REPO / "docs" / "dataset" / "attestations.json")
     a = ap.parse_args(argv)
 
-    p = plan([CORPUS, EXTRA])
+    p = plan([CORPUS, *EXTRA])
     print(f"corpus : {', '.join(p['corpus'])}", file=sys.stderr)
     print(f"empreinte : {p['corpusDigest']}", file=sys.stderr)
     print(f"a ecrire : {p['n_a_ecrire']} hooks   ecartes faute de mesure : {p['n_ecartes']}",

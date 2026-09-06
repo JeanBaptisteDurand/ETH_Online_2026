@@ -32,6 +32,10 @@ rag-serve:                  ## the vector RAG behind HTTP — the chat needs it 
 gate-a3:                    ## reproduce the five known bps for hook 0x1aea38f0 — cannot be faked
 	@cd engine && python3 -m tare.gates.a3 --rpc $(RPC) --block $(BLOCK)
 
+.PHONY: gate-a4
+gate-a4:                    ## execute de VRAIS swaps et compare l'execution a la cotation
+	@cd engine && python3 -m tare.gates.a4 --rpc $(RPC) --n 9
+
 .PHONY: measure
 measure:                    ## make measure HOOK=0x... [BLOCK=...] — tous les pools d'un hook
 	@cd engine && python3 -m tare.cli measure --hook $(HOOK) --rpc $(RPC) --block $(BLOCK)

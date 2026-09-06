@@ -245,6 +245,49 @@ and that the facilitator we name would accept this network. What is not verified
 and any sentence implying one would be false. The submission text says the API is *priced* in
 x402, not *settled* — the earlier wording said settled, and it was wrong.
 
+## 10b. A quote is not an execution, and on one pool in nine it showed
+
+Every figure in this corpus comes from `V4Quoter`, called with `eth_call`. That is a
+**simulation**. It can diverge from a real swap: a different code path, no token actually
+moved, a hook reading balances a static call never changed, or a hook that treats the quoter
+differently from whoever is really swapping.
+
+Nothing checked that until [`engine/tare/gates/a4.py`](../engine/tare/gates/a4.py). The gate
+deploys a probe onto the pinned fork, opens the manager's unlock callback, **executes the swap**,
+settles native ETH by value, takes the credited token, and reads the probe's own balance — what a
+user receives is what lands in their account. It does it twice, with the hook's bytecode and with
+the inert stub, and compares both executed outputs against both quoted ones.
+
+**On 9 pools carrying 9 distinct hooks, 8 agree to the wei.** Both legs, exactly:
+
+```
+0x588c683ecc45…  quoted 100.0936 bps   executed 100.0936
+0x2aa659040c4c…  quoted 280.0000 bps   executed 280.0000
+0x4db263809e6e…  quoted 299.9999 bps   executed 299.9999
+0xa74562863529…  quoted 199.9998 bps   executed 199.9998
+```
+
+**One does not.** `0x92708e7d3b91…` quotes at **3.5669 bps** and executes at **0.00**. Its
+without-hook leg matches exactly; only the with-hook leg differs, and the executed value equals
+the without-hook value — the hook takes nothing from our probe while charging the quoter.
+
+We do not say why. That hook appears in no registry entry and has no verified source on Sourcify,
+so under this project's own rule it keeps the label **behaviour not read**: no mechanism, no
+intent, no explanation attributed to code nobody has read.
+
+What it means for every other number here: a quoted basis point is a measurement of what the
+quoter is told, and for one pool in nine that differed from what a swap actually cost. The corpus
+does not distinguish the two, and it should be read with that in mind.
+
+**What the gate cannot do.** 5 of the 14 candidates could not be executed at all: a hook running
+its own token accounting does not settle through a generic probe, and the swap reverts before
+completing. That is a limit of the probe, not a disagreement between quote and execution, and the
+gate reports the two separately rather than letting one pass for the other.
+
+```bash
+cd engine && python3 -m tare.gates.a4 --rpc http://127.0.0.1:8545 --n 9
+```
+
 ## 11. The Ledger approval works, behind a setting that is off by default
 
 The approval path is written, typed, and **executed against Ledger's own emulator**: Speculos

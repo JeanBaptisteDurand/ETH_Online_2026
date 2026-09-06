@@ -30,7 +30,14 @@
  */
 import "../config.js"; // charge .env une fois, sans jamais journaliser une cle
 import { parseModelPlan, ACTION_CATALOGUE, type Action } from "./actions.js";
-import { plan as deterministicPlan, type Intent, type PlanOut, type PlannerContext } from "./planner.js";
+import {
+  plan as deterministicPlan,
+  routeActions,
+  routeFromActions,
+  type Intent,
+  type PlanOut,
+  type PlannerContext,
+} from "./planner.js";
 import type { StoreView } from "./store.js";
 import { sanitizeModelSay } from "./narrate.js";
 import {
@@ -1121,8 +1128,42 @@ export function makeLlmPlanner(
         "retenu sous reserve : la phrase du modele porte des nombres, l'auditeur de narrate.ts tranchera",
       );
 
+    const intent = intentFromActions(plan.actions, plan.intent);
+
+    // ROUTAGE : le schema d'actions n'a pas de case « paire de jetons », donc le modele
+    // exprime la paire comme il peut — typiquement un `highlight` portant les deux ADRESSES
+    // DE JETONS dans un champ nomme `hooks`. La narration savait deja les reconstruire ; les
+    // actions, elles, partaient telles quelles vers l'interface, qui cherchait alors des
+    // lignes de hooks avec des adresses de jetons et ne surlignait rien. Le chat disait la
+    // bonne chose et l'ecran ne faisait rien.
+    //
+    // On reconstruit donc la reponse de route.ts et on remplace les actions par celles qui
+    // designent les VRAIES portes. Si la paire n'est pas reconnue, on ne touche a rien :
+    // inventer des actions pour une paire qu'on n'a pas lue serait pire que n'en donner
+    // aucune.
+    if (intent === "route") {
+      const answer = routeFromActions(plan.actions);
+      if (answer) {
+        return {
+          intent,
+          actions: routeActions(answer, store),
+          reading: `plan propose par le modele (intent annonce: ${plan.intent})`,
+          params: emptyParams(),
+          why: [
+            ...why,
+            "actions du modele remplacees par celles du routage : elles nommaient les jetons, " +
+              "l'ecran a besoin des portes",
+          ],
+          say: plan.say,
+          degraded: null,
+          explain: null,
+          route: answer,
+        };
+      }
+    }
+
     return {
-      intent: intentFromActions(plan.actions, plan.intent),
+      intent,
       actions: plan.actions,
       reading: `plan propose par le modele (intent annonce: ${plan.intent})`,
       params: emptyParams(),

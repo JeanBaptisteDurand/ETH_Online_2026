@@ -644,7 +644,16 @@ export function plan(
     return mk("compare", [{ type: "compare", a: twoHooks[0]!, b: twoHooks[1]! }], "mettre deux hooks cote a cote");
 
   /* --- ouvrir ------------------------------------------------------------ */
-  if (/\bouvre|ouvrir|detail|fiche|montre (moi )?(le|la|ce)\b/.test(q) && hook)
+  // « combien prend 0x… » est LA question du produit, et elle rendait « je n'ai pas
+  // compris » : le verbe manquait a la liste alors que la fiche du hook y repond
+  // exactement. Un utilisateur ne demande pas « ouvre la fiche », il demande combien on
+  // lui prend.
+  const veutLaFiche =
+    /\bouvre|ouvrir|detail|fiche|montre (moi )?(le|la|ce)\b/.test(q) ||
+    /\b(combien|quel(le)? (est|taux|prelevement)|prend|preleve|prends|coute|takes?|how much)\b/.test(
+      q,
+    );
+  if (veutLaFiche && hook)
     return mk(
       "open",
       [

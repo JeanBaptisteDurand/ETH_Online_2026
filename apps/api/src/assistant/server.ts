@@ -39,7 +39,11 @@ const store = getStore();
 const graph = getGraph(store);
 console.log(
   `[assistant] ${store.dataset.measurements} mesures, ${store.hooks.length} hooks, ` +
-    `${graph.stats.pools} pools, ${graph.stats.tokens} tokens, registre: ${store.registry.entries} fiches`,
+    // `entries` compte les ADRESSES connues, pas les fiches : 978 fiches du registre vivant
+    // decrivent 866 adresses distinctes, parce qu'un meme hook est decrit sur plusieurs
+    // chaines. Ecrire « 866 fiches » melangeait les deux unites.
+    `${graph.stats.pools} pools, ${graph.stats.tokens} tokens, ` +
+      `registre: ${store.registry.entries} hooks connus`,
 );
 if (!store.complete) console.warn(`[assistant] LECTURE PARTIELLE : ${store.incomplete_reason}`);
 console.log(

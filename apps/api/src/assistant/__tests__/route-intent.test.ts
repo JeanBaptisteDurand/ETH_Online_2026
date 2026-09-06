@@ -36,6 +36,7 @@ import {
   type PlanOut,
 } from "../planner.js";
 import { execute, narrate } from "../execute.js";
+import { makeLlmPlanner, type ModelCall } from "../llm.js";
 import { getStore, resetStore, type StoreView } from "../store.js";
 import { getGraph, resetGraph } from "../graph.js";
 import { ActionListSchema } from "../actions.js";
@@ -644,5 +645,70 @@ describe("route ne vole pas les questions des autres intentions", () => {
       store,
     );
     expect(p.intent).not.toBe("route");
+  });
+});
+
+/* --------------------------------------------------------------------------
+ * Deux defauts trouves en auditant le chat en marche, pas en le lisant.
+ * ------------------------------------------------------------------------ */
+
+const ETH_REEL = "0x0000000000000000000000000000000000000000";
+const USDC_REEL = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913";
+
+describe("les actions envoyees a l'ecran designent des portes, pas des jetons", () => {
+  it("un plan de modele qui nomme la paire est traduit en portes", () => {
+    // Le schema d'actions n'a pas de case « paire de jetons » : le modele exprime la paire
+    // avec un `highlight` portant les deux ADRESSES DE JETONS dans un champ nomme `hooks`.
+    // La narration savait les reconstruire ; les actions partaient telles quelles et
+    // l'ecran cherchait des lignes de hooks avec des adresses de jetons. Le chat disait la
+    // bonne chose et rien ne se passait a l'ecran.
+    const modele: ModelCall = async () =>
+      JSON.stringify({
+        intent: "route",
+        // De VRAIES adresses de jetons : routeFromActions interroge le recensement publie,
+        // pas celui de la fixture — c'est exactement ce qu'il fait en production.
+        actions: [
+          { type: "reset" },
+          { type: "highlight", hooks: [ETH_REEL, USDC_REEL] },
+        ],
+        say: "je regarde les portes de cette paire",
+      });
+    return makeLlmPlanner(modele)(`echanger ${ETH_REEL} contre ${USDC_REEL}`, store, {
+      sessionId: 'audit',
+      questionsLeft: 9,
+      measuresLeft: 9,
+    } as never).then((p) => {
+      expect(p.intent).toBe("route");
+      const h = p.actions.find((a) => a.type === "highlight");
+      expect(h).toBeDefined();
+      const surlignes = (h as { hooks: string[] }).hooks.map((x) => x.toLowerCase());
+      // Aucun JETON dans le surlignage...
+      expect(surlignes).not.toContain(ETH_REEL.toLowerCase());
+      expect(surlignes).not.toContain(USDC_REEL.toLowerCase());
+      // ...et que des adresses de hooks, jamais une des deux devises nommees.
+      expect(surlignes.length).toBeGreaterThan(0);
+    });
+  });
+});
+
+describe("la question du produit", () => {
+  const dit = (q: string) => plan(q, store).intent;
+
+  it("« combien prend 0x… » ouvre la fiche au lieu de dire qu'on n'a pas compris", () => {
+    // C'est LA question qu'un utilisateur pose. Elle rendait `unclear` parce que le verbe
+    // manquait a la liste, alors que la fiche du hook y repond exactement.
+    for (const q of [
+      `combien prend ${HA}`,
+      `quel est le prelevement de ${HA}`,
+      `combien coute ${HA}`,
+      `how much does ${HA} take`,
+    ])
+      expect(dit(q), q).toBe("open");
+  });
+
+  it("mais sans adresse, elle ne devine pas un hook", () => {
+    // « combien » tout seul ne designe personne : demander une precision vaut mieux que
+    // d'ouvrir la fiche du premier hook venu.
+    expect(dit("combien prend ce hook")).not.toBe("open");
   });
 });

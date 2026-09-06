@@ -49,7 +49,13 @@ describe("table pre-calculee", () => {
     // a garantir que la boucle a bien vu quelque chose.
     expect(nonNumeric).toBeGreaterThan(0);
     expect(nonNumeric).toBeLessThan(TABLE.n_measurements);
-  });
+  }, 60_000);
+  // Ce test parcourt LA TABLE ENTIERE — 125 072 points, 7 817 pools, 21 Mo — et sa duree
+  // croit donc avec le corpus. Il tenait dans les 5 s par defaut de vitest a 199 pools ;
+  // sous la charge d'une autre suite il les depasse maintenant, et l'expiration se lit
+  // comme « une ligne non mesuree porte un nombre » alors qu'aucune n'en porte. Le budget
+  // suit le travail reel plutot que de le nier — meme raison que encode.test.ts et
+  // keccak.test.ts, qui ont eu le meme probleme quand le corpus a grandi.
 });
 
 describe("consult", () => {

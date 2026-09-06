@@ -114,7 +114,46 @@ def plan(paths: List[Path]) -> Dict[str, Any]:
     }
 
 
-def send(entry: Dict[str, Any], digest: str, contract: str, rpc: str, key: str) -> Dict[str, Any]:
+def already(hook: str, attester: str, contract: str, rpc: str) -> bool:
+    """Le contrat porte-t-il deja une attestation de CET attesteur pour CE hook ?
+
+    Sert au mode --only-missing : reecrire ce qui est deja la coute des transactions pour
+    rien, et surtout ecrase la date d'une attestation qui n'a pas change. On demande a la
+    chaine plutot que de se fier a un fichier local.
+    """
+    p = subprocess.run(
+        ["cast", "call", contract, "hasAttestation(address,address)(bool)", hook, attester,
+         "--rpc-url", rpc],
+        capture_output=True, text=True, timeout=90)
+    return p.returncode == 0 and p.stdout.strip().lower().startswith("true")
+
+
+def send(entry: Dict[str, Any], digest: str, contract: str, rpc: str, key: str,
+         essais: int = 4) -> Dict[str, Any]:
+    """Envoie, en reessayant les courses de nonce.
+
+    Le relais Hedera retarde d'un cran sur le nonce entre deux envois rapproches :
+    « Nonce too low. Provided nonce: 16, current nonce: 17 ». Ce n'est pas un refus du
+    contrat, c'est une course — 18 attestations sur 99 sont tombees dessus au premier
+    passage. On reessaie, et on ne compte comme echec que ce qui echoue encore apres.
+    """
+    import time as _t
+
+    derniere = ""
+    for i in range(essais):
+        r = _send_once(entry, digest, contract, rpc, key)
+        if r["ok"]:
+            return r
+        derniere = r.get("erreur", "")
+        if "Nonce too low" not in derniere and "nonce" not in derniere.lower():
+            return r
+        _t.sleep(1.5 * (i + 1))
+    return {"hook": entry["hook"], "ok": False, "erreur": derniere,
+            "note": f"{essais} tentatives, course de nonce persistante"}
+
+
+def _send_once(entry: Dict[str, Any], digest: str, contract: str, rpc: str,
+               key: str) -> Dict[str, Any]:
     cmd = [
         "cast", "send", contract,
         "attest(address,uint32,uint64,uint64,uint64,uint32,uint32,uint32,bytes32,bytes32,string)",
@@ -140,6 +179,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap.add_argument("--plan", action="store_true", help="montrer sans rien envoyer")
     ap.add_argument("--send", action="store_true")
     ap.add_argument("--limit", type=int, default=None)
+    ap.add_argument("--only-missing", action="store_true",
+                    help="n'ecrire que les hooks que la chaine ne porte pas encore")
     ap.add_argument("--contract", default=os.environ.get("TARE_ATTESTATIONS"))
     ap.add_argument("--rpc", default=os.environ.get("HEDERA_EVM_RPC", DEFAULT_RPC))
     ap.add_argument("--out", type=Path, default=REPO / "docs" / "dataset" / "attestations.json")
@@ -165,6 +206,15 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     envoyes = []
     cibles = p["a_ecrire"][: a.limit] if a.limit else p["a_ecrire"]
+    if a.only_missing:
+        att = os.environ.get("HEDERA_PAYER_EVM")
+        if not att:
+            print("HEDERA_PAYER_EVM requis pour --only-missing", file=sys.stderr)
+            return 2
+        avant = len(cibles)
+        cibles = [e for e in cibles if not already(e["hook"], att, a.contract, a.rpc)]
+        print(f"deja sur la chaine : {avant - len(cibles)}   a ecrire : {len(cibles)}",
+              file=sys.stderr)
     for i, e in enumerate(cibles, 1):
         r = send(e, p["corpusDigest"], a.contract, a.rpc, key)
         envoyes.append({**r, "median_bps": e["median_bps"], "max_bps": e["max_bps"]})

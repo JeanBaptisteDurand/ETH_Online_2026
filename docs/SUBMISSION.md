@@ -27,13 +27,13 @@ hook call: at least 32 bytes with the called selector echoed in word 0 (`:153`),
 from `beforeSwap` (`:166`), exactly 64 on the delta path (`:259`). So the stub reads the incoming
 selector, echoes it, and returns 96 or 64 bytes accordingly. It is a protocol-compliant nothing.
 
-**The corpus.** **125,072 measurements** across **7817 pools** and **112 hooks**,
+**The corpus.** **125,072 measurements** across **7,817 pools** and **112 hooks**,
 block **50,614,000** on Base, 8 swap sizes spanning eight decades and both directions.
-Labelled 63156 `MEASURED` · 61466 `NOT_QUOTABLE` · 450 `NOT_MEASURABLE`. Every row carries its `pool_id`, block, size, direction, `stub_hash` and engine
+Labelled 63,156 `MEASURED` · 61,466 `NOT_QUOTABLE` · 450 `NOT_MEASURABLE`. Every row carries its `pool_id`, block, size, direction, `stub_hash` and engine
 version, and replays with one command.
 
 **The finding.** **38,857 measurements above 1 bps sit on pools whose LP fee, read on-chain
-from `slot0` bits 208-231, is exactly zero** — across 3715 pools and 39
+from `slot0` bits 208-231, is exactly zero** — across 3,715 pools and 39
 hooks, from 1.38 to **1800.99 bps**, median 100.00. And of the
 112 hooks measured, **78 appear nowhere in the official registry at all.**
 

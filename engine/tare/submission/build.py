@@ -70,7 +70,7 @@ def facts() -> dict:
 
 def render(f: dict) -> str:
     blocks = ", ".join(f"{b:,}".replace(",", ",") for b in f["block"])
-    lab = " · ".join(f"{v} `{k}`" for k, v in sorted(f["labels"].items(), key=lambda kv: -kv[1]))
+    lab = " · ".join(f"{v:,} `{k}`" for k, v in sorted(f["labels"].items(), key=lambda kv: -kv[1]))
     nir = len(f["not_in_registry"])
     return f"""<!-- Engendre par `python3 -m tare.submission.build --write`. Ne pas editer a la main :
      le corpus grandit, et un texte fige citerait un jeu qui n'existe plus. -->
@@ -101,13 +101,13 @@ hook call: at least 32 bytes with the called selector echoed in word 0 (`:153`),
 from `beforeSwap` (`:166`), exactly 64 on the delta path (`:259`). So the stub reads the incoming
 selector, echoes it, and returns 96 or 64 bytes accordingly. It is a protocol-compliant nothing.
 
-**The corpus.** **{f['rows']:,} measurements** across **{f['pools']} pools** and **{f['hooks']} hooks**,
+**The corpus.** **{f['rows']:,} measurements** across **{f['pools']:,} pools** and **{f['hooks']} hooks**,
 block **{blocks}** on Base, {f['sizes']} swap sizes spanning eight decades and both directions.
 Labelled {lab}. Every row carries its `pool_id`, block, size, direction, `stub_hash` and engine
 version, and replays with one command.
 
 **The finding.** **{f['zero_n']:,} measurements above 1 bps sit on pools whose LP fee, read on-chain
-from `slot0` bits 208-231, is exactly zero** — across {f['zero_pools']} pools and {f['zero_hooks']}
+from `slot0` bits 208-231, is exactly zero** — across {f['zero_pools']:,} pools and {f['zero_hooks']}
 hooks, from {f['bps_min']:.2f} to **{f['bps_max']:.2f} bps**, median {f['bps_med']:.2f}. And of the
 {f['hooks']} hooks measured, **{nir} appear nowhere in the official registry at all.**
 

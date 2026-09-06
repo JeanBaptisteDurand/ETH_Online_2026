@@ -227,6 +227,24 @@ rather than a number is [`engine/tare/sweep.py:137-142`](../engine/tare/sweep.py
   a token to a recipient and it cannot distinguish a fee taken by the hook from output diverted
   anywhere else.
 
+## 11b. No x402 payment has ever settled
+
+The measurement API is gated by x402 and the challenge is real. `POST /measure` answers **402**
+with a well-formed `accepts`: scheme `exact`, network `hedera:testnet`, asset `0.0.429274`,
+`payTo` `0.0.10367997`, `feePayer` `0.0.7162784`. The live facilitator at
+`api.testnet.blocky402.com` lists `hedera:testnet` among the kinds it supports, with the same fee
+payer. Billing is per **measurement**, not per request, and that is what the metering ledger
+counts.
+
+**No payment has ever been submitted, verified or settled.** Neither Hedera account holds the
+payment asset — `GET /accounts/0.0.10367920/tokens` returns zero tokens, as does the recipient's.
+Acquiring testnet USDC means associating the token and finding a faucet, and we have not done it.
+
+So what is verified is the **server side**: the challenge, its shape, the price, the metering unit,
+and that the facilitator we name would accept this network. What is not verified is a settlement,
+and any sentence implying one would be false. The submission text says the API is *priced* in
+x402, not *settled* — the earlier wording said settled, and it was wrong.
+
 ## 11. The Ledger approval works, behind a setting that is off by default
 
 The approval path is written, typed, and **executed against Ledger's own emulator**: Speculos

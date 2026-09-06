@@ -66,7 +66,7 @@ at target scale: Neo4j lost on every query and refuses EVM-sized integers). Type
 Hono for the API, Vite/React for the instrument, an MCP server exposing four tools, and a browser
 guard that decodes the hook out of Universal Router calldata and warns before you sign. Hedera
 carries the paid API — measuring costs compute, so it is billed **per measurement, not per request**,
-settled in x402 through Blocky402 on testnet, with each batch's digest anchored on an HCS topic and
+priced in x402 through Blocky402 on testnet, with each batch's digest anchored on an HCS topic and
 verified back through the mirror node before it is ever called anchored.
 
 **The gate.** `engine/tare/gates/a3.py` reproduces five recorded basis-point figures on every run,

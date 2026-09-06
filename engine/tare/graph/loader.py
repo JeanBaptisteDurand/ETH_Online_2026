@@ -39,7 +39,16 @@ def build_tare_graph(measurements: Path = sources.DEFAULT_MEASUREMENTS,
         "chain_cache": str(chain_cache) if chain_cache else None,
         "chain_cache_present": not cache.get("missing", False),
         "chain_cache_fetched_at": cache.get("fetched_at"),
-        "n_measurements": len(rows),
+        # DEUX nombres, parce qu'ils different et que confondre les deux egare. `n_rows_read`
+        # est ce que le fichier contenait au moment de la construction ; `n_measurements` est
+        # le nombre de noeuds Measurement reellement poses. L'ecart, ce sont des lignes en
+        # double — meme pool, meme bloc, meme taille, meme sens — fondues en un seul noeud.
+        # Le champ s'appelait n_measurements en portant la premiere valeur : un test qui
+        # comparait la meta au compte des noeuds echouait sur un graphe parfaitement correct.
+        "n_rows_read": len(rows),
+        "n_measurements": sum(1 for n, d in g.nodes(data=True) if d.get("kind") == "Measurement"),
+        "n_rows_collapsed_as_duplicates": len(rows) - sum(
+            1 for n, d in g.nodes(data=True) if d.get("kind") == "Measurement"),
         "n_registry_entries": len(entries),
         "n_chain_entries": len(cache.get("entries") or {}),
         "block_number": rows[0]["block_number"] if rows else None,

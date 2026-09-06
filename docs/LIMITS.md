@@ -179,7 +179,7 @@ It is also incomplete and it is keyed in a way that misleads:
   result #6; the fix is [`apps/api/src/dataset.ts:213-222`](../apps/api/src/dataset.ts).
 
 Conversely, the 14 permission bits **are** ground truth, because they are the address:
-[`engine/tests/test_flags.py:30-52`](../engine/tests/test_flags.py) compares 8,582 bits over 613 hooks
+[`engine/tests/test_flags.py:30-52`](../engine/tests/test_flags.py) compares 13,692 bits over 978 hooks
 with zero deviation, and 13,692 bits over the 978-entry live snapshot, also zero. Permissions are
 exact. Magnitudes are measured. The registry supplies neither.
 

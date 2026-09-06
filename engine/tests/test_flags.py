@@ -7,7 +7,20 @@ product rests on being able to say things about a hook without trusting anyone's
 import json, pathlib, unittest
 from tare.flags import decode_flags, REGISTRY_NAME, HOOK_FLAGS, can_alter_swap_output
 
-REG = pathlib.Path(__file__).parents[2] / "docs" / "hooklist.json"
+def _registre() -> pathlib.Path:
+    """Le registre le PLUS RECENT, meme regle que tare.graph.sources et tare.rag.corpus.
+
+    Ce test lisait docs/hooklist.json — 613 fiches, l'instantane du premier jour — pendant
+    que le reste du projet indexait le registre vivant (978). Il verifiait donc la these sur
+    les deux tiers du registre qu'il pretendait couvrir, et le README en tirait un « 613 »
+    que plus rien d'autre n'employait. Une seule regle, partagee.
+    """
+    docs = pathlib.Path(__file__).parents[2] / "docs"
+    live = sorted(docs.glob("hooklist-live-*.json"))
+    return live[-1] if live else docs / "hooklist.json"
+
+
+REG = _registre()
 
 def _entries():
     raw = json.loads(REG.read_text())
@@ -28,8 +41,11 @@ class TestFlags(unittest.TestCase):
         self.assertEqual(sorted(HOOK_FLAGS.values()), [1 << i for i in range(14)])
 
     def test_every_bit_matches_the_registry_on_every_hook(self):
-        """613 fiches x 14 booleens = 8582 comparaisons. Un seul ecart invalide le widget
-        a 14 diodes, qui n'appelle personne et ne peut donc pas se rattraper.
+        """Chaque fiche x 14 booleens. Un seul ecart invalide le widget a 14 diodes, qui
+        n'appelle personne et ne peut donc pas se rattraper.
+
+        Le compte n'est pas fige : il suit le registre. Il valait 8 582 sur l'instantane a
+        613 fiches ; il vaut davantage sur le registre vivant.
 
         Le meme compte est imprime par apps/api/src/assistant/__tests__/flags.test.ts,
         sur le meme registre, depuis une implementation independante.

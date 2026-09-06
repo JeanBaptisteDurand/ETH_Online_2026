@@ -18,17 +18,28 @@
  *      deux verdicts differents pour un meme hook.
  *
  * Le compte de comparaisons est ecrit dans la sortie, pas devine : 613 fiches x 14
- * booleens = 8582. Le moteur Python imprime le meme nombre depuis
+ * booleens. Le compte suit le registre — 8 582 sur l'instantane a 613 fiches,
+ * 13 692 sur le registre vivant. Le moteur Python imprime le meme nombre depuis
  * engine/tests/test_flags.py, et c'est voulu : deux implementations independantes,
  * un seul resultat.
  */
 import { describe, it, expect } from "vitest";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { HOOK_FLAG_BITS, FLAG_ORDER, decodeFlags, canAlterSwapOutput } from "../flags.js";
 
 const REPO = resolve(import.meta.dirname, "..", "..", "..", "..", "..");
-const REGISTRY = resolve(REPO, "docs", "hooklist.json");
+// Le registre le PLUS RECENT, meme regle que le jumeau Python (engine/tests/test_flags.py)
+// et que tare.graph.sources. Les deux lisaient l'instantane a 613 fiches pendant que le
+// reste du projet indexait le registre vivant a 978 : la these des 14 bits etait donc
+// verifiee sur deux tiers du registre qu'elle pretendait couvrir.
+const REGISTRY = (() => {
+  const docs = resolve(REPO, "docs");
+  const live = readdirSync(docs)
+    .filter((f) => f.startsWith("hooklist-live-") && f.endsWith(".json"))
+    .sort();
+  return resolve(docs, live.length ? live[live.length - 1]! : "hooklist.json");
+})();
 
 interface Entry {
   hook?: { address?: string; name?: string };

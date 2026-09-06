@@ -37,11 +37,11 @@ from `slot0` bits 208-231, is exactly zero** — across 3715 pools and 39
 hooks, from 1.38 to **1800.99 bps**, median 100.00. And of the
 112 hooks measured, **78 appear nowhere in the official registry at all.**
 
-**Then I read the code, because a number without a cause is an accusation.** 33 of
-80 measured hooks have verified source on Sourcify. For each I read the rate the
+**Then I read the code, because a number without a cause is an accusation.** 42 of
+112 measured hooks have verified source on Sourcify. For each I read the rate the
 contract itself declares — on-chain at the corpus block — and compared it with what the
 counterfactual had measured **without ever seeing that source**. **5 hooks are
-concordant across 1184 pools**, and the worst deviation among all of them —
+concordant across 1185 pools**, and the worst deviation among all of them —
 not the best, the worst — is **0.0005 bps**. The
 measurement recovers the number written in the contract to within thousandths of a basis point.
 

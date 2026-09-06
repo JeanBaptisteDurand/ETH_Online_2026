@@ -389,7 +389,7 @@ measurement.
 ([`engine/tare/flags.py:8-46`](../engine/tare/flags.py)). Decoded addresses are compared bit by bit
 against the registry's own booleans:
 [`engine/tests/test_flags.py:30-52`](../engine/tests/test_flags.py) prints
-`8582 comparaisons de bits, 0 écart` over the 613-entry `docs/hooklist.json`. Re-run against the
+`13692 comparaisons de bits, 0 écart` over the 978-entry live registry snapshot. Re-run against the
 978-entry live snapshot `docs/hooklist-live-20260905.json`, the same decoder gives **13 692
 comparisons, 0 deviation** (978 × 14).
 

@@ -4,7 +4,7 @@
 
 Uniswap asks hooks to declare what they charge, through the `HookSwap` and `HookFee` events its own
 developer guide recommends. Of the **84 hooks deployed in the last 24,000 Base blocks, zero emit
-either one**. The official registry describes 613 hooks with 19 fields — 14 permission booleans, 4
+either one**. The official registry describes 978 hooks with 19 fields — 14 permission booleans, 4
 property booleans, one enum, and `chainId`. **Not one of them is a quantity.**
 
 So TARE measures it.

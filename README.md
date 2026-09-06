@@ -208,7 +208,7 @@ The guard's hardware leg stops one step short of a Ledger screen, and the step i
 alone: the Ethereum app displays an arbitrary EIP-712 struct field by field only when Ledger holds
 filter descriptors for that schema. Ours is new, so the device offers blind signing instead — which
 this project refuses. Run against Speculos with the official app 1.22.3, the screen says so in its
-own words. [`docs/OPEN-SOURCE.md`](docs/OPEN-SOURCE.md) is the write-up, with what could be
+own words. [`OPEN-SOURCE.md`](OPEN-SOURCE.md) is the write-up, with what could be
 contributed upstream and where.
 
 ## License

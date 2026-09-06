@@ -227,46 +227,47 @@ rather than a number is [`engine/tare/sweep.py:137-142`](../engine/tare/sweep.py
   a token to a recipient and it cannot distinguish a fee taken by the hook from output diverted
   anywhere else.
 
-## 11. The Ledger approval was run against Speculos, and the device asked for blind signing
+## 11. The Ledger approval works, behind a setting that is off by default
 
-The approval path is written, typed and tested: `packages/guard/src/ledger.ts` builds an EIP-712
-message whose fields are the guard's own — verdict, hook, poolId, take, label, size, direction,
-`measuredAtBlock`, `promptDigest` — and thirty-two tests exercise every failure route against a
-fake transport. None of them can return `approved: true` by accident.
+The approval path is written, typed, and **executed against Ledger's own emulator**: Speculos
+running the official Ethereum app **1.22.3** for Nano X, downloaded from `LedgerHQ/app-ethereum`
+releases.
 
-**It has now been executed against Ledger's own emulator.** Speculos, running the official
-Ethereum app **1.22.3** for Nano X, downloaded from `LedgerHQ/app-ethereum` releases. The
-transport connects, the device answers `getAddress` with
-`0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D`, and the guard's typed data — eight fields,
-primary type `TareGuardApproval` — reaches it.
+**The device displays every field and signs.** Its own words, captured in
+[`docs/ledger/ECRANS.md`](ledger/ECRANS.md):
 
-**And the device refuses to display it.** With `fullImplem: true` the screen reads, verbatim:
+```
+hook 0x1aEA38f06deCE45c 252eF1Ac5AF989D51D c8E8cc
+poolId (1/2) 0xD996FF76787C7C52 0483FE0164699395CC 89BFCB6FC4BDBA282
+take 689.95 bps
+label MEASURED
+size 100000000000000 en entree
+direction 1->0
+measuredAtBlock 50614000
+promptDigest (1/2) 0x7CA143E05DC7F4A 9A27E22CD8A8ABDF9 5A20B090601D17599D
+Sign message
+```
+
+Sixteen screens, then a signature — `v=28`. The number a human approves is the number the
+measurement produced, shown on hardware the page cannot repaint.
+
+**What is still not verified.** No physical device. Speculos runs the same app binary and the same
+display code, which is why Ledger ships it for exactly this, but an emulator is not a Nano in a
+hand.
+
+**The setting, and why it matters more than it looks.** The app renders an arbitrary EIP-712
+struct only when **"Raw messages — Displays raw content of EIP712 messages"** is enabled. It is
+**off by default**, and a user who never enables it gets no signature from this path — which is
+correct behaviour on our side: `ledger.ts` has no `signEIP712HashedMessage` fallback, so it
+refuses rather than signing a hash nobody read.
+
+But the app's own error points at the wrong switch. Ask for the filtered display path and the
+screen reads:
 
 > Blind signing must be enabled in settings
 
-The Ethereum app renders an arbitrary EIP-712 struct field by field only when it has **filter
-descriptors** for that schema — the clear-signing metadata Ledger publishes per contract and per
-message type. `TareGuardApproval` is ours; Ledger has never seen it; so the app offers the only
-thing left, which is to sign a hash blind. Status word `0x6a80`, "invalid data received".
-
-**That is exactly what this project refuses.** A blind signature attests that a hash was approved,
-not that a human read "this hook takes 689.95 bps". `ledger.ts:20` says so and has no
-`signEIP712HashedMessage` fallback, which is why the run ends in a refusal rather than a
-signature. A guard that fails to "yes" guards nothing, and a guard that signs what the screen
-cannot show is the same failure wearing a device.
-
-**What remains, named precisely.** Registering EIP-712 filter descriptors for
-`TareGuardApproval` with Ledger — the same submission path any dApp follows to get clear signing —
-is what turns the screen from a hash into nine labelled lines. Until that is accepted, the honest
-statement is this one: the path works up to the device, and the device asks for a concession we
-will not make.
-
-Reproduce:
-
-```bash
-curl -sL https://github.com/LedgerHQ/app-ethereum/releases/download/1.22.3/app-1.22.3-nanox.elf -o eth.elf
-docker run -d --name speculos -p 5010:5000 -v "$PWD":/apps ghcr.io/ledgerhq/speculos:latest \
-  --model nanox --display headless --api-port 5000 /apps/eth.elf
-cd packages/guard && npm i --no-save @ledgerhq/hw-transport-node-speculos-http
-```
+Blind signing is **not** the setting that makes this work. Enabling it yields a hash, which is the
+thing we refuse. The setting that produces the sixteen readable screens above is **Raw messages**,
+and nothing in the message says so. That misdirection is written up in
+[`OPEN-SOURCE.md`](../OPEN-SOURCE.md) as the one thing worth reporting upstream.
 

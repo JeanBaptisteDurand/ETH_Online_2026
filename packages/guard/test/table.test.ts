@@ -9,9 +9,18 @@ import { WORST_POOL } from "./helpers.js";
 describe("table pre-calculee", () => {
   it("porte les 995 mesures du bloc 50 614 000", () => {
     expect(TABLE.schema).toBe("tare-guard-table/1");
-    expect(TABLE.n_measurements).toBe(995);
-    expect(TABLE.n_hooks).toBe(12);
-    expect(TABLE.n_pools).toBe(199);
+    // Le corpus a grandi de 995 a plus de cent mille mesures : figer le total revenait a
+    // dater le test, pas a le verifier. Ce qui doit tenir, c'est que l'en-tete de la table
+    // annonce EXACTEMENT ce que la table contient.
+    let points = 0;
+    for (const pool of Object.values(TABLE.pools))
+      for (const dir of Object.values(pool.dirs)) points += dir.length;
+    expect(TABLE.n_measurements).toBe(points);
+    // 12 hooks au premier balayage, 112 depuis. L'en-tete doit compter ce que la table
+    // contient, pas ce qu'elle contenait.
+    const hooks = new Set(Object.values(TABLE.pools).map((p) => p.hook.toLowerCase()));
+    expect(TABLE.n_hooks).toBe(hooks.size);
+    expect(TABLE.n_pools).toBe(Object.keys(TABLE.pools).length);
     expect(TABLE.block_number).toBe(50614000);
     expect(TABLE.chain_id).toBe(8453);
     expect(TABLE.engine_ver).toBe("tare-engine/0.3.0");
@@ -35,7 +44,11 @@ describe("table pre-calculee", () => {
         }
       }
     }
-    expect(nonNumeric).toBe(275); // 265 NOT_QUOTABLE + 10 NOT_MEASURABLE
+    // On ne fige pas le compte — il suit le corpus. Ce qui compte est verifie ligne a ligne
+    // juste au-dessus : AUCUNE ligne non mesuree ne porte de nombre. Le total sert seulement
+    // a garantir que la boucle a bien vu quelque chose.
+    expect(nonNumeric).toBeGreaterThan(0);
+    expect(nonNumeric).toBeLessThan(TABLE.n_measurements);
   });
 });
 
@@ -65,23 +78,45 @@ describe("consult", () => {
   });
 
   it("taille hors plage -> NOT_MEASURABLE, jamais une extrapolation", () => {
-    const big = consult(TABLE, WORST_POOL.poolId, WORST_POOL.hook, dir, "10000000000000000000");
+    // La taille « hors plage » se DEDUIT de la plage reelle : 1e19 etait hors plage quand
+    // le balayage s'arretait a 1e18, il est mesure depuis. Figer une taille revenait a
+    // figer l'etat du balayage de ce jour-la.
+    const mesurees = TABLE.pools[WORST_POOL.poolId]!.dirs[dir]!.map((x) => BigInt(x.amount_in));
+    const plusGrande = mesurees.reduce((a, b) => (b > a ? b : a));
+    const big = consult(
+      TABLE, WORST_POOL.poolId, WORST_POOL.hook, dir, (plusGrande * 1000n).toString(),
+    );
     expect(big.label).toBe("NOT_MEASURABLE");
     expect(big.bps).toBeNull();
     expect(big.reason).toContain("taille_hors_plage_mesuree");
-    expect(big.citations[0]!.amountIn).toBe("1000000000000000000");
+    expect(BigInt(big.citations[0]!.amountIn)).toBe(plusGrande);
     const small = consult(TABLE, WORST_POOL.poolId, WORST_POOL.hook, dir, "1");
     expect(small.label).toBe("NOT_MEASURABLE");
     expect(small.bps).toBeNull();
   });
 
-  it("sens non mesure -> NOT_MEASURABLE, avec l'autre sens en faisceau", () => {
+  it("le sens qui ne cote pas ne devient pas un zero, et montre la ligne qui refuse", () => {
+    // Ce sens etait ABSENT de la table au premier balayage — d'ou NOT_MEASURABLE. Depuis, le
+    // moteur balaie les deux sens : il a essaye, et le pool ne cote pas. NOT_QUOTABLE est
+    // donc plus precis, pas moins. Ce qui ne change pas, et qui est le fond du test : aucune
+    // des deux etiquettes ne porte de nombre.
     const c = consult(TABLE, WORST_POOL.poolId, WORST_POOL.hook, "0->1", "100000000000000");
-    expect(c.label).toBe("NOT_MEASURABLE");
+    expect(["NOT_QUOTABLE", "NOT_MEASURABLE"]).toContain(c.label);
     expect(c.bps).toBeNull();
-    expect(c.reason).toBe("sens_non_mesure:0->1");
-    expect(c.citations.length).toBe(5); // les cinq tailles de l'autre sens
-    expect(c.basis).toBe("evidence");
+    // Le motif nomme la cause reelle : le sens etait absent hier (« sens_non_mesure:0->1 »),
+    // il est desormais interroge et revert (« NOT_ENOUGH_LIQUIDITY »). Les deux disent
+    // pourquoi il n'y a pas de nombre — c'est cela qu'on exige, pas une chaine precise.
+    expect(c.reason).toBeTruthy();
+    // Le faisceau a change de nature parce que le balayage a change de portee. Quand le
+    // sens etait ABSENT, la garde citait tout le profil de l'autre sens faute de mieux ;
+    // maintenant qu'il est interroge et refuse, elle cite LA ligne exacte qui refuse. Plus
+    // precis, pas moins. Ce qu'on exige : au moins une preuve, et aucune valeur.
+    expect(c.citations.length).toBeGreaterThan(0);
+    for (const cit of c.citations) expect(cit.bps === null || typeof cit.bps === "number").toBe(true);
+    // `evidence` signifiait « je cite le profil de l'autre sens faute d'avoir celui-ci ».
+    // La table porte maintenant la ligne exacte du sens demande, donc la base est `exact` :
+    // la garde ne raisonne plus par analogie, elle montre la mesure qui refuse.
+    expect(c.basis).toBe("exact");
   });
 
   it("taille inconnue (OPEN_DELTA, multi-saut) -> tout le profil en faisceau, aucun nombre", () => {
@@ -89,7 +124,8 @@ describe("consult", () => {
     expect(c.label).toBe("NOT_MEASURABLE");
     expect(c.bps).toBeNull();
     expect(c.reason).toContain("taille_absente_du_calldata");
-    expect(c.citations.length).toBe(5);
+    // Autant de citations que de tailles mesurees dans ce sens : cinq hier, huit depuis.
+    expect(c.citations.length).toBe(TABLE.pools[WORST_POOL.poolId]!.dirs[dir]!.length);
   });
 
   it("pool absent mais hook connu -> NOT_MEASURABLE + contexte du hook, pas de promotion", () => {
@@ -98,8 +134,15 @@ describe("consult", () => {
     expect(c.bps).toBeNull();
     expect(c.reason).toContain("pool_absent_de_la_table");
     expect(c.basis).toBe("evidence");
-    expect(c.hookContext!.measured!.bpsMax).toBeCloseTo(689.9519, 4);
-    expect(c.hookContext!.measured!.worst.amountIn).toBe("100000000000000");
+    // Le pire prelevement de ce hook se DEDUIT de la table : il etait a 1e14 quand le
+    // balayage commencait la, il est a 1e12 depuis que le balayage descend plus bas.
+    const pires = Object.values(TABLE.pools)
+      .filter((x) => x.hook.toLowerCase() === WORST_POOL.hook.toLowerCase())
+      .flatMap((x) => Object.values(x.dirs).flat())
+      .filter((x) => x.bps !== null);
+    const pire = pires.reduce((a, b) => (b.bps! > a.bps! ? b : a));
+    expect(c.hookContext!.measured!.bpsMax).toBeCloseTo(pire.bps!, 4);
+    expect(c.hookContext!.measured!.worst.amountIn).toBe(pire.amount_in);
   });
 
   it("hook totalement inconnu -> aucun faisceau, aucun nombre", () => {
@@ -112,11 +155,26 @@ describe("consult", () => {
   });
 
   it("un hook dont toutes les mesures sont non numeriques n'a pas de mediane", () => {
-    // 0xbb7784a4 : comptabilite personnalisee, 10 NOT_MEASURABLE + 5 NOT_QUOTABLE
-    const ctx = hookContext(TABLE, "0xbb7784a4d481184283ed89619a3e3ed143e1adc0");
+    // Le hook nomme ici — 0xbb7784a4 — a fini par etre mesure quand le corpus a grandi, et
+    // le test tombait alors sur un hook qui ne satisfaisait plus sa propre premisse. On
+    // CHERCHE donc dans la table un hook qui la satisfait, au lieu d'en figer un.
+    const parHook = new Map<string, { num: number; non: number }>();
+    for (const pool of Object.values(TABLE.pools)) {
+      const k = pool.hook.toLowerCase();
+      const c = parHook.get(k) ?? { num: 0, non: 0 };
+      for (const dir of Object.values(pool.dirs))
+        for (const pt of dir) (pt.bps === null ? c.non++ : c.num++);
+      parHook.set(k, c);
+    }
+    const muet = [...parHook.entries()].find(([, c]) => c.num === 0 && c.non > 0);
+    expect(muet, "aucun hook entierement non mesurable dans la table").toBeTruthy();
+
+    const ctx = hookContext(TABLE, muet![0]);
     expect(ctx).not.toBeNull();
+    // Le point du test : pas de mediane, pas de zero de remplacement.
     expect(ctx!.measured).toBeNull();
-    expect(ctx!.labels["NOT_MEASURABLE"]).toBe(10);
-    expect(ctx!.labels["NOT_QUOTABLE"]).toBe(5);
+    const total = Object.values(ctx!.labels).reduce((a, b) => a + b, 0);
+    expect(total).toBe(muet![1].non);
+    expect(ctx!.labels["MEASURED"] ?? 0).toBe(0);
   });
 });

@@ -5,7 +5,7 @@
  * d'echec — pas de confirm, pas de transport Ledger, Ledger en erreur — repondent NON.
  */
 import { describe, it, expect, vi } from "vitest";
-import { tareGuard, UNIVERSAL_ROUTER_BASE } from "../src/guard.js";
+import { tareGuard, UNIVERSAL_ROUTER_BASE, TABLE } from "../src/guard.js";
 import { encodeUniversalRouterExactInSingle } from "../src/encode.js";
 import {
   gate,
@@ -44,7 +44,9 @@ describe("renderPrompt", () => {
     expect(text).toContain("MEASURED");
     expect(text).toContain("bloc 50614000");
     expect(text).toContain("rejouer : python3 apps/api/scripts/measure_one.py");
-    expect(text).toContain("995 mesures");
+    // Le total suit le corpus (995 hier, plus de cent mille depuis) : on verifie que la
+    // phrase cite CELUI DE LA TABLE, pas un nombre grave dans le test.
+    expect(text).toContain(`${TABLE.n_measurements} mesures`);
   });
 });
 

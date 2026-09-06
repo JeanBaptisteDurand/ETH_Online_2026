@@ -22,19 +22,19 @@ fi
 n=$(wc -l < docs/dataset/measurements.jsonl | tr -d ' ')
 echo "== corpus : $n mesures =="
 
-echo "== 1/9 graphe =="
+echo "== 1/10 graphe =="
 ( cd engine && python3 -m tare.graph.cli build --out tare/graph/data/graph.json )
 
-echo "== 2/9 fixtures de parite TypeScript <-> Python =="
+echo "== 2/10 fixtures de parite TypeScript <-> Python =="
 bash scripts/regen-fixtures.sh
 
-echo "== 3/9 tableau « what we found » du README =="
+echo "== 3/10 tableau « what we found » du README =="
 PYTHONPATH=engine python3 -m tare.dataset.stats --write-readme
 
-echo "== 4/9 tableau « what the graph reveals » du README =="
+echo "== 4/10 tableau « what the graph reveals » du README =="
 ( cd engine && python3 -m tare.graph.readme --write-readme )
 
-echo "== 5/9 analyse des sources =="
+echo "== 5/10 analyse des sources =="
 # Trois verbes, dans cet ordre : recuperer les sources verifiees, lire le taux que chaque
 # contrat declare, puis rendre le document. Une version anterieure appelait `report --write`
 # — un drapeau qui n'existe pas — en avalant l'erreur avec 2>/dev/null, puis annoncait
@@ -50,17 +50,23 @@ echo "== 5/9 analyse des sources =="
   && python3 -m tare.source.cli analyze --rpc "$RPC_SOURCE" \
   && python3 -m tare.source.cli report )
 
-echo "== 6/9 index RAG (les en-tetes citent le graphe, donc apres lui) =="
+echo "== 6/10 index RAG (les en-tetes citent le graphe, donc apres lui) =="
 ( cd engine && python3 -m tare.rag build --write 2>/dev/null ) || \
   ( cd engine && python3 -m tare.rag build )
 
-echo "== 7/9 banc des deux recuperateurs =="
+echo "== 7/10 banc des deux recuperateurs =="
 ( cd engine && python3 -m tare.rag.split --write --quiet )
 
-echo "== 8/9 jeu embarque par le site =="
+echo "== 8/10 table de la garde =="
+# Sans cette etape, la garde consulte une table figee au jour de sa derniere construction.
+# Elle a tourne sur 199 pools pendant que le corpus en couvrait 7 817 : elle repondait
+# « pool inconnu » sur 97 % de ce qu'elle savait deja mesurer.
+( cd packages/guard && npm run build:table --silent )
+
+echo "== 9/10 jeu embarque par le site =="
 node apps/web/scripts/build-dataset.mjs
 
-echo "== 9/9 texte de soumission =="
+echo "== 10/10 texte de soumission =="
 ( cd engine && python3 -m tare.submission.build --write )
 
 echo

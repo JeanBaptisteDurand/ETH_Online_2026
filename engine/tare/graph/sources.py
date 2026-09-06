@@ -65,7 +65,19 @@ def read_measurements(path: Path = DEFAULT_MEASUREMENTS,
                 line = line.strip()
                 if line:
                     rows.append(json.loads(line))
-    return rows
+
+    # LA MEME regle de deduplication que le moteur, pas une seconde ecrite ici.
+    #
+    # Le fichier est en ajout seul : une cellule mesuree deux fois y figure deux fois. Le
+    # moteur tranche avec `sweep.dedupe`, qui prefere une OBSERVATION a un enregistrement de
+    # panne — une ligne « le nud etait injoignable » ne doit pas effacer une mesure reussie.
+    # Le graphe, lui, gardait simplement la derniere ligne lue. Les deux regles divergeaient
+    # sur treize cellules : le graphe publiait dix nombres MEASURED que le jeu, lui, avait
+    # depuis retracte en NOT_MEASURABLE. Un graphe qui affirme ce que sa source ne soutient
+    # plus est pire qu'un graphe perime, parce que rien ne le signale.
+    from ..sweep import dedupe
+
+    return dedupe(rows)
 
 
 def read_registry(path: Path = DEFAULT_HOOKLIST) -> List[dict]:

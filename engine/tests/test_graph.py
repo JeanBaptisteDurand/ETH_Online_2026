@@ -309,7 +309,7 @@ class TestRequetes(unittest.TestCase):
         r = Q.hook_summary(self.g, HOOK_A)
         self.assertEqual(r["worst_measurement"]["bps"], 500.0)
         self.assertEqual(r["worst_measurement"]["pool_id"], POOL_1)
-        self.assertIn("make measure", r["worst_measurement"]["replay"])
+        self.assertIn("make replay", r["worst_measurement"]["replay"])
 
 
 # -------------------------------------------------------------------- honnetete
@@ -559,10 +559,15 @@ class TestGrapheReel(unittest.TestCase):
             if d.get("kind") != NodeKind.MEASUREMENT:
                 continue
             a = d["attrs"]
-            self.assertIn("make measure", a["replay"])
+            # La commande doit designer LA cellule, pas le hook : un hook a jusqu'a
+            # 1 471 pools, et l'ancienne forme `make measure HOOK=...` les remesurait tous
+            # (plus de dix minutes, deja constate). Ce qui identifie une mesure de facon
+            # unique, c'est le triplet pool / taille / sens.
+            self.assertIn("make replay", a["replay"])
             self.assertIn(str(a["block_number"]), a["replay"])
             self.assertIn(a["amount_in"], a["replay"])
-            self.assertIn(a["hook"], a["replay"])
+            self.assertIn(a["pool_id"], a["replay"])
+            self.assertIn("0>1" if a["zero_for_one"] else "1>0", a["replay"])
 
     def test_les_etiquettes_sont_celles_du_moteur(self):
         compte = {lab: 0 for lab in LABELS}
@@ -594,8 +599,18 @@ class TestGrapheReel(unittest.TestCase):
 
     def test_le_hook_le_plus_preleveur(self):
         r = self.s.hook_summary("0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc")
-        self.assertEqual(r["profile"]["bps_max"], 1176.4601)
-        self.assertEqual(r["n_pools"], 31)
+        # Ce test nommait ce hook « le plus preleveur » et figeait 1176.4601. Les deux sont
+        # tombes : le balayage a trouve mieux sur ce hook (1176.4705) et surtout un autre
+        # hook prend 9 999 bps. Un test ne doit pas porter un superlatif que la mesure
+        # suivante dement. Ce qui doit tenir, c'est que le resume du graphe s'accorde avec
+        # les mesures qu'il range — pour CE hook, quel que soit son rang.
+        siennes = [m["bps"] for m in self.mes
+                   if m["hook"].lower() == r["address"].lower()
+                   and m["label"] == "MEASURED" and m["bps"] is not None]
+        self.assertTrue(siennes)
+        self.assertEqual(r["profile"]["bps_max"], max(siennes))
+        self.assertEqual(r["n_pools"], len({m["pool_id"] for m in self.mes
+                                            if m["hook"].lower() == r["address"].lower()}))
         # Et il partage son deployeur avec un autre hook Clanker.
         self.assertEqual(len(self.s.deployer_cluster(r["hook"])["siblings"]), 1)
 
@@ -624,9 +639,17 @@ class TestGrapheReel(unittest.TestCase):
     def test_desaccord_registre_mesure(self):
         r = self.s.disagreement(8453, 1.0)
         plats = [x["address"] for x in r["registry_says_active_measure_says_flat"]]
-        self.assertEqual(plats, ["0x3b2b979df21036cee51b8debb13100e2cb8deacc"])
-        self.assertEqual(r["registry_says_active_measure_says_flat"][0]["profile"]["bps_max"],
-                         0.0019)
+        # Le corpus grandit et ce compte avec lui : il etait de 1, il est de 2. Ce qui doit
+        # tenir, c'est que le cas connu y figure et que chaque entree porte bien un profil
+        # plat mesure — pas la longueur de la liste.
+        self.assertIn("0x3b2b979df21036cee51b8debb13100e2cb8deacc", plats)
+        for x in r["registry_says_active_measure_says_flat"]:
+            self.assertTrue(x["profile"]["flat"])
+            self.assertGreater(x["profile"]["n_measured"], 0)
+        # 0.0019 etait le maximum du jour. Ce que le verdict AFFIRME, c'est que la mesure
+        # reste SOUS le seuil de platitude ; c'est cela qu'il faut verifier, pas un nombre.
+        for x in r["registry_says_active_measure_says_flat"]:
+            self.assertLess(x["profile"]["bps_max"], r["flat_bps"])
         # Les hooks que l'on ne peut PAS comparer : une revendication vanillaSwap, et aucune
         # mesure MEASURED. Ils ne comptent ni comme accord ni comme desaccord — c'est la
         # troisieme colonne que le projet refuse de laisser tomber dans l'une des deux autres.

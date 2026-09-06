@@ -227,40 +227,46 @@ rather than a number is [`engine/tare/sweep.py:137-142`](../engine/tare/sweep.py
   a token to a recipient and it cannot distinguish a fee taken by the hook from output diverted
   anywhere else.
 
-## 11. The Ledger approval has never touched a Ledger
+## 11. The Ledger approval was run against Speculos, and the device asked for blind signing
 
-The guard can ask a Ledger device to approve a swap: `packages/guard/src/ledger.ts` opens a device
-over WebHID, builds an EIP-712 message whose fields are the pool, the hook, the measured bps, the
-label, the size, the direction and the measurement block, and calls `signEIP712Message` through
-`@ledgerhq/hw-app-eth@7.8.16` / `@ledgerhq/hw-transport-webhid@6.36.0`.
+The approval path is written, typed and tested: `packages/guard/src/ledger.ts` builds an EIP-712
+message whose fields are the guard's own — verdict, hook, poolId, take, label, size, direction,
+`measuredAtBlock`, `promptDigest` — and thirty-two tests exercise every failure route against a
+fake transport. None of them can return `approved: true` by accident.
 
-**That code has never been executed against a physical device, and never against Speculos.** Every
-test it has is against a fake device object ([`packages/guard/test/ledger.test.ts`](../packages/guard/test/ledger.test.ts));
-nobody involved in this project has seen these fields rendered on a real screen. Reproduce what
-*is* verified with `cd packages/guard && npm install && npm run typecheck && npm test`.
+**It has now been executed against Ledger's own emulator.** Speculos, running the official
+Ethereum app **1.22.3** for Nano X, downloaded from `LedgerHQ/app-ethereum` releases. The
+transport connects, the device answers `getAddress` with
+`0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D`, and the guard's typed data — eight fields,
+primary type `TareGuardApproval` — reaches it.
 
-What is therefore unknown: how the Ledger Ethereum app lays out these field names on the device
-screen, whether long string values are truncated or paged, how it renders the `TareSwap[]` array or
-an empty one, and which `v` a real device returns. No **ERC-7730** clear-signing descriptor has
-been written or submitted to Ledger's registry, so the rendering is whatever the generic EIP-712
-renderer does.
+**And the device refuses to display it.** With `fullImplem: true` the screen reads, verbatim:
 
-What *is* verified, and is the property that matters: **every failure path answers no.** No
-transport, no `navigator.hid`, a device that will not open, any error raised while signing, a
-human rejection (`0x6985`), an unreadable signature, a call carrying text but no report — each
-returns `approved: false` with a reason naming the cause. Note the honest edge of that list: the
-real-world reasons a signature fails — device locked, Ethereum app not open, cable pulled — all
-share one `catch`, and it is that code path that has been exercised, not the causes themselves.
+> Blind signing must be enabled in settings
 
-There is deliberately no `signEIP712HashedMessage` fallback for devices too old for full typed
-data: that call displays two hashes, which is the blind blob the whole design exists to refuse, so
-an incapable device gets a refusal instead of a signature.
+The Ethereum app renders an arbitrary EIP-712 struct field by field only when it has **filter
+descriptors** for that schema — the clear-signing metadata Ledger publishes per contract and per
+message type. `TareGuardApproval` is ours; Ledger has never seen it; so the app offers the only
+thing left, which is to sign a hash blind. Status word `0x6a80`, "invalid data received".
 
-And when it does work, the attestation is bounded: a signature says *this device displayed these
-fields and a human approved*. It says nothing about whether the bps figure is right, whether the
-hook still behaves that way at the current block, or what happened to the transaction afterwards.
+**That is exactly what this project refuses.** A blind signature attests that a hash was approved,
+not that a human read "this hook takes 689.95 bps". `ledger.ts:20` says so and has no
+`signEIP712HashedMessage` fallback, which is why the run ends in a refusal rather than a
+signature. A guard that fails to "yes" guards nothing, and a guard that signs what the screen
+cannot show is the same failure wearing a device.
 
----
+**What remains, named precisely.** Registering EIP-712 filter descriptors for
+`TareGuardApproval` with Ledger — the same submission path any dApp follows to get clear signing —
+is what turns the screen from a hash into nine labelled lines. Until that is accepted, the honest
+statement is this one: the path works up to the device, and the device asks for a concession we
+will not make.
 
-Labels and their exact meanings: [`HONESTY.md`](HONESTY.md). How the number is produced:
-[`METHOD.md`](METHOD.md). Feedback to the Uniswap stack: [`../FEEDBACK.md`](../FEEDBACK.md).
+Reproduce:
+
+```bash
+curl -sL https://github.com/LedgerHQ/app-ethereum/releases/download/1.22.3/app-1.22.3-nanox.elf -o eth.elf
+docker run -d --name speculos -p 5010:5000 -v "$PWD":/apps ghcr.io/ledgerhq/speculos:latest \
+  --model nanox --display headless --api-port 5000 /apps/eth.elf
+cd packages/guard && npm i --no-save @ledgerhq/hw-transport-node-speculos-http
+```
+

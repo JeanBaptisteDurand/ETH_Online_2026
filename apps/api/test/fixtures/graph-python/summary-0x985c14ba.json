@@ -13,16 +13,16 @@
   "BEFORE_SWAP",
   "BEFORE_SWAP_RETURNS_DELTA"
  ],
- "n_pools": 1217,
+ "n_pools": 1218,
  "profile": {
-  "n": 19472,
+  "n": 19488,
   "by_label": {
-   "MEASURED": 12400,
+   "MEASURED": 12408,
    "INTERPOLATED": 0,
    "NOT_MEASURABLE": 1,
-   "NOT_QUOTABLE": 7071
+   "NOT_QUOTABLE": 7079
   },
-  "n_measured": 12400,
+  "n_measured": 12408,
   "bps_min": 0.0,
   "bps_max": 100.0,
   "bps_median": 99.9557,

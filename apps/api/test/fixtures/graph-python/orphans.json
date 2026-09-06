@@ -1,7 +1,7 @@
 {
  "scope": "chain_id=8453, pools connus = ceux de docs/dataset/measurements.jsonl",
  "n_listed": 272,
- "n_orphans": 244,
+ "n_orphans": 238,
  "orphans": [
   {
    "id": "hook:8453:0x000052423c1db6b7ff8641b85a7eefc7b2791888",
@@ -396,20 +396,6 @@
    "code_size": null
   },
   {
-   "id": "hook:8453:0x3e342a06f9592459d75721d6956b570f02ef2dc0",
-   "address": "0x3e342a06f9592459d75721d6956b570f02ef2dc0",
-   "label": "UniswapV4ScheduledMulticurveInitializerHook",
-   "bytecode_status": "CODE",
-   "code_size": 3315
-  },
-  {
-   "id": "hook:8453:0x3e83479b2276ecfb7c7181f67b5d092d3511e0c4",
-   "address": "0x3e83479b2276ecfb7c7181f67b5d092d3511e0c4",
-   "label": "TruthMarketHook",
-   "bytecode_status": "UNAVAILABLE",
-   "code_size": null
-  },
-  {
    "id": "hook:8453:0x3f67d62bbe3bc3d816c0adda020151008daa5000",
    "address": "0x3f67d62bbe3bc3d816c0adda020151008daa5000",
    "label": "SaturnOmnichainV4Hook",
@@ -746,13 +732,6 @@
    "code_size": null
   },
   {
-   "id": "hook:8453:0x702b1fe403ec993a102adde47f2ab52eb2eadacc",
-   "address": "0x702b1fe403ec993a102adde47f2ab52eb2eadacc",
-   "label": "StonkHook",
-   "bytecode_status": "UNAVAILABLE",
-   "code_size": null
-  },
-  {
    "id": "hook:8453:0x704268ac7043aeef50f47b6a03ae68ccf808e044",
    "address": "0x704268ac7043aeef50f47b6a03ae68ccf808e044",
    "label": "BTC ACC Hook (Base)",
@@ -858,13 +837,6 @@
    "code_size": 23240
   },
   {
-   "id": "hook:8453:0x805975d27518e3e23c4838802d9dda7302dca044",
-   "address": "0x805975d27518e3e23c4838802d9dda7302dca044",
-   "label": "AdvancedFeeHook",
-   "bytecode_status": "UNAVAILABLE",
-   "code_size": null
-  },
-  {
    "id": "hook:8453:0x80887f4ce589c973ebb1f6f81b6f6bb492106fdc",
    "address": "0x80887f4ce589c973ebb1f6f81b6f6bb492106fdc",
    "label": "BoardHook",
@@ -959,13 +931,6 @@
    "id": "hook:8453:0x8e04235b0a61dab93ab99c0bef82a407a8af5040",
    "address": "0x8e04235b0a61dab93ab99c0bef82a407a8af5040",
    "label": "ZoraV4CoinHook",
-   "bytecode_status": "UNAVAILABLE",
-   "code_size": null
-  },
-  {
-   "id": "hook:8453:0x8e7640e6bbcc483be39c9898a41dae86013368cc",
-   "address": "0x8e7640e6bbcc483be39c9898a41dae86013368cc",
-   "label": "ClankerHookStaticFeeV2",
    "bytecode_status": "UNAVAILABLE",
    "code_size": null
   },
@@ -1514,13 +1479,6 @@
    "label": "SaturnOmnichainV4Hook",
    "bytecode_status": "UNAVAILABLE",
    "code_size": null
-  },
-  {
-   "id": "hook:8453:0xdfe0f6d6cdda8f8ea47d6c5bddbdea51425290c0",
-   "address": "0xdfe0f6d6cdda8f8ea47d6c5bddbdea51425290c0",
-   "label": "HomelanderUniV4Plugin",
-   "bytecode_status": "CODE",
-   "code_size": 6202
   },
   {
    "id": "hook:8453:0xe0e522e5888e398d9e5d4d90a48c489425cb2888",

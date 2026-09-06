@@ -1,0 +1,453 @@
+{
+  "address": "0x8f29bd5c8429730fa4c46e6295c4e679ededd0cc",
+  "attempts": [
+    {
+      "creation_match": null,
+      "match": "match",
+      "outcome": "FOUND",
+      "provider": "sourcify",
+      "runtime_match": "match",
+      "verified_at": "2026-05-25T05:56:35Z"
+    }
+  ],
+  "chain_id": 8453,
+  "creation_match": null,
+  "fetched_at": "2026-09-06T05:28:26+00:00",
+  "file_count": 71,
+  "files": [
+    {
+      "bytes": 22940,
+      "path": "contracts/AegisHook.sol",
+      "sha256": "68f485a1baa37b77fc8e7d9106263572410d5f51bdf998aeda5404ad34e52205",
+      "vendored": false
+    },
+    {
+      "bytes": 2951,
+      "path": "contracts/interfaces/IAegisDependencies.sol",
+      "sha256": "1b974266be1218384e7c9b4e484e51aaef910862efda28715426274e18c8ce90",
+      "vendored": false
+    },
+    {
+      "bytes": 19793,
+      "path": "contracts/interfaces/IAegisEngine.sol",
+      "sha256": "80a3b15ec2cd0fb93b13511ded170c41d27eecc0fee0553817c17c077fa39c63",
+      "vendored": false
+    },
+    {
+      "bytes": 5348,
+      "path": "contracts/interfaces/IAegisHook.sol",
+      "sha256": "da74bd85209dada986bb9d5bb6d1f1c78f8f35f7d82e62340aeec78f1f198d49",
+      "vendored": false
+    },
+    {
+      "bytes": 161,
+      "path": "contracts/interfaces/IHookAuthorizable.sol",
+      "sha256": "cb3a2ec0a37c114277826412426ccee709d5b32cdbf54a980facb1010dd240cf",
+      "vendored": false
+    },
+    {
+      "bytes": 10228,
+      "path": "contracts/interfaces/ILimitOrderManager.sol",
+      "sha256": "3fd1f048092b324f3a3412b5c0e80ae8622d3e68c4d1d6158ed8281efe29203f",
+      "vendored": false
+    },
+    {
+      "bytes": 5966,
+      "path": "contracts/interfaces/IOracleManager.sol",
+      "sha256": "c496f174339a43bf8bea5cb4920f1652f316262d2d26cb1e39a14a8d0b4ad72b",
+      "vendored": false
+    },
+    {
+      "bytes": 863,
+      "path": "contracts/interfaces/IV4PositionManager.sol",
+      "sha256": "44ef518e4e959a729b3bdf6aebf1336621dd39fe7de586f6f1e1fc1c7d921c82",
+      "vendored": false
+    },
+    {
+      "bytes": 3880,
+      "path": "contracts/interfaces/dfm/IDynamicFeeManager.sol",
+      "sha256": "cc68c6156d26e6c2224e557594d20ae361fdcf63bac7263af9cf95dc157486a6",
+      "vendored": false
+    },
+    {
+      "bytes": 3270,
+      "path": "contracts/libraries/ae/Constants.sol",
+      "sha256": "6989d5401859bb6de9c400b99cf4121e7438ba3e5f027d61dabe570608deb93d",
+      "vendored": false
+    },
+    {
+      "bytes": 6666,
+      "path": "contracts/libraries/ae/math/LUnitMath.sol",
+      "sha256": "776008aaf84e9a38dc4e2e44b1d77a3fd36532e695354bfd7b709196ad2046fb",
+      "vendored": false
+    },
+    {
+      "bytes": 1464,
+      "path": "contracts/libraries/ae/math/SqrtMath.sol",
+      "sha256": "7ead2fbf3e1720d16f0d2031592471955b844f37cc8d7267bf7402b20b1e67e8",
+      "vendored": false
+    },
+    {
+      "bytes": 534,
+      "path": "contracts/libraries/dfm/Errors.sol",
+      "sha256": "929462e3bf3c41c81adcb9e996977ec0287f8332a7cb694642a4c4b51a29b1d7",
+      "vendored": false
+    },
+    {
+      "bytes": 226,
+      "path": "contracts/libraries/dfm/PrecisionConstants.sol",
+      "sha256": "c23a2499a3d8ecdd8b17defc2eecc31222bec090896397079674b47b50a6e6c9",
+      "vendored": false
+    },
+    {
+      "bytes": 3129,
+      "path": "contracts/libraries/dfm/RuntimeStructs.sol",
+      "sha256": "f3f132048ae47a4349b096a60e5d9c2a72939d03651f1ece8cca64bc2eb18c01",
+      "vendored": false
+    },
+    {
+      "bytes": 3383,
+      "path": "contracts/libraries/hook/CurrentSwapHookFeeCache.sol",
+      "sha256": "82bdeeed9b6789c727b8bf278110cc593839734099e1f379e090d6c00b5c9836",
+      "vendored": false
+    },
+    {
+      "bytes": 1536,
+      "path": "contracts/libraries/hook/HookRuntime.sol",
+      "sha256": "82aa7f182aa1ca898ccea9fd6e585b6455380a1d4d2367052bbd04cb29d69f8b",
+      "vendored": false
+    },
+    {
+      "bytes": 2869,
+      "path": "contracts/libraries/hook/PackedRuntime.sol",
+      "sha256": "9b58b40dd89fc5ab985c4c55ddf51dc46ba421f290343eddb236021d9cbc3752",
+      "vendored": false
+    },
+    {
+      "bytes": 348,
+      "path": "contracts/types/AegisStructs.sol",
+      "sha256": "d2df5a9491f24e4c344cca0d98c6dccfc8989b9876b1293b52de721d7973ef8d",
+      "vendored": false
+    },
+    {
+      "bytes": 3102,
+      "path": "dependencies/@openzeppelin-contracts-5.1.0/access/Ownable.sol",
+      "sha256": "38578bd71c0a909840e67202db527cc6b4e6b437e0f39f0c909da32c1e30cb81",
+      "vendored": false
+    },
+    {
+      "bytes": 2780,
+      "path": "dependencies/@openzeppelin-contracts-5.1.0/token/ERC20/IERC20.sol",
+      "sha256": "30edf7394bab78d48b7db3a059248e1ea7c2c77d2ec0e37a13bb91415aafbe5a",
+      "vendored": false
+    },
+    {
+      "bytes": 997,
+      "path": "dependencies/@openzeppelin-contracts-5.1.0/token/ERC721/IERC721Receiver.sol",
+      "sha256": "2eae310f371d9107d81d4b1285f897e56074465f7caeeff90b5e3e1770dda7d6",
+      "vendored": false
+    },
+    {
+      "bytes": 963,
+      "path": "dependencies/@openzeppelin-contracts-5.1.0/utils/Context.sol",
+      "sha256": "847fda5460fee70f56f4200f59b82ae622bb03c79c77e67af010e31b7e2cc5b6",
+      "vendored": false
+    },
+    {
+      "bytes": 2830,
+      "path": "dependencies/@openzeppelin-contracts-5.1.0/utils/Pausable.sol",
+      "sha256": "6543160582b3c0319a180f31660faf6ba0a8444acbdb03357c09790a96256835",
+      "vendored": false
+    },
+    {
+      "bytes": 34943,
+      "path": "dependencies/@openzeppelin-contracts-5.1.0/utils/math/SafeCast.sol",
+      "sha256": "9769274bf53f26a7c7896c526ea1980dc9bea5bf5c2a5fd04870008c4afc1de9",
+      "vendored": false
+    },
+    {
+      "bytes": 10054,
+      "path": "dependencies/v4-core-main/lib/solmate/src/utils/FixedPointMathLib.sol",
+      "sha256": "edfd7fa8ec4087d252f637df16669599d5c0ac803ab465730f8cc3a5e8a8d55a",
+      "vendored": true
+    },
+    {
+      "bytes": 1023,
+      "path": "dependencies/v4-core-main/src/interfaces/IExtsload.sol",
+      "sha256": "9421ef4ba198d94058cd9a4c9fd2d663c61fc682f7dafa449a873456853f0025",
+      "vendored": false
+    },
+    {
+      "bytes": 699,
+      "path": "dependencies/v4-core-main/src/interfaces/IExttload.sol",
+      "sha256": "c21643d2c7f48d2d2407438a64a3ff0f376324cf6a0c62608977713652308c9e",
+      "vendored": false
+    },
+    {
+      "bytes": 8229,
+      "path": "dependencies/v4-core-main/src/interfaces/IHooks.sol",
+      "sha256": "6eb35c9c598eb932e963219f1ff180748bc4c30ac6a02d924893b3c29abb1d73",
+      "vendored": false
+    },
+    {
+      "bytes": 12835,
+      "path": "dependencies/v4-core-main/src/interfaces/IPoolManager.sol",
+      "sha256": "a98405333567e4ab344489728014795721cf0071c151536377d2fcc986e0600c",
+      "vendored": false
+    },
+    {
+      "bytes": 2489,
+      "path": "dependencies/v4-core-main/src/interfaces/IProtocolFees.sol",
+      "sha256": "807d68adea106ec2aa51a8009155de09ebfe09e1ee7053d5a5ae448d7e840654",
+      "vendored": false
+    },
+    {
+      "bytes": 3041,
+      "path": "dependencies/v4-core-main/src/interfaces/external/IERC20Minimal.sol",
+      "sha256": "5e966a2d22b3b234a56af4b17e36bf7be90f9b29b1ddb6a15bfefc0b6dab4282",
+      "vendored": false
+    },
+    {
+      "bytes": 3162,
+      "path": "dependencies/v4-core-main/src/interfaces/external/IERC6909Claims.sol",
+      "sha256": "1cd65496c829036bc6aee67bc71363ab5fb6989c65e793087d0e1e2379f7d7d8",
+      "vendored": false
+    },
+    {
+      "bytes": 2609,
+      "path": "dependencies/v4-core-main/src/libraries/BitMath.sol",
+      "sha256": "e8a45eb3d57f9427fc47bbb2543c1a6a5f394113b378123ac7ca9f113a7502b4",
+      "vendored": false
+    },
+    {
+      "bytes": 5174,
+      "path": "dependencies/v4-core-main/src/libraries/CustomRevert.sol",
+      "sha256": "9d3dbe6b742cb1ac30f57df89d879ade9649389de1165fc637114bd062d39fca",
+      "vendored": false
+    },
+    {
+      "bytes": 297,
+      "path": "dependencies/v4-core-main/src/libraries/FixedPoint128.sol",
+      "sha256": "1ca2f55160697b73bd66fd27c8724d79a57108121ce1e8a0ab8b79f38bb58fbb",
+      "vendored": false
+    },
+    {
+      "bytes": 366,
+      "path": "dependencies/v4-core-main/src/libraries/FixedPoint96.sol",
+      "sha256": "66ee26d4fb3ac639124bdfa27d3256d196970997fa127c09e9bf7154e30d4590",
+      "vendored": false
+    },
+    {
+      "bytes": 5463,
+      "path": "dependencies/v4-core-main/src/libraries/FullMath.sol",
+      "sha256": "a9607255a6fd604d9c92f6b7416811c38b9d86e5dfdb0c345a494ebd35f7a4a3",
+      "vendored": false
+    },
+    {
+      "bytes": 16511,
+      "path": "dependencies/v4-core-main/src/libraries/Hooks.sol",
+      "sha256": "297d577998cdede64d48b47b12f15e4f442eea032fbb9676bb3c2f89da89b83c",
+      "vendored": false
+    },
+    {
+      "bytes": 3596,
+      "path": "dependencies/v4-core-main/src/libraries/LPFeeLibrary.sol",
+      "sha256": "e96c3fa7deac991dc09b6c5e560a340d01d6c68ccba483d4b29f8a66e5aa44e0",
+      "vendored": false
+    },
+    {
+      "bytes": 742,
+      "path": "dependencies/v4-core-main/src/libraries/LiquidityMath.sol",
+      "sha256": "67a39e58732340af4870342ba9230691f35501d89ed8725ca1b338deaa0eb26a",
+      "vendored": false
+    },
+    {
+      "bytes": 1200,
+      "path": "dependencies/v4-core-main/src/libraries/ParseBytes.sol",
+      "sha256": "6a6f3d1cec0143fd70ea68c34e6dce3bde72f368b213f1a225ada23dbfd99bb8",
+      "vendored": false
+    },
+    {
+      "bytes": 4813,
+      "path": "dependencies/v4-core-main/src/libraries/Position.sol",
+      "sha256": "3dc4e2ad1564fa94eddf3ff06ce9ac592c9d578ea64ca194050382da454c8fcb",
+      "vendored": false
+    },
+    {
+      "bytes": 2269,
+      "path": "dependencies/v4-core-main/src/libraries/SafeCast.sol",
+      "sha256": "c1a815a41607be5b4c86ca588a951f368156da8ee21bdfc18b5d51b58a0f27be",
+      "vendored": false
+    },
+    {
+      "bytes": 14076,
+      "path": "dependencies/v4-core-main/src/libraries/SqrtPriceMath.sol",
+      "sha256": "42440c21bbab86c7eed4716b281ed5ca281cf14af8b5e06dc6dc3bc6864bcfdf",
+      "vendored": false
+    },
+    {
+      "bytes": 16027,
+      "path": "dependencies/v4-core-main/src/libraries/StateLibrary.sol",
+      "sha256": "eebdbc1b6e431072ce5521b9e1b603d43831e3b6e062743e6665e070d5cf8a1a",
+      "vendored": false
+    },
+    {
+      "bytes": 12382,
+      "path": "dependencies/v4-core-main/src/libraries/TickMath.sol",
+      "sha256": "272d4f6d3ff9ae33596ebcdb84a71a3c2d4542ae8fb5c88ddf1aca8043f5d06b",
+      "vendored": false
+    },
+    {
+      "bytes": 1165,
+      "path": "dependencies/v4-core-main/src/libraries/UnsafeMath.sol",
+      "sha256": "2de236e7ca0b9572a6b0184557565b6fd54e177224e202c727fe248785ede427",
+      "vendored": false
+    },
+    {
+      "bytes": 2339,
+      "path": "dependencies/v4-core-main/src/types/BalanceDelta.sol",
+      "sha256": "320d9c13dec135c3903729e66d3a1040fe86d537a7ee53728915012ca183af32",
+      "vendored": false
+    },
+    {
+      "bytes": 1466,
+      "path": "dependencies/v4-core-main/src/types/BeforeSwapDelta.sol",
+      "sha256": "6aee06f1553e879f5909e8f4c0eac26ec23dd4821a7e56e4d5077db39a227e12",
+      "vendored": false
+    },
+    {
+      "bytes": 5458,
+      "path": "dependencies/v4-core-main/src/types/Currency.sol",
+      "sha256": "ba6726fd24fbc66848208dfbb2899116c10729c505e6e5552316ac2444f1dfc3",
+      "vendored": false
+    },
+    {
+      "bytes": 539,
+      "path": "dependencies/v4-core-main/src/types/PoolId.sol",
+      "sha256": "548424ac50ad58212545da70207283fb8990731578c115c85d5acbcb0e1d3c9f",
+      "vendored": false
+    },
+    {
+      "bytes": 805,
+      "path": "dependencies/v4-core-main/src/types/PoolKey.sol",
+      "sha256": "99e1afe285b5c614ebc9586ab5196db9d24a63fd924a449f5d99f490a6a6d6a9",
+      "vendored": false
+    },
+    {
+      "bytes": 907,
+      "path": "dependencies/v4-core-main/src/types/PoolOperation.sol",
+      "sha256": "cf72ad0c3e5e91662029e862acd841fabce8753040b0d4e802dee64ef1157232",
+      "vendored": false
+    },
+    {
+      "bytes": 7703,
+      "path": "dependencies/v4-periphery-main/lib/permit2/src/interfaces/IAllowanceTransfer.sol",
+      "sha256": "a31c712c5cc8d171818a4225c09011f9ba86b2d5edf6045ac812bab93b6bbb87",
+      "vendored": true
+    },
+    {
+      "bytes": 144,
+      "path": "dependencies/v4-periphery-main/lib/permit2/src/interfaces/IEIP712.sol",
+      "sha256": "e386407da496dbe874c10a81801c55744fb2922a51389a51c79001422e81e0cd",
+      "vendored": true
+    },
+    {
+      "bytes": 818,
+      "path": "dependencies/v4-periphery-main/src/base/ImmutableState.sol",
+      "sha256": "d3ef34f9c00fae08ec1eb24aa341d5d916c4d6d62e6c2118ef4afe9c7470fde5",
+      "vendored": false
+    },
+    {
+      "bytes": 328,
+      "path": "dependencies/v4-periphery-main/src/interfaces/IEIP712_v4.sol",
+      "sha256": "ee4cc46349cc7f1f894197f368ddea0f71f2564c2962822eead755714f3ba57d",
+      "vendored": false
+    },
+    {
+      "bytes": 2137,
+      "path": "dependencies/v4-periphery-main/src/interfaces/IERC721Permit_v4.sol",
+      "sha256": "80680771bccd7bf47641417d5a656f950746072766e24703f354e58c2ee0875c",
+      "vendored": false
+    },
+    {
+      "bytes": 365,
+      "path": "dependencies/v4-periphery-main/src/interfaces/IImmutableState.sol",
+      "sha256": "86f06a1f388f91ee0185495cb5d2912d564f73fabb163b3767e9c292c5069276",
+      "vendored": false
+    },
+    {
+      "bytes": 774,
+      "path": "dependencies/v4-periphery-main/src/interfaces/IMulticall_v4.sol",
+      "sha256": "0c0f4f1cccb7cf63c1ee3dc53e8d48cf867cbff08f5a8f85dd820873277e9481",
+      "vendored": false
+    },
+    {
+      "bytes": 3200,
+      "path": "dependencies/v4-periphery-main/src/interfaces/INotifier.sol",
+      "sha256": "7fadc8550f73d9ae57925bb27f5ab3a134d4c020972a13683e1121fc11691249",
+      "vendored": false
+    },
+    {
+      "bytes": 1435,
+      "path": "dependencies/v4-periphery-main/src/interfaces/IPermit2Forwarder.sol",
+      "sha256": "3b28167d65673e7de2bbed1e6f3508350cf889f8439e8680da23ad7586f4cc57",
+      "vendored": false
+    },
+    {
+      "bytes": 782,
+      "path": "dependencies/v4-periphery-main/src/interfaces/IPoolInitializer_v4.sol",
+      "sha256": "ca6ecf95cfbc647d49b774801d84c49c8213010771b44555b056118102d644fc",
+      "vendored": false
+    },
+    {
+      "bytes": 3501,
+      "path": "dependencies/v4-periphery-main/src/interfaces/IPositionManager.sol",
+      "sha256": "b7aa2a13c92f5f2e5612948359120d1b92263e575ce8d134b4576227f8629569",
+      "vendored": false
+    },
+    {
+      "bytes": 2270,
+      "path": "dependencies/v4-periphery-main/src/interfaces/ISubscriber.sol",
+      "sha256": "9672e03c964da7cd484df290ad3395b6beacd90adcdd8ea2236f835407fb8e2e",
+      "vendored": false
+    },
+    {
+      "bytes": 799,
+      "path": "dependencies/v4-periphery-main/src/interfaces/IUnorderedNonce.sol",
+      "sha256": "12e02d4e7e03a668fc1d493840315b4f2aaee2f366ca677574d37d3811d45701",
+      "vendored": false
+    },
+    {
+      "bytes": 364,
+      "path": "dependencies/v4-periphery-main/src/interfaces/external/IWETH9.sol",
+      "sha256": "d6b24fe796517f53292d6679adf173e1f3c1fc0dc5efedfc69fa4955c1a9c058",
+      "vendored": false
+    },
+    {
+      "bytes": 3774,
+      "path": "dependencies/v4-periphery-main/src/libraries/LiquidityAmounts.sol",
+      "sha256": "dbfbef7aed94a6a56885124f0802b42adf7ee7bdd658f11fed40ffbb93fe6ba5",
+      "vendored": false
+    },
+    {
+      "bytes": 3945,
+      "path": "dependencies/v4-periphery-main/src/libraries/PositionInfoLibrary.sol",
+      "sha256": "5c889e1d5f259291045413e28069101eba1e7b8b72df6586bf54e4de5e525099",
+      "vendored": false
+    },
+    {
+      "bytes": 7103,
+      "path": "dependencies/v4-periphery-main/src/utils/BaseHook.sol",
+      "sha256": "11b5cf3845e6f34974ce0a51eae87ba5f2aa9aa6ddbe8e7b42a86f578038dda5",
+      "vendored": false
+    }
+  ],
+  "match": "match",
+  "own_file_count": 68,
+  "provider": "sourcify",
+  "replay": "curl -s 'https://sourcify.dev/server/v2/contract/8453/0x8f29bd5c8429730fa4c46e6295c4e679ededd0cc?fields=sources'",
+  "runtime_match": "match",
+  "source_status": "FOUND",
+  "total_bytes": 320348,
+  "verified_at": "2026-05-25T05:56:35Z"
+}

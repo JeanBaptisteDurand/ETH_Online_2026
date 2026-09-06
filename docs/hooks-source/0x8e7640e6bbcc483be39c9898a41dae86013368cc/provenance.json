@@ -1,0 +1,567 @@
+{
+  "address": "0x8e7640e6bbcc483be39c9898a41dae86013368cc",
+  "attempts": [
+    {
+      "creation_match": null,
+      "match": "match",
+      "outcome": "FOUND",
+      "provider": "sourcify",
+      "runtime_match": "match",
+      "verified_at": "2026-05-20T11:40:20Z"
+    }
+  ],
+  "chain_id": 8453,
+  "creation_match": null,
+  "fetched_at": "2026-09-06T05:28:25+00:00",
+  "file_count": 90,
+  "files": [
+    {
+      "bytes": 3102,
+      "path": "lib/openzeppelin-contracts/contracts/access/Ownable.sol",
+      "sha256": "38578bd71c0a909840e67202db527cc6b4e6b437e0f39f0c909da32c1e30cb81",
+      "vendored": true
+    },
+    {
+      "bytes": 2322,
+      "path": "lib/openzeppelin-contracts/contracts/governance/utils/IVotes.sol",
+      "sha256": "f033b73ce92762d9ed9496b8a0f5f72bd0479e42388da584c2ff276cbb5cb9b1",
+      "vendored": true
+    },
+    {
+      "bytes": 9711,
+      "path": "lib/openzeppelin-contracts/contracts/governance/utils/Votes.sol",
+      "sha256": "feded838fdab8e52e1a3352f95dd7e63311b2c079f2293bda17633fbefda6d96",
+      "vendored": true
+    },
+    {
+      "bytes": 192,
+      "path": "lib/openzeppelin-contracts/contracts/interfaces/IERC165.sol",
+      "sha256": "49abfb8fa26e3f1715fe05948a96e3762b805bd4a77d103eb40ba96b1acfa144",
+      "vendored": true
+    },
+    {
+      "bytes": 739,
+      "path": "lib/openzeppelin-contracts/contracts/interfaces/IERC5267.sol",
+      "sha256": "efd1ebd1e04b6ef9c3b8781a097588f83da954323f438d54a71dc06508e6c7b8",
+      "vendored": true
+    },
+    {
+      "bytes": 272,
+      "path": "lib/openzeppelin-contracts/contracts/interfaces/IERC5805.sol",
+      "sha256": "6ecc2370599496e6d862c2b4893975ec240f0ef8475daef1d20b5dd1efa90102",
+      "vendored": true
+    },
+    {
+      "bytes": 519,
+      "path": "lib/openzeppelin-contracts/contracts/interfaces/IERC6372.sol",
+      "sha256": "2294c70df203a6a38985d064adca030293bec4b7aaa1237b62c7b1a34154f130",
+      "vendored": true
+    },
+    {
+      "bytes": 6538,
+      "path": "lib/openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol",
+      "sha256": "56380323009ef4a119d44550b910fde1bff9cedde8f7f4c690152c7629bc3338",
+      "vendored": true
+    },
+    {
+      "bytes": 10798,
+      "path": "lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol",
+      "sha256": "feb7aa32b1d12061706ce57a483ccbb4d331807892cb8aad75c4752d9b6b8865",
+      "vendored": true
+    },
+    {
+      "bytes": 2780,
+      "path": "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol",
+      "sha256": "30edf7394bab78d48b7db3a059248e1ea7c2c77d2ec0e37a13bb91415aafbe5a",
+      "vendored": true
+    },
+    {
+      "bytes": 1182,
+      "path": "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Burnable.sol",
+      "sha256": "2e6108a11184dd0caab3f3ef31bd15fed1bc7e4c781a55bc867ccedd8474565c",
+      "vendored": true
+    },
+    {
+      "bytes": 2729,
+      "path": "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Permit.sol",
+      "sha256": "b8b7073ce9e1d0b2e9f65c77da705053b171ddbe34b24e6c2e86c59a70c390fa",
+      "vendored": true
+    },
+    {
+      "bytes": 3606,
+      "path": "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Votes.sol",
+      "sha256": "f2a0c9b7b4b67cec3ae19dad94454da68da553512f22e4eaf39c46447e11815a",
+      "vendored": true
+    },
+    {
+      "bytes": 684,
+      "path": "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol",
+      "sha256": "9e7c70ec72d2f7d592e23ea84f3852b04f91f6f644ce57e0263493046b36afb9",
+      "vendored": true
+    },
+    {
+      "bytes": 3805,
+      "path": "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Permit.sol",
+      "sha256": "026aca1c8ee4574eb9719dca7dfc33e3e57a618715ae702a675e8a8c9ea1e82d",
+      "vendored": true
+    },
+    {
+      "bytes": 963,
+      "path": "lib/openzeppelin-contracts/contracts/utils/Context.sol",
+      "sha256": "847fda5460fee70f56f4200f59b82ae622bb03c79c77e67af010e31b7e2cc5b6",
+      "vendored": true
+    },
+    {
+      "bytes": 1490,
+      "path": "lib/openzeppelin-contracts/contracts/utils/Nonces.sol",
+      "sha256": "9b4cbb85d1f5053c744e83302538eb643a713ffd14bc37665b224f1c66529339",
+      "vendored": true
+    },
+    {
+      "bytes": 1973,
+      "path": "lib/openzeppelin-contracts/contracts/utils/Panic.sol",
+      "sha256": "270fc8401c1a13fae6a7a4a2dd6e381b95d658896701e51f0d3e2688acab3dec",
+      "vendored": true
+    },
+    {
+      "bytes": 4302,
+      "path": "lib/openzeppelin-contracts/contracts/utils/ShortStrings.sol",
+      "sha256": "542d5dfe5e4375d83f2e3b5246b2d0d7507406a4b582844dbc73bd31ed2faa83",
+      "vendored": true
+    },
+    {
+      "bytes": 4182,
+      "path": "lib/openzeppelin-contracts/contracts/utils/StorageSlot.sol",
+      "sha256": "75704538dcb223239280c6726d9a31cf769a7816718517c997fc7d63bdb70778",
+      "vendored": true
+    },
+    {
+      "bytes": 19280,
+      "path": "lib/openzeppelin-contracts/contracts/utils/Strings.sol",
+      "sha256": "3ef32adb80250497b62071d1120d314828e7c6ba46477b3f725be2458b0a3c02",
+      "vendored": true
+    },
+    {
+      "bytes": 7815,
+      "path": "lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol",
+      "sha256": "0964ddd02f4a7a8cf9ba130e3aeead588ca3d425d5bc13cc4221358c69108ed0",
+      "vendored": true
+    },
+    {
+      "bytes": 6695,
+      "path": "lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol",
+      "sha256": "911706e27f5057f7ebe5ef795c5062755bc71890f6a153142bb474f3fb9bd141",
+      "vendored": true
+    },
+    {
+      "bytes": 4251,
+      "path": "lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol",
+      "sha256": "936a89f512d5da84b0896b66d2398f2bea9eefdf2afa788af5265fcd74302693",
+      "vendored": true
+    },
+    {
+      "bytes": 870,
+      "path": "lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol",
+      "sha256": "7c5c3f98ab876991e7dd34b84d41137e836306eb9f36f6386a631f5be3f5d6d4",
+      "vendored": true
+    },
+    {
+      "bytes": 32145,
+      "path": "lib/openzeppelin-contracts/contracts/utils/math/Math.sol",
+      "sha256": "92fee281fd46a1b058b190cf21d6b1a528f0433a907850ae1c9bcf36c5c0cd98",
+      "vendored": true
+    },
+    {
+      "bytes": 34943,
+      "path": "lib/openzeppelin-contracts/contracts/utils/math/SafeCast.sol",
+      "sha256": "9769274bf53f26a7c7896c526ea1980dc9bea5bf5c2a5fd04870008c4afc1de9",
+      "vendored": true
+    },
+    {
+      "bytes": 2613,
+      "path": "lib/openzeppelin-contracts/contracts/utils/math/SignedMath.sol",
+      "sha256": "1ed50b1056af886752f0fb48a0165d381e69bb4a4b18b893b066dc144a7e08d7",
+      "vendored": true
+    },
+    {
+      "bytes": 21428,
+      "path": "lib/openzeppelin-contracts/contracts/utils/structs/Checkpoints.sol",
+      "sha256": "f48eb8e093d6f908c09df790ac6c322f204fa0f00645966aa8cfb66ac0df4f5c",
+      "vendored": true
+    },
+    {
+      "bytes": 5156,
+      "path": "lib/openzeppelin-contracts/contracts/utils/types/Time.sol",
+      "sha256": "79534431c3934b23eafab9d02bda493cfc2ae383ba117a7c9698750c2e4845f1",
+      "vendored": true
+    },
+    {
+      "bytes": 1440,
+      "path": "lib/optimism/packages/contracts-bedrock/interfaces/L2/IERC7802.sol",
+      "sha256": "a1c8c5161429c8a6b4d030829e6ba577bffbb1c07b4c605700fe7e8c95c6dc70",
+      "vendored": true
+    },
+    {
+      "bytes": 10250,
+      "path": "lib/optimism/packages/contracts-bedrock/src/libraries/Predeploys.sol",
+      "sha256": "7d7a8d6456ec3fba747b11b3f0712e002f32a8d4280eb2064687c25b272402a7",
+      "vendored": true
+    },
+    {
+      "bytes": 404,
+      "path": "lib/optimism/packages/contracts-bedrock/src/libraries/errors/CommonErrors.sol",
+      "sha256": "752d357c5e8dd5dcd39bc8d8206f99e90b06cebfec0746e2b6e5d61cdd9fd136",
+      "vendored": true
+    },
+    {
+      "bytes": 7703,
+      "path": "lib/permit2/src/interfaces/IAllowanceTransfer.sol",
+      "sha256": "a31c712c5cc8d171818a4225c09011f9ba86b2d5edf6045ac812bab93b6bbb87",
+      "vendored": true
+    },
+    {
+      "bytes": 144,
+      "path": "lib/permit2/src/interfaces/IEIP712.sol",
+      "sha256": "e386407da496dbe874c10a81801c55744fb2922a51389a51c79001422e81e0cd",
+      "vendored": true
+    },
+    {
+      "bytes": 548,
+      "path": "lib/permit2/src/interfaces/IPermit2.sol",
+      "sha256": "51a2a4da1246abda880b17c72f7c45ab3a8dc4bcaac5ff7ba78221b6603cd7ce",
+      "vendored": true
+    },
+    {
+      "bytes": 6875,
+      "path": "lib/permit2/src/interfaces/ISignatureTransfer.sol",
+      "sha256": "8e7f355d7751cf96e81069c17fb97a3ec973c9391fbbb58ad3fb6e75be5cb19b",
+      "vendored": true
+    },
+    {
+      "bytes": 1023,
+      "path": "lib/v4-core/src/interfaces/IExtsload.sol",
+      "sha256": "9421ef4ba198d94058cd9a4c9fd2d663c61fc682f7dafa449a873456853f0025",
+      "vendored": true
+    },
+    {
+      "bytes": 699,
+      "path": "lib/v4-core/src/interfaces/IExttload.sol",
+      "sha256": "c21643d2c7f48d2d2407438a64a3ff0f376324cf6a0c62608977713652308c9e",
+      "vendored": true
+    },
+    {
+      "bytes": 8300,
+      "path": "lib/v4-core/src/interfaces/IHooks.sol",
+      "sha256": "aca1db9898026d9a4b8740752fb0dbfc6a55e4bede6a949c6af4e07d626f6900",
+      "vendored": true
+    },
+    {
+      "bytes": 13449,
+      "path": "lib/v4-core/src/interfaces/IPoolManager.sol",
+      "sha256": "173a3f93aeb39373271ebe2bfb961d824922378a39b7a5e983acbb1c122d296e",
+      "vendored": true
+    },
+    {
+      "bytes": 2489,
+      "path": "lib/v4-core/src/interfaces/IProtocolFees.sol",
+      "sha256": "807d68adea106ec2aa51a8009155de09ebfe09e1ee7053d5a5ae448d7e840654",
+      "vendored": true
+    },
+    {
+      "bytes": 488,
+      "path": "lib/v4-core/src/interfaces/callback/IUnlockCallback.sol",
+      "sha256": "2e4a514730654da2e08a82eff5b3eabae12dc1c6198951396e1d466d4c0e223e",
+      "vendored": true
+    },
+    {
+      "bytes": 3041,
+      "path": "lib/v4-core/src/interfaces/external/IERC20Minimal.sol",
+      "sha256": "5e966a2d22b3b234a56af4b17e36bf7be90f9b29b1ddb6a15bfefc0b6dab4282",
+      "vendored": true
+    },
+    {
+      "bytes": 3162,
+      "path": "lib/v4-core/src/interfaces/external/IERC6909Claims.sol",
+      "sha256": "1cd65496c829036bc6aee67bc71363ab5fb6989c65e793087d0e1e2379f7d7d8",
+      "vendored": true
+    },
+    {
+      "bytes": 2609,
+      "path": "lib/v4-core/src/libraries/BitMath.sol",
+      "sha256": "e8a45eb3d57f9427fc47bbb2543c1a6a5f394113b378123ac7ca9f113a7502b4",
+      "vendored": true
+    },
+    {
+      "bytes": 5174,
+      "path": "lib/v4-core/src/libraries/CustomRevert.sol",
+      "sha256": "9d3dbe6b742cb1ac30f57df89d879ade9649389de1165fc637114bd062d39fca",
+      "vendored": true
+    },
+    {
+      "bytes": 297,
+      "path": "lib/v4-core/src/libraries/FixedPoint128.sol",
+      "sha256": "1ca2f55160697b73bd66fd27c8724d79a57108121ce1e8a0ab8b79f38bb58fbb",
+      "vendored": true
+    },
+    {
+      "bytes": 366,
+      "path": "lib/v4-core/src/libraries/FixedPoint96.sol",
+      "sha256": "66ee26d4fb3ac639124bdfa27d3256d196970997fa127c09e9bf7154e30d4590",
+      "vendored": true
+    },
+    {
+      "bytes": 5463,
+      "path": "lib/v4-core/src/libraries/FullMath.sol",
+      "sha256": "a9607255a6fd604d9c92f6b7416811c38b9d86e5dfdb0c345a494ebd35f7a4a3",
+      "vendored": true
+    },
+    {
+      "bytes": 16485,
+      "path": "lib/v4-core/src/libraries/Hooks.sol",
+      "sha256": "f6012d7f627259f8f32816ee8e10b1d6244067c602a178072732bcaa32086b17",
+      "vendored": true
+    },
+    {
+      "bytes": 3596,
+      "path": "lib/v4-core/src/libraries/LPFeeLibrary.sol",
+      "sha256": "e96c3fa7deac991dc09b6c5e560a340d01d6c68ccba483d4b29f8a66e5aa44e0",
+      "vendored": true
+    },
+    {
+      "bytes": 742,
+      "path": "lib/v4-core/src/libraries/LiquidityMath.sol",
+      "sha256": "67a39e58732340af4870342ba9230691f35501d89ed8725ca1b338deaa0eb26a",
+      "vendored": true
+    },
+    {
+      "bytes": 1200,
+      "path": "lib/v4-core/src/libraries/ParseBytes.sol",
+      "sha256": "6a6f3d1cec0143fd70ea68c34e6dce3bde72f368b213f1a225ada23dbfd99bb8",
+      "vendored": true
+    },
+    {
+      "bytes": 4813,
+      "path": "lib/v4-core/src/libraries/Position.sol",
+      "sha256": "3dc4e2ad1564fa94eddf3ff06ce9ac592c9d578ea64ca194050382da454c8fcb",
+      "vendored": true
+    },
+    {
+      "bytes": 2269,
+      "path": "lib/v4-core/src/libraries/SafeCast.sol",
+      "sha256": "c1a815a41607be5b4c86ca588a951f368156da8ee21bdfc18b5d51b58a0f27be",
+      "vendored": true
+    },
+    {
+      "bytes": 16027,
+      "path": "lib/v4-core/src/libraries/StateLibrary.sol",
+      "sha256": "eebdbc1b6e431072ce5521b9e1b603d43831e3b6e062743e6665e070d5cf8a1a",
+      "vendored": true
+    },
+    {
+      "bytes": 12382,
+      "path": "lib/v4-core/src/libraries/TickMath.sol",
+      "sha256": "272d4f6d3ff9ae33596ebcdb84a71a3c2d4542ae8fb5c88ddf1aca8043f5d06b",
+      "vendored": true
+    },
+    {
+      "bytes": 2339,
+      "path": "lib/v4-core/src/types/BalanceDelta.sol",
+      "sha256": "320d9c13dec135c3903729e66d3a1040fe86d537a7ee53728915012ca183af32",
+      "vendored": true
+    },
+    {
+      "bytes": 1466,
+      "path": "lib/v4-core/src/types/BeforeSwapDelta.sol",
+      "sha256": "6aee06f1553e879f5909e8f4c0eac26ec23dd4821a7e56e4d5077db39a227e12",
+      "vendored": true
+    },
+    {
+      "bytes": 5458,
+      "path": "lib/v4-core/src/types/Currency.sol",
+      "sha256": "ba6726fd24fbc66848208dfbb2899116c10729c505e6e5552316ac2444f1dfc3",
+      "vendored": true
+    },
+    {
+      "bytes": 539,
+      "path": "lib/v4-core/src/types/PoolId.sol",
+      "sha256": "548424ac50ad58212545da70207283fb8990731578c115c85d5acbcb0e1d3c9f",
+      "vendored": true
+    },
+    {
+      "bytes": 805,
+      "path": "lib/v4-core/src/types/PoolKey.sol",
+      "sha256": "99e1afe285b5c614ebc9586ab5196db9d24a63fd924a449f5d99f490a6a6d6a9",
+      "vendored": true
+    },
+    {
+      "bytes": 818,
+      "path": "lib/v4-periphery/src/base/ImmutableState.sol",
+      "sha256": "d3ef34f9c00fae08ec1eb24aa341d5d916c4d6d62e6c2118ef4afe9c7470fde5",
+      "vendored": true
+    },
+    {
+      "bytes": 328,
+      "path": "lib/v4-periphery/src/interfaces/IEIP712_v4.sol",
+      "sha256": "ee4cc46349cc7f1f894197f368ddea0f71f2564c2962822eead755714f3ba57d",
+      "vendored": true
+    },
+    {
+      "bytes": 2137,
+      "path": "lib/v4-periphery/src/interfaces/IERC721Permit_v4.sol",
+      "sha256": "80680771bccd7bf47641417d5a656f950746072766e24703f354e58c2ee0875c",
+      "vendored": true
+    },
+    {
+      "bytes": 365,
+      "path": "lib/v4-periphery/src/interfaces/IImmutableState.sol",
+      "sha256": "86f06a1f388f91ee0185495cb5d2912d564f73fabb163b3767e9c292c5069276",
+      "vendored": true
+    },
+    {
+      "bytes": 774,
+      "path": "lib/v4-periphery/src/interfaces/IMulticall_v4.sol",
+      "sha256": "0c0f4f1cccb7cf63c1ee3dc53e8d48cf867cbff08f5a8f85dd820873277e9481",
+      "vendored": true
+    },
+    {
+      "bytes": 3200,
+      "path": "lib/v4-periphery/src/interfaces/INotifier.sol",
+      "sha256": "7fadc8550f73d9ae57925bb27f5ab3a134d4c020972a13683e1121fc11691249",
+      "vendored": true
+    },
+    {
+      "bytes": 1435,
+      "path": "lib/v4-periphery/src/interfaces/IPermit2Forwarder.sol",
+      "sha256": "3b28167d65673e7de2bbed1e6f3508350cf889f8439e8680da23ad7586f4cc57",
+      "vendored": true
+    },
+    {
+      "bytes": 782,
+      "path": "lib/v4-periphery/src/interfaces/IPoolInitializer_v4.sol",
+      "sha256": "ca6ecf95cfbc647d49b774801d84c49c8213010771b44555b056118102d644fc",
+      "vendored": true
+    },
+    {
+      "bytes": 3501,
+      "path": "lib/v4-periphery/src/interfaces/IPositionManager.sol",
+      "sha256": "b7aa2a13c92f5f2e5612948359120d1b92263e575ce8d134b4576227f8629569",
+      "vendored": true
+    },
+    {
+      "bytes": 2270,
+      "path": "lib/v4-periphery/src/interfaces/ISubscriber.sol",
+      "sha256": "9672e03c964da7cd484df290ad3395b6beacd90adcdd8ea2236f835407fb8e2e",
+      "vendored": true
+    },
+    {
+      "bytes": 799,
+      "path": "lib/v4-periphery/src/interfaces/IUnorderedNonce.sol",
+      "sha256": "12e02d4e7e03a668fc1d493840315b4f2aaee2f366ca677574d37d3811d45701",
+      "vendored": true
+    },
+    {
+      "bytes": 2031,
+      "path": "lib/v4-periphery/src/libraries/Actions.sol",
+      "sha256": "404b842f30a05783b20eb37b20cc86e7a0df2730f6a7399229b46ae77f63e63a",
+      "vendored": true
+    },
+    {
+      "bytes": 3774,
+      "path": "lib/v4-periphery/src/libraries/LiquidityAmounts.sol",
+      "sha256": "dbfbef7aed94a6a56885124f0802b42adf7ee7bdd658f11fed40ffbb93fe6ba5",
+      "vendored": true
+    },
+    {
+      "bytes": 3945,
+      "path": "lib/v4-periphery/src/libraries/PositionInfoLibrary.sol",
+      "sha256": "5c889e1d5f259291045413e28069101eba1e7b8b72df6586bf54e4de5e525099",
+      "vendored": true
+    },
+    {
+      "bytes": 7148,
+      "path": "lib/v4-periphery/src/utils/BaseHook.sol",
+      "sha256": "a773d4422f84a6aeeaa3f0b148ac7311b9de8719e903d71b8e65eab4edb1e890",
+      "vendored": true
+    },
+    {
+      "bytes": 7825,
+      "path": "src/ClankerToken.sol",
+      "sha256": "edafec51fbc0a5a5f04b011d931d0fb961365b5ea5773240b5568f1bec7d72b5",
+      "vendored": false
+    },
+    {
+      "bytes": 1898,
+      "path": "src/hooks/ClankerHookStaticFeeV2.sol",
+      "sha256": "337a7babd1e40d8eab273c38af287efe42d4c413df1f846a4c3f9a9f5c6f3102",
+      "vendored": false
+    },
+    {
+      "bytes": 24505,
+      "path": "src/hooks/ClankerHookV2.sol",
+      "sha256": "846706fc29c60bdee70be81e4cf9b12dd5df6610bc161cfe314cc823e54f507c",
+      "vendored": false
+    },
+    {
+      "bytes": 534,
+      "path": "src/hooks/interfaces/IClankerHookStaticFee.sol",
+      "sha256": "22d3df6ebc32508ae46da9af765d19b1e631ef4c6c1d37da14f18e1a1180fa44",
+      "vendored": false
+    },
+    {
+      "bytes": 1537,
+      "path": "src/hooks/interfaces/IClankerHookV2.sol",
+      "sha256": "9f70062a9339ff72af4ac3931a3eb71f9b8cd5f97f25eeb3649423ec41e2bd45",
+      "vendored": false
+    },
+    {
+      "bytes": 1408,
+      "path": "src/hooks/interfaces/IClankerHookV2PoolExtension.sol",
+      "sha256": "503abc915b849673b5e06b3338a9dfe5d7fd0c8809169d0fc4bbf92e1da1bc91",
+      "vendored": false
+    },
+    {
+      "bytes": 408,
+      "path": "src/hooks/interfaces/IClankerPoolExtensionAllowlist.sol",
+      "sha256": "d4e2f0c1706fd6bdbb6f5856f30def1a5cc9d91c53ff87917bd27855972746d9",
+      "vendored": false
+    },
+    {
+      "bytes": 4480,
+      "path": "src/interfaces/IClanker.sol",
+      "sha256": "fee221c993f779aad89978b358c893381e8438521581ab6a2c5a8b9a1c464b16",
+      "vendored": false
+    },
+    {
+      "bytes": 2227,
+      "path": "src/interfaces/IClankerHook.sol",
+      "sha256": "53b7f739126ea6644e8e713fc179d8d0aeb82fe2e0363029bcb151734807a521",
+      "vendored": false
+    },
+    {
+      "bytes": 1766,
+      "path": "src/interfaces/IClankerLpLocker.sol",
+      "sha256": "8643701dc6a23c15c0436f88b71f84d9e7d07d7df107e4bf492ac0fe90eafd02",
+      "vendored": false
+    },
+    {
+      "bytes": 856,
+      "path": "src/interfaces/IClankerMevModule.sol",
+      "sha256": "bf2f969bd46fb1c575ff21751db6deb664c0c1248b70a4c7c881324b97cd88e6",
+      "vendored": false
+    },
+    {
+      "bytes": 231,
+      "path": "src/interfaces/IOwnerAdmins.sol",
+      "sha256": "8727d451f7a76b3c51cdf4efabbee6d5a3e72a668a0ebe62601e2c527c85e67a",
+      "vendored": false
+    }
+  ],
+  "match": "match",
+  "own_file_count": 12,
+  "provider": "sourcify",
+  "replay": "curl -s 'https://sourcify.dev/server/v2/contract/8453/0x8e7640e6bbcc483be39c9898a41dae86013368cc?fields=sources'",
+  "runtime_match": "match",
+  "source_status": "FOUND",
+  "total_bytes": 420112,
+  "verified_at": "2026-05-20T11:40:20Z"
+}

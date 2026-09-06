@@ -1,0 +1,147 @@
+{
+  "address": "0x702b1fe403ec993a102adde47f2ab52eb2eadacc",
+  "attempts": [
+    {
+      "creation_match": null,
+      "match": "exact_match",
+      "outcome": "FOUND",
+      "provider": "sourcify",
+      "runtime_match": "exact_match",
+      "verified_at": "2026-08-27T20:22:46Z"
+    }
+  ],
+  "chain_id": 8453,
+  "creation_match": null,
+  "fetched_at": "2026-09-06T05:28:13+00:00",
+  "file_count": 20,
+  "files": [
+    {
+      "bytes": 1023,
+      "path": "npm/@uniswap/v4-core@1.0.2/src/interfaces/IExtsload.sol",
+      "sha256": "9421ef4ba198d94058cd9a4c9fd2d663c61fc682f7dafa449a873456853f0025",
+      "vendored": true
+    },
+    {
+      "bytes": 699,
+      "path": "npm/@uniswap/v4-core@1.0.2/src/interfaces/IExttload.sol",
+      "sha256": "c21643d2c7f48d2d2407438a64a3ff0f376324cf6a0c62608977713652308c9e",
+      "vendored": true
+    },
+    {
+      "bytes": 8229,
+      "path": "npm/@uniswap/v4-core@1.0.2/src/interfaces/IHooks.sol",
+      "sha256": "6eb35c9c598eb932e963219f1ff180748bc4c30ac6a02d924893b3c29abb1d73",
+      "vendored": true
+    },
+    {
+      "bytes": 12835,
+      "path": "npm/@uniswap/v4-core@1.0.2/src/interfaces/IPoolManager.sol",
+      "sha256": "a98405333567e4ab344489728014795721cf0071c151536377d2fcc986e0600c",
+      "vendored": true
+    },
+    {
+      "bytes": 2489,
+      "path": "npm/@uniswap/v4-core@1.0.2/src/interfaces/IProtocolFees.sol",
+      "sha256": "807d68adea106ec2aa51a8009155de09ebfe09e1ee7053d5a5ae448d7e840654",
+      "vendored": true
+    },
+    {
+      "bytes": 3041,
+      "path": "npm/@uniswap/v4-core@1.0.2/src/interfaces/external/IERC20Minimal.sol",
+      "sha256": "5e966a2d22b3b234a56af4b17e36bf7be90f9b29b1ddb6a15bfefc0b6dab4282",
+      "vendored": true
+    },
+    {
+      "bytes": 3162,
+      "path": "npm/@uniswap/v4-core@1.0.2/src/interfaces/external/IERC6909Claims.sol",
+      "sha256": "1cd65496c829036bc6aee67bc71363ab5fb6989c65e793087d0e1e2379f7d7d8",
+      "vendored": true
+    },
+    {
+      "bytes": 5174,
+      "path": "npm/@uniswap/v4-core@1.0.2/src/libraries/CustomRevert.sol",
+      "sha256": "9d3dbe6b742cb1ac30f57df89d879ade9649389de1165fc637114bd062d39fca",
+      "vendored": true
+    },
+    {
+      "bytes": 16511,
+      "path": "npm/@uniswap/v4-core@1.0.2/src/libraries/Hooks.sol",
+      "sha256": "297d577998cdede64d48b47b12f15e4f442eea032fbb9676bb3c2f89da89b83c",
+      "vendored": true
+    },
+    {
+      "bytes": 3596,
+      "path": "npm/@uniswap/v4-core@1.0.2/src/libraries/LPFeeLibrary.sol",
+      "sha256": "e96c3fa7deac991dc09b6c5e560a340d01d6c68ccba483d4b29f8a66e5aa44e0",
+      "vendored": true
+    },
+    {
+      "bytes": 1200,
+      "path": "npm/@uniswap/v4-core@1.0.2/src/libraries/ParseBytes.sol",
+      "sha256": "6a6f3d1cec0143fd70ea68c34e6dce3bde72f368b213f1a225ada23dbfd99bb8",
+      "vendored": true
+    },
+    {
+      "bytes": 2269,
+      "path": "npm/@uniswap/v4-core@1.0.2/src/libraries/SafeCast.sol",
+      "sha256": "c1a815a41607be5b4c86ca588a951f368156da8ee21bdfc18b5d51b58a0f27be",
+      "vendored": true
+    },
+    {
+      "bytes": 2339,
+      "path": "npm/@uniswap/v4-core@1.0.2/src/types/BalanceDelta.sol",
+      "sha256": "320d9c13dec135c3903729e66d3a1040fe86d537a7ee53728915012ca183af32",
+      "vendored": true
+    },
+    {
+      "bytes": 1466,
+      "path": "npm/@uniswap/v4-core@1.0.2/src/types/BeforeSwapDelta.sol",
+      "sha256": "6aee06f1553e879f5909e8f4c0eac26ec23dd4821a7e56e4d5077db39a227e12",
+      "vendored": true
+    },
+    {
+      "bytes": 5458,
+      "path": "npm/@uniswap/v4-core@1.0.2/src/types/Currency.sol",
+      "sha256": "ba6726fd24fbc66848208dfbb2899116c10729c505e6e5552316ac2444f1dfc3",
+      "vendored": true
+    },
+    {
+      "bytes": 539,
+      "path": "npm/@uniswap/v4-core@1.0.2/src/types/PoolId.sol",
+      "sha256": "548424ac50ad58212545da70207283fb8990731578c115c85d5acbcb0e1d3c9f",
+      "vendored": true
+    },
+    {
+      "bytes": 805,
+      "path": "npm/@uniswap/v4-core@1.0.2/src/types/PoolKey.sol",
+      "sha256": "99e1afe285b5c614ebc9586ab5196db9d24a63fd924a449f5d99f490a6a6d6a9",
+      "vendored": true
+    },
+    {
+      "bytes": 907,
+      "path": "npm/@uniswap/v4-core@1.0.2/src/types/PoolOperation.sol",
+      "sha256": "cf72ad0c3e5e91662029e862acd841fabce8753040b0d4e802dee64ef1157232",
+      "vendored": true
+    },
+    {
+      "bytes": 28204,
+      "path": "project/contracts/v2/StonkHook.sol",
+      "sha256": "9034db0774dd4e98bba8fd1a212881583d2e16d7f5b618b9634b11cd8998ec4f",
+      "vendored": false
+    },
+    {
+      "bytes": 2178,
+      "path": "project/contracts/v2/interfaces/IStonkTokenV2.sol",
+      "sha256": "5ebaf831be117d3eddbafaa325cd3511ffc3db3fda273672e8dd34208bd96783",
+      "vendored": false
+    }
+  ],
+  "match": "exact_match",
+  "own_file_count": 2,
+  "provider": "sourcify",
+  "replay": "curl -s 'https://sourcify.dev/server/v2/contract/8453/0x702b1fe403ec993a102adde47f2ab52eb2eadacc?fields=sources'",
+  "runtime_match": "exact_match",
+  "source_status": "FOUND",
+  "total_bytes": 102124,
+  "verified_at": "2026-08-27T20:22:46Z"
+}

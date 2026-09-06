@@ -22,30 +22,45 @@ fi
 n=$(wc -l < docs/dataset/measurements.jsonl | tr -d ' ')
 echo "== corpus : $n mesures =="
 
-echo "== 1/6 graphe =="
+echo "== 1/9 graphe =="
 ( cd engine && python3 -m tare.graph.cli build --out tare/graph/data/graph.json )
 
-echo "== 2/7 tableau « what we found » du README =="
+echo "== 2/9 fixtures de parite TypeScript <-> Python =="
+bash scripts/regen-fixtures.sh
+
+echo "== 3/9 tableau « what we found » du README =="
 PYTHONPATH=engine python3 -m tare.dataset.stats --write-readme
 
-echo "== 3/7 tableau « what the graph reveals » du README =="
+echo "== 4/9 tableau « what the graph reveals » du README =="
 ( cd engine && python3 -m tare.graph.readme --write-readme )
 
-echo "== 4/7 analyse des sources =="
-( cd engine && python3 -m tare.source.cli report --write 2>/dev/null ) || \
-  echo "   (pas de regenerateur --write, analyse laissee en l'etat)"
+echo "== 5/9 analyse des sources =="
+# Trois verbes, dans cet ordre : recuperer les sources verifiees, lire le taux que chaque
+# contrat declare, puis rendre le document. Une version anterieure appelait `report --write`
+# — un drapeau qui n'existe pas — en avalant l'erreur avec 2>/dev/null, puis annoncait
+# « pas de regenerateur ». Le regenerateur existait ; l'appel etait faux, et l'erreur etouffee
+# le faisait passer pour une absence. C'est le defaut que ce projet traque, dans son propre
+# script de regeneration.
+#
+# RPC_SOURCE doit designer un fork AU REPOS : `analyze` lit l'etat des contrats, et un fork
+# qu'un balayage utilise repondrait sous la charge d'un autre mesureur.
+: "${RPC_SOURCE:=${RPC:-http://127.0.0.1:8545}}"
+( cd engine \
+  && python3 -m tare.source.cli fetch \
+  && python3 -m tare.source.cli analyze --rpc "$RPC_SOURCE" \
+  && python3 -m tare.source.cli report )
 
-echo "== 5/7 index RAG (les en-tetes citent le graphe, donc apres lui) =="
+echo "== 6/9 index RAG (les en-tetes citent le graphe, donc apres lui) =="
 ( cd engine && python3 -m tare.rag build --write 2>/dev/null ) || \
   ( cd engine && python3 -m tare.rag build )
 
-echo "== 6/7 banc des deux recuperateurs =="
+echo "== 7/9 banc des deux recuperateurs =="
 ( cd engine && python3 -m tare.rag.split --write --quiet )
 
-echo "== 9/10 jeu embarque par le site =="
+echo "== 8/9 jeu embarque par le site =="
 node apps/web/scripts/build-dataset.mjs
 
-echo "== 10/10 texte de soumission =="
+echo "== 9/9 texte de soumission =="
 ( cd engine && python3 -m tare.submission.build --write )
 
 echo

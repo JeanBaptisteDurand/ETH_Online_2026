@@ -27,22 +27,22 @@ hook call: at least 32 bytes with the called selector echoed in word 0 (`:153`),
 from `beforeSwap` (`:166`), exactly 64 on the delta path (`:259`). So the stub reads the incoming
 selector, echoes it, and returns 96 or 64 bytes accordingly. It is a protocol-compliant nothing.
 
-**The corpus.** **5,170 measurements** across **455 pools** and **16 hooks**,
+**The corpus.** **125,072 measurements** across **7817 pools** and **112 hooks**,
 block **50,614,000** on Base, 8 swap sizes spanning eight decades and both directions.
-Labelled 4117 `MEASURED` · 1038 `NOT_QUOTABLE` · 15 `NOT_MEASURABLE`. Every row carries its `pool_id`, block, size, direction, `stub_hash` and engine
+Labelled 63156 `MEASURED` · 61466 `NOT_QUOTABLE` · 450 `NOT_MEASURABLE`. Every row carries its `pool_id`, block, size, direction, `stub_hash` and engine
 version, and replays with one command.
 
-**The finding.** **3,103 measurements above 1 bps sit on pools whose LP fee, read on-chain
-from `slot0` bits 208-231, is exactly zero** — across 293 pools and 8
-hooks, from 51.40 to **1176.46 bps**, median 100.00. And of the
-16 hooks measured, **3 appear nowhere in the official registry at all.**
+**The finding.** **38,857 measurements above 1 bps sit on pools whose LP fee, read on-chain
+from `slot0` bits 208-231, is exactly zero** — across 3715 pools and 39
+hooks, from 1.38 to **1800.99 bps**, median 100.00. And of the
+112 hooks measured, **78 appear nowhere in the official registry at all.**
 
-**Then I read the code, because a number without a cause is an accusation.** 14 of
-16 measured hooks have verified source on Sourcify. For each I read the rate the
+**Then I read the code, because a number without a cause is an accusation.** 33 of
+80 measured hooks have verified source on Sourcify. For each I read the rate the
 contract itself declares — on-chain at the corpus block — and compared it with what the
-counterfactual had measured **without ever seeing that source**. **7 hooks are
-concordant across 191 pools**, and the worst deviation among all of them —
-not the best, the worst — is **0.0481 bps**. The
+counterfactual had measured **without ever seeing that source**. **5 hooks are
+concordant across 1184 pools**, and the worst deviation among all of them —
+not the best, the worst — is **0.0005 bps**. The
 measurement recovers the number written in the contract to within thousandths of a basis point.
 
 That reading also corrected my own framing, and the correction is the point. **These fees are

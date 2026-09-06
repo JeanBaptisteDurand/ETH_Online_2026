@@ -1,0 +1,27 @@
+{
+  "address": "0x376b786aa1c1deaae37ad6976784eb12988980cc",
+  "attempts": [
+    {
+      "outcome": "NOT_FOUND",
+      "provider": "sourcify"
+    },
+    {
+      "detail": "no ETHERSCAN_API_KEY / BASESCAN_API_KEY in the environment",
+      "outcome": "UNAVAILABLE",
+      "provider": "etherscan"
+    }
+  ],
+  "chain_id": 8453,
+  "creation_match": null,
+  "fetched_at": "2026-09-06T05:28:04+00:00",
+  "file_count": 0,
+  "files": [],
+  "match": null,
+  "own_file_count": 0,
+  "provider": "sourcify",
+  "replay": "curl -s 'https://sourcify.dev/server/v2/contract/8453/0x376b786aa1c1deaae37ad6976784eb12988980cc?fields=sources'",
+  "runtime_match": null,
+  "source_status": "NOT_FOUND",
+  "total_bytes": 0,
+  "verified_at": null
+}

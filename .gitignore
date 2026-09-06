@@ -5,3 +5,15 @@ __pycache__/
 node_modules/
 dist/
 packages/guard/extension/inject.js
+
+# --- artefacts DERIVES, reconstruits par scripts/regenerate.sh ---------------
+# Ils pesaient 296 Mo a eux trois et l'un depassait la limite de 100 Mo de GitHub.
+# Aucun n'est une source : chacun se recalcule depuis docs/dataset/measurements.jsonl,
+# qui reste versionne parce que c'est LA preuve — tout le projet promet que chaque
+# nombre s'y rejoue.
+#   engine/tare/graph/cli.py build     -> graph.json        (188 Mo)
+#   apps/web/scripts/build-dataset.mjs -> src/data/dataset.json (87 Mo)
+#   packages/guard/scripts/build-table.mjs -> data/table.json   (21 Mo)
+engine/tare/graph/data/graph.json
+apps/web/src/data/dataset.json
+packages/guard/data/table.json

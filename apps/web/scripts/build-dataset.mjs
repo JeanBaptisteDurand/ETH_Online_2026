@@ -23,12 +23,20 @@ const SNAPSHOT_PATH = resolve(root, 'public/data/hooklist.snapshot.json')
 const OUT = resolve(root, 'src/data/dataset.json')
 
 let measurements
+// La provenance se DEDUIT de la branche prise. Elle etait ecrite en dur sur
+// `docs/measurements-v1.json` — le fichier de repli, 128 mesures — pendant que la lecture
+// venait du JSONL et que l'instrument en affichait 125 072. La page annoncait donc a son
+// lecteur une source qui n'etait pas la sienne, dans le panneau meme ou elle etale ses
+// lignes brutes. Une chaine ecrite a la main cesse d'etre vraie sans prevenir.
+let sourcePath
 if (existsSync(JSONL_PATH)) {
   measurements = readFileSync(JSONL_PATH, 'utf8')
     .split('\n').filter((l) => l.trim())
     .map((l) => JSON.parse(l))
+  sourcePath = 'docs/dataset/measurements.jsonl'
 } else {
   measurements = JSON.parse(readFileSync(MEASUREMENTS_PATH, 'utf8'))
+  sourcePath = 'docs/measurements-v1.json'
 }
 const snapshot = JSON.parse(readFileSync(SNAPSHOT_PATH, 'utf8'))
 
@@ -116,7 +124,7 @@ const measuredRows = rows.filter((r) => r.label === 'MESURE' && typeof r.bps ===
 const dataset = {
   provenance: {
     measurements: {
-      path: 'docs/measurements-v1.json',
+      path: sourcePath,
       engine_ver: [...new Set(rows.map((r) => r.engine_ver))].join(', '),
       stub_hash: [...new Set(rows.map((r) => r.stub_hash))].join(', '),
       observed_at: [...new Set(rows.map((r) => r.observed_at))].sort()[0],

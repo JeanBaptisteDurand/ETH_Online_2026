@@ -349,3 +349,23 @@ test('le jeu embarque par le site est celui que le depot publie', { skip: balaya
       'Relancer : node apps/web/scripts/build-dataset.mjs',
   )
 })
+
+/* --------------------------------------------------------------------------
+ * La provenance affichee doit etre celle qui a servi.
+ * ------------------------------------------------------------------------ */
+
+test('le jeu embarque nomme le fichier dont il vient, pas un autre', () => {
+  // `path` etait ecrit en dur sur docs/measurements-v1.json — le repli, 128 mesures —
+  // pendant que la lecture venait du JSONL et que l'ecran en affichait 125 072. Le panneau
+  // des lignes brutes citait donc une source qui n'etait pas la sienne. Une chaine ecrite a
+  // la main cesse d'etre vraie sans prevenir.
+  const p = ds.provenance.measurements.path
+  const nJsonl = readFileSync(resolve(repoRoot, 'docs/dataset/measurements.jsonl'), 'utf8')
+    .split('\n').filter((l) => l.trim()).length
+  if (ds.rows.length === nJsonl) {
+    assert.equal(p, 'docs/dataset/measurements.jsonl',
+      `${ds.rows.length} lignes viennent du JSONL, mais la provenance annonce ${p}`)
+  } else {
+    assert.equal(p, 'docs/measurements-v1.json')
+  }
+})

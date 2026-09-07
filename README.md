@@ -143,6 +143,14 @@ These are enforced, not aspirational.
 4. **Known limits are published, not hidden.** A hook with custom accounting *is* the liquidity;
    removing it does not measure what it takes, it destroys the pool. Those are `NOT_MEASURABLE`.
 
+## What each piece is for
+
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) answers one question per section: why a technology
+is here and what would be lost without it. It carries the three diagrams — the chain from an
+`Initialize` log to a refused signature, the three Hedera layers, and which panels are reading,
+which are user actions, and which touch a chain. It also says plainly which two panels are
+missing.
+
 ## From a fresh clone
 
 The repository ships the **evidence** — `docs/dataset/measurements.jsonl`, 125,072 measurements,

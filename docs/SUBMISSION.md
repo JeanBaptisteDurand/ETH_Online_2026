@@ -66,8 +66,19 @@ at target scale: Neo4j lost on every query and refuses EVM-sized integers). Type
 Hono for the API, Vite/React for the instrument, an MCP server exposing four tools, and a browser
 guard that decodes the hook out of Universal Router calldata and warns before you sign. Hedera
 carries the paid API — measuring costs compute, so it is billed **per measurement, not per request**,
-priced in x402 through Blocky402 on testnet, with each batch's digest anchored on an HCS topic and
-verified back through the mirror node before it is ever called anchored.
+and it is **settled**, not merely priced: six real payments in USDC through Blocky402 on testnet,
+each read back on the mirror node before being called settled, with five measurements costing five
+times one (`amount: "5000"` against `"1000"`, same route). Each batch's digest is anchored on an HCS
+topic carrying its payer and its settlement hash, verified through the mirror node before it is ever
+called anchored.
+
+**The key that pays does not sit in a file.** The private key signing every settlement is sealed
+under the **Ledger Key Ring**, opened with no device attached. The packaged `wallet-cli ring init`
+needs a physical Nano — it builds its Device Management Kit with one hardcoded USB transport — but
+the protocol underneath takes any transport, so this runs against Speculos serving Ledger's own
+`Ledger Sync` app. What is on disk is a **revocable member**, never the encryption key; the member
+recovers it from Ledger's trustchain. The last settlement was made with `HEDERA_PAYER_PRIVATE_KEY`
+removed from the environment, and the receipt records which source the key came from.
 
 **The gate.** `engine/tare/gates/a3.py` reproduces five recorded basis-point figures on every run,
 against values obtained by an independent reimplementation before that code existed. It is the one

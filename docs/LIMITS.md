@@ -227,23 +227,49 @@ rather than a number is [`engine/tare/sweep.py:137-142`](../engine/tare/sweep.py
   a token to a recipient and it cannot distinguish a fee taken by the hook from output diverted
   anywhere else.
 
-## 11b. No x402 payment has ever settled
+## 11b. Payments settle — and the books had to be rewritten to stay honest
 
-The measurement API is gated by x402 and the challenge is real. `POST /measure` answers **402**
-with a well-formed `accepts`: scheme `exact`, network `hedera:testnet`, asset `0.0.429274`,
-`payTo` `0.0.10367997`, `feePayer` `0.0.7162784`. The live facilitator at
-`api.testnet.blocky402.com` lists `hedera:testnet` among the kinds it supports, with the same fee
-payer. Billing is per **measurement**, not per request, and that is what the metering ledger
-counts.
+*This section said "No x402 payment has ever settled" until 8 September 2026. It is kept here,
+corrected, because what the first real settlement broke matters more than the fact that it worked.*
 
-**No payment has ever been submitted, verified or settled.** Neither Hedera account holds the
-payment asset — `GET /accounts/0.0.10367920/tokens` returns zero tokens, as does the recipient's.
-Acquiring testnet USDC means associating the token and finding a faucet, and we have not done it.
+Six payments have settled on `hedera:testnet`, in USDC (`0.0.429274`), through the Blocky402
+facilitator, each read back on the mirror node before being called settled — a 200 says the server
+returned the resource, not that money moved. The record is
+[`docs/x402-settlements.jsonl`](x402-settlements.jsonl), append-only; the account of it is
+[`X402.md`](../X402.md).
 
-So what is verified is the **server side**: the challenge, its shape, the price, the metering unit,
-and that the facilitator we name would accept this network. What is not verified is a settlement,
-and any sentence implying one would be false. The submission text says the API is *priced* in
-x402, not *settled* — the earlier wording said settled, and it was wrong.
+Five measurements cost five times one measurement: `amount: "5000"` against `amount: "1000"`, same
+route, same request shape. That is what *compute metering rather than a flat per-request charge*
+means, and it was not checkable until the money moved.
+
+**What the first settlement exposed**, none of which the tests could see:
+
+- The server read `X-PAYMENT`. x402 v2 sends **`PAYMENT-SIGNATURE`**. The toll still worked — the
+  library reads both — but everything else saw every paid request as unpaid: the ledger credited
+  `"(non paye)"`, and a "no payment, so no settle hook" branch anchored the batch to HCS *before*
+  settlement, with `payer: null`, then the settle hook anchored it again. Two messages for one
+  batch: an audit trail where you must pick which of two lines counts is not an audit trail.
+- The settlement was attached to nothing. A module-level `let lastBatchId` was assigned only on the
+  **failure** path, so a successful batch was never linked — `settlement_tx: null` on a transaction
+  confirmed on chain. Shared across requests, it would also have credited one client's payment to
+  another's batch. Now an `AsyncLocalStorage` slot, per request.
+- `anchorBatch` was called nowhere. The topic existed, the CLI worked, and **no served batch had
+  ever reached it.**
+
+**The honesty gap it opened, which is the real content of this section.** x402 collects *before*
+the engine runs: the price is fixed at the 402, the money moves at settlement, the label only
+exists afterwards. The first settled request asked for a direction that is in custom accounting —
+verdict `NOT_MEASURABLE`, correct and honest. The ledger wrote `billable: false, amount_usd: 0`.
+And 0.001 USDC had been taken.
+
+Saying `amount_usd: 0` presented as free what had been charged. So the service now keeps three
+numbers instead of one: `amount_usd` (what is **owed**), `amount_settled_usd` (what was actually
+**taken** on chain), and `credit_usd` (the gap, which the service **owes back**). A paid unit the
+engine then calls unmeasurable is a **credit**, never a zero.
+
+**What is still not true.** The service is **not hosted** — the image is built and has itself
+served a paid request, but no domain answers, so the track's *live service* requirement is not
+met ([`DEPLOY.md`](../DEPLOY.md)). And nothing has settled on mainnet.
 
 ## 10b. A quote is not an execution, and on one pool in nine it showed
 

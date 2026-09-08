@@ -7,7 +7,10 @@
  * qui compte vraiment ici.
  *
  * Ce que ces tests NE couvrent PAS, et qu'aucun test de ce depot ne couvre : un appareil
- * physique, ou Speculos. Personne n'a vu ces champs sur un vrai ecran. docs/LIMITS.md § 11.
+ * physique. Ces champs ONT ete vus sur un ecran — celui de Speculos, l'emulateur officiel de
+ * Ledger (app Ethereum 1.22.3, seize ecrans, signature v=28) : capture dans
+ * docs/ledger/ECRANS.md, recit dans EIP712.md. Mais un emulateur n'est pas un Nano dans une
+ * main, et ces tests-ci ne le remplacent pas. docs/LIMITS.md § 11.
  */
 import { describe, it, expect, vi } from "vitest";
 import { tareGuard, UNIVERSAL_ROUTER_BASE } from "../src/guard.js";

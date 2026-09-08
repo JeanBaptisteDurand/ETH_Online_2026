@@ -13,7 +13,8 @@
  *     Sans transport il REFUSE explicitement au lieu de laisser passer. Une garde qui echoue
  *     en "oui" ne garde rien.
  * Ce qui n'a jamais tourne :
- *   - le chemin Ledger contre un appareil physique ou contre Speculos. Il est teste contre un
+ *   - le chemin Ledger contre un appareil PHYSIQUE. Il a tourne contre Speculos (app Ethereum
+ *     1.22.3, seize ecrans, signature v=28 — voir EIP712.md), mais il est teste contre un
  *     faux appareil, et rien d'autre : docs/LIMITS.md section 11.
  */
 import type { GuardReport } from "./types.js";
@@ -100,8 +101,9 @@ export const alwaysDeny: Approver = {
  * Le point de branchement Ledger.
  *
  * Le transport reel vit dans ./ledger.ts (WebHID + @ledgerhq/hw-app-eth, message EIP-712) et
- * s'obtient par ledgerWebHidTransport(). Il n'a jamais tourne contre un appareil physique ni
- * contre Speculos : voir docs/LIMITS.md section 11. Ce fichier-ci ne connait que l'interface,
+ * s'obtient par ledgerWebHidTransport(). Il a tourne contre Speculos — l'emulateur officiel de
+ * Ledger, app Ethereum 1.22.3 — qui affiche les champs et signe ; jamais contre un appareil
+ * PHYSIQUE. Voir EIP712.md a la racine et docs/LIMITS.md section 11. Ce fichier-ci ne connait que l'interface,
  * et tant que `transport` est absent la reponse est NON.
  *
  * Le rapport est passe EN PLUS du texte : un appareil a ecran veut des champs (le pool, le

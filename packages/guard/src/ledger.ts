@@ -23,8 +23,18 @@
  * refuse — une garde qui echoue en "oui" ne garde rien, et une garde qui echoue en "signe ce
  * hachage" ne garde pas davantage.
  *
- * CE QUI N'A JAMAIS TOURNE : aucun appareil physique, aucun Speculos. Tout ce fichier est
- * verifie contre un faux appareil (test/ledger.test.ts). Voir docs/LIMITS.md section 11.
+ * CE QUI A TOURNE, ET CE QUI N'A PAS TOURNE. Ce chemin a ete execute contre l'emulateur officiel
+ * de Ledger : Speculos, application Ethereum 1.22.3 pour Nano X, telechargee des releases de
+ * LedgerHQ/app-ethereum. L'appareil affiche les douze champs sur seize ecrans et signe (v=28) ;
+ * la capture brute est dans docs/ledger/ECRANS.md, le recit complet dans EIP712.md a la racine.
+ * Aucun APPAREIL PHYSIQUE en revanche, et openWebHidDevice n'a donc jamais servi : Speculos parle
+ * HTTP/APDU, pas WebHID. Les tests de ce fichier restent contre un faux appareil
+ * (test/ledger.test.ts). Voir docs/LIMITS.md section 11.
+ *
+ * LE REGLAGE QUI DECIDE DE TOUT : l'application ne rend un EIP-712 arbitraire que si « Raw
+ * messages » est active. Sans lui elle repond 0x6a80 et affiche « Blind signing must be enabled »,
+ * un message trompeur — ce n'est pas de la signature aveugle qu'elle demande, c'est le chemin
+ * filtre, qui exige des descripteurs publies par Ledger pour ce schema.
  */
 import { ledgerApprover, renderPrompt, type Approver, type LedgerTransport } from "./approver.js";
 import { keccak256, toHex, utf8 } from "./keccak.js";

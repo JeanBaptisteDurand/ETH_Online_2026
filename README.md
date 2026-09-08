@@ -260,8 +260,11 @@ attached — [`packages/keyring/`](packages/keyring/). Production refuses a loca
 app's attestation, correctly, so staging is what this runs against; that limit is stated
 there and not smoothed over.
 
-The x402 service is **not hosted**: every settled payment in [`X402.md`](X402.md) was made
-against a local instance. The track asks for a live service; that part is not done.
+The x402 service is **not hosted yet**: no domain answers. The image is built, runs, and has
+been paid — the last settlement in [`docs/x402-settlements.jsonl`](docs/x402-settlements.jsonl)
+was served by the container, not by a dev process — and [`scripts/deploy.sh`](scripts/deploy.sh)
+brings it up behind TLS in one command ([`DEPLOY.md`](DEPLOY.md)). But one command not yet run
+is not a live service, so the track requirement is **not** met.
 
 ## License
 

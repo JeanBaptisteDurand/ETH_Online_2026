@@ -1,0 +1,79 @@
+# Le deploiement : le service x402 en ligne, avec TLS.
+#
+#   BASE_RPC_URL=... TARE_DOMAIN=tare.exemple.fr docker compose -f docker-compose.deploy.yml up -d
+#
+# Trois conteneurs, et aucun de trop :
+#
+#   anvil  le fork Base epingle au bloc 50614000. C'est LUI qui rend la mesure possible :
+#          anvil_setCode remplace le bytecode du hook par le stub inerte. Sans fork, pas
+#          de contrefactuel, donc pas de mesure — seulement un jeu de donnees a relire.
+#   api    l'API x402 + le moteur Python.
+#   caddy  TLS automatique (Let's Encrypt). Le track Hedera demande un service EN LIGNE ;
+#          un service en ligne sans TLS n'est pas un service en ligne, c'est une demo.
+#
+# Le volume de cache d'anvil n'est pas une optimisation : une cotation a froid contre un
+# RPC public a ete mesuree a 8,96 s, et a 0,01 s une fois l'etat local.
+services:
+  anvil:
+    image: ghcr.io/foundry-rs/foundry:latest
+    # L'ENTRYPOINT de l'image est ["/bin/sh","-c"] : la commande doit lui arriver en UN
+    # seul argument. Une chaine YAML ne suffit pas — Compose la decoupe, et `sh -c` prend
+    # alors "anvil" pour tout le script. Une liste a un element est la seule forme juste.
+    command: ["anvil --fork-url ${BASE_RPC_URL} --fork-block-number ${FORK_BLOCK:-50614000} --host 0.0.0.0 --port 8545 --compute-units-per-second 200000 --silent"]
+    volumes: ["foundry_cache:/root/.foundry/cache"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD","sh","-c","cast block-number --rpc-url http://127.0.0.1:8545 >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      PORT: 8787
+      TARE_RPC_URL: http://anvil:8545
+      FORK_BLOCK: ${FORK_BLOCK:-50614000}
+      # Le peage. X402_ENABLED=0 le couperait — ce serait rendre le service gratuit
+      # ET perdre l'exigence du track. On ne le coupe pas en production.
+      X402_ENABLED: "1"
+      HEDERA_NETWORK: ${HEDERA_NETWORK:-hedera:testnet}
+      BLOCKY402_URL: ${BLOCKY402_URL:-https://api.testnet.blocky402.com}
+      HEDERA_FEE_PAYER: ${HEDERA_FEE_PAYER}
+      HEDERA_PAY_TO: ${HEDERA_PAY_TO}
+      TARE_UNIT_PRICE_USD: ${TARE_UNIT_PRICE_USD:-0.001}
+      TARE_MAX_UNITS: ${TARE_MAX_UNITS:-10}
+      # Le journal d'audit HCS. Absent, /usage le DIT au lieu de faire semblant.
+      HEDERA_HCS_TOPIC_ID: ${HEDERA_HCS_TOPIC_ID}
+      HEDERA_PAYER_ACCOUNT_ID: ${HEDERA_PAYER_ACCOUNT_ID}
+      HEDERA_PAYER_KEY_TYPE: ${HEDERA_PAYER_KEY_TYPE:-ECDSA}
+      # La cle qui SIGNE les ancrages HCS. En production elle vient du trousseau Ledger
+      # (var/keyring.json, monte en lecture seule) ; l'environnement reste le repli, et
+      # le service annonce lequel il a utilise.
+      HEDERA_PAYER_PRIVATE_KEY: ${HEDERA_PAYER_PRIVATE_KEY:-}
+      TARE_KEYRING: /srv/tare/var/keyring.json
+    volumes:
+      # Lecture seule : le service ouvre le trousseau, il ne le modifie jamais.
+      - ./var:/srv/tare/var:ro
+    depends_on:
+      anvil: { condition: service_healthy }
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    ports: ["80:80", "443:443"]
+    environment:
+      TARE_DOMAIN: ${TARE_DOMAIN:?TARE_DOMAIN est obligatoire — Caddy en a besoin pour le certificat}
+    volumes:
+      - ./infra/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [api]
+    restart: unless-stopped
+
+volumes:
+  foundry_cache:
+  caddy_data:
+  caddy_config:

@@ -1,0 +1,9 @@
+node_modules
+**/node_modules
+.git
+.cache
+var
+infra/speculos/apps/*.elf
+.playwright-mcp
+*.png
+docs/hooks-source

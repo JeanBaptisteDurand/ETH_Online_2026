@@ -1,0 +1,29 @@
+# TLS automatique, et rien d'autre : ce fichier ne doit pas devenir un second endroit ou
+# la logique du service est decrite.
+{$TARE_DOMAIN} {
+	encode zstd gzip
+
+	# x402 vit dans les EN-TETES : PAYMENT-REQUIRED sur le 402, PAYMENT-SIGNATURE sur la
+	# requete payee, PAYMENT-RESPONSE sur la reponse. Un proxy qui les avale casse le
+	# protocole en silence — donc on les laisse passer, et on les expose au navigateur.
+	header {
+		Access-Control-Allow-Origin "*"
+		Access-Control-Allow-Headers "content-type, payment-signature, x-payment, x-tare-signature, x-tare-timestamp, x-tare-key"
+		Access-Control-Allow-Methods "GET, POST, OPTIONS"
+		Access-Control-Expose-Headers "payment-required, payment-response, x-payment-response, x-tare-units, x-tare-unit-price-usd, x-tare-amount-usd"
+	}
+
+	@preflight method OPTIONS
+	respond @preflight 204
+
+	reverse_proxy api:8787 {
+		# Une mesure demande un fork : 5 tailles x 2 sens ont pris 9,4 s en local. Le
+		# defaut de 30 s couperait une requete PAYEE juste avant sa reponse — le client
+		# aurait paye et n'aurait rien. C'est le pire des cas, donc on lui laisse de la
+		# marge.
+		transport http {
+			response_header_timeout 300s
+			read_timeout 300s
+		}
+	}
+}

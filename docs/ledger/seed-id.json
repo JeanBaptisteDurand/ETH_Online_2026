@@ -1,0 +1,24 @@
+{
+  "v": "tare.lkrp.seedid.v1",
+  "ts": "2026-09-08T07:54:57.750Z",
+  "appareil": "Speculos — application Ledger Sync (Nano X)",
+  "physique": false,
+  "defi": {
+    "tlv": "0101070201001210095b3a58786e8c0248f4f4c52d34ba0214010115483046022100ae3f53669d6c53154ab86c0b50ce9cebee7cb8a033e35745ae677537b268c7f8022100a80852e5d4cae1fe07972179169f0d29b3af555ad4a4ba71f5fec6d4b0ddf91916046a9fc659201e7472757374636861696e2e6170692e6c6976652e6c65646765722e636f6d32012133210275230b698f4ba3a31e2946014ba11d8a48dac334383472648ba1f41470d12cb8600401000000",
+    "data": "095b3a58786e8c0248f4f4c52d34ba02",
+    "expiry": "2026-09-08T08:24:57Z",
+    "host": "trustchain.api.live.ledger.com"
+  },
+  "ecrans": [
+    "Connect to Ledger Sync?",
+    "Connect"
+  ],
+  "preuve": {
+    "publicKey": "031fbef68de38f9facd182c1bc60c3f17290c294cc0d197f57eb645aa43733440a",
+    "signature": "3045022100bd904ebb0b47c6db27534f7b67897382c9ed69153d22ff9c25104a2ceedae91202206912ee82baef9d3d8a2f334de017f19abe6a2e64a894c2901c00f7986ef63d35",
+    "attestationType": 0,
+    "attestationPublicKey": "029a8bef4947807f60aa2130f194f83b45e3989746a40d7b5a027ba13a38c2115f",
+    "attestation": "3045022100c7a439528c15abcbe7e660019c0e639b9332e305b24064d5bf13578aa90a5b86022063c327f18a7d82d59ae0ed4357ac0bb4835e763eb1c94fcacb3e84d1fb2205c9",
+    "challenge": "095b3a58786e8c0248f4f4c52d34ba02"
+  }
+}

@@ -26,3 +26,9 @@ packages/guard/extension/inject.js
 engine/tare/graph/data/graph.json
 apps/web/src/data/dataset.json
 packages/guard/data/table.json
+
+# Clones et binaires des applications Ledger compilees pour Speculos.
+# Le .elf se reconstruit en une commande (scripts/ledger/build-app.sh) ; le committer
+# ajouterait 300 ko de binaire opaque au depot pour aucune verifiabilite en plus.
+.cache/
+infra/speculos/apps/*.elf

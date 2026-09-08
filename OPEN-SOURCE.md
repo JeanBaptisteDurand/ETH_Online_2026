@@ -97,12 +97,52 @@ cd packages/guard && npm i --no-save @ledgerhq/hw-transport-node-speculos-http
 `fullImplem: false` matters. `true` asks for the filtered path, which is the one that has no
 descriptors for our schema and produces the misleading message.
 
+## A second finding: the Key Ring package cannot be installed at all
+
+Found while building [`packages/keyring`](packages/keyring/) — the Ledger Key Ring, driven
+against Speculos instead of a physical device. `npm install` of Ledger's own package fails
+for **every** user outside the Ledger Live monorepo:
+
+```
+@ledgerhq/ledger-key-ring-protocol@0.15.2
+  └─ @ledgerhq/speculos-transport@0.10.6
+       └─ @ledgerhq/live-dmk-speculos@0.10.0     ← not on npm; the whole name 404s
+```
+
+`@ledgerhq/live-dmk-speculos` is published at **no** version — `GET
+registry.npmjs.org/@ledgerhq%2Flive-dmk-speculos` returns 404 — and **every**
+`@ledgerhq/speculos-transport` from 0.9.6 onward depends on it (0.9.5 is the last that does
+not). Inside the monorepo the name resolves through a workspace link, so the break is
+invisible there.
+
+The dependency is also **unused**: no file in `ledger-key-ring-protocol`'s `lib/` or `src/`
+requires `speculos-transport`. So the fix is one line, either way — publish
+`live-dmk-speculos`, or drop the dependency.
+
+Verify it in two commands:
+
+```bash
+npm view @ledgerhq/live-dmk-speculos versions          # 404
+npm install @ledgerhq/ledger-key-ring-protocol@0.15.2  # 404 on live-dmk-speculos@0.10.0
+```
+
+Our workaround, with its reason written next to it, is an alias in
+[`packages/keyring/package.json`](packages/keyring/package.json):
+
+```json
+"overrides": { "@ledgerhq/speculos-transport": "npm:@ledgerhq/logs@6.17.0" }
+```
+
+It is ugly on purpose: a declared-but-unloaded package aliased to something installable. It
+should not be necessary.
+
 ## Repositories this concerns
 
 | repo | what would change |
 |---|---|
 | [`LedgerHQ/app-ethereum`](https://github.com/LedgerHQ/app-ethereum) | the sentence: name **Raw messages**, not blind signing |
 | [`LedgerHQ/ledgerjs`](https://github.com/LedgerHQ/ledgerjs) | surface that cause through `hw-app-eth` rather than a bare `0x6a80` |
+| [`LedgerHQ/ledger-live`](https://github.com/LedgerHQ/ledger-live) | publish `@ledgerhq/live-dmk-speculos`, or drop it from `speculos-transport` — today `ledger-key-ring-protocol` is uninstallable from npm |
 | [`LedgerHQ/speculos`](https://github.com/LedgerHQ/speculos) | nothing to fix — optionally, an endpoint to set an app setting without walking the menu |
 
 Nothing is filed yet. This is the write-up that would go with it.

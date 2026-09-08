@@ -7,7 +7,10 @@
   "description": "TARE Key Ring — le Ledger Key Ring Protocol sur un transport au choix (Speculos ou appareil), pour que la cle qui paie les requetes x402 ne dorme pas en clair.",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
-  "exports": { ".": "./src/index.ts" },
+  "exports": {
+    ".": "./src/index.ts",
+    "./node": "./src/sdk-node.ts"
+  },
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -16,12 +19,17 @@
   "dependencies": {
     "@ledgerhq/hw-ledger-key-ring-protocol": "^0.10.7",
     "@ledgerhq/hw-transport": "^6.35.5",
-    "@ledgerhq/hw-transport-node-speculos-http": "^6.31.4"
+    "@ledgerhq/hw-transport-node-speculos-http": "^6.31.4",
+    "rxjs": "^7.8.2",
+    "@ledgerhq/ledger-key-ring-protocol": "0.15.2"
   },
   "devDependencies": {
     "@types/node": "^22.20.1",
     "tsx": "^4.23.13",
     "typescript": "^5.9.3",
     "vitest": "^3.2.7"
+  },
+  "overrides": {
+    "@ledgerhq/speculos-transport": "npm:@ledgerhq/logs@6.17.0"
   }
 }

@@ -32,3 +32,7 @@ packages/guard/data/table.json
 # ajouterait 300 ko de binaire opaque au depot pour aucune verifiabilite en plus.
 .cache/
 infra/speculos/apps/*.elf
+
+# Le trousseau : il contient la cle privee du MEMBRE. Revocable, mais secrete.
+# `ring seal` le recree en une commande, contre l'appareil.
+var/

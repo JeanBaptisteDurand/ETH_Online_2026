@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "TARE \u2014 l'API x402 qui sert les mesures d'extraction des hooks Uniswap v4.",
+  "description": "TARE — l'API x402 qui sert les mesures d'extraction des hooks Uniswap v4.",
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "start": "tsx src/server.ts",
@@ -16,7 +16,8 @@
     "@x402/hono": "2.23.0",
     "hono": "^4.7.1",
     "pg": "^8.23.0",
-    "zod": "^4.5.4"
+    "zod": "^4.5.4",
+    "@tare/keyring": "file:../../packages/keyring"
   },
   "devDependencies": {
     "@types/node": "^22.20.1",

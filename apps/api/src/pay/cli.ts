@@ -25,6 +25,7 @@ import {
 import { loadConfig } from "../config.js";
 import { REPO_ROOT } from "../paths.js";
 import { createPayer, payOnce, parseKey, MIRROR_TESTNET } from "./client.js";
+import { resolvePayerKey } from "./secret.js";
 
 const USDC_TESTNET = "0.0.429274";
 
@@ -153,9 +154,15 @@ async function cmdPayer(): Promise<void> {
   console.log(`avant   payeur ${payerId} ${usdc(avantPayeur)}`);
   console.log(`avant   encaisse ${payeeId} ${usdc(avantPayee)}`);
 
+  // La cle vient du trousseau Ledger quand il existe, de l'environnement sinon — et on
+  // dit lequel. Un service qui ne sait pas ou dort sa cle de paiement ne sait pas ce
+  // qu'il protege.
+  const cle = await resolvePayerKey();
+  console.log(`\ncle       ${cle.describe}`);
+
   const http = createPayer({
     accountId: payerId,
-    privateKey: need("HEDERA_PAYER_PRIVATE_KEY"),
+    privateKey: cle.value,
     keyType: process.env.HEDERA_PAYER_KEY_TYPE ?? "ECDSA",
     network: cfg.x402Network,
   });
@@ -202,6 +209,7 @@ async function cmdPayer(): Promise<void> {
     facilitateur: cfg.facilitatorUrl,
     token: USDC_TESTNET,
     payeur: payerId,
+    source_de_la_cle: cle.source,
     encaisseur: payeeId,
     prix_annonce_402: r.challenge.body,
     transaction: r.settle.transaction,

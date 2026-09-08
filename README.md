@@ -216,6 +216,8 @@ are those lines.
 | **The 14 permission bits are the hook's own address** | [`packages/hookflags/src/index.ts`](packages/hookflags/src/index.ts), proven over the whole registry in [`engine/tests/test_flags.py`](engine/tests/test_flags.py) |
 | **The gate that executes a real swap** — quote against execution, both legs | [`engine/tare/gates/a4.py`](engine/tare/gates/a4.py) — `make gate-a4` |
 | **The gate that cannot be faked** — reproduces five known bps on every run | [`engine/tare/gates/a3.py`](engine/tare/gates/a3.py) |
+| **The Ledger Key Ring, driven without a physical device** | [`packages/keyring/src/ring.ts`](packages/keyring/src/ring.ts) — the seal/open cycle, and [`sdk-node.ts`](packages/keyring/src/sdk-node.ts) for the transport the packaged CLI hardcodes |
+| **The payment key is sealed, not in a file** — and the service says which | [`apps/api/src/pay/secret.ts`](apps/api/src/pay/secret.ts) |
 | **The x402 resource server on Hedera** | [`apps/api/src/x402.ts`](apps/api/src/x402.ts) |
 | **The client that actually pays**, and the four steps it keeps visible | [`apps/api/src/pay/client.ts`](apps/api/src/pay/client.ts) — settled transfers in [`docs/x402-settlements.jsonl`](docs/x402-settlements.jsonl) |
 | **Billing by measurement, not by request** | [`apps/api/src/metering/ledger.ts`](apps/api/src/metering/ledger.ts) |
@@ -246,8 +248,17 @@ alone: the Ethereum app displays an arbitrary EIP-712 struct field by field only
 filter descriptors for that schema. Ours is new, so the device offers blind signing instead — which
 this project refuses. Run against Speculos with the official app 1.22.3, the screen says so in its
 own words. [`OPEN-SOURCE.md`](OPEN-SOURCE.md) is the write-up, with what could be
-contributed upstream and where. [`EIP712.md`](EIP712.md) is the full clear-signing
+contributed upstream and where — including a second finding: `npm install
+@ledgerhq/ledger-key-ring-protocol` fails for everyone outside Ledger's monorepo, because a
+dependency it never loads is unpublished. [`EIP712.md`](EIP712.md) is the full clear-signing
 experiment, screen by screen.
+
+The Ledger **Key Ring** does run here, without a physical device: Speculos serving the
+official `Ledger Sync` app, Ledger's own protocol package, and Ledger's staging trustchain.
+The payment key that settles every x402 request is sealed under it and opened with no device
+attached — [`packages/keyring/`](packages/keyring/). Production refuses a locally-built
+app's attestation, correctly, so staging is what this runs against; that limit is stated
+there and not smoothed over.
 
 The x402 service is **not hosted**: every settled payment in [`X402.md`](X402.md) was made
 against a local instance. The track asks for a live service; that part is not done.

@@ -561,3 +561,56 @@ class TestStoreRefuse(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestLignesExactes(unittest.TestCase):
+    """`line_end` doit designer une ligne qui EXISTE.
+
+    `text.split("\n")` sur un fichier termine par un retour a la ligne — donc sur tout
+    fichier texte correct — rend un dernier element vide. `len(lines)` valait une ligne
+    de trop, et le dernier morceau de chaque document citait une ligne inexistante :
+    416 citations sur 3 591 etaient dans ce cas. `sed -n 'a,bp'` le tolere en silence,
+    ce qui est exactement pourquoi personne ne l'avait vu.
+    """
+
+    class _Doc:
+        """Double minimal : read_markdown ne lit que `.path`."""
+
+        def __init__(self, path, rel="doc.md"):
+            self.path = path
+            self.rel = rel
+            self.name = "doc"
+
+    def _source(self, contenu: str):
+        p = Path(tempfile.mkdtemp()) / "doc.md"
+        p.write_text(contenu)
+        return self._Doc(p), p
+
+    def test_retour_a_la_ligne_final_ne_compte_pas_pour_une_ligne(self):
+        s, p = self._source("un\ndeux\ntrois\n")
+        _, lignes = C.read_markdown(s)
+        self.assertEqual(len(lignes), 3, "le '' apres le dernier \\n n'est pas une ligne")
+        self.assertEqual(lignes[-1], "trois")
+
+    def test_sans_retour_final_le_compte_est_le_meme(self):
+        s, _ = self._source("un\ndeux\ntrois")
+        _, lignes = C.read_markdown(s)
+        self.assertEqual(len(lignes), 3)
+
+    def test_accord_avec_wc_l_sur_les_documents_reels(self):
+        # La propriete qui compte : ce que le decoupeur croit compter est ce que
+        # `wc -l` compte, donc ce que `sed` peut rendre.
+        racine = Path(__file__).resolve().parents[2]
+        for rel in ("docs/METHOD.md", "docs/HONESTY.md", "README.md"):
+            f = racine / rel
+            if not f.exists():
+                continue
+            _, lignes = C.read_markdown(self._Doc(f, rel))
+            with open(f, errors="replace") as fh:
+                reel = sum(1 for _ in fh)
+            self.assertEqual(len(lignes), reel, f"{rel}: decoupeur {len(lignes)} vs wc -l {reel}")
+
+    def test_un_fichier_vide_ne_vaut_pas_une_ligne(self):
+        s, _ = self._source("")
+        _, lignes = C.read_markdown(s)
+        self.assertEqual(lignes, [], "un fichier vide a zero ligne, pas une ligne vide")

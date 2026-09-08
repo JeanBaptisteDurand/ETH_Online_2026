@@ -120,8 +120,21 @@ class CorpusError(RuntimeError):
 # ------------------------------------------------------------------ lecture
 
 def read_markdown(source: Source) -> Tuple[str, List[str]]:
+    """Le texte, et ses lignes 1-indexees telles que `sed -n 'a,bp'` les compte.
+
+    `split("\n")` sur un fichier termine par un retour a la ligne — c'est-a-dire sur tout
+    fichier texte correct — rend un DERNIER element vide. `len(lines)` valait donc une
+    ligne de trop, et le dernier morceau de chaque document citait une ligne qui n'existe
+    pas : `docs/METHOD.md:397-399` pour un fichier de 398 lignes. 416 citations sur 3 591
+    etaient dans ce cas. `sed` le tolere en silence, ce qui est precisement pourquoi
+    personne ne l'avait vu — mais une citation qui annonce une ligne inexistante est
+    fausse, meme quand elle rend le bon texte.
+    """
     text = source.path.read_text(errors="replace")
-    return text, text.split("\n")
+    lines = text.split("\n")
+    if lines and lines[-1] == "":
+        lines.pop()
+    return text, lines
 
 
 _ADDR = re.compile(r"0x[0-9a-fA-F]{40}")

@@ -9,6 +9,7 @@
 import { describe, it, expect } from "vitest";
 import { createApp } from "../src/app.js";
 import { priceFor } from "../src/x402.js";
+import { buildPlan } from "../src/plan.js";
 import { fakeFacilitator, fakeEngine } from "./helpers.js";
 
 const POOL = {
@@ -177,5 +178,64 @@ describe("compteur d'usage", () => {
     // sans publication reelle, aucun lot ne peut se dire ancre
     expect(u.hcs.anchored_batches).toBe(0);
     expect(u.hcs.unanchored_batches).toBeGreaterThanOrEqual(0);
+  });
+});
+
+/* ---------------------------------------------------------------------------
+ * Un champ fourni mais malforme n'est pas un champ absent. Le message doit
+ * pointer l'erreur reelle, sinon il envoie corriger ce qui va bien.
+ * ------------------------------------------------------------------------- */
+describe("un refus accuse le bon champ", () => {
+  it("pool_id malforme : le dit, au lieu de reclamer un champ deja fourni", () => {
+    const p = buildPlan({ pool_id: "0xdeadbeef" }, { defaultBlock: 50614000, maxUnits: 10 });
+    expect(p.ok).toBe(false);
+    if (!p.ok) {
+      expect(p.error).toMatch(/pool_id malforme/);
+      expect(p.error).not.toMatch(/il faut "hook"/);
+    }
+  });
+
+  it("hook malforme : pareil", () => {
+    const p = buildPlan({ hook: "pas une adresse" }, { defaultBlock: 50614000, maxUnits: 10 });
+    expect(p.ok).toBe(false);
+    if (!p.ok) expect(p.error).toMatch(/hook malforme/);
+  });
+
+  it("pool objet mais incomplete : nomme les champs qui manquent", () => {
+    const p = buildPlan({ pool: { currency0: "0x1" } }, { defaultBlock: 50614000, maxUnits: 10 });
+    expect(p.ok).toBe(false);
+    if (!p.ok) expect(p.error).toMatch(/pool\.currency0.*doivent etre des adresses/);
+  });
+
+  it.each([[null], [123], ["abc"]])(
+    "pool = %s : un refus qui dit le type recu, JAMAIS une panne",
+    (valeur) => {
+      // Object.keys(null) et Object.keys(123) JETTENT. Un corps hostile ne doit pas
+      // pouvoir transformer un refus en 500.
+      const p = buildPlan({ pool: valeur }, { defaultBlock: 50614000, maxUnits: 10 });
+      expect(p.ok).toBe(false);
+      if (!p.ok) expect(p.error).toMatch(/pool inutilisable/);
+    },
+  );
+
+  it("aucun corps hostile ne fait JETER buildPlan", () => {
+    // La propriete qui compte n'est pas le libelle, c'est qu'il y ait toujours un
+    // refus motive au lieu d'une exception.
+    const hostiles: unknown[] = [
+      { pool: [] }, { pool: [1, 2] }, { pool: true }, { pool_id: 42 }, { hook: [] },
+      { hook: {} }, { pool_id: {} }, { sizes: "pas un tableau" }, { directions: 7 },
+      { pool: { currency0: null } }, { block: "abc" }, { pools: -1 },
+    ];
+    for (const h of hostiles) {
+      const p = buildPlan(h as Record<string, unknown>, { defaultBlock: 50614000, maxUnits: 10 });
+      if (!p.ok) expect(typeof p.error).toBe("string");
+      expect(p).toHaveProperty("ok");
+    }
+  });
+
+  it("corps vide : la, le champ est vraiment absent", () => {
+    const p = buildPlan({}, { defaultBlock: 50614000, maxUnits: 10 });
+    expect(p.ok).toBe(false);
+    if (!p.ok) expect(p.error).toMatch(/il faut "hook"/);
   });
 });

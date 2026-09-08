@@ -1,6 +1,14 @@
 services:
-  # Pinned Base fork. The cache volume is not an optimisation: a cold quote measured
-  # 8.96 s against a public RPC and 0.01 s once the state is local.
+  # Fork Base epingle. Le volume de cache ne sert A RIEN et c'est mesure, pas suppose :
+  # anvil 1.8.1 n'ecrit jamais son cache RPC de fork sur disque — ni en cours, ni a l'arret,
+  # ni sur SIGINT. Il est garde parce qu'il ne coute rien et qu'une version future pourrait
+  # s'en servir ; il n'economise pas une requete aujourd'hui. Ce qui economise, c'est de ne
+  # PAS redemarrer ce conteneur : l'etat est mis en cache en RAM pour la duree de la session.
+  # Cout amont mesure (proxy compteur devant Alchemy) :
+  #   demarrage a froid ............... 43 requetes
+  #   toute premiere mesure ........... +70  (chauffe PoolManager, V4Quoter, l'etat commun)
+  #   chaque pool NEUF ensuite ........ +13
+  #   un pool deja mesure ............. 0    (rien ne repart en amont)
   anvil:
     image: ghcr.io/foundry-rs/foundry:latest
     # The image's ENTRYPOINT is ["/bin/sh","-c"], so the command must reach it as ONE
@@ -10,7 +18,12 @@ services:
     # port answers nothing. A one-element list is the only form that keeps it whole.
     command: ["anvil --fork-url ${BASE_RPC_URL} --fork-block-number ${FORK_BLOCK:-50614000} --host 0.0.0.0 --port 8545 --compute-units-per-second 200000 --silent"]
     ports: ["8545:8545"]
-    volumes: ["foundry_cache:/root/.foundry/cache"]
+    # L'image tourne en uid 1000 (foundry), HOME=/home/foundry. Monter le cache sur
+    # /root/.foundry/cache — ce que faisait ce fichier — le rend INACCESSIBLE au processus :
+    # il ne peut pas y ecrire, et ce n'est pas la qu'il le cherche. Le volume restait vide
+    # (4 Ko, zero fichier) et CHAQUE demarrage refaisait tout l'etat contre le RPC payant.
+    volumes: ["foundry_cache:/home/foundry/.foundry/cache"]
+    user: "1000:1000"
     healthcheck:
       test: ["CMD","sh","-c","cast block-number --rpc-url http://127.0.0.1:8545 >/dev/null 2>&1"]
       interval: 5s

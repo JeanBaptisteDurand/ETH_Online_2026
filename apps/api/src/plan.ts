@@ -166,6 +166,33 @@ export function buildPlan(
     via = "hook";
     note = `${take.length} pool(s) retenu(s) sur ${pools.length}, par liquidite approchee decroissante (docs/pools-liquides.json)`;
   } else {
+    // Un champ FOURNI mais malforme n'est pas un champ absent, et le dire serait accuser le
+    // mauvais probleme : l'appelant a bien donne un pool_id, il est juste au mauvais format.
+    // Le message doit pointer l'erreur reelle, sinon il envoie corriger ce qui va bien.
+    if (body.pool_id !== undefined)
+      return fail(
+        `pool_id malforme : ${JSON.stringify(body.pool_id)}. Attendu 0x suivi de 64 chiffres hexadecimaux.`,
+        block,
+      );
+    if (body.hook !== undefined)
+      return fail(
+        `hook malforme : ${JSON.stringify(body.hook)}. Attendu une adresse 0x suivie de 40 chiffres hexadecimaux.`,
+        block,
+      );
+    if (body.pool !== undefined) {
+      // Object.keys(null) et Object.keys(123) JETTENT. Un corps hostile ne doit jamais
+      // produire un 500 la ou un 400 est la bonne reponse : on ne liste les cles que si
+      // c'en est vraiment un objet.
+      const cles =
+        body.pool !== null && typeof body.pool === "object" && !Array.isArray(body.pool)
+          ? JSON.stringify(Object.keys(body.pool as Record<string, unknown>))
+          : `un ${body.pool === null ? "null" : typeof body.pool}`;
+      return fail(
+        'pool inutilisable : il faut un objet avec currency0, currency1, fee, tick_spacing ' +
+          `et hooks. Recu : ${cles}.`,
+        block,
+      );
+    }
     return fail('il faut "hook", "pool_id" ou "pool" (la PoolKey complete)', block);
   }
 

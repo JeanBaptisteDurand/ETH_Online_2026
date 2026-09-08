@@ -151,6 +151,39 @@ is here and what would be lost without it. It carries the three diagrams — the
 which are user actions, and which touch a chain. It also says plainly which two panels are
 missing.
 
+## What has to be running, and what breaks without it
+
+Nothing here degrades silently. Each surface that needs a dependency **says so** when it is
+absent, with the reason and the command that fixes it — a read that failed is never reported as
+an empty result.
+
+| you want | you need | without it |
+|---|---|---|
+| `/hooks`, `/hook/:addr`, `/measurement/:id`, `/route`, the instrument | nothing — the 125,072 measurements are in the repo | works |
+| `POST /measure` (a **new** measurement) | `docker compose up -d anvil` + a `BASE_RPC_URL` | `503 moteur indisponible`, never a fabricated number |
+| `/graph` and its traversals | nothing — rebuilt by `scripts/regenerate.sh` | says the graph file is missing |
+| `/rag/search` (the **vector** retriever) | `docker compose up -d db`, **plus** `ollama serve` with `granite-embedding:278m` | `503 INDEX_UNAVAILABLE`, or `503 DIM_MISMATCH` |
+| a settled x402 payment | a funded Hedera account, associated with `0.0.429274` | `402` forever, which is correct |
+
+The **`DIM_MISMATCH`** case is worth naming, because it is the one that would silently poison
+answers if it were not checked. The index is built with `granite-embedding:278m` (**768**
+dimensions). If ollama is not running, the embedder falls back to OpenAI
+`text-embedding-3-small` (**1536**), and the two spaces do not compare — nearest neighbours in
+the wrong space are not worse answers, they are meaningless ones. So the route refuses:
+
+```json
+{ "status": "DIM_MISMATCH",
+  "error": "question en dimension 1536, index en 768 : deux espaces vectoriels ne se comparent pas" }
+```
+
+`GET /rag/meta` shows both dimensions, `dimension_match`, and which embedder was chosen and why.
+
+```bash
+ollama serve &                        # then: ollama pull granite-embedding:278m
+TARE_DB_PORT=55432 docker compose up -d db anvil
+cd apps/api && npx tsx src/server.ts
+```
+
 ## From a fresh clone
 
 The repository ships the **evidence** — `docs/dataset/measurements.jsonl`, 125,072 measurements,

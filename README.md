@@ -217,7 +217,9 @@ are those lines.
 | **The gate that executes a real swap** — quote against execution, both legs | [`engine/tare/gates/a4.py`](engine/tare/gates/a4.py) — `make gate-a4` |
 | **The gate that cannot be faked** — reproduces five known bps on every run | [`engine/tare/gates/a3.py`](engine/tare/gates/a3.py) |
 | **The x402 resource server on Hedera** | [`apps/api/src/x402.ts`](apps/api/src/x402.ts) |
+| **The client that actually pays**, and the four steps it keeps visible | [`apps/api/src/pay/client.ts`](apps/api/src/pay/client.ts) — settled transfers in [`docs/x402-settlements.jsonl`](docs/x402-settlements.jsonl) |
 | **Billing by measurement, not by request** | [`apps/api/src/metering/ledger.ts`](apps/api/src/metering/ledger.ts) |
+| **A paid unit the engine then calls unmeasurable is a credit, not a zero** | [`apps/api/src/metering/ledger.ts`](apps/api/src/metering/ledger.ts) — `totals()`, and [`X402.md`](X402.md) |
 | **The guard that reads the hook out of Universal Router calldata** | [`packages/guard/src/calldata.ts`](packages/guard/src/calldata.ts) |
 | **Never truncate an error body** — the bug that hid a revert selector four times | [`engine/tare/rpc.py`](engine/tare/rpc.py) |
 
@@ -244,7 +246,11 @@ alone: the Ethereum app displays an arbitrary EIP-712 struct field by field only
 filter descriptors for that schema. Ours is new, so the device offers blind signing instead — which
 this project refuses. Run against Speculos with the official app 1.22.3, the screen says so in its
 own words. [`OPEN-SOURCE.md`](OPEN-SOURCE.md) is the write-up, with what could be
-contributed upstream and where.
+contributed upstream and where. [`EIP712.md`](EIP712.md) is the full clear-signing
+experiment, screen by screen.
+
+The x402 service is **not hosted**: every settled payment in [`X402.md`](X402.md) was made
+against a local instance. The track asks for a live service; that part is not done.
 
 ## License
 

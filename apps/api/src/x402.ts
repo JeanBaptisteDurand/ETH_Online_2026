@@ -44,7 +44,10 @@ export function createPaymentLayer(
   // savoir raccrocher un hash de reglement, pas du compteur entier.
   opts: {
     facilitator?: FacilitatorClient;
-    onSettled?: (payer: string | null, s: { success: boolean; transaction: string | null }) => void;
+    onSettled?: (
+    payer: string | null,
+    s: { success: boolean; transaction: string | null; network: string | null },
+  ) => void;
   } = {},
 ): PaymentLayer {
   const network = normalizeNetwork(cfg.x402Network) as Network;
@@ -59,6 +62,7 @@ export function createPaymentLayer(
       onSettled(ctx.result.payer ?? null, {
         success: ctx.result.success,
         transaction: ctx.result.transaction ?? null,
+        network: ctx.result.network ?? null,
       });
     });
   }
@@ -152,7 +156,28 @@ export function createPaymentLayer(
   };
 }
 
-/** Le payeur, quand l'en-tete X-PAYMENT le laisse voir. Best effort, jamais devine. */
+/**
+ * L'en-tete de paiement, sous ses DEUX noms.
+ *
+ * x402 v2 envoie `PAYMENT-SIGNATURE` ; seul v1 utilisait `X-PAYMENT`. Le serveur ne
+ * lisait que le second : toute requete v2 — c'est-a-dire toutes celles de notre propre
+ * client — etait donc vue comme NON PAYEE, avec deux consequences visibles au premier
+ * reglement reel : le journal attribuait les unites a "(non paye)", et le lot partait sur
+ * HCS une premiere fois sans payeur ni hash. La bibliotheque elle-meme lit les deux
+ * (`server/index.js:3012`) ; on fait pareil.
+ */
+export function paymentHeaderOf(read: (name: string) => string | undefined): string | undefined {
+  return read("payment-signature") ?? read("PAYMENT-SIGNATURE") ?? read("x-payment");
+}
+
+/**
+ * Ce que l'en-tete laisse voir. Best effort, jamais devine.
+ *
+ * Sur Hedera, le payload `exact` porte une TransferTransaction serialisee : le payeur y
+ * est encode dans le corps signe, pas dans un champ JSON. `payer` vaut donc null ici, et
+ * c'est la reponse de reglement — elle, faisant foi — qui le donne. Retourner null est la
+ * bonne reponse ; deviner en serait une mauvaise.
+ */
 export function payerFromHeader(header: string | undefined): {
   payer: string | null;
   network: string | null;

@@ -85,7 +85,12 @@ export class MeteringService {
 
   attachSettlement(
     batchId: string,
-    settlement: { success: boolean; transaction: string | null; payer?: string | null },
+    settlement: {
+      success: boolean;
+      transaction: string | null;
+      payer?: string | null;
+      network?: string | null;
+    },
   ): number {
     return this.ledger.attachSettlement(batchId, settlement);
   }
@@ -117,7 +122,9 @@ export class MeteringService {
         definition:
           "Une unite = UNE mesure = une paire de cotations du meme swap (avec le hook, puis avec le stub inerte de 89 octets). Une requete qui demande 5 tailles x 2 sens vaut 10 unites, pas 1.",
         not_billed:
-          "Une mesure etiquetee NOT_MEASURABLE n'est pas facturee : lecture bornee, timeout ou moteur muet ne produisent pas d'unite.",
+          "Une mesure etiquetee NOT_MEASURABLE n'est pas facturable : lecture bornee, timeout ou moteur muet ne produisent pas d'unite due.",
+        credit:
+          "Mais x402 encaisse AVANT que le moteur ne tourne — le prix est fige au 402, l'argent bouge au reglement, l'etiquette n'existe qu'apres. Une unite non facturable deja payee n'est donc pas gratuite : elle devient un CREDIT. `amount_usd` dit ce qui est du, `amount_settled_usd` ce qui a reellement ete preleve on-chain, `credit_usd` l'ecart que le service doit.",
       },
       totals: all,
       since_month_start: month,
@@ -243,6 +250,12 @@ export class MeteringService {
    * un accuse de reception local ne vaut pas une piste d'audit publique.
    */
   async anchorBatch(receipt: BatchReceipt, extra: { block?: number | null } = {}): Promise<AnchorOutcome> {
+    // Un lot deja ancre ne se republie pas. Chaque message HCS coute du HBAR, et une
+    // piste d'audit qui contient deux fois le meme lot n'est plus une piste : il faudrait
+    // savoir laquelle des deux lignes fait foi.
+    const deja = this.anchors.find((a) => a.batch_id === receipt.batch_id && a.ok);
+    if (deja) return deja;
+
     if (!this.anchor) {
       const out: AnchorOutcome = {
         ok: false,
@@ -258,6 +271,11 @@ export class MeteringService {
 
     const rows: UnitRow[] = this.ledger.rowsOf(receipt.batch_id);
     const settlement = rows.find((r) => r.settlement_tx)?.settlement_tx ?? null;
+    // Le payeur n'est connu qu'au REGLEMENT : l'en-tete X-PAYMENT d'un paiement Hedera
+    // porte une TransferTransaction serialisee, pas un champ `payer` lisible. Le recu,
+    // ecrit pendant le handler, l'ignore donc encore ; les lignes, mises a jour par
+    // attachSettlement, le savent. On prend celui qu'on SAIT, jamais celui qu'on suppose.
+    const payer = rows.find((r) => r.payer)?.payer ?? receipt.payer;
     const payload: AnchorPayload = {
       v: HCS_SCHEMA,
       batch: receipt.batch_id,
@@ -266,7 +284,7 @@ export class MeteringService {
       units: receipt.units_billed,
       unit_price_usd: receipt.unit_price_usd,
       amount_usd: receipt.amount_usd,
-      payer: receipt.payer,
+      payer,
       settlement,
       block: extra.block ?? rows[0]?.block_number ?? null,
     };

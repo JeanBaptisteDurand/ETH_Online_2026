@@ -334,3 +334,82 @@ describe("createMetering", () => {
     expect(m.ledger.list(1)[0]!.measurement_id).toBe("m_dead");
   });
 });
+
+/* ------------------------------------------------------------------------ *
+ * Ce que le PREMIER paiement x402 reellement regle a montre, et que rien
+ * dans ces tests ne couvrait : la comptabilite d'un lot paye puis declare
+ * non facturable, et la republication d'un lot deja ancre.
+ * ------------------------------------------------------------------------ */
+
+describe("le premier reglement reel", () => {
+  it("une unite NOT_MEASURABLE payee n'est pas gratuite : elle devient un credit", () => {
+    const ledger = new MeteringLedger({ path: null });
+    const receipt = ledger.recordBatch(batch([unit({ label: "NOT_MEASURABLE", bps: null })]));
+    ledger.attachSettlement(receipt.batch_id, {
+      success: true,
+      transaction: "0.0.7162784@1788839558.000000000",
+      payer: "0.0.10367920",
+    });
+
+    const t = ledger.totals(null);
+    expect(t.units_billed).toBe(0);
+    expect(t.amount_usd).toBe(0); // rien n'est DU
+    expect(t.amount_settled_usd).toBe(0.001); // mais 0,001 USDC a bel et bien bouge
+    expect(t.credit_units).toBe(1);
+    expect(t.credit_usd).toBe(0.001); // l'ecart est un credit, jamais un zero
+  });
+
+  it("une unite mesuree et payee ne laisse aucun credit", () => {
+    const ledger = new MeteringLedger({ path: null });
+    const receipt = ledger.recordBatch(batch([unit()]));
+    ledger.attachSettlement(receipt.batch_id, {
+      success: true,
+      transaction: "0.0.7162784@1788839470.544998334",
+      payer: "0.0.10367920",
+    });
+    const t = ledger.totals(null);
+    expect(t.amount_usd).toBe(0.001);
+    expect(t.amount_settled_usd).toBe(0.001);
+    expect(t.credit_usd).toBe(0);
+  });
+
+  it("un reglement ECHOUE ne compte ni comme preleve ni comme credit", () => {
+    const ledger = new MeteringLedger({ path: null });
+    const receipt = ledger.recordBatch(batch([unit({ label: "NOT_MEASURABLE", bps: null })]));
+    ledger.attachSettlement(receipt.batch_id, { success: false, transaction: null });
+    const t = ledger.totals(null);
+    expect(t.amount_settled_usd).toBe(0);
+    expect(t.credit_usd).toBe(0);
+  });
+
+  it("un lot deja ancre n'est jamais republie : une piste d'audit ne se dedouble pas", async () => {
+    const ledger = new MeteringLedger({ path: null });
+    const { anchor, published } = fakeAnchor();
+    const svc = new MeteringService({ ledger, anchor });
+    const receipt = svc.recordBatch(batch([unit()]));
+
+    const first = await svc.anchorBatch(receipt);
+    const second = await svc.anchorBatch(receipt);
+
+    expect(first.status).toBe("ANCHORED");
+    expect(second).toBe(first); // le meme resultat, pas un second message
+    expect(published).toHaveLength(1);
+  });
+
+  it("l'empreinte HCS porte le payeur connu au REGLEMENT, pas celui du recu", async () => {
+    const ledger = new MeteringLedger({ path: null });
+    const { anchor, published } = fakeAnchor();
+    const svc = new MeteringService({ ledger, anchor });
+    // Le recu ignore le payeur : l'en-tete de paiement Hedera ne le laisse pas voir.
+    const receipt = svc.recordBatch(batch([unit()], { payer: null }));
+    svc.attachSettlement(receipt.batch_id, {
+      success: true,
+      transaction: "0.0.7162784@1788839470.544998334",
+      payer: "0.0.10367920",
+    });
+
+    await svc.anchorBatch(receipt);
+    expect(published[0]!.payer).toBe("0.0.10367920");
+    expect(published[0]!.settlement).toBe("0.0.7162784@1788839470.544998334");
+  });
+});

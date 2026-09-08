@@ -48,10 +48,17 @@ deja installe, tire par `@x402/hedera` 2.23.0.
 
 ## Les regles d'honnetete, appliquees a la facturation
 
-- Une mesure `NOT_MEASURABLE` **n'est pas facturee**. Lecture bornee, timeout,
-  moteur muet : pas d'unite. On ne facture pas un silence.
+- Une mesure `NOT_MEASURABLE` **n'est pas facturable**. Lecture bornee, timeout,
+  moteur muet : pas d'unite due. On ne facture pas un silence.
   (`MEASURED`, `INTERPOLATED`, `NOT_QUOTABLE` sont facturees : le couple de
   cotations a bien tourne, et `NOT_QUOTABLE` est un verdict, pas une panne.)
+- **Mais x402 encaisse AVANT que le moteur ne tourne.** Le prix est fige au 402,
+  l'argent bouge au reglement, l'etiquette n'existe qu'apres : le premier paiement
+  reellement regle a paye une unite `NOT_MEASURABLE`. Une unite non facturable deja
+  payee n'est pas gratuite, c'est un **credit**. D'ou trois chiffres au lieu d'un —
+  `amount_usd` (ce qui est du), `amount_settled_usd` (ce qui a REELLEMENT ete
+  preleve on-chain), `credit_usd` (l'ecart, que le service doit).
+  Le detail : [`X402.md`](../../../../X402.md) a la racine du depot.
 - Un lot n'est `ANCHORED` que si le **mirror node** rend le message, octet pour
   octet. Sinon `NOT_ANCHORED`, avec la raison. Jamais promu.
 - Un cout non lu vaut `null`, **jamais 0** — 0 dirait « gratuit ».
@@ -71,33 +78,44 @@ GET  /usage/hcs/message/:seq   relecture LIVE par le mirror node (200 VERIFIED /
 POST /usage/anchor             ancre un lot — signee HMAC
 ```
 
-## Montage dans `src/app.ts` (hors de ce lot, a faire au merge)
+## Le montage, tel qu'il est (et pourquoi il n'est pas celui decrit plus haut)
+
+Ce lot decrivait un montage en deux lignes. Il est monte — mais **pas** comme ca, parce
+que le premier paiement reellement regle a montre que ce montage-la etait faux. Voir
+[`X402.md`](../../../../X402.md) pour le recit complet ; en resume :
 
 ```ts
-import { createMetering, toMeasurementUnit } from "./metering/index.js";
+// une case PAR REQUETE : le hook de reglement s'execute dans le meme contexte async,
+// donc il la retrouve. Une variable partagee attribuerait le reglement d'une requete
+// au lot d'une autre des que deux clients paient en meme temps.
+const enCours = new AsyncLocalStorage<{ receipt: BatchReceipt | null; block: number | null }>();
 
-const metering = createMetering({ unitPriceUsd: cfg.unitPriceUsd });
-app.route("/", metering.router);          // remplace l'actuel app.get("/usage")
-```
-
-puis dans le handler `POST /measure`, apres `measurements` :
-
-```ts
-const receipt = metering.service.recordBatch({
-  route: "/measure", method: "POST",
-  payer: who.payer, network: who.network, scheme: who.scheme,
-  units_requested: plan.units, unit_price_usd: cfg.unitPriceUsd,
-  latency_ms: Date.now() - t0, error: null,
-  units: measurements.map(toMeasurementUnit),
+const layer = createPaymentLayer(cfg, {
+  onSettled: (payer, st) => {
+    const slot = enCours.getStore();
+    if (!slot?.receipt) return;
+    metering.service.attachSettlement(slot.receipt.batch_id, { ...st, payer });
+    // APRES le raccrochage : ancre plus tot, l'empreinte partirait avec
+    // `settlement: null` et ne serait plus une piste d'audit de PAIEMENT.
+    void metering.service.anchorBatch(slot.receipt, { block: slot.block });
+  },
 });
-void metering.service.anchorBatch(receipt);   // l'ancrage HCS ne bloque pas la reponse
+app.use("/measure", (c, next) => enCours.run({ receipt: null, block: null }, () => next()));
 ```
 
-et, dans `createPaymentLayer`, `onAfterSettle` appelle
-`metering.service.attachSettlement(batchId, { success, transaction, payer })`.
+Trois pieges, tous verifies a l'usage :
 
-Attention : `app.get("/usage")` existe deja dans `src/app.ts` et gagnerait sur
-celui-ci (premier enregistre, premier servi). Il faut le retirer au montage.
+1. **L'en-tete de paiement s'appelle `PAYMENT-SIGNATURE` en x402 v2**, pas `X-PAYMENT`
+   (v1). Lire le mauvais nom ne casse pas le peage — la bibliotheque, elle, lit les deux —
+   mais fait voir toute requete payee comme non payee : payeur `"(non paye)"`, et un
+   ancrage premature sans hash de reglement.
+2. **Le payeur n'est pas lisible dans l'en-tete** sur Hedera : le payload `exact` porte
+   une `TransferTransaction` serialisee. Il n'est connu qu'au reglement. `anchorBatch`
+   prend donc celui des LIGNES (mises a jour par `attachSettlement`), pas celui du recu.
+3. **Un lot deja ancre n'est jamais republie.** Chaque message HCS coute du HBAR, et une
+   piste ou le meme lot figure deux fois n'est plus une piste.
+
+`app.get("/usage")` a bien ete retire de `src/app.ts` au profit de `metering.router`.
 
 ## Variables
 
@@ -112,7 +130,7 @@ TARE_LIVE_HCS=0                    # coupe le test reseau
 
 ```bash
 cd apps/api
-npx vitest run --config src/metering/vitest.config.ts   # 45 tests + 1 saute
+npx vitest run --config src/metering/vitest.config.ts   # 50 tests + 1 saute
 npx tsx src/metering/cli.ts topic-create                # une seule fois
 npx tsx src/metering/cli.ts anchor                      # publie une empreinte et la relit
 npx tsx src/metering/cli.ts usage                       # le parcours complet, 10 unites

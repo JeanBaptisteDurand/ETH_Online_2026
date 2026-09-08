@@ -13,11 +13,12 @@ import { buildRanking } from "./rank.js";
 import { buildPlan } from "./plan.js";
 import { normalizeMeasurement, buildReplay } from "./measurement.js";
 import { engineHealth, runPlans, type EngineHealth } from "./engine.js";
-import { createMetering, toMeasurementUnit } from "./metering/index.js";
+import { createMetering, toMeasurementUnit, type BatchReceipt } from "./metering/index.js";
 import { createGraphRouter } from "./graph-routes.js";
 import { createRagRouter } from "./rag/index.js";
 import { createRouteRouter } from "./route.js";
-import { createPaymentLayer, payerFromHeader, priceFor } from "./x402.js";
+import { AsyncLocalStorage } from "node:async_hooks";
+import { createPaymentLayer, payerFromHeader, paymentHeaderOf, priceFor } from "./x402.js";
 import type { Label } from "./labels.js";
 import type { RagStore, QueryEmbedder } from "./rag/index.js";
 
@@ -255,14 +256,39 @@ export function createApp(deps: AppDeps = {}) {
   /* ------------------------------------------------------- la route payante */
 
   const metering = createMetering({ unitPriceUsd: cfg.unitPriceUsd });
-  let lastBatchId: string | null = null;
+
+  /**
+   * Raccrocher le reglement au bon lot.
+   *
+   * Le hash x402 arrive APRES le handler : le middleware verifie, laisse passer, puis
+   * regle. Le lot, lui, est ecrit PENDANT le handler. Il faut donc un fil entre les deux.
+   *
+   * Ce fil etait un `let lastBatchId` partage par tout le serveur. Deux defauts, et le
+   * premier paiement reel les a montres tous les deux : il n'etait affecte que dans le
+   * chemin d'ECHEC (un lot reussi n'etait donc jamais raccroche — `settlement_tx: null`
+   * sur une transaction pourtant confirmee on-chain), et, partage, il aurait attribue le
+   * reglement d'une requete au lot d'une autre des que deux clients paient en meme temps.
+   *
+   * AsyncLocalStorage donne une case PAR REQUETE, que le hook de reglement retrouve parce
+   * qu'il s'execute dans le meme contexte asynchrone. Pas de course, pas d'ordre suppose.
+   */
+  const enCours = new AsyncLocalStorage<{ receipt: BatchReceipt | null; block: number | null }>();
   const layer = createPaymentLayer(cfg, {
     facilitator: deps.facilitator,
-    // Le hash de reglement x402 arrive APRES la reponse : on le raccroche au dernier lot.
     onSettled: (payer, st) => {
-      if (lastBatchId) metering.service.attachSettlement(lastBatchId, { ...st, payer });
+      const slot = enCours.getStore();
+      if (!slot?.receipt) return;
+      metering.service.attachSettlement(slot.receipt.batch_id, { ...st, payer });
+      // L'ancrage vient APRES le raccrochage, pas avant : ancre plus tot, l'empreinte
+      // partirait avec `settlement: null` et le journal HCS ne serait plus une piste
+      // d'audit de PAIEMENT, juste un horodatage de calcul. Il ne bloque pas la reponse.
+      void metering.service.anchorBatch(slot.receipt, { block: slot.block });
     },
   });
+
+  // La case doit exister AVANT le middleware de paiement, sinon le hook de reglement
+  // s'execute hors contexte et ne trouve rien.
+  app.use("/measure", (c, next) => enCours.run({ receipt: null, block: null }, () => next()));
 
   // 1) on valide le plan AVANT le peage : personne ne paie pour une requete
   //    qu'on ne saurait pas executer.
@@ -331,7 +357,7 @@ export function createApp(deps: AppDeps = {}) {
   // 4) la mesure
   app.post("/measure", async (c) => {
     const plan = c.get("plan" as never) as ReturnType<typeof buildPlan>;
-    const paymentHeader = c.req.header("X-PAYMENT");
+    const paymentHeader = paymentHeaderOf((n) => c.req.header(n));
     const who = payerFromHeader(paymentHeader);
     const paid = cfg.x402Enabled && Boolean(paymentHeader);
 
@@ -339,7 +365,7 @@ export function createApp(deps: AppDeps = {}) {
     try {
       raws = await engine.run(cfg.python, cfg.rpcUrl, plan.block, plan.items);
     } catch (e) {
-      lastBatchId = (metering.ledger.recordFailure({
+      const echec = metering.ledger.recordFailure({
         route: "/measure",
         method: "POST",
         payer: who.payer,
@@ -349,7 +375,9 @@ export function createApp(deps: AppDeps = {}) {
         unit_price_usd: cfg.unitPriceUsd,
         latency_ms: null,
         error: (e as Error).message.slice(0, 200),
-      })).batch_id;
+      });
+      const slotEchec = enCours.getStore();
+      if (slotEchec) slotEchec.receipt = echec;
       return c.json(
         {
           error: "moteur indisponible",
@@ -379,6 +407,16 @@ export function createApp(deps: AppDeps = {}) {
       latency_ms: null,
       error: null,
     });
+
+    // sans ces lignes, un lot REUSSI n'etait jamais raccroche a son reglement
+    const slot = enCours.getStore();
+    if (slot) {
+      slot.receipt = entry;
+      slot.block = plan.block;
+    }
+    // Sans peage (X402_ENABLED=0) il n'y aura pas de reglement, donc pas de hook : on
+    // ancre ici, sinon le journal HCS resterait vide en local et ne serait jamais teste.
+    if (!paid) void metering.service.anchorBatch(entry, { block: plan.block });
 
     c.header("X-Tare-Units", String(plan.units));
     c.header("X-Tare-Unit-Price-Usd", String(cfg.unitPriceUsd));

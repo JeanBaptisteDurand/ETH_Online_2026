@@ -3,8 +3,12 @@ services:
   # 8.96 s against a public RPC and 0.01 s once the state is local.
   anvil:
     image: ghcr.io/foundry-rs/foundry:latest
-    # The image's ENTRYPOINT is ["/bin/sh","-c"], so command MUST be a single string.
-    command: "anvil --fork-url ${BASE_RPC_URL} --fork-block-number ${FORK_BLOCK:-50614000} --host 0.0.0.0 --port 8545 --compute-units-per-second 200000 --silent"
+    # The image's ENTRYPOINT is ["/bin/sh","-c"], so the command must reach it as ONE
+    # argument. A YAML string does NOT do that: Compose tokenises it, and `sh -c` then
+    # takes "anvil" as the whole script and every flag as $0, $1, ... — anvil starts, but
+    # bare: no fork, and listening on 127.0.0.1 inside the container, so the published
+    # port answers nothing. A one-element list is the only form that keeps it whole.
+    command: ["anvil --fork-url ${BASE_RPC_URL} --fork-block-number ${FORK_BLOCK:-50614000} --host 0.0.0.0 --port 8545 --compute-units-per-second 200000 --silent"]
     ports: ["8545:8545"]
     volumes: ["foundry_cache:/root/.foundry/cache"]
     healthcheck:

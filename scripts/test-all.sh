@@ -45,6 +45,7 @@ count "engine (python)" $(awk '{print $1}' <<<"$e") $(awk '{print $2}' <<<"$e")
 vitest_count apps/api ""                            "api"
 vitest_count apps/api "src/assistant/vitest.config.ts" "assistant"
 vitest_count apps/api "src/metering/vitest.config.ts"  "metering"
+vitest_count apps/api "src/pay/vitest.config.ts"       "x402-client"
 node_test_count() { # dir, glob-or-cmd, name — le runner natif de node imprime "ℹ pass N" / "ℹ fail N"
   local out; out=$(cd "$1" && eval "$2" 2>&1) || true
   local p f

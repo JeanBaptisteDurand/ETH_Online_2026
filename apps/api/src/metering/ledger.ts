@@ -277,14 +277,24 @@ export class MeteringLedger {
   /** Le hash de reglement x402 arrive APRES la reponse : on le raccroche ici. */
   attachSettlement(
     batchId: string,
-    settlement: { success: boolean; transaction: string | null; payer?: string | null },
+    settlement: {
+      success: boolean;
+      transaction: string | null;
+      payer?: string | null;
+      /** le reseau CAIP-2 tel que le RENDS le reglement, jamais celui qu'on esperait */
+      network?: string | null;
+    },
   ): number {
     let n = 0;
     for (const r of this.rows) {
       if (r.batch_id !== batchId) continue;
       r.settlement_tx = settlement.transaction;
       r.settlement_ok = settlement.success;
+      // Le payeur et le reseau ne sont lisibles qu'au reglement : l'en-tete de paiement
+      // Hedera porte une transaction serialisee, pas des champs JSON. On complete ce
+      // qu'on ne savait pas ; on n'ecrase jamais ce qu'on savait deja.
       if (!r.payer && settlement.payer) r.payer = settlement.payer;
+      if (!r.network && settlement.network) r.network = settlement.network;
       this.write(r);
       n++;
     }
@@ -413,6 +423,9 @@ export class MeteringLedger {
     units_billed: number;
     units_unbilled: number;
     amount_usd: number;
+    amount_settled_usd: number;
+    credit_units: number;
+    credit_usd: number;
     first_at: string | null;
     last_at: string | null;
     settled_transactions: number;
@@ -424,11 +437,26 @@ export class MeteringLedger {
     let billed = 0;
     let amount = 0;
     let anchored = 0;
+    // x402 encaisse AVANT que le moteur ne tourne : le prix est fige au 402, l'argent
+    // bouge au reglement, et l'etiquette n'existe qu'apres. Une unite NOT_MEASURABLE est
+    // donc payee puis declaree non facturable — les deux a la fois. Dire seulement
+    // `amount_usd: 0` presenterait comme gratuit ce qui a bel et bien ete preleve.
+    // On tient donc les deux chiffres, et leur ecart : c'est un CREDIT du, pas un zero.
+    let settledAmount = 0;
+    let creditUnits = 0;
+    let creditAmount = 0;
     for (const r of rows) {
       batches.add(r.batch_id);
       if (r.billable) billed += 1;
       amount += r.amount_usd;
       if (r.settlement_tx) tx.add(r.settlement_tx);
+      if (r.settlement_ok === true) {
+        settledAmount += r.unit_price_usd;
+        if (!r.billable) {
+          creditUnits += 1;
+          creditAmount += r.unit_price_usd;
+        }
+      }
       if (r.hcs_sequence_number !== null) anchored += 1;
     }
     return {
@@ -438,6 +466,9 @@ export class MeteringLedger {
       units_billed: billed,
       units_unbilled: rows.length - billed,
       amount_usd: Number(amount.toFixed(6)),
+      amount_settled_usd: Number(settledAmount.toFixed(6)),
+      credit_units: creditUnits,
+      credit_usd: Number(creditAmount.toFixed(6)),
       first_at: rows[0]?.ts ?? null,
       last_at: rows[rows.length - 1]?.ts ?? null,
       settled_transactions: tx.size,

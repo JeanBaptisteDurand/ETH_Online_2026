@@ -226,6 +226,31 @@ const mcp = serveurMcp === null ? null : {
   outils: [...serveurMcp.matchAll(/registerTool\(\s*"([a-z_]+)"/g)].map((m) => m[1]),
 }
 
+/* -------------------------- 5 bis. les pools a sens unique */
+
+// Le panneau 00 montre deux pools ou l'on entre pour rien et d'ou l'on ne ressort pas. Ce
+// sont des exemples ; le RECENSEMENT n'etait nulle part. Six pools sur 2 298 mesures dans
+// les deux sens : c'est peu, et le dire ainsi vaut mieux que de laisser croire a une regle.
+const ow = lireJson(p('docs/dataset/one-way.json'))
+const sensUnique = ow === null ? null : {
+  pools_deux_sens: ow.portee?.pools_mesures_dans_les_deux_sens ?? null,
+  pools: ow.portee?.pools_retenus ?? null,
+  hooks: ow.portee?.hooks_retenus ?? null,
+  seuil_lourd_bps: ow.seuils?.heavy_bps ?? null,
+  seuil_plat_bps: ow.seuils?.flat_bps ?? null,
+  // Le seuil est un choix de PUBLICATION, pas une frontiere naturelle. Le publier avec la
+  // liste est la seule facon de laisser quelqu'un le deplacer et refaire le compte.
+  note_seuil: ow.seuils?.note ?? null,
+  exemples: (ow.pools ?? []).slice(0, 3).map((x) => ({
+    pool_id: x.pool_id,
+    hook: x.hook,
+    sens_lourd: x.sens_lourd,
+    lourd_bps: x.bps_median_lourd,
+    leger_bps: x.bps_median_leger,
+  })),
+}
+if (sensUnique === null) manquants.push('pools a sens unique (docs/dataset/one-way.json)')
+
 /* ------------------- 6. la porte A4 : cote contre REELLEMENT execute */
 
 // Tout ce que TARE publie vient de `V4Quoter`, appele en eth_call : une SIMULATION. La porte
@@ -287,6 +312,7 @@ const facts = {
     garde: 'packages/guard/test/fixtures/real-calldata.json',
     mcp: 'apps/mcp/src/server.ts',
     execution: 'engine/tare/gates/a4.py',
+    sens_unique: 'docs/dataset/one-way.json',
     ledger: 'docs/ledger/guard-speculos.json',
     registre: 'apps/web/public/data/hooklist.snapshot.json + docs/hooklist-live-20260905.json',
   },
@@ -300,6 +326,7 @@ const facts = {
   attestations,
   graph,
   garde,
+  sens_unique: sensUnique,
   execution,
   ledger,
   mcp,

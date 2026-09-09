@@ -291,3 +291,22 @@ test("l attente d une reponse d API est BORNEE, sinon un silence se lit « ca ch
   // comme une panne du serveur : ce sont deux choses differentes.
   assert.ok(api.includes("if (signal?.aborted) return { state: 'loading' }"))
 })
+
+/* ------------------ 10. le recensement des pools a sens unique */
+
+test("les pools a sens unique sont COMPTES, pas seulement donnes en exemple", () => {
+  const o = (f as unknown as { sens_unique: {
+    pools_deux_sens: number; pools: number; hooks: number
+    seuil_lourd_bps: number; seuil_plat_bps: number; note_seuil: string
+  } }).sens_unique
+  assert.ok(o.pools_deux_sens > o.pools, 'le denominateur doit exister : 6 sur combien ?')
+  assert.ok(o.pools >= o.hooks || o.hooks >= 1)
+  // Le seuil qui fabrique la liste est un CHOIX. Le publier est ce qui permet de le deplacer
+  // et de refaire le compte ; le taire ferait passer une decision pour une frontiere naturelle.
+  assert.ok(o.note_seuil.includes('PUBLICATION'))
+  assert.ok(o.seuil_lourd_bps > o.seuil_plat_bps)
+  const src = readFileSync(resolve(ICI, '../components/Exit.tsx'), 'utf8')
+  assert.ok(src.includes('FA.sens_unique.pools_deux_sens'), 'le denominateur doit etre a l ecran')
+  assert.ok(src.includes('seuil_lourd_bps'), 'le seuil doit etre a l ecran')
+  assert.ok(src.includes('pas une'), "et dit comme un choix, pas comme une frontiere")
+})

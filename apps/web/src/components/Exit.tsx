@@ -23,6 +23,7 @@ import {
 } from '../lib/exit'
 import { Panel, Copy } from './Prim'
 import { rampVar } from '../lib/ramp'
+import FA from '../data/facts.json'
 
 const EXEMPLES = [
   { addr: '0xb2000000000000000000000518f4215d5615bfb8', note: 'il ne reste rien' },
@@ -213,6 +214,19 @@ export function ExitPanel() {
               <span>hook {resultat.test.hook.slice(0, 12)}…</span>
               <Copy text={resultat.test.hook} label="copier le hook" />
             </div>
+            {FA.sens_unique && (
+              <p className="t-data-xs" style={{ color: 'var(--ink-3)', margin: 0, maxWidth: '78ch' }}>
+                Les <strong>deux premiers</strong> exemples ci-dessus sont des pools a sens unique : on y
+                entre pour presque rien et on n'en ressort pas. Sur les{' '}
+                <strong>{FA.sens_unique.pools_deux_sens.toLocaleString('fr-FR')}</strong> pools
+                mesures dans les deux sens, il y en a{' '}
+                <strong>{FA.sens_unique.pools}</strong>, sur {FA.sens_unique.hooks} hooks. C'est
+                peu — et le dire ainsi vaut mieux que de laisser croire a une regle. Le seuil qui
+                fait cette liste ({FA.sens_unique.seuil_lourd_bps} bps a la sortie,{' '}
+                {FA.sens_unique.seuil_plat_bps} a l'entree) est un choix de publication, pas une
+                frontiere naturelle : le deplacer change la liste.
+              </p>
+            )}
             <p className="t-data-xs" style={{ color: 'var(--ink-4)', margin: 0, maxWidth: '70ch' }}>
               Ce n'est pas un aller-retour execute : on compose les deux prelevements mesures, et
               l'impact de prix du premier echange sur le second est ignore. La taille a laquelle tu

@@ -62,6 +62,9 @@ node_test_count apps/mcp "npm test --silent"        "mcp"
 vitest_count packages/guard ""                      "guard"
 vitest_count packages/keyring ""                    "keyring (LKRP)"
 node_test_count apps/web "node --test src/chat/*.test.ts" "web (chat)"
+# Les ecrans /route et le test de sortie decident dans des fonctions pures de src/lib :
+# leurs tests vivaient hors du total, donc une derive y serait passee inapercue.
+node_test_count apps/web "node --test src/lib/*.test.ts"  "web (ecrans)"
 node_test_count apps/landing "npm test --silent"        "landing"
 
 echo "  ----------------------------------------"

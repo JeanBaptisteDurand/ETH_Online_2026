@@ -40,7 +40,13 @@ const repoRoot = resolve(webRoot, '../..')
 const ds = JSON.parse(readFileSync(resolve(webRoot, 'src/data/dataset.json'), 'utf8')) as {
   hooks: Hook[]
   rows: Row[]
-  provenance: { registry: { entries: number } }
+  // La provenance porte AUSSI le fichier de mesures : le test « le jeu embarque nomme le
+  // fichier dont il vient » le lit, et le type l'ignorait — donc `tsc` echouait la ou
+  // vitest passait. Un type qui decrit a moitie ce qu'on lit ne protege rien.
+  provenance: {
+    registry: { entries: number }
+    measurements: { path: string; engine_ver: string; stub_hash: string; blocks: number[] }
+  }
   totals: { hooks: number; rows: number }
 }
 const model = buildModel(ds.hooks, ds.rows, ds.provenance.registry.entries)

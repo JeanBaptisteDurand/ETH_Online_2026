@@ -6,6 +6,7 @@ import { HookTable } from './components/Table'
 import { Detail } from './components/Detail'
 import { LedWidget } from './components/Led'
 import { RoutePanel } from './components/Route'
+import { ExitPanel } from './components/Exit'
 import { GraphPanels } from './components/Graph'
 import { Panel } from './components/Prim'
 import { Chat } from './chat/Chat'
@@ -162,6 +163,11 @@ export default function App() {
       <Head theme={theme} setTheme={setTheme} />
 
       <main className="flex flex-col gap-[16px] p-[16px] mx-auto" style={{ maxWidth: 1560 }}>
+        {/* Le test de sortie vient EN PREMIER : c'est la seule question qu'un visiteur se pose
+            avant d'avoir appris quoi que ce soit du protocole. Tout le reste explique pourquoi
+            ce nombre est ce qu'il est. */}
+        <ExitPanel />
+
         <Panel
           index="01"
           title="le meme swap, cote deux fois"

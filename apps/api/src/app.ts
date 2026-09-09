@@ -12,6 +12,7 @@ import { loadDataset, loadRegistry, loadPools } from "./dataset.js";
 import { buildRanking } from "./rank.js";
 import { buildPlan } from "./plan.js";
 import { normalizeMeasurement, buildReplay } from "./measurement.js";
+import { buildTokenSheet, isQuoteCurrency, QUOTE_CURRENCIES } from "./token.js";
 import { engineHealth, runPlans, type EngineHealth } from "./engine.js";
 import { createMetering, toMeasurementUnit, type BatchReceipt } from "./metering/index.js";
 import { createGraphRouter } from "./graph-routes.js";
@@ -63,6 +64,7 @@ export function createApp(deps: AppDeps = {}) {
       routes: [
         "GET  /hooks               le classement par hook",
         "GET  /hook/:address       la fiche : tous les profils du hook",
+        "GET  /token/:address      LA fiche d'un jeton : combien coute l'acheter, combien coute le revendre",
         "GET  /measurement/:id     une mesure et sa commande de rejeu",
         "POST /measure             la mesure a la demande (payante, x402)",
         "GET  /usage               le compteur, unite = 1 mesure",
@@ -225,6 +227,67 @@ export function createApp(deps: AppDeps = {}) {
       dataset_source: ds.source_kind,
       profiles,
     });
+  });
+
+  /* ------------------------------------------------- la fiche d'un JETON */
+
+  /**
+   * La seule route qu'un utilisateur peut utiliser sans rien connaitre du protocole.
+   *
+   * Toutes les autres demandent une adresse de hook ou un pool_id : personne n'a ca. Ce qu'un
+   * utilisateur possede, c'est un JETON — une adresse copiee depuis un lien ou une application.
+   * Et ca suffit : sur les 8 583 jetons du jeu hors monnaies de cotation, 97,2 % n'apparaissent
+   * que dans UN pool et 99,8 % ne sont rattaches qu'a UN hook.
+   *
+   * La reponse est traduite en « acheter » / « vendre » plutot qu'en zeroForOne, parce que c'est
+   * la question que la personne se pose. Le `direction` du protocole reste rendu a cote, pour le
+   * rejeu.
+   */
+  app.get("/token/:address", (c) => {
+    const raw = c.req.param("address");
+    if (!/^0x[0-9a-fA-F]{40}$/.test(raw))
+      return c.json(
+        {
+          error: `adresse malformee : ${raw}`,
+          attendu: "0x suivi de 40 chiffres hexadecimaux",
+          note: "colle l'adresse du CONTRAT du jeton, celle que montrent les explorateurs.",
+        },
+        400,
+      );
+    const t = raw.toLowerCase();
+
+    if (isQuoteCurrency(t))
+      return c.json(
+        {
+          error: "cette adresse est une monnaie de cotation, pas un jeton a auditer",
+          address: t,
+          symbol: QUOTE_CURRENCIES[t],
+          note: "ETH, WETH et USDC sont l'autre cote de l'echange. Colle le jeton dont tu veux le cout.",
+        },
+        400,
+      );
+
+    const ds = loadDataset();
+    const rows = ds.measurements.filter(
+      (m) =>
+        (m.currency0 ?? "").toLowerCase() === t || (m.currency1 ?? "").toLowerCase() === t,
+    );
+    if (rows.length === 0)
+      return c.json(
+        {
+          error: "jeton inconnu du jeu de mesures",
+          address: t,
+          note:
+            "le balayage couvre les pools v4 a liquidite non nulle de Base au bloc " +
+            `${cfg.forkBlock}. Un jeton absent n'est pas un jeton sans prelevement : il est NON MESURE.`,
+          mesurer: "POST /measure avec la PoolKey complete, si tu la connais",
+          couverture: { measurements: ds.measurements.length, block: cfg.forkBlock },
+        },
+        404,
+      );
+
+    const reg = loadRegistry();
+    return c.json(buildTokenSheet(t, rows, reg.entries));
   });
 
   /* ------------------------------------------------------------- une mesure */

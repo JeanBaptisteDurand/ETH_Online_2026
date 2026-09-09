@@ -13,6 +13,7 @@ import { buildRanking } from "./rank.js";
 import { buildPlan } from "./plan.js";
 import { normalizeMeasurement, buildReplay } from "./measurement.js";
 import { buildTokenSheet, isQuoteCurrency, QUOTE_CURRENCIES } from "./token.js";
+import { buildExitTest, phrase } from "./exit.js";
 import { engineHealth, runPlans, type EngineHealth , assertNodeMatches } from "./engine.js";
 import { createMetering, toMeasurementUnit, type BatchReceipt } from "./metering/index.js";
 import { createGraphRouter } from "./graph-routes.js";
@@ -64,7 +65,8 @@ export function createApp(deps: AppDeps = {}) {
       routes: [
         "GET  /hooks               le classement par hook",
         "GET  /hook/:address       la fiche : tous les profils du hook",
-        "GET  /token/:address      LA fiche d'un jeton : combien coute l'acheter, combien coute le revendre",
+        "GET  /exit/:address?montant=100   LE test de sortie : tu mets 100, tu recuperes combien",
+        "GET  /token/:address      la fiche d'un jeton : combien coute l'acheter, combien coute le revendre",
         "GET  /measurement/:id     une mesure et sa commande de rejeu",
         "POST /measure             la mesure a la demande (payante, x402)",
         "GET  /usage               le compteur, unite = 1 mesure",
@@ -288,6 +290,56 @@ export function createApp(deps: AppDeps = {}) {
 
     const reg = loadRegistry();
     return c.json(buildTokenSheet(t, rows, reg.entries));
+  });
+
+  /* -------------------------------------------------- le TEST DE SORTIE */
+
+  /**
+   * « tu mets 100, tu recuperes combien ? »
+   *
+   * Un champ, un nombre. Aucun fork n'est ouvert : la reponse se compose depuis le corpus, donc
+   * elle est immediate, elle ne coute rien en RPC, et deux visiteurs simultanes ne peuvent pas se
+   * genent. Le chemin qui EXECUTE vraiment l'aller-retour reste derriere POST /measure, paye.
+   */
+  app.get("/exit/:address", (c) => {
+    const raw = c.req.param("address");
+    if (!/^0x[0-9a-fA-F]{40}$/.test(raw))
+      return c.json(
+        { error: `adresse malformee : ${raw}`, attendu: "0x suivi de 40 chiffres hexadecimaux" },
+        400,
+      );
+    const t = raw.toLowerCase();
+    if (isQuoteCurrency(t))
+      return c.json(
+        {
+          error: "cette adresse est une monnaie de cotation, pas un jeton a tester",
+          symbol: QUOTE_CURRENCIES[t],
+        },
+        400,
+      );
+
+    const montant = Number(c.req.query("montant") ?? 100);
+    if (!Number.isFinite(montant) || montant <= 0)
+      return c.json({ error: `montant invalide : ${c.req.query("montant")}` }, 400);
+
+    const ds = loadDataset();
+    const rows = ds.measurements.filter(
+      (m) => (m.currency0 ?? "").toLowerCase() === t || (m.currency1 ?? "").toLowerCase() === t,
+    );
+    if (rows.length === 0)
+      return c.json(
+        {
+          error: "jeton inconnu du jeu de mesures",
+          note:
+            `le balayage couvre les pools v4 a liquidite non nulle de Base au bloc ${cfg.forkBlock}. ` +
+            `Un jeton absent n'est pas un jeton sans prelevement : il est NON MESURE.`,
+        },
+        404,
+      );
+
+    const test = buildExitTest(t, rows);
+    if ("refus" in test) return c.json({ ...test, token: t, montant }, 422);
+    return c.json({ ...test, montant, verdict: phrase(test, montant) });
   });
 
   /* ------------------------------------------------------------- une mesure */

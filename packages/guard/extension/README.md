@@ -21,6 +21,11 @@ cd packages/guard && npm run build:extension    # bundles src/browser.ts -> exte
 
 `chrome://extensions` → developer mode → *Load unpacked* → this directory.
 
+The `icons` entry is not decoration: Chrome **refuses to load** an extension whose declared icon is
+missing (*"Could not load icon 'icon128.png' specified in 'icons'"*). This directory shipped without
+it until 9 September 2026, which meant the extension could not be installed at all — the one defect
+a passing test suite will never catch, because no test loads a browser extension.
+
 ## What it does, and what it does not
 
 It intercepts `eth_sendTransaction` only. Everything else passes through untouched, including

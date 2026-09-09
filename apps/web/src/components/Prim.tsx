@@ -138,3 +138,34 @@ export function Panel({
     </section>
   )
 }
+
+/**
+ * Un lien sortant. Toute la page n'en portait qu'UN SEUL — ce qui, sur un instrument dont
+ * l'argument est « verifie plutot que de me croire », etait une contradiction : rien n'etait
+ * verifiable sans quitter le site a la main.
+ */
+export function Lien({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <a
+      className="t-data-xs underline"
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      style={{ color: 'var(--focus)' }}
+    >
+      {children}
+    </a>
+  )
+}
+
+/**
+ * Une valeur qu'on n'a pas pu lire. Elle s'affiche, elle ne se tait pas : un blanc se lirait
+ * « rien », et rien se lit « zero ». C'est la meme regle que les etiquettes du corpus.
+ */
+export function NonLu({ quoi }: { quoi: string }) {
+  return (
+    <span className="t-data-xs" style={{ color: 'var(--ink-4)' }} title={`source absente : ${quoi}`}>
+      non lu
+    </span>
+  )
+}

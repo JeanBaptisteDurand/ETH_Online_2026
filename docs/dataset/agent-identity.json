@@ -1,0 +1,37 @@
+{
+ "v": "tare.agent.identity.v1",
+ "standard": "HCS-14",
+ "spec": "https://hol.org/docs/standards/hcs-14/",
+ "uaid": "uaid:aid:9gmr4c6opC3zeSWSZzv23pjXkfbTvEeRHKdXkgMJqX7FG9133ocwFuCXL6uwBWiTHY;registry=self;proto=mcp;nativeId=hedera:testnet:0.0.10367920;uid=0",
+ "canonical": {
+  "name": "TARE",
+  "nativeId": "hedera:testnet:0.0.10367920",
+  "protocol": "mcp",
+  "registry": "self",
+  "skills": [
+   10,
+   17,
+   21,
+   33,
+   39
+  ],
+  "version": "0.1.0"
+ },
+ "canonical_json": "{\"name\":\"TARE\",\"nativeId\":\"hedera:testnet:0.0.10367920\",\"protocol\":\"mcp\",\"registry\":\"self\",\"skills\":[10,17,21,33,39],\"version\":\"0.1.0\"}",
+ "competences": [
+  10,
+  17,
+  21,
+  33,
+  39
+ ],
+ "topic": "0.0.10371106",
+ "hashscan": "https://hashscan.io/testnet/topic/0.0.10371106",
+ "reseau": "testnet",
+ "etat": "ANNOUNCED",
+ "annonce": {
+  "sequence_number": 12,
+  "consensus_timestamp": "1788963795.977788104"
+ },
+ "lu_le": "2026-09-09T16:42:58.783Z"
+}

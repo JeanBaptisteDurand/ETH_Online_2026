@@ -405,7 +405,7 @@ function Findings() {
 
 export function GraphPanels({ hook }: { hook: string }) {
   return (
-    <Panel index="05" title="le graphe · ce que le hook touche autour de lui" right={<Findings />}>
+    <Panel index="08" title="le graphe · ce que le hook touche autour de lui" right={<Findings />}>
       <div
         className="grid gap-px p-[16px]"
         style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 16 }}

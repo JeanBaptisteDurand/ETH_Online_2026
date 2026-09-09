@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "data": "node scripts/build-dataset.mjs",
+    "data": "node scripts/build-dataset.mjs && node scripts/build-facts.mjs",
     "verify": "node scripts/verify.mjs",
     "registry": "node scripts/fetch-registry.mjs",
     "dev": "npm run data && vite",

@@ -419,8 +419,12 @@ const testOut = tryExec(
   ],
   p("engine"),
 );
-if (testOut && /^\d+ \d+$/.test(testOut)) {
-  const [green, run] = testOut.split(" ").map(Number);
+// Le compteur ecrit une ligne de diagnostic AVANT son resultat ; l'ancienne lecture prenait
+// la sortie entiere et le motif ne collait jamais, donc la page affichait « NOT MEASURED »
+// alors que les tests etaient verts. On prend la DERNIERE ligne, comme scripts/test-all.sh.
+const testLast = testOut ? testOut.split("\n").pop().trim() : null;
+if (testLast && /^\d+ \d+$/.test(testLast)) {
+  const [green, run] = testLast.split(" ").map(Number);
   tests = { green, run, all_green: green === run };
 }
 
@@ -566,7 +570,10 @@ const facts = {
     commit_full: commitFull,
     tests,
     license: "Apache-2.0",
-    url: "https://github.com/beorlor/tare",
+    // Le depot REEL. L'ancienne valeur — github.com/beorlor/tare — rendait 404 : le lien
+    // « SOURCE » de la landing, c'est-a-dire le premier que clique quelqu'un qui veut
+    // verifier au lieu de croire, ne menait nulle part.
+    url: "https://github.com/JeanBaptisteDurand/ETH_Online_2026",
   },
 };
 

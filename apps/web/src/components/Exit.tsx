@@ -22,6 +22,7 @@ import {
   type TestSortie,
 } from '../lib/exit'
 import { Panel, Copy } from './Prim'
+import { rampVar } from '../lib/ramp'
 
 const EXEMPLES = [
   { addr: '0xb2000000000000000000000518f4215d5615bfb8', note: 'il ne reste rien' },
@@ -44,29 +45,36 @@ function Barre({ test }: { test: TestSortie }) {
   // la zone incertaine est dessinee entre les deux bornes plutot que moyennee.
   const min = Math.max(0, Math.min(1, p.gardeMin))
   const max = Math.max(0, Math.min(1, p.gardeMax))
+
+  // La couleur vient de la RAMPE DE MESURE, la seule famille chromatique de l'instrument :
+  // une surface coloree porte une grandeur (src/lib/ramp.ts). Ici la grandeur est le cout
+  // total de l'aller-retour, exprime en points de base — c'est-a-dire ce que le pool garde.
+  // Une couleur choisie pour « bon / mauvais » n'aurait rien mesure du tout.
+  const coutBps = (1 - min) * 10000
+  const teinte = rampVar(coutBps)
+
   return (
     <div className="flex flex-col gap-[6px]">
       <div
         className="flex"
         style={{ height: 34, border: '1px solid var(--line-strong)', overflow: 'hidden' }}
       >
-        <div style={{ width: `${min * 100}%`, background: 'var(--ok, #1c6a58)' }} />
+        <div style={{ width: `${min * 100}%`, background: 'var(--bg-3)' }} />
         {max > min && (
           <div
             style={{
               width: `${(max - min) * 100}%`,
-              background:
-                'repeating-linear-gradient(45deg, var(--ok,#1c6a58), var(--ok,#1c6a58) 5px, var(--bg-2) 5px, var(--bg-2) 10px)',
+              background: `repeating-linear-gradient(45deg, ${teinte}, ${teinte} 5px, var(--bg-3) 5px, var(--bg-3) 10px)`,
             }}
             title="zone incertaine : la revente varie selon la taille"
           />
         )}
-        <div style={{ flex: 1, background: 'var(--bad, #9c1f3d)' }} />
+        <div style={{ flex: 1, background: teinte }} />
       </div>
       <div className="flex justify-between t-data-xs" style={{ color: 'var(--ink-3)' }}>
         <span>ce qui te revient</span>
         {max > min && <span>zone incertaine</span>}
-        <span>ce qui reste au pool</span>
+        <span>ce qui reste au pool · {coutBps.toFixed(0)} bps</span>
       </div>
     </div>
   )
@@ -126,7 +134,7 @@ export function ExitPanel() {
               padding: '10px 12px',
               border: '1px solid var(--line-strong)',
               background: 'var(--bg-0)',
-              color: 'var(--ink-1)',
+              color: 'var(--ink)',
             }}
           />
           <label className="t-data-xs flex items-center gap-[6px]" style={{ color: 'var(--ink-3)' }}>
@@ -143,7 +151,7 @@ export function ExitPanel() {
                 padding: '10px 8px',
                 border: '1px solid var(--line-strong)',
                 background: 'var(--bg-0)',
-                color: 'var(--ink-1)',
+                color: 'var(--ink)',
               }}
             />
             €
@@ -177,7 +185,7 @@ export function ExitPanel() {
 
         {resultat?.etat === 'refus' && (
           <div className="flex flex-col gap-[6px]">
-            <p className="t-data-sm" style={{ color: 'var(--ink-1)' }}>
+            <p className="t-data-sm" style={{ color: 'var(--ink)' }}>
               Pas de reponse pour ce jeton.
             </p>
             <p className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
@@ -188,7 +196,7 @@ export function ExitPanel() {
 
         {resultat?.etat === 'ok' && (
           <div className="flex flex-col gap-[12px]">
-            <p style={{ fontSize: 28, lineHeight: 1.15, color: 'var(--ink-1)', margin: 0 }}>
+            <p style={{ fontSize: 28, lineHeight: 1.15, color: 'var(--ink)', margin: 0 }}>
               Tu mets {montant} €, {phraseSortie(resultat.test, montant)}.
             </p>
             <Barre test={resultat.test} />

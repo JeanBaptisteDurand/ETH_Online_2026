@@ -21,10 +21,12 @@ packages/guard/extension/inject.js
 # qui reste versionne parce que c'est LA preuve — tout le projet promet que chaque
 # nombre s'y rejoue.
 #   engine/tare/graph/cli.py build     -> graph.json        (188 Mo)
-#   apps/web/scripts/build-dataset.mjs -> src/data/dataset.json (87 Mo)
+#   apps/web/scripts/build-dataset.mjs -> src/data/dataset.json (7,9 Mo, encode par colonne)
 #   packages/guard/scripts/build-table.mjs -> data/table.json   (21 Mo)
 engine/tare/graph/data/graph.json
 apps/web/src/data/dataset.json
+#   apps/web/scripts/build-facts.mjs   -> src/data/facts.json   (les faits des panneaux 09-14)
+apps/web/src/data/facts.json
 packages/guard/data/table.json
 
 # Clones et binaires des applications Ledger compilees pour Speculos.

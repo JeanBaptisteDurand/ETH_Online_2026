@@ -33,7 +33,18 @@ const ICI = dirname(fileURLToPath(import.meta.url))
 const FICHIER = resolve(ICI, '../data/dataset.json')
 
 /** Un jeu minuscule, mais qui couvre les quatre encodages et les cas qui piegent. */
-const JEU = [
+type LigneJeu = {
+  id: number
+  pool_id: string
+  hook: string
+  chain_id: number
+  bps: number | null
+  lp: number | null
+  label: string
+  reason: string | null
+}
+
+const JEU: LigneJeu[] = [
   { id: 0, pool_id: 'p1', hook: 'h1', chain_id: 8453, bps: 1.5, lp: 0, label: 'MESURE', reason: null },
   { id: 1, pool_id: 'p1', hook: 'h1', chain_id: 8453, bps: null, lp: 0, label: 'NON_COTABLE', reason: 'ferme' },
   { id: 2, pool_id: 'p2', hook: 'h2', chain_id: 8453, bps: 9999.0001, lp: 3000, label: 'MESURE', reason: null },
@@ -51,7 +62,7 @@ test('l aller-retour est sans perte, cle par cle et valeur par valeur', () => {
 })
 
 test('null et 0 ne sont jamais confondus : un silence n est pas un zero', () => {
-  const relu = decodeRows(encodeRows(JEU))
+  const relu = decodeRows<LigneJeu>(encodeRows(JEU))
   assert.equal(relu[1].bps, null)
   assert.equal(relu[3].bps, 0)
   assert.notEqual(relu[1].bps, relu[3].bps)
@@ -70,17 +81,17 @@ test('une colonne qui varie DANS un pool n est pas aplatie sur sa premiere valeu
   const varie = JEU.map((r, i) => ({ ...r, lp: i === 1 ? 500 : r.lp }))
   const enc = encodeRows(varie)
   assert.notEqual(enc.enc.lp.k, 'pool')
-  assert.deepEqual(decodeRows(enc), varie)
+  assert.deepEqual(decodeRows<LigneJeu>(enc), varie)
   // et la ligne qui differait garde sa valeur, pas celle de sa voisine.
-  assert.equal(decodeRows(enc)[1].lp, 500)
-  assert.equal(decodeRows(enc)[0].lp, 0)
+  assert.equal(decodeRows<LigneJeu>(enc)[1].lp, 500)
+  assert.equal(decodeRows<LigneJeu>(enc)[0].lp, 0)
 })
 
 test('id qui ne vaut pas l indice n est pas remplace par l indice', () => {
   const decale = JEU.map((r) => ({ ...r, id: r.id + 100 }))
   const enc = encodeRows(decale)
   assert.notEqual(enc.enc.id.k, 'seq')
-  assert.deepEqual(decodeRows(enc).map((r) => r.id), [100, 101, 102, 103])
+  assert.deepEqual(decodeRows<LigneJeu>(enc).map((r) => r.id), [100, 101, 102, 103])
 })
 
 test('un jeu vide se relit vide, sans lever', () => {

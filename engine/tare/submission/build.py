@@ -21,6 +21,7 @@ DATASET = REPO / "docs" / "dataset" / "measurements.jsonl"
 ANALYSIS = REPO / "docs" / "hooks-source" / "analysis.json"
 REGISTRY = REPO / "docs" / "hooklist-live-20260905.json"
 OUT = REPO / "docs" / "SUBMISSION.md"
+SETTLEMENTS = REPO / "docs" / "x402-settlements.jsonl"
 
 
 def rows() -> list[dict]:
@@ -49,7 +50,20 @@ def facts() -> dict:
     devs = [d for d in devs if isinstance(d, (int, float))]
     pools_conc = sum((h.get("concordance") or {}).get("concordant", 0) for h in conc)
 
+    # Les reglements x402 : COMPTES dans le journal, pas ecrits a la main. Le texte publie
+    # annoncait « six real payments » en litteral alors que le fichier en portait quatre —
+    # exactement le genre de nombre non derive que ce projet reproche a tout le monde.
+    # Et on ne compte que ceux que le mirror node a confirmes : un paiement envoye n'est
+    # pas un paiement regle.
+    st = ([json.loads(l) for l in SETTLEMENTS.read_text().splitlines() if l.strip()]
+          if SETTLEMENTS.exists() else [])
+    st_ok = [x for x in st if (x.get("mirror") or {}).get("verified") is True]
+    st_ring = [x for x in st_ok if x.get("source_de_la_cle") == "ledger-keyring"]
+
     return {
+        "settlements": len(st_ok),
+        "settlements_seen": len(st),
+        "settlements_keyring": len(st_ring),
         "rows": len(r), "pools": len({x["pool_id"] for x in r}), "hooks": len(measured),
         "labels": dict(lab),
         "sizes": len({x["amount_in"] for x in r}),
@@ -140,8 +154,21 @@ at target scale: Neo4j lost on every query and refuses EVM-sized integers). Type
 Hono for the API, Vite/React for the instrument, an MCP server exposing four tools, and a browser
 guard that decodes the hook out of Universal Router calldata and warns before you sign. Hedera
 carries the paid API — measuring costs compute, so it is billed **per measurement, not per request**,
-priced in x402 through Blocky402 on testnet, with each batch's digest anchored on an HCS topic and
-verified back through the mirror node before it is ever called anchored.
+and it is **settled**, not merely priced: **{f['settlements']} real payments** in USDC through
+Blocky402 on testnet, each read back on the mirror node before being called settled, with five
+measurements costing five times one (`amount: "5000"` against `"1000"`, same route). Each batch's
+digest is anchored on an HCS topic carrying its payer and its settlement hash, verified through the
+mirror node before it is ever called anchored. That topic also carries the service's own **HCS-14
+agent identity** (message #12): an identifier derived from six canonical fields, published with the
+fields themselves so a reader recomputes it instead of trusting it.
+
+**The key that pays does not sit in a file.** The private key signing every settlement is sealed
+under the **Ledger Key Ring**, opened with no device attached. The packaged `wallet-cli ring init`
+needs a physical Nano — it builds its Device Management Kit with one hardcoded USB transport — but
+the protocol underneath takes any transport, so this runs against Speculos serving Ledger's own
+`Ledger Sync` app. What is on disk is a **revocable member**, never the encryption key; the member
+recovers it from Ledger's trustchain. **{f['settlements_keyring']} of those settlements** were made
+with the key served by the ring, and each receipt records which source the key came from.
 
 **The gate.** `engine/tare/gates/a3.py` reproduces five recorded basis-point figures on every run,
 against values obtained by an independent reimplementation before that code existed. It is the one

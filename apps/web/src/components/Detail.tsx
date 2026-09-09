@@ -96,7 +96,7 @@ export function Detail({
   return (
     <div className="flex flex-col gap-[16px]">
       <Panel
-        index="04"
+        index="05"
         title={`fiche hook · ${shortAddr(hook.address, 12, 8)}`}
         right={
           <div className="flex gap-[6px]">
@@ -145,7 +145,7 @@ export function Detail({
       </Panel>
 
       <Panel
-        index="05"
+        index="06"
         title="profil taille → bps"
         right={
           <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
@@ -159,7 +159,7 @@ export function Detail({
       </Panel>
 
       <Panel
-        index="06"
+        index="07"
         title={`les ${rows.length} lignes brutes de ce hook`}
         right={
           <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>

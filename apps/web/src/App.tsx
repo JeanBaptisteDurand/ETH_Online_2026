@@ -8,6 +8,8 @@ import { LedWidget } from './components/Led'
 import { RoutePanel } from './components/Route'
 import { ExitPanel } from './components/Exit'
 import { GraphPanels } from './components/Graph'
+import { MachinePanels } from './components/Machine'
+import FA from './data/facts.json'
 import { Panel } from './components/Prim'
 import { Chat } from './chat/Chat'
 import { buildModel } from './chat/model'
@@ -62,7 +64,19 @@ function Verdict() {
   const items: [string, string, string][] = [
     [String(T.over1bpsWithZeroStoredFee), 'mesures au-dessus de 1 bps', 'sur des pools dont la commission LP lue on-chain vaut ZERO'],
     [String(T.hooks), 'hooks mesures', `${T.pools} pools · ${T.rows} mesures · ${T.measured} etiquetees MESURE`],
-    [String(T.hooksAbsentFromRegistry), 'de ces hooks sont absents du registre', `${P.registry.entries} fiches, aucun champ numerique`],
+    // Ce nombre est calcule contre l'instantane EPINGLE du registre. Contre un tirage plus
+    // recent il en vaut un autre, et le taire reviendrait a publier le plus flatteur des deux :
+    // la note dit les deux, avec la date de chacun. Un registre qui gagne 198 adresses en un
+    // jour n'est pas un fond stable, et c'est un fait sur le registre.
+    [
+      String(T.hooksAbsentFromRegistry),
+      'de ces hooks sont absents du registre',
+      FA.registre
+        ? `${FA.registre.epingle.adresses} adresses au commit epingle du ${FA.registre.epingle.le?.slice(0, 10)}` +
+          ` — contre le tirage du ${FA.registre.plus_recent.le} (${FA.registre.plus_recent.adresses} adresses),` +
+          ` ils sont ${FA.registre.plus_recent.absents} : le registre en a inscrit ${FA.registre.gagnes.length} entre les deux`
+        : `${P.registry.entries} fiches, aucun champ numerique`,
+    ],
     [
       String(P.registry.field_census.quantitative_fields.length),
       'champ quantitatif dans le registre',
@@ -245,6 +259,10 @@ export default function App() {
         {/* Les trois encarts de graphe. Ils viennent de l'API et ne bloquent jamais la page :
             si elle ne repond pas, ils le disent au lieu d'afficher zero. */}
         <GraphPanels hook={hook.address} />
+
+        {/* Le peage, l'identite d'agent, les attestations, The Graph et les autres surfaces.
+            Tout cela tournait sans qu'aucun visiteur du site n'en voie un mot. */}
+        <MachinePanels />
 
         <footer
           className="t-data-xs px-[16px] py-[12px] flex flex-col gap-[3px]"

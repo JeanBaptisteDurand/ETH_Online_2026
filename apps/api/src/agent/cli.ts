@@ -4,6 +4,11 @@
  *   npx tsx src/agent/cli.ts show       calcule et affiche l'identifiant, sans reseau
  *   npx tsx src/agent/cli.ts publish    publie l'annonce sur le topic HCS, puis la relit
  *   npx tsx src/agent/cli.ts read       relit les annonces deja presentes sur le topic
+ *   npx tsx src/agent/cli.ts export     ecrit docs/dataset/agent-identity.json, LU sur le mirror
+ *
+ * `export` ne recopie pas ce que le code croit : il relit le topic et n'ecrit que ce que le
+ * mirror node rend. C'est ce fichier que les surfaces (site, landing) affichent, pour qu'aucune
+ * d'elles n'ait a repeter une chaine a la main.
  *
  * `publish` coute du HBAR et laisse une trace permanente. Il refuse donc de republier une
  * identite deja annoncee a l'identique : une piste ou la meme annonce figure deux fois
@@ -17,6 +22,8 @@ import { annoncer, agentMessage, AGENT_SCHEMA } from "./publish.js";
 import { identiteJson } from "./publish.js";
 import { TARE, UAID_TARE } from "./identite.js";
 import { jsonCanonique } from "./hcs14.js";
+import { writeFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 const cmd = process.argv[2] ?? "show";
 
@@ -97,7 +104,38 @@ if (cmd === "show") {
   console.log("octets          :", r.published.message_bytes);
   console.log("hashscan        :", r.published.hashscan);
   if (r.state !== "ANNOUNCED") process.exit(1);
+} else if (cmd === "export") {
+  const cfg = exigerConfig();
+  const { complete, reason, annonces } = await annoncesDuTopic(cfg);
+  if (!complete) {
+    console.error(`lecture du topic incomplete (${reason}) : on n'ecrit pas un fichier de faits partiel.`);
+    process.exit(1);
+  }
+  const mienne = annonces.find((a) => a.uaid === UAID_TARE) ?? null;
+  const faits = {
+    v: "tare.agent.identity.v1",
+    standard: "HCS-14",
+    spec: "https://hol.org/docs/standards/hcs-14/",
+    uaid: UAID_TARE,
+    canonical: JSON.parse(jsonCanonique(TARE)) as unknown,
+    canonical_json: jsonCanonique(TARE),
+    competences: TARE.skills,
+    topic: cfg.topicId,
+    hashscan: hashscanTopic(cfg.network, cfg.topicId!),
+    reseau: cfg.network,
+    // Ce qui suit est LU sur le mirror node, pas affirme. Si l'identite n'y est pas,
+    // `annonce` vaut null et l'etat le dit — jamais un objet vide qui aurait l'air d'une preuve.
+    etat: mienne ? "ANNOUNCED" : "NOT_ANNOUNCED",
+    annonce: mienne
+      ? { sequence_number: mienne.seq, consensus_timestamp: mienne.ts }
+      : null,
+    lu_le: new Date().toISOString(),
+  };
+  const chemin = resolve(import.meta.dirname, "../../../../docs/dataset/agent-identity.json");
+  writeFileSync(chemin, JSON.stringify(faits, null, 1) + "\n");
+  console.log(`ecrit ${chemin}`);
+  console.log(`etat ${faits.etat}${mienne ? ` — message #${mienne.seq}` : ""}`);
 } else {
-  console.error(`commande inconnue : ${cmd}. Attendu : show | publish | read`);
+  console.error(`commande inconnue : ${cmd}. Attendu : show | publish | read | export`);
   process.exit(1);
 }

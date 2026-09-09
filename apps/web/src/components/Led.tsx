@@ -54,7 +54,7 @@ export function LedWidget() {
 
   return (
     <Panel
-      index="03"
+      index="04"
       title="14 permissions, zero appel reseau"
       right={
         <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>

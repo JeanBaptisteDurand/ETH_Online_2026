@@ -554,7 +554,7 @@ export function RoutePanel() {
 
   return (
     <Panel
-      index="07"
+      index="03"
       title="par quelle porte passer · le cout total mesure"
       right={
         <span className="t-data-xs hex" style={{ color: 'var(--ink-3)' }}>

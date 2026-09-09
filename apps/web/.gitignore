@@ -6,3 +6,4 @@ dist
 # derive au build depuis docs/measurements-v1.json + public/data/hooklist.snapshot.json
 # (npm run data). Non commite : son horodatage changerait a chaque build.
 src/data/dataset.json
+src/data/facts.json

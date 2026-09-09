@@ -642,6 +642,11 @@ make gate-a3</code>
       <p class="data-xs">Same cells as the instrument: value, uncertainty, provenance. No simplified
       landing variant exists. Uncertainty is ±0.00 because both quotes are integer outputs of the same
       pinned block — the measurement has no sampling error, only the limits listed in 07.</p>
+      <p class="data-xs">It opens on one question — <strong>paste a token address, read what comes
+      back out of 100</strong> — then fifteen panels: every door of a pair priced, the API settled on
+      Hedera and read back on the mirror node, the agent identity on that same topic, the attestations
+      written on-chain, an independent count from The Graph, and an executed swap matching the quote
+      to the wei. Two panels need a local engine and say so.</p>
       <a class="cta" href="/hooks">OPEN THE FULL INSTRUMENT <span aria-hidden="true">↳</span></a>
     </div>
   </div>

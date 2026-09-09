@@ -157,3 +157,33 @@ describe("les limites sont toujours dites", () => {
     expect(t.limites.join(" ")).toMatch(/un seul bloc/);
   });
 });
+
+describe("un frais LP non lu n'est pas un frais LP nul", () => {
+  // `stored_lp_fee: null` veut dire « slot0 non relu », pas « pas de frais LP ». Le passer a
+  // zero rendrait un montant de sortie trop FLATTEUR, et il aurait l'air d'une mesure — c'est
+  // exactement la substitution que tout le reste du moteur refuse. Aucune ligne MEASURED du
+  // corpus n'est dans ce cas aujourd'hui (14 lignes sur 125 072 ont un frais nul, toutes
+  // NOT_QUOTABLE ou NOT_MEASURABLE) ; la garde vaut pour le jour ou le moteur en produira une.
+  it("la ligne sort du calcul, et le sens devient non mesure", () => {
+    const r = buildExitTest(JETON, [
+      m({ zero_for_one: true, bps: 100 }),
+      m({ zero_for_one: false, bps: 100, stored_lp_fee: null }),
+    ]);
+    expect(r).toHaveProperty("refus");
+    expect((r as { sens_mesures: string[] }).sens_mesures).toEqual(["achat"]);
+  });
+
+  it("elle ne devient pas non plus la meilleure revente de l'intervalle", () => {
+    const t = ok(
+      buildExitTest(JETON, [
+        m({ zero_for_one: true, bps: 100 }),
+        m({ zero_for_one: false, bps: 100, stored_lp_fee: 3000, amount_in: "1" }),
+        m({ zero_for_one: false, bps: 100, stored_lp_fee: null, amount_in: "2" }),
+      ]),
+    );
+    // Sans la garde, la ligne a null serait lue « 0 bps de frais LP », deviendrait la
+    // meilleure revente, et l'intervalle s'ouvrirait vers un chiffre que rien n'a mesure.
+    expect(t.pire.revente.meilleure.total_bps).toBeCloseTo(130, 6);
+    expect(t.pire.exact).toBe(true);
+  });
+});

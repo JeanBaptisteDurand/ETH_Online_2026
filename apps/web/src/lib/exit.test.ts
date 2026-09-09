@@ -89,6 +89,32 @@ test('NON_COTABLE et NON_MESURABLE ne comptent jamais comme des mesures', () => 
   if (r.ok) assert.equal(r.pire.reventePire.totalBps, 100)
 })
 
+test('un frais LP non lu n est pas un frais LP nul : la ligne sort du calcul', () => {
+  // stored_lp_fee a null veut dire « slot0 non relu ». Le lire comme 0 rendrait un montant
+  // de sortie trop flatteur, avec l air d une mesure.
+  const r = testDeSortie(T, [
+    ligne({ zero_for_one: true, bps: 100 }),
+    ligne({ zero_for_one: false, bps: 100, stored_lp_fee: null }),
+  ])
+  assert.equal(r.ok, false)
+  if (!r.ok) assert.deepEqual(r.sensMesures, ['achat'])
+})
+
+test('le frais LP non lu ne fait pas non plus baisser l intervalle par le bas', () => {
+  const r = testDeSortie(T, [
+    ligne({ zero_for_one: true, bps: 100 }),
+    ligne({ zero_for_one: false, bps: 100, stored_lp_fee: 3000, amount_in: '1' }),
+    ligne({ zero_for_one: false, bps: 100, stored_lp_fee: null, amount_in: '2' }),
+  ])
+  assert.equal(r.ok, true)
+  // Sans la garde, la ligne a null serait lue « 0 bps de frais LP » et deviendrait la
+  // MEILLEURE revente : l intervalle s ouvrirait vers un chiffre que rien n a mesure.
+  if (r.ok) {
+    assert.equal(r.pire.reventeMeilleure.totalBps, 130)
+    assert.equal(r.pire.exact, true)
+  }
+})
+
 // ------------------------------------------------------- 2. la composition
 
 test('la composition n est pas une somme : 100 bps puis 100 bps laisse 98,01 et non 98,00', () => {
@@ -199,6 +225,14 @@ const CAS: Array<[string, Ligne[]]> = [
       ligne({ zero_for_one: true, bps: 30 }),
       ligne({ zero_for_one: false, bps: 100, amount_in: '1' }),
       ligne({ zero_for_one: false, bps: 9990, amount_in: '2' }),
+    ],
+  ],
+  [
+    'une revente au frais LP non lu, ecartee des deux cotes',
+    [
+      ligne({ zero_for_one: true, bps: 100 }),
+      ligne({ zero_for_one: false, bps: 100, stored_lp_fee: 500, amount_in: '1' }),
+      ligne({ zero_for_one: false, bps: 100, stored_lp_fee: null, amount_in: '2' }),
     ],
   ],
   [

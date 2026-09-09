@@ -103,7 +103,15 @@ export function buildExitTest(token: string, rows: Measurement[]): ExitTest | Ex
   if (!first) return { refus: "jeton inconnu", raison: "aucune mesure pour ce jeton", sens_mesures: [] };
 
   const tokenIsCurrency1 = (first.currency1 ?? "").toLowerCase() === t;
-  const mesurees = rows.filter((r) => r.label === "MEASURED" && r.bps !== null);
+  // Une ligne n'entre dans le calcul que si TOUT ce qu'on compose y est lu. `stored_lp_fee`
+  // a `null` veut dire « slot0 non relu », pas « pas de frais LP » : le passer a zero
+  // rendrait un montant de sortie trop FLATTEUR, et il aurait l'air d'une mesure. Aucune
+  // ligne MEASURED du corpus n'est dans ce cas aujourd'hui (14 lignes sur 125 072 ont un
+  // frais nul, toutes NOT_QUOTABLE ou NOT_MEASURABLE) ; la garde est la pour le jour ou
+  // le moteur en produira une.
+  const mesurees = rows.filter(
+    (r) => r.label === "MEASURED" && r.bps !== null && r.stored_lp_fee !== null,
+  );
 
   const achats = mesurees
     .filter((r) => r.zero_for_one === tokenIsCurrency1)

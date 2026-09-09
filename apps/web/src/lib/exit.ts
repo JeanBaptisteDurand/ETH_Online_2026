@@ -88,7 +88,12 @@ export function testDeSortie(token: string, lignes: Ligne[]): TestSortie | Refus
   // Acheter le jeton = recevoir le jeton = aller vers le cote de la PoolKey qui le porte.
   // Inverser ce test donnerait le conseil CONTRAIRE, et c'est une simple erreur de signe.
   const enCurrency1 = premiere.currency1.toLowerCase() === t
-  const mesurees = lignes.filter((l) => l.label === MESURE && l.bps !== null)
+  // Une ligne n'entre dans le calcul que si TOUT ce qu'on compose y est lu. `stored_lp_fee`
+  // a null veut dire « slot0 non relu », pas « pas de frais LP » : le passer a zero rendrait
+  // un montant de sortie trop FLATTEUR, et il aurait l'air d'une mesure.
+  const mesurees = lignes.filter(
+    (l) => l.label === MESURE && l.bps !== null && l.stored_lp_fee !== null,
+  )
 
   const achats = mesurees.filter((l) => l.zero_for_one === enCurrency1).sort(parTaille)
   const reventes = mesurees.filter((l) => l.zero_for_one !== enCurrency1)

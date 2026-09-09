@@ -10,6 +10,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
+import { decodeRows } from '../data/codec.mjs'
 import { execSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
@@ -37,9 +38,11 @@ const here = dirname(fileURLToPath(import.meta.url))
 const webRoot = resolve(here, '../..')
 const repoRoot = resolve(webRoot, '../..')
 
+// Les lignes sont encodees par colonne dans le fichier (src/data/codec.mjs) ; on les DECODE,
+// donc ce test lit exactement ce que l'instrument lit.
 const ds = JSON.parse(readFileSync(resolve(webRoot, 'src/data/dataset.json'), 'utf8')) as {
   hooks: Hook[]
-  rows: Row[]
+  rows_enc: unknown
   // La provenance porte AUSSI le fichier de mesures : le test « le jeu embarque nomme le
   // fichier dont il vient » le lit, et le type l'ignorait — donc `tsc` echouait la ou
   // vitest passait. Un type qui decrit a moitie ce qu'on lit ne protege rien.
@@ -49,7 +52,8 @@ const ds = JSON.parse(readFileSync(resolve(webRoot, 'src/data/dataset.json'), 'u
   }
   totals: { hooks: number; rows: number }
 }
-const model = buildModel(ds.hooks, ds.rows, ds.provenance.registry.entries)
+const rows = decodeRows<Row>(ds.rows_enc)
+const model = buildModel(ds.hooks, rows, ds.provenance.registry.entries)
 
 /* ------------------------------------------------ le recompte independant
  *
@@ -65,7 +69,7 @@ const model = buildModel(ds.hooks, ds.rows, ds.provenance.registry.entries)
  */
 
 type Raw = { hook: string; pool_id: string; bps: number | null; label: string }
-const raws: Raw[] = ds.rows as unknown as Raw[]
+const raws: Raw[] = rows as unknown as Raw[]
 
 const snapshot = JSON.parse(
   readFileSync(resolve(webRoot, 'public/data/hooklist.snapshot.json'), 'utf8'),
@@ -349,9 +353,9 @@ test('le jeu embarque par le site est celui que le depot publie', { skip: balaya
     .split('\n')
     .filter((l) => l.trim() !== '').length
   assert.equal(
-    ds.rows.length,
+    rows.length,
     publie,
-    `le site embarque ${ds.rows.length} mesures, le depot en publie ${publie}. ` +
+    `le site embarque ${rows.length} mesures, le depot en publie ${publie}. ` +
       'Relancer : node apps/web/scripts/build-dataset.mjs',
   )
 })
@@ -368,9 +372,9 @@ test('le jeu embarque nomme le fichier dont il vient, pas un autre', () => {
   const p = ds.provenance.measurements.path
   const nJsonl = readFileSync(resolve(repoRoot, 'docs/dataset/measurements.jsonl'), 'utf8')
     .split('\n').filter((l) => l.trim()).length
-  if (ds.rows.length === nJsonl) {
+  if (rows.length === nJsonl) {
     assert.equal(p, 'docs/dataset/measurements.jsonl',
-      `${ds.rows.length} lignes viennent du JSONL, mais la provenance annonce ${p}`)
+      `${rows.length} lignes viennent du JSONL, mais la provenance annonce ${p}`)
   } else {
     assert.equal(p, 'docs/measurements-v1.json')
   }

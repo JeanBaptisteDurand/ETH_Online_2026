@@ -50,6 +50,8 @@ import { API_BASE, getJson, type Fetched } from './GraphApi'
 
 /** Comment relancer l'API quand elle ne repond pas. Aucun nombre ne depend de cette ligne. */
 const API_CMD = 'cd apps/api && npm run dev'
+/** Combien de jetons la completion propose. Au-dela, on construit du DOM que personne ne lit. */
+const PROPOSES_MAX = 200
 
 /**
  * Combien de paires l'ecran sonde TOUT SEUL au chargement.
@@ -431,6 +433,11 @@ type Query = { currency0: string; currency1: string; amount: string | null; zero
 export function RoutePanel() {
   // Tout ce qui est propose vient du corpus embarque, recalcule a chaque chargement.
   const tokens = useMemo(() => tokensByFrequency(dataset.rows), [])
+  // La liste de completion est BORNEE. Les 8 583 jetons du corpus tenaient dans un <datalist>,
+  // soit 8 583 <option> a construire avant le premier texte affiche — pour une liste qu'aucun
+  // navigateur ne deroule en entier. On propose les plus mesures, et le champ accepte toujours
+  // n'importe quelle adresse : la borne est un confort de saisie, jamais un filtre sur le corpus.
+  const proposes = useMemo(() => tokens.slice(0, PROPOSES_MAX), [tokens])
   const sizes = useMemo(() => sizesOf(dataset.rows), [])
   const candidates = useMemo(() => candidatePairs(dataset.rows, 10), [])
 
@@ -561,7 +568,7 @@ export function RoutePanel() {
         style={{ borderBottom: '1px solid var(--line)' }}
       >
         <datalist id="tare-tokens">
-          {tokens.map((t) => (
+          {proposes.map((t) => (
             <option key={t.address} value={t.address}>
               {t.rows} mesures dans le corpus
             </option>
@@ -632,8 +639,9 @@ export function RoutePanel() {
           interroger /route
         </button>
         <Note>
-          les {tokens.length} jetons proposes et les {sizes.length} tailles viennent du corpus
-          embarque ({dataset.rows.length} mesures) ; toute autre adresse peut etre tapee. Le
+          la completion propose les {proposes.length} jetons les plus mesures sur les{' '}
+          {tokens.length} du corpus embarque ({dataset.rows.length} mesures), et les{' '}
+          {sizes.length} tailles en viennent aussi ; toute autre adresse peut etre tapee. Le
           corpus ne porte pas de symbole de jeton : on affiche des adresses, on n'en invente pas
           le nom.
         </Note>

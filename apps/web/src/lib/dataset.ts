@@ -1,4 +1,7 @@
 import raw from '../data/dataset.json'
+// codec.mjs est du JS, partage avec les scripts de build qui tournent sous Node sans
+// compilation ; sa frontiere de types est dans codec.d.mts.
+import { decodeRows } from '../data/codec.mjs'
 
 export type Label = 'MESURE' | 'INTERPOLE' | 'NON_MESURABLE' | 'NON_COTABLE'
 
@@ -106,7 +109,15 @@ export type Dataset = {
   rows: Row[]
 }
 
-export const dataset = raw as unknown as Dataset
+// Les lignes arrivent encodees par colonne. Le decodage rend des objets identiques a ceux
+// qu'ecrivait la version naive — memes cles, meme ordre, memes valeurs — mais leurs chaines
+// repetees sont PARTAGEES au lieu d'etre recopiees 125 072 fois : c'est la que le tas fond.
+// `rows_enc` est retire de l'objet rendu, et pas seulement ignore : le laisser dans le spread
+// republierait les colonnes encodees sur `dataset`, ou plus personne ne les lit mais ou elles
+// resteraient retenues.
+const { rows_enc, ...brut } = raw as unknown as Omit<Dataset, 'rows'> & { rows_enc: unknown }
+
+export const dataset: Dataset = { ...brut, rows: decodeRows<Row>(rows_enc) }
 
 export const rowsById = new Map(dataset.rows.map((r) => [r.id, r]))
 

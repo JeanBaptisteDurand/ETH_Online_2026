@@ -10,6 +10,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { encodeRows } from '../src/data/codec.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
@@ -156,13 +157,19 @@ const dataset = {
     labelCounts: rows.reduce((a, r) => ((a[r.label] = (a[r.label] ?? 0) + 1), a), {}),
   },
   hooks,
-  rows,
+  // Les lignes partent ENCODEES PAR COLONNE (voir src/data/codec.mjs). Ecrites naivement
+  // elles pesaient 87 Mo, embarquees telles quelles dans le bundle : 10,3 s avant le premier
+  // texte affiche et 1,18 Go de tas. L'encodage est verifie ligne a ligne avant d'etre ecrit,
+  // et `dataset.rows` reste exactement le meme tableau d'objets a la lecture.
+  rows_enc: encodeRows(rows),
 }
 
 mkdirSync(dirname(OUT), { recursive: true })
-writeFileSync(OUT, JSON.stringify(dataset))
+const sortie = JSON.stringify(dataset)
+writeFileSync(OUT, sortie)
 console.log(
-  `dataset.json — ${dataset.totals.rows} rows / ${dataset.totals.hooks} hooks / ` +
+  `dataset.json — ${(sortie.length / 1048576).toFixed(1)} Mo / ` +
+  `${dataset.totals.rows} rows / ${dataset.totals.hooks} hooks / ` +
   `${dataset.totals.pools} pools / ${dataset.totals.measured} MESURE / ` +
   `${dataset.totals.over1bpsWithZeroStoredFee} > 1 bps on stored_lp_fee=0 / ` +
   `${dataset.totals.hooksAbsentFromRegistry} hooks absent from the registry`,

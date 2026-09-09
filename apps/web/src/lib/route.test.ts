@@ -25,6 +25,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
+import { decodeRows } from '../data/codec.mjs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 
@@ -274,10 +275,11 @@ test('les candidats, les jetons et les tailles sortent des lignes fournies', () 
 
 test('les candidats du vrai corpus embarque en sortent tous, et lui seul', () => {
   const ds = JSON.parse(readFileSync(resolve(webSrc, 'data/dataset.json'), 'utf8')) as {
-    rows: { currency0: string; currency1: string; amount_in: string }[]
+    rows_enc: unknown
   }
-  const jetons = new Set(tokensByFrequency(ds.rows).map((t) => t.address))
-  const c = candidatePairs(ds.rows, 10)
+  const rows = decodeRows<{ currency0: string; currency1: string; amount_in: string }>(ds.rows_enc)
+  const jetons = new Set(tokensByFrequency(rows).map((t) => t.address))
+  const c = candidatePairs(rows, 10)
   assert.equal(c.length, 45, 'C(10,2) candidats derives des 10 jetons les plus frequents')
   for (const p of c) {
     assert.ok(jetons.has(p.a) && jetons.has(p.b), 'les deux jetons viennent du corpus')

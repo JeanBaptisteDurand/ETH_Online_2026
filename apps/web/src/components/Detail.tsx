@@ -1,9 +1,12 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { dataset, profileOf, rowsOfHook, type Hook } from '../lib/dataset'
 import { rampCell } from '../lib/ramp'
 import { explainReason, fmtBlock, groupDigits, powerOfTen, replayCommand, shortAddr } from '../lib/format'
 import { Chip, Panel, Replay } from './Prim'
 import { Curve } from './Curve'
+
+/** Lignes brutes affichees d'un coup. Le reste est a une page de distance, jamais retire. */
+const PAGE = 200
 
 /** La phrase de desaccord. Elle n'invente rien : elle rapproche deux lectures. */
 function disagreement(h: Hook): string {
@@ -62,6 +65,31 @@ export function Detail({
     return gardees.length ? gardees : toutes
   }, [toutes, focus?.pool, focus?.direction])
   const [openRow, setOpenRow] = useState<number | null>(hook.worstRowId)
+
+  // Le tableau des lignes brutes est PAGINE. Il ne l'etait pas, et le hook le plus mesure en
+  // deroulait 18 800 d'un coup : 132 000 cellules construites avant le premier texte affiche,
+  // 6,9 s d'attente pour une page dont on ne lit jamais que le haut. Aucune ligne n'est
+  // retiree — le titre du panneau annonce toujours le total, et chacune reste atteignable.
+  const [page, setPage] = useState(0)
+  const nbPages = Math.max(1, Math.ceil(rows.length / PAGE))
+  const debut = page * PAGE
+  const visibles = rows.slice(debut, debut + PAGE)
+
+  /** Choisir une ligne, d'ou qu'elle vienne (le tableau, ou un point de la courbe), amene sa
+   *  page. Sans ca, le detail du bas decrirait une ligne absente de l'ecran. */
+  const choisir = (id: number | null) => {
+    setOpenRow(id)
+    if (id === null) return
+    const i = rows.findIndex((r) => r.id === id)
+    if (i >= 0) setPage(Math.floor(i / PAGE))
+  }
+
+  // On change de hook : on retombe sur SA pire ligne, et sur la page qui la porte.
+  useEffect(() => {
+    setOpenRow(hook.worstRowId)
+    const i = rows.findIndex((r) => r.id === hook.worstRowId)
+    setPage(i >= 0 ? Math.floor(i / PAGE) : 0)
+  }, [hook.address, hook.worstRowId, rows])
 
   const current = openRow === null ? null : (rows.find((r) => r.id === openRow) ?? null)
 
@@ -127,7 +155,7 @@ export function Detail({
           </span>
         }
       >
-        <Curve series={series} theme={theme} onPick={setOpenRow} />
+        <Curve series={series} theme={theme} onPick={choisir} />
       </Panel>
 
       <Panel
@@ -162,12 +190,13 @@ export function Detail({
               </tr>
             </thead>
             <tbody>
-              {rows.map((r, i) => {
+              {visibles.map((r, k) => {
+                const i = debut + k
                 const sel = r.id === openRow
                 return (
                   <tr
                     key={r.id}
-                    onClick={() => setOpenRow(sel ? null : r.id)}
+                    onClick={() => choisir(sel ? null : r.id)}
                     className="cursor-pointer"
                     style={{
                       background: sel ? 'var(--bg-3)' : i % 2 ? 'var(--bg-1)' : 'transparent',
@@ -205,6 +234,62 @@ export function Detail({
             </tbody>
           </table>
         </div>
+
+        {nbPages > 1 && (
+          <div
+            className="flex flex-wrap items-center gap-[10px] px-[16px] py-[8px] t-data-xs"
+            style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-3)' }}
+          >
+            <button
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="t-data-xs"
+              style={{
+                padding: '4px 9px',
+                border: '1px solid var(--line)',
+                background: 'var(--bg-2)',
+                color: page === 0 ? 'var(--ink-4)' : 'var(--ink-2)',
+                cursor: page === 0 ? 'default' : 'pointer',
+              }}
+            >
+              ‹ precedentes
+            </button>
+            <span>
+              lignes {groupDigits(String(debut + 1))} a{' '}
+              {groupDigits(String(Math.min(debut + PAGE, rows.length)))} sur{' '}
+              {groupDigits(String(rows.length))} · page {page + 1}/{nbPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(nbPages - 1, p + 1))}
+              disabled={page >= nbPages - 1}
+              className="t-data-xs"
+              style={{
+                padding: '4px 9px',
+                border: '1px solid var(--line)',
+                background: 'var(--bg-2)',
+                color: page >= nbPages - 1 ? 'var(--ink-4)' : 'var(--ink-2)',
+                cursor: page >= nbPages - 1 ? 'default' : 'pointer',
+              }}
+            >
+              suivantes ›
+            </button>
+            {hook.worstRowId !== null && (
+              <button
+                onClick={() => choisir(hook.worstRowId)}
+                className="t-data-xs"
+                style={{
+                  padding: '4px 9px',
+                  border: '1px solid var(--line)',
+                  background: 'var(--bg-2)',
+                  color: 'var(--ink-2)',
+                  cursor: 'pointer',
+                }}
+              >
+                aller a la pire ligne
+              </button>
+            )}
+          </div>
+        )}
 
         {current && (
           <div className="p-[16px] flex flex-col gap-[10px]" style={{ borderTop: '1px solid var(--line-strong)' }}>

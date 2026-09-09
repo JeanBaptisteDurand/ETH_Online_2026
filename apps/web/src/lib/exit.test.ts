@@ -21,6 +21,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
+import { decodeRows } from '../data/codec.mjs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 
@@ -255,9 +256,9 @@ test('navigateur et API refusent les memes lignes, pour la meme raison', () => {
 test('sur le jeu embarque, le pool piege 0xb2000000…5615bfb8 ne laisse rien', () => {
   const dataset = JSON.parse(
     readFileSync(resolve(ICI, '../data/dataset.json'), 'utf8'),
-  ) as { rows: Ligne[] }
+  ) as { rows_enc: unknown }
   const t = '0xb2000000000000000000000518f4215d5615bfb8'
-  const lignes = dataset.rows.filter(
+  const lignes = decodeRows<Ligne>(dataset.rows_enc).filter(
     (r) => r.currency0.toLowerCase() === t || r.currency1.toLowerCase() === t,
   )
   assert.ok(lignes.length > 0, 'le jeton doit etre dans le jeu embarque')

@@ -9,6 +9,7 @@
 import { readFileSync, existsSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { decodeRows } from '../src/data/codec.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const repo = resolve(root, '../..')
@@ -68,6 +69,9 @@ const measurements = existsSync(JSONL)
   ? readFileSync(JSONL, 'utf8').split('\n').filter((l) => l.trim()).map((l) => JSON.parse(l))
   : JSON.parse(readFileSync(resolve(repo, 'docs/measurements-v1.json'), 'utf8'))
 const ds = JSON.parse(readFileSync(resolve(root, 'src/data/dataset.json'), 'utf8'))
+// Les lignes sont encodees par colonne dans le fichier ; ce qui suit les verifie DECODEES,
+// c'est-a-dire exactement telles que l'instrument les lit.
+ds.rows = decodeRows(ds.rows_enc)
 check(ds.totals.rows === measurements.length, `${ds.totals.rows} lignes = les ${measurements.length} mesures brutes`)
 const over1 = measurements.filter(
   (m) => (m.label === 'MESURE' || m.label === 'MEASURED') && typeof m.bps === 'number' && m.bps > 1 && m.stored_lp_fee === 0,

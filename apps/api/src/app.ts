@@ -16,6 +16,7 @@ import { buildTokenSheet, isQuoteCurrency, QUOTE_CURRENCIES } from "./token.js";
 import { buildExitTest, phrase } from "./exit.js";
 import { engineHealth, runPlans, type EngineHealth , assertNodeMatches } from "./engine.js";
 import { createMetering, toMeasurementUnit, type BatchReceipt } from "./metering/index.js";
+import { createAgentRouter } from "./agent/router.js";
 import { createGraphRouter } from "./graph-routes.js";
 import { createRagRouter } from "./rag/index.js";
 import { createRouteRouter } from "./route.js";
@@ -568,6 +569,10 @@ export function createApp(deps: AppDeps = {}) {
   // complet (rollups par payeur, reglements, ancrage HCS verifie sur le mirror) restait mort
   // derriere un resume qui ne connaissait ni les reglements ni le topic.
   app.route("/", metering.router);
+
+  // L'identite d'agent HCS-14. Elle ne depend d'aucun etat du serveur : c'est une fonction
+  // pure des six champs, et la route en donne de quoi la recalculer sans nous croire.
+  app.route("/", createAgentRouter());
 
   /* --------------------------------------------------------------- graphe */
 

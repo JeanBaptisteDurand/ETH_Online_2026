@@ -170,7 +170,23 @@ export async function publishAnchor(
   payload: AnchorPayload,
   opts: { fetchImpl?: typeof fetch; feeAttempts?: number; feeDelayMs?: number } = {},
 ): Promise<PublishResult> {
-  const message = anchorPayload(payload);
+  return publishMessage(cfg, topicId, anchorPayload(payload), opts);
+}
+
+/**
+ * Publier UN message sur un topic, et rendre ce qu'il a reellement coute.
+ *
+ * `publishAnchor` n'en est qu'un appel : le journal des paiements et l'identite d'agent
+ * (../agent) empruntent le meme chemin, donc la meme lecture de frais, la meme empreinte
+ * du message et le meme refus au-dela de 1024 octets. Deux chemins d'ecriture voudraient
+ * dire deux disciplines, et l'une des deux finirait par etre la mauvaise.
+ */
+export async function publishMessage(
+  cfg: HcsConfig,
+  topicId: string,
+  message: string,
+  opts: { fetchImpl?: typeof fetch; feeAttempts?: number; feeDelayMs?: number } = {},
+): Promise<PublishResult> {
   const bytes = Buffer.byteLength(message, "utf8");
   if (bytes > 1024)
     throw new Error(

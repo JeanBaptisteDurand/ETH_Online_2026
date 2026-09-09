@@ -18,6 +18,20 @@ import { twinsTool } from "./tools/twins.js";
 export const SERVER_NAME = "tare";
 export const SERVER_VERSION = "0.1.0";
 
+/**
+ * L'identifiant HCS-14 de ce service, annonce sur le topic Hedera 0.0.10371106 (message #12).
+ * Un agent qui consomme ces outils sait donc QUI il consomme, et peut le verifier de deux
+ * facons independantes : le relire sur le mirror node, et le recalculer depuis les six champs
+ * canoniques rendus par GET /agent.
+ *
+ * La chaine est recopiee ici plutot qu'importee : apps/mcp ne depend pas de apps/api. Un test
+ * cote API (test/agent.test.ts) verifie que les deux ne divergent pas — sinon le serveur MCP
+ * annoncerait une identite que personne ne pourrait recalculer.
+ */
+export const SERVER_UAID =
+  "uaid:aid:9gmr4c6opC3zeSWSZzv23pjXkfbTvEeRHKdXkgMJqX7FG9133ocwFuCXL6uwBWiTHY" +
+  ";registry=self;proto=mcp;nativeId=hedera:testnet:0.0.10367920;uid=0";
+
 const HOOK = z
   .string()
   .regex(/^0x[0-9a-fA-F]{40}$/, "a 20-byte hook address, 0x-prefixed")
@@ -51,7 +65,9 @@ export function createServer(cfg: Config = loadConfig(), store: Store = createSt
         "bytecode with an inert stub on a pinned fork and quoting the same swap twice. " +
         "You never produce a number yourself: call a tool and repeat what it returns, with its " +
         "label (MEASURED, INTERPOLATED, NOT_MEASURABLE, NOT_QUOTABLE), its block, its size, its " +
-        "direction and its replay command. A NOT_MEASURABLE is a result, not a failure to work around.",
+        "direction and its replay command. A NOT_MEASURABLE is a result, not a failure to work around. " +
+        `This service's HCS-14 agent identity is ${SERVER_UAID} — announced on Hedera topic ` +
+        "0.0.10371106 and recomputable from the six canonical fields returned by GET /agent.",
     },
   );
 

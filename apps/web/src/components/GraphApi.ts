@@ -154,12 +154,37 @@ export type Fetched<T> =
   | { state: 'error'; detail: string }
   | { state: 'ready'; data: T }
 
+/**
+ * Au-dela, on n'attend plus. Sans borne, un serveur qui accepte la connexion sans jamais
+ * repondre laissait l'ecran sur « lecture du graphe… » POUR TOUJOURS — un silence rendu
+ * comme un chargement. C'est exactement la faute que le moteur refuse ailleurs : une lecture
+ * bornee est un refus motive, jamais une valeur, et jamais une attente sans fin.
+ */
+const DELAI_MS = 8000
+
 export async function getJson<T>(path: string, signal?: AbortSignal): Promise<Fetched<T>> {
   let res: Response
+  const horloge = new AbortController()
+  const t = setTimeout(() => horloge.abort(), DELAI_MS)
+  // Le signal de l'appelant (demontage du composant) et le notre doivent tous deux couper.
+  const coupe = () => horloge.abort()
+  signal?.addEventListener('abort', coupe)
   try {
-    res = await fetch(`${API_BASE}${path}`, { signal })
+    res = await fetch(`${API_BASE}${path}`, { signal: horloge.signal })
   } catch (e) {
-    return { state: 'error', detail: `${API_BASE} injoignable (${(e as Error).message})` }
+    // Distinguer les deux : l'appelant a abandonne (changement de hook, demontage) n'est pas
+    // la meme chose que le serveur qui n'a pas repondu a temps.
+    if (signal?.aborted) return { state: 'loading' }
+    const expire = horloge.signal.aborted
+    return {
+      state: 'error',
+      detail: expire
+        ? `${API_BASE} n'a pas repondu en ${DELAI_MS / 1000} s — lecture bornee, aucun nombre affichable`
+        : `${API_BASE} injoignable (${(e as Error).message})`,
+    }
+  } finally {
+    clearTimeout(t)
+    signal?.removeEventListener('abort', coupe)
   }
   let body: unknown
   try {

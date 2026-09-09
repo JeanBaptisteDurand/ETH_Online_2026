@@ -273,3 +273,21 @@ test("le chiffre publie par docs/SUBMISSION.md est celui du registre le plus com
   assert.ok(m, 'SUBMISSION.md doit publier ce nombre')
   assert.equal(Number(m[1]), f.registre.plus_recent.absents)
 })
+
+/* ------------------ 9. une attente sans fin n'est pas un chargement */
+
+test("l attente d une reponse d API est BORNEE, sinon un silence se lit « ca charge »", () => {
+  // Le defaut mesure : API suspendue, le panneau du graphe restait sur « lecture du graphe… »
+  // indefiniment. Un silence rendu comme un chargement est le meme mensonge qu'un silence
+  // rendu comme un zero, et c'est la faute que tout le reste du projet refuse.
+  const api = readFileSync(resolve(ICI, '../components/GraphApi.ts'), 'utf8')
+  assert.match(api, /const DELAI_MS = \d+/)
+  assert.ok(api.includes('setTimeout(() => horloge.abort()'), 'la borne doit couper la lecture')
+  assert.ok(
+    api.includes("n'a pas repondu en"),
+    'le refus doit dire QUE le delai a expire, pas seulement echouer',
+  )
+  // Et l abandon de l appelant (demontage, changement de hook) ne doit pas etre rendu
+  // comme une panne du serveur : ce sont deux choses differentes.
+  assert.ok(api.includes("if (signal?.aborted) return { state: 'loading' }"))
+})

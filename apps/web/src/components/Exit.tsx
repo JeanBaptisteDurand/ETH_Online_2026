@@ -206,6 +206,8 @@ export function ExitPanel() {
               </span>
               <span>
                 revente {resultat.test.pire.reventePire.totalBps.toFixed(2)} bps au pire
+                {!resultat.test.pire.exact &&
+                  `, ${resultat.test.pire.reventeMeilleure.totalBps.toFixed(2)} au mieux`}
               </span>
               <span>pool {resultat.test.poolId.slice(0, 12)}…</span>
               <span>hook {resultat.test.hook.slice(0, 12)}…</span>

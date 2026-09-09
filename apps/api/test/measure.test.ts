@@ -10,6 +10,7 @@ import { describe, it, expect } from "vitest";
 import { createApp } from "../src/app.js";
 import { priceFor } from "../src/x402.js";
 import { buildPlan } from "../src/plan.js";
+import { assertNodeMatches } from "../src/engine.js";
 import { fakeFacilitator, fakeEngine } from "./helpers.js";
 
 const POOL = {
@@ -237,5 +238,69 @@ describe("un refus accuse le bon champ", () => {
     const p = buildPlan({}, { defaultBlock: 50614000, maxUnits: 10 });
     expect(p.ok).toBe(false);
     if (!p.ok) expect(p.error).toMatch(/il faut "hook"/);
+  });
+});
+
+/* ---------------------------------------------------------------------------
+ * QUI REPOND SUR LE PORT ?
+ *
+ * Incident reel : un anvil d'un autre projet, lie a 127.0.0.1:8545 en IPv4
+ * specifique, battait le wildcard *:8545 publie par Docker. Notre conteneur
+ * repondait bien (Base 8453, bloc 50 614 000) mais tout ce qui appelait
+ * 127.0.0.1 tombait sur l'intrus — chain 4663, bloc 57 794 845. Sans garde,
+ * le moteur aurait cote deux fois sur cette chaine et rendu des NOMBRES
+ * etiquetes MEASURED qui ne rejouent rien.
+ * ------------------------------------------------------------------------- */
+describe("le noeud doit etre celui qu'on croit", () => {
+  const sain = {
+    rpc: "http://127.0.0.1:8545",
+    reachable: true,
+    chain_id: 8453,
+    block_number: 50614000,
+    is_anvil: true,
+    fork: { block_number: 50614000 },
+    stub_bytes: 89,
+    stub_hash: "0x8e39",
+    error: null,
+  };
+
+  it("accepte le bon noeud", () => {
+    expect(() => assertNodeMatches(sain, { chainId: 8453, block: 50614000 })).not.toThrow();
+  });
+
+  it("refuse une autre CHAINE, et dit comment la trouver", () => {
+    try {
+      assertNodeMatches({ ...sain, chain_id: 4663 }, { chainId: 8453, block: 50614000 });
+      throw new Error("aurait du refuser");
+    } catch (e) {
+      const m = (e as Error).message;
+      expect(m).toMatch(/mauvaise chaine/);
+      expect(m).toMatch(/4663/);
+      expect(m).toMatch(/lsof/); // le refus doit dire quoi verifier
+    }
+  });
+
+  it("refuse un autre BLOC : une mesure prise la ne rejouerait pas le corpus", () => {
+    expect(() =>
+      assertNodeMatches(
+        { ...sain, fork: { block_number: 57794845 } },
+        { chainId: 8453, block: 50614000 },
+      ),
+    ).toThrow(/mauvais bloc.*57794845/);
+  });
+
+  it("refuse un noeud SANS fork : le contrefactuel exige un etat fige", () => {
+    expect(() => assertNodeMatches({ ...sain, fork: null }, { chainId: 8453, block: 50614000 })).toThrow(
+      /pas un fork epingle/,
+    );
+  });
+
+  it("refuse un noeud injoignable, avec sa raison", () => {
+    expect(() =>
+      assertNodeMatches(
+        { ...sain, reachable: false, error: "ECONNREFUSED" },
+        { chainId: 8453, block: 50614000 },
+      ),
+    ).toThrow(/injoignable.*ECONNREFUSED/);
   });
 });

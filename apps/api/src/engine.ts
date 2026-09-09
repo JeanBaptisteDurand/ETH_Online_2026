@@ -99,6 +99,54 @@ export async function engineHealth(
   }
 }
 
+/**
+ * LE NOEUD EST-IL BIEN CELUI QU'ON CROIT ?
+ *
+ * Cette verification n'est pas de la paranoia : elle vient d'un incident reel. Un anvil d'un
+ * AUTRE projet, lance sur la meme machine avec `--port 8545 --chain-id 4663`, s'etait lie a
+ * 127.0.0.1:8545 en IPv4 SPECIFIQUE — ce qui bat le wildcard *:8545 que Docker publie. Notre
+ * conteneur repondait correctement (Base 8453, bloc 50 614 000, verifiable sur [::1]:8545) mais
+ * tout ce qui appelait 127.0.0.1 tombait sur l'intrus.
+ *
+ * Consequence si personne ne verifie : le moteur cote deux fois sur une chaine qui n'est pas
+ * Base, a un bloc qui n'est pas le notre, et rend des NOMBRES. Ils auraient l'air valides, ils
+ * seraient etiquetes MEASURED, et ils ne rejoueraient rien. C'est exactement le defaut que tout
+ * le projet refuse : une lecture fausse presentee comme une mesure.
+ *
+ * On refuse donc, et le refus DIT quoi verifier.
+ */
+export function assertNodeMatches(
+  health: EngineHealth,
+  expected: { chainId: number; block: number },
+): void {
+  if (!health.reachable)
+    throw new EngineError(
+      `moteur injoignable sur ${health.rpc}${health.error ? ` : ${health.error}` : ""}`,
+    );
+
+  if (health.chain_id !== null && health.chain_id !== expected.chainId)
+    throw new EngineError(
+      `mauvaise chaine : le noeud sur ${health.rpc} annonce chain_id ${health.chain_id}, ` +
+        `on attend ${expected.chainId}. Un autre anvil ecoute probablement sur ce port — ` +
+        `verifie avec : lsof -nP -iTCP:8545 -sTCP:LISTEN`,
+    );
+
+  const fork = health.fork?.block_number ?? null;
+  if (fork !== null && fork !== expected.block)
+    throw new EngineError(
+      `mauvais bloc : le fork du noeud est epingle au bloc ${fork}, on attend ${expected.block}. ` +
+        `Une mesure prise ici ne rejouerait pas le corpus.`,
+    );
+
+  // Sans fork, ce n'est pas une copie epinglee : les deux cotations ne porteraient pas sur le
+  // meme etat, et l'ecart ne serait plus attribuable au seul code du hook.
+  if (health.fork === null || fork === null)
+    throw new EngineError(
+      `le noeud sur ${health.rpc} n'est pas un fork epingle. Le contrefactuel exige un etat fige : ` +
+        `docker compose up -d anvil`,
+    );
+}
+
 export async function runPlans(
   python: string,
   rpcUrl: string,

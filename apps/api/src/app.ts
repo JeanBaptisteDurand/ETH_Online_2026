@@ -13,7 +13,7 @@ import { buildRanking } from "./rank.js";
 import { buildPlan } from "./plan.js";
 import { normalizeMeasurement, buildReplay } from "./measurement.js";
 import { buildTokenSheet, isQuoteCurrency, QUOTE_CURRENCIES } from "./token.js";
-import { engineHealth, runPlans, type EngineHealth } from "./engine.js";
+import { engineHealth, runPlans, type EngineHealth , assertNodeMatches } from "./engine.js";
 import { createMetering, toMeasurementUnit, type BatchReceipt } from "./metering/index.js";
 import { createGraphRouter } from "./graph-routes.js";
 import { createRagRouter } from "./rag/index.js";
@@ -426,6 +426,12 @@ export function createApp(deps: AppDeps = {}) {
 
     let raws;
     try {
+      // On verifie QUI repond avant de mesurer. Un autre anvil sur le meme port rendrait des
+      // nombres d'une autre chaine, etiquetes MEASURED, qui ne rejoueraient rien.
+      assertNodeMatches(await engine.health(cfg.python, cfg.rpcUrl), {
+        chainId: cfg.chainId,
+        block: plan.block,
+      });
       raws = await engine.run(cfg.python, cfg.rpcUrl, plan.block, plan.items);
     } catch (e) {
       const echec = metering.ledger.recordFailure({

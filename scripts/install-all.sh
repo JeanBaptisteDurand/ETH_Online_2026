@@ -29,6 +29,20 @@ for p in "${PAQUETS[@]}"; do
   fi
 done
 
+# apps/web lit deux fichiers DERIVES — src/data/dataset.json et facts.json — gitignores parce
+# qu'ils se recalculent. Sans eux, six tests du front tombent en ECHEC sur un clone frais,
+# alors qu'il ne manque qu'une commande locale (aucun reseau, aucun RPC : elle ne lit que des
+# fichiers du depot). On la lance ici pour qu'une seule commande suffise avant les tests.
+if [ -f apps/web/package.json ] && [ -d apps/web/node_modules ]; then
+  printf "  %-24s " "apps/web (donnees)"
+  if (cd apps/web && npm run --silent data >/dev/null 2>&1); then
+    echo "ok (dataset.json + facts.json)"
+  else
+    echo "ECHEC — les tests du front en dependent"
+    rate+=("apps/web (donnees)")
+  fi
+fi
+
 echo "  ----------------------------------------"
 printf "  %d installes" "${#ok[@]}"
 if [ ${#rate[@]} -gt 0 ]; then

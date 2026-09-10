@@ -1,10 +1,10 @@
 {
  "v": "tare.chaine.v1",
- "debut": "2026-09-10T09:00:11.164Z",
- "fin": "2026-09-10T09:00:11.773Z",
- "duree_ms": 609,
- "complete": false,
- "n_ok": 3,
+ "debut": "2026-09-10T09:30:00.711Z",
+ "fin": "2026-09-10T09:30:14.391Z",
+ "duree_ms": 13680,
+ "complete": true,
+ "n_ok": 6,
  "n_total": 6,
  "etapes": [
   {
@@ -20,7 +20,7 @@
     "rejeu": "cast tx 0x226ac6c7e160f5e05918fd928d282d52457673dc4b71404045278c1950c4ef58 --rpc-url $BASE_RPC_URL",
     "basescan": "https://basescan.org/tx/0x226ac6c7e160f5e05918fd928d282d52457673dc4b71404045278c1950c4ef58"
    },
-   "a_ms": 1,
+   "a_ms": 644,
    "pour_la_faire_tourner": null
   },
   {
@@ -39,54 +39,77 @@
     "etiquette": "NOT_MEASURABLE",
     "bloc_de_la_table": 50614000
    },
-   "a_ms": 606,
+   "a_ms": 716,
    "pour_la_faire_tourner": null
   },
   {
    "n": 3,
    "quoi": "y a-t-il une autre porte ?",
    "etat": "OK",
-   "detail": "chemin multi-saut : aucune comparaison a taille egale n'est possible",
+   "detail": "ce pool n'est pas dans le corpus : la table est epinglee au bloc 50614000, et un pool cree depuis n'y figure pas. On ne sait rien de cette porte — donc rien de ses alternatives non plus",
    "faits": {
-    "etat": "NON_COMPARABLE"
+    "etat": "POOL_INCONNU",
+    "economie_bps": null,
+    "seuil_bps": 1,
+    "portes_examinees": 0,
+    "calldata_de_remplacement": null
    },
-   "a_ms": 606,
+   "a_ms": 716,
    "pour_la_faire_tourner": null
   },
   {
    "n": 4,
-   "quoi": "une mesure neuve, payee en x402 sur Hedera",
-   "etat": "NON_EXECUTE",
-   "detail": "mode --sec : aucun reseau",
-   "faits": {},
-   "a_ms": 606,
-   "pour_la_faire_tourner": "relancer sans --sec"
+   "quoi": "une mesure neuve, payee en x402 sur Hedera et relue sur le mirror node",
+   "etat": "OK",
+   "detail": "le 402 a annonce son prix, le paiement a ete regle, et le mirror node l'a confirme — sur un AUTRE pool du meme hook : celui de la transaction n'existait pas au bloc epingle",
+   "faits": {
+    "url": "http://127.0.0.1:8787/measure",
+    "pool_mesure": "0x00094c9f6faacca3bd8d1e6b046e81ce8776921655d235501c767032ac0a71ae",
+    "est_le_pool_de_la_transaction": false,
+    "hook": "0x0469a4bd3724dc86c9542f4694c976da13c450c0",
+    "statut_402": 402,
+    "montant": "1000",
+    "cle_du_payeur": "trousseau Ledger (/Users/beorlor/Documents/ethonline/ETH_Online_2026/var/keyring.json) — ouvert sans appareil",
+    "transaction": "0.0.7162784@1789032594.863222677",
+    "consensus": "1789032605.185167393",
+    "hashscan": "https://hashscan.io/testnet/transaction/0.0.7162784@1789032594.863222677",
+    "lot": null,
+    "unites": null
+   },
+   "a_ms": 7703,
+   "pour_la_faire_tourner": null
   },
   {
    "n": 5,
-   "quoi": "le lot est ancre sur le topic HCS",
-   "etat": "NON_EXECUTE",
-   "detail": "mode --sec : aucun reseau",
-   "faits": {},
-   "a_ms": 606,
-   "pour_la_faire_tourner": "relancer sans --sec"
+   "quoi": "le lot est ancre sur le topic HCS, et relu",
+   "etat": "OK",
+   "detail": "le topic se lit en entier : 15 message(s)",
+   "faits": {
+    "topic": "0.0.10371106",
+    "messages": 15,
+    "dernier_numero": 15,
+    "dernier_consensus": "1789032422.647587076",
+    "hashscan": "https://hashscan.io/testnet/topic/0.0.10371106"
+   },
+   "a_ms": 7789,
+   "pour_la_faire_tourner": null
   },
   {
    "n": 6,
-   "quoi": "le rapport encode en EIP-712, rendu ecran par ecran sur l'appareil",
-   "etat": "NON_EXECUTE",
-   "detail": "enregistrement du 2026-09-09 relu, PAS rejoue dans cette chaine",
+   "quoi": "le rapport encode en EIP-712, rendu ecran par ecran sur l'appareil, et signe",
+   "etat": "OK",
+   "detail": "signe a l'instant sur Speculos — application Ethereum officielle (Nano X) : 9 ecrans traverses",
    "faits": {
     "appareil": "Speculos — application Ethereum officielle (Nano X)",
     "materiel_physique": false,
-    "ecrans": 46,
+    "ecrans": 9,
     "verdict_affiche": "block",
     "signature_v": 28,
     "transaction": "0xfa82cb2cf32bf1d7ba8c33d8ae3f6d4787a16e54dbf612cead72da4bd22d9b13",
     "meme_transaction_qu_a_l_etape_1": false
    },
-   "a_ms": 609,
-   "pour_la_faire_tourner": "./scripts/ledger/run-speculos.sh ethereum, puis npx tsx packages/guard/scripts/speculos-approve.ts"
+   "a_ms": 13680,
+   "pour_la_faire_tourner": null
   }
  ]
 }

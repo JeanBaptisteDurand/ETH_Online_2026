@@ -1,5 +1,5 @@
 {
- "built_at": "2026-09-06T05:16:24+00:00",
+ "built_at": "2026-09-10T09:22:06+00:00",
  "engine_ver": "0.3.0",
  "rag_ver": "tare-rag/0.1.0",
  "embedding": {
@@ -10,25 +10,25 @@
  "embedding_selection": [
   "ollama: retenu (granite-embedding:278m, 768 dims)"
  ],
- "n_chunks": 3591,
+ "n_chunks": 4100,
  "by_corpus": {
-  "docs": 86,
+  "docs": 101,
   "registry": 978,
-  "hook_source": 2527
+  "hook_source": 3021
  },
  "chunk_chars": {
   "budget": 2048,
   "max": 2645,
-  "median": 1960,
+  "median": 1964,
   "n_oversize": 1,
   "oversize": [
    "docs/hooks-source/0x0469a4bd3724dc86c9542f4694c976da13c450c0/sources/node_modules/@zoralabs/coins/src/libs/CoinConstants.sol#107-107"
   ]
  },
  "solidity": {
-  "present": 1870,
-  "vendored": 1450,
-  "own": 420
+  "present": 2309,
+  "vendored": 1814,
+  "own": 495
  },
  "corpus": {
   "declared": [
@@ -100,25 +100,25 @@
    "path": "docs/METHOD.md",
    "present": true,
    "is_dir": false,
-   "size": 22729,
-   "mtime": 1788643608,
-   "sha256_12": "af3fe2cd0809"
+   "size": 23058,
+   "mtime": 1789027534,
+   "sha256_12": "76634780eff2"
   },
   {
    "path": "docs/LIMITS.md",
    "present": true,
    "is_dir": false,
-   "size": 15283,
-   "mtime": 1788607740,
-   "sha256_12": "e61e3f671297"
+   "size": 23676,
+   "mtime": 1789027511,
+   "sha256_12": "aa05a12f9b7b"
   },
   {
    "path": "docs/HONESTY.md",
    "present": true,
    "is_dir": false,
-   "size": 27185,
-   "mtime": 1788602672,
-   "sha256_12": "fca8f609c4e5"
+   "size": 27390,
+   "mtime": 1789027565,
+   "sha256_12": "a53f3bd5b22d"
   },
   {
    "path": "FEEDBACK.md",
@@ -132,9 +132,9 @@
    "path": "README.md",
    "present": true,
    "is_dir": false,
-   "size": 14741,
-   "mtime": 1788671576,
-   "sha256_12": "690e714b04d0"
+   "size": 22246,
+   "mtime": 1789025293,
+   "sha256_12": "61ba74e7aa0e"
   },
   {
    "path": "docs/hooklist-live-20260905.json",
@@ -149,7 +149,7 @@
    "present": true,
    "is_dir": true,
    "size": null,
-   "mtime": 1788649348,
+   "mtime": 1788672527,
    "sha256_12": null
   }
  ],
@@ -163,25 +163,25 @@
    "n_chain_entries": 160,
    "block_number": 50614000
   },
-  "n_chunks_with_graph_node": 3374,
+  "n_chunks_with_graph_node": 3868,
   "n_registry_chunks_absent_from_graph": 0
  },
  "cache": {
-  "hits": 1121,
-  "misses": 2470,
+  "hits": 4100,
+  "misses": 0,
   "path": "/Users/beorlor/Documents/ethonline/ETH_Online_2026/engine/tare/rag/var/embed-cache.jsonl"
  },
- "elapsed_s": 205.53,
+ "elapsed_s": 16.07,
  "loaded": true,
  "index_file": "/Users/beorlor/Documents/ethonline/ETH_Online_2026/engine/tare/rag/var/index.jsonl",
  "db": {
   "dsn": "postgresql://tare:***@127.0.0.1:55432/tare",
-  "rows_in_db": 3591,
+  "rows_in_db": 4100,
   "by_corpus_in_db": {
-   "docs": 86,
-   "hook_source": 2527,
+   "docs": 101,
+   "hook_source": 3021,
    "registry": 978
   },
-  "build_id": 3
+  "build_id": 4
  }
 }

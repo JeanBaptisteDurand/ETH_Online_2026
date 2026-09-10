@@ -99,7 +99,21 @@ export async function courir(opts: { sansReseau?: boolean } = {}): Promise<Chain
     const fx = JSON.parse(
       readFileSync(resolve(REPO, "packages/guard/test/fixtures/real-calldata.json"), "utf8"),
     ) as { txs: TxReelle[] };
-    tx = fx.txs[0] ?? null;
+    // On prend la premiere transaction a UN SEUL saut. Sur un multi-saut, l'etape 3 ne peut
+    // rien comparer — les montants des sauts suivants dependent de l'execution — et la chaine
+    // montrerait un refus qui ne dit rien de la recherche de porte. Toutes les transactions
+    // ici sont reelles et rejouables ; on choisit celle qui exerce le plus d'etapes.
+    const g0 = await import("../../../../packages/guard/src/index.js");
+    tx =
+      fx.txs.find((t) => {
+        try {
+          return g0.tareGuard({ to: t.to, data: t.input, chainId: t.chain_id }).decode.legs.length === 1;
+        } catch {
+          return false;
+        }
+      }) ??
+      fx.txs[0] ??
+      null;
     if (!tx) throw new Error("aucune transaction dans les fixtures");
     pousser(1, "une vraie transaction Base, rejouable par son hash", "OK", `capturee sur Base mainnet`, {
       hash: tx.tx_hash,
@@ -117,8 +131,12 @@ export async function courir(opts: { sansReseau?: boolean } = {}): Promise<Chain
   /* ------------------------------- 2 & 3. la garde decode, et cherche ailleurs */
 
   let poolId: string | null = null;
+  let hookLu: string | null = null;
   let direction: "0->1" | "1->0" | null = null;
   let amountIn: string | null = null;
+  /** un pool DU CORPUS portant le meme hook, quand celui de la transaction n'y est pas */
+  let poolMesurable: string | null = null;
+  let poolDeLaTx = true;
   if (tx) {
     try {
       // apps/api ne declare pas @tare/guard en dependance : on importe le source par son
@@ -128,8 +146,24 @@ export async function courir(opts: { sansReseau?: boolean } = {}): Promise<Chain
       const rapport = g.tareGuard({ to: tx.to, data: tx.input, chainId: tx.chain_id });
       const f = rapport.findings[0];
       poolId = f?.leg?.poolId ?? null;
+      hookLu = f?.hook ?? null;
       direction = (f?.leg?.direction as "0->1" | "1->0" | undefined) ?? null;
       amountIn = f?.leg?.amountIn ?? null;
+
+      // Le pool d'une transaction capturee APRES le bloc epingle n'existait pas a ce bloc :
+      // il est inmesurable par construction, pas par accident. Pour que la chaine montre
+      // quand meme une mesure PAYEE, on mesure le meme HOOK sur un pool qui, lui, existait —
+      // et l'etape le dit, parce qu'un pool substitue en silence serait un mensonge.
+      const tbl = g.assertTable(
+        JSON.parse(readFileSync(resolve(REPO, "packages/guard/data/table.json"), "utf8")),
+      );
+      if (poolId && tbl.pools[poolId.toLowerCase()]) {
+        poolMesurable = poolId;
+      } else if (hookLu) {
+        const h = tbl.hooks[hookLu.toLowerCase()];
+        poolMesurable = h?.pools?.[0] ?? null;
+        poolDeLaTx = false;
+      }
       pousser(2, "la garde decode le calldata et rend un verdict", "OK", rapport.headline, {
         verdict: rapport.verdict,
         calldata_lu_en_entier: rapport.complete,
@@ -147,7 +181,9 @@ export async function courir(opts: { sansReseau?: boolean } = {}): Promise<Chain
         3,
         "y a-t-il une autre porte ?",
         "OK",
-        alt ? alt.raison : "chemin multi-saut : aucune comparaison a taille egale n'est possible",
+        alt
+          ? alt.raison
+          : "chemin a plusieurs sauts : les montants des sauts suivants dependent de l'execution, donc aucune comparaison a taille egale n'est possible",
         alt
           ? {
               etat: alt.etat,
@@ -173,8 +209,9 @@ export async function courir(opts: { sansReseau?: boolean } = {}): Promise<Chain
       "relancer sans --sec");
     pousser(5, "le lot est ancre sur le topic HCS", "NON_EXECUTE", "mode --sec : aucun reseau", {},
       "relancer sans --sec");
-  } else if (!poolId) {
-    pousser(4, "une mesure neuve, payee en x402", "NON_EXECUTE", "aucun pool n'a ete lu a l'etape 2", {}, null);
+  } else if (!poolMesurable) {
+    pousser(4, "une mesure neuve, payee en x402", "NON_EXECUTE",
+      "aucun pool mesurable : ni celui de la transaction ni un pool du corpus portant le meme hook", {}, null);
     pousser(5, "le lot est ancre sur le topic HCS", "NON_EXECUTE", "l'etape 4 n'a pas tourne", {}, null);
   } else {
     try {
@@ -193,7 +230,9 @@ export async function courir(opts: { sansReseau?: boolean } = {}): Promise<Chain
         keyType: process.env["HEDERA_PAYER_KEY_TYPE"] ?? "ECDSA",
         network: cfg.x402Network,
       });
-      const r = await payOnce(urlApi, { pool_id: poolId, sizes: [amountIn ?? "1000000000000"] }, http, {
+      // On mesure a une taille DU CORPUS, pas celle de la transaction : le moteur cote les
+      // tailles qu'il a balayees, et en demander une autre rendrait NOT_MEASURABLE.
+      const r = await payOnce(urlApi, { pool_id: poolMesurable, sizes: ["1000000000000"] }, http, {
         verifyOnMirror: true,
       });
       // « Regle » veut dire relu sur le MIRROR, pas annonce par le serveur. Un 200 dit que la
@@ -206,10 +245,16 @@ export async function courir(opts: { sansReseau?: boolean } = {}): Promise<Chain
         "une mesure neuve, payee en x402 sur Hedera et relue sur le mirror node",
         paye ? "OK" : "NON_EXECUTE",
         paye
-          ? "le 402 a annonce son prix, le paiement a ete regle, et le mirror node l'a confirme"
+          ? "le 402 a annonce son prix, le paiement a ete regle, et le mirror node l'a confirme" +
+            (poolDeLaTx
+              ? " — sur LE pool de la transaction"
+              : " — sur un AUTRE pool du meme hook : celui de la transaction n'existait pas au bloc epingle")
           : `le reglement n'a pas ete confirme par le reseau : ${r.mirror?.reason ?? "mirror non lu"}`,
         {
           url: urlApi,
+          pool_mesure: poolMesurable,
+          est_le_pool_de_la_transaction: poolDeLaTx,
+          hook: hookLu,
           statut_402: r.challenge.status,
           montant: accepte?.amount ?? null,
           cle_du_payeur: cle.describe,
@@ -260,37 +305,78 @@ export async function courir(opts: { sansReseau?: boolean } = {}): Promise<Chain
 
   /* --------------------- 6. le rapport signe, ecran par ecran, sur l'appareil */
 
-  try {
-    const preuve = JSON.parse(readFileSync(resolve(REPO, "docs/ledger/guard-speculos.json"), "utf8")) as {
-      ts: string;
-      appareil: string;
-      physique: boolean;
-      ecrans: unknown[];
-      signature: { v: number };
-      transaction: { hash: string };
-      rapport: { verdict: string };
-    };
-    // Cette etape est RELUE d'un enregistrement date, pas rejouee ici : l'appareil emule
-    // demande Docker, et le dire vaut mieux que de laisser croire a une execution du jour.
-    pousser(
-      6,
-      "le rapport encode en EIP-712, rendu ecran par ecran sur l'appareil",
-      "NON_EXECUTE",
-      `enregistrement du ${preuve.ts.slice(0, 10)} relu, PAS rejoue dans cette chaine`,
-      {
-        appareil: preuve.appareil,
-        materiel_physique: preuve.physique,
-        ecrans: preuve.ecrans.length,
-        verdict_affiche: preuve.rapport.verdict,
-        signature_v: preuve.signature.v,
-        transaction: preuve.transaction.hash,
-        meme_transaction_qu_a_l_etape_1: tx ? preuve.transaction.hash === tx.tx_hash : null,
-      },
-      "./scripts/ledger/run-speculos.sh ethereum, puis npx tsx packages/guard/scripts/speculos-approve.ts",
-    );
-  } catch (e) {
-    pousser(6, "le rapport signe sur l'appareil", "NON_EXECUTE", (e as Error).message.slice(0, 160), {},
-      "docs/ledger/guard-speculos.json doit exister");
+  // On ESSAIE de signer pour de vrai. Speculos joint => on lance la chaine complete de
+  // packages/guard/scripts/speculos-approve.ts, qui reprend la meme transaction, la redecode,
+  // en fait un EIP-712 et marche dans les ecrans. Absent => on RELIT l'enregistrement date en
+  // le disant, parce qu'un enregistrement relu n'est pas une execution du jour.
+  const speculosJoint = await fetch("http://127.0.0.1:5010", { signal: AbortSignal.timeout(2500) })
+    .then(() => true)
+    .catch(() => false);
+
+  if (speculosJoint && !opts.sansReseau) {
+    try {
+      const { execFileSync } = await import("node:child_process");
+      execFileSync("npx", ["tsx", "scripts/speculos-approve.ts"], {
+        cwd: resolve(REPO, "packages/guard"),
+        stdio: "pipe",
+        timeout: 240000,
+      });
+      const p2 = JSON.parse(readFileSync(resolve(REPO, "docs/ledger/guard-speculos.json"), "utf8")) as {
+        ts: string;
+        appareil: string;
+        physique: boolean;
+        ecrans: unknown[];
+        signature: { v: number };
+        transaction: { hash: string };
+        rapport: { verdict: string };
+      };
+      pousser(
+        6,
+        "le rapport encode en EIP-712, rendu ecran par ecran sur l'appareil, et signe",
+        "OK",
+        `signe a l'instant sur ${p2.appareil} : ${p2.ecrans.length} ecrans traverses`,
+        {
+          appareil: p2.appareil,
+          materiel_physique: p2.physique,
+          ecrans: p2.ecrans.length,
+          verdict_affiche: p2.rapport.verdict,
+          signature_v: p2.signature.v,
+          transaction: p2.transaction.hash,
+          meme_transaction_qu_a_l_etape_1: tx ? p2.transaction.hash === tx.tx_hash : null,
+        },
+      );
+    } catch (e) {
+      pousser(6, "le rapport signe sur l'appareil", "NON_EXECUTE", (e as Error).message.slice(0, 200), {},
+        "sur l'appareil : App settings -> Blind signing -> Enabled");
+    }
+  } else {
+    try {
+      const p2 = JSON.parse(readFileSync(resolve(REPO, "docs/ledger/guard-speculos.json"), "utf8")) as {
+        ts: string;
+        appareil: string;
+        physique: boolean;
+        ecrans: unknown[];
+        signature: { v: number };
+        transaction: { hash: string };
+      };
+      pousser(
+        6,
+        "le rapport encode en EIP-712, rendu ecran par ecran sur l'appareil",
+        "NON_EXECUTE",
+        `Speculos injoignable : enregistrement du ${p2.ts.slice(0, 10)} relu, PAS rejoue`,
+        {
+          appareil: p2.appareil,
+          ecrans: p2.ecrans.length,
+          signature_v: p2.signature.v,
+          transaction: p2.transaction.hash,
+          meme_transaction_qu_a_l_etape_1: tx ? p2.transaction.hash === tx.tx_hash : null,
+        },
+        "./scripts/ledger/run-speculos.sh ethereum",
+      );
+    } catch (e) {
+      pousser(6, "le rapport signe sur l'appareil", "NON_EXECUTE", (e as Error).message.slice(0, 160), {},
+        "docs/ledger/guard-speculos.json doit exister");
+    }
   }
 
   const n_ok = etapes.filter((e) => e.etat === "OK").length;

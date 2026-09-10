@@ -255,6 +255,10 @@ describe("la garde porte la proposition dans son verdict", () => {
         "AUTRES_NON_MESUREES",
         "DEJA_LA_MEILLEURE",
         "MEILLEURE_PORTE",
+        // Le cas reel des transactions capturees : elles datent de blocs POSTERIEURS au corpus,
+        // donc leur pool n'y figure pas. « On ne connait pas cette porte » n'est pas « pas
+        // d'alternative », et les confondre ferait passer une ignorance pour un resultat.
+        "POOL_INCONNU",
       ]).toContain(r.alternative.etat);
       expect(r.alternative.raison.length).toBeGreaterThan(20);
     }
@@ -264,5 +268,19 @@ describe("la garde porte la proposition dans son verdict", () => {
     const { tareGuard } = await import("../src/guard.js");
     const r = tareGuard({ to: "0x6ff5693b99212da76ad316178a184ab56d299b43", data: "0x" });
     expect(r.alternative).toBeNull();
+  });
+});
+
+describe("un pool absent du corpus le dit, au lieu de rendre null", () => {
+  it("l'etat est nomme, et la raison dit POURQUOI il est absent", () => {
+    const t = table({ "0xp1": pool({ dirs: { "0->1": [pt("1000", 100)] } }) });
+    const a = chercherAlternative(t, "0xabsent", "0->1", "1000")!;
+    expect(a.etat).toBe("POOL_INCONNU");
+    expect(a.raison).toMatch(/epinglee au bloc 50614000/);
+    expect(a.raison).toMatch(/cree depuis n'y figure pas/);
+    // et surtout : aucune porte n'est proposee sur une ignorance
+    expect(a.proposee).toBeNull();
+    expect(a.calldata).toBeNull();
+    expect(a.economie_bps).toBeNull();
   });
 });

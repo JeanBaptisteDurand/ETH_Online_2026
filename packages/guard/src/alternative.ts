@@ -57,7 +57,14 @@ export type EtatAlternative =
   /** d'autres portes existent mais AUCUNE n'est mesuree a cette taille : on ne compare pas */
   | "AUTRES_NON_MESUREES"
   /** la porte actuelle elle-meme n'est pas mesuree a cette taille : rien a comparer */
-  | "ACTUELLE_NON_MESUREE";
+  | "ACTUELLE_NON_MESUREE"
+  /**
+   * Le pool vise n'est pas dans la table du tout. Ce n'est pas « pas d'alternative » : c'est
+   * « on ne connait meme pas cette porte ». Le corpus est epingle a UN bloc, donc un pool
+   * cree depuis n'y figure pas — et c'est le cas de toutes les transactions Base capturees
+   * apres le bloc 50 614 000. Rendre `null` ici melangeait ce cas avec le multi-saut.
+   */
+  | "POOL_INCONNU";
 
 export interface Alternative {
   etat: EtatAlternative;
@@ -160,7 +167,34 @@ export function chercherAlternative(
 ): Alternative | null {
   const id = poolId.toLowerCase();
   const pool = table.pools[id];
-  if (!pool) return null;
+  if (!pool) {
+    return {
+      etat: "POOL_INCONNU",
+      raison:
+        `ce pool n'est pas dans le corpus : la table est epinglee au bloc ${table.block_number}, ` +
+        `et un pool cree depuis n'y figure pas. On ne sait rien de cette porte — donc rien de ` +
+        `ses alternatives non plus`,
+      actuelle: {
+        poolId: id,
+        poolKey: { currency0: "", currency1: "", fee: 0, tickSpacing: 0, hooks: "" },
+        hook: "",
+        zeroForOne: direction === "0->1",
+        direction,
+        bps: null,
+        label: null,
+        amountIn,
+        stored_lp_fee: null,
+        fee_is_dynamic: null,
+      },
+      proposee: null,
+      economie_bps: null,
+      seuil_bps: ECONOMIE_MIN_BPS,
+      examinees: [],
+      calldata: null,
+      block_number: table.block_number,
+      chain_id: table.chain_id,
+    };
+  }
 
   const actuelle = porteA(table, id, pool, direction, amountIn);
   const socle = {

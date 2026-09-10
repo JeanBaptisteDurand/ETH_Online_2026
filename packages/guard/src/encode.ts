@@ -14,6 +14,7 @@
  */
 import type { PoolKey } from "./types.js";
 import { SELECTOR_EXECUTE_DEADLINE } from "./calldata.js";
+import { COMMAND_PERMIT2_PERMIT, encodePermit2PermitInput } from "./permit2.js";
 
 const WORD = 32;
 
@@ -93,6 +94,14 @@ export function encodeExactInSingleParams(p: ExactInSingle): Uint8Array {
 
 export interface EncodeSwapOptions {
   deadline?: bigint;
+  /**
+   * Un permit a presenter AVANT le swap, dans la meme transaction.
+   *
+   * L'Universal Router execute ses commandes dans l'ordre : PERMIT2_PERMIT (0x0a) d'abord,
+   * puis V4_SWAP (0x10). C'est ce qui permet de n'envoyer qu'UNE transaction la ou il en
+   * fallait deux — un `approve` puis le swap.
+   */
+  permit?: { permit: import("./permit2.js").PermitSingle; signature: string };
   /** actions ajoutees apres le swap ; par defaut SETTLE_ALL (0x0c) et TAKE_ALL (0x0f) */
   settleTake?: boolean;
 }
@@ -126,10 +135,19 @@ export function encodeUniversalRouterExactInSingle(
     bytesArray(params),
   ]);
 
-  const commands = Uint8Array.from([0x10]);
-  const inputs = [v4Input];
-  const argsHead = concat([word(0x60), word(0x60 + dynBytes(commands).length), word(opts.deadline ?? 0xffffffffn)]);
-  const args = concat([argsHead, dynBytes(commands), bytesArray(inputs)]);
+  // L'ordre compte : le routeur execute les commandes dans l'ordre de la liste, et un swap
+  // presente avant son permit echouerait faute d'autorisation.
+  const commands: number[] = [];
+  const inputs: Uint8Array[] = [];
+  if (opts.permit) {
+    commands.push(COMMAND_PERMIT2_PERMIT);
+    inputs.push(encodePermit2PermitInput(opts.permit.permit, opts.permit.signature));
+  }
+  commands.push(0x10);
+  inputs.push(v4Input);
+  const cmdBytes = Uint8Array.from(commands);
+  const argsHead = concat([word(0x60), word(0x60 + dynBytes(cmdBytes).length), word(opts.deadline ?? 0xffffffffn)]);
+  const args = concat([argsHead, dynBytes(cmdBytes), bytesArray(inputs)]);
 
   const sel = SELECTOR_EXECUTE_DEADLINE.slice(2);
   const selBytes = Uint8Array.from([0, 2, 4, 6].map((i) => parseInt(sel.slice(i, i + 2), 16)));

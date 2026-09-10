@@ -27,6 +27,20 @@ export { DEFAULT_THRESHOLDS, gradeBps, gradeConsultation, worstVerdict } from ".
 // La porte de remplacement : la seule piece qui touche a une transaction au moment ou elle
 // part. Elle CONSTRUIT le calldata, elle ne l'envoie jamais.
 export { chercherAlternative, jetonDuPool, ECONOMIE_MIN_BPS } from "./alternative.js";
+// Permit2 : une seule signature au lieu de deux transactions. Il ne rend pas la substitution
+// possible — elle l'est deja — il la rend supportable pour l'utilisateur.
+export {
+  PERMIT2,
+  COMMAND_PERMIT2_PERMIT,
+  MONTANT_MAX_PERMIT2,
+  domaineHash,
+  digestPermit,
+  messageTypeAsigner,
+  encodePermit2PermitInput,
+  calldataApprobation,
+  besoin as besoinPermit2,
+} from "./permit2.js";
+export type { PermitSingle, DetailsPermit, EtatPermit2, Besoin } from "./permit2.js";
 export type { Alternative, EtatAlternative, Porte } from "./alternative.js";
 export type { Thresholds } from "./verdict.js";
 export {

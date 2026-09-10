@@ -24,20 +24,29 @@ The block, the chain, the size and the direction are fields of **every row**
 ([`engine/tare/measure.py:71-77`](../engine/tare/measure.py)) precisely so that a number cannot
 travel without them.
 
-## 2. 199 pools is not the population, and it is not even a clean sample
+## 2. 7,817 pools is not the population, and it is not even a clean sample
 
-`docs/pools-liquides.json` holds 199 pools. That number is a **survivor count**, not a census, and
-the code that produced it says so in its own docstring:
+*This section counted 199 pools and 12 hooks until 10 September 2026. The corpus has since grown
+by a factor of forty; the argument did not change, and that is the point of keeping the section.*
+
+`docs/dataset/pools-liquides-full.json` holds **7,817 pools**, carrying **112 hooks**. That number
+is a **survivor count**, not a census, and the code that produced the first version of it says so
+in its own docstring:
 
 > "The first attempt at this returned 1,835 failures out of 2,286 and I kept the 451 that answered —
 > which is how `docs/pools-liquides.json` ended up with 199 pools instead of the real number."
 > — [`engine/tare/rescan.py:1-6`](../engine/tare/rescan.py)
 
+The sweep is wider now and the failure mode is identical: what answers is kept, what does not is
+absent — and absent is not zero. The scan's own record names its losses rather than rounding them
+away ([`docs/dataset/pools-liquides-full.json.scan.json`](dataset/pools-liquides-full.json.scan.json)).
+
 Upstream of that, the `Initialize` log collection covers a **window**, not the chain: the first
 corpus covered 24,000 blocks because a public RPC could not serve more
 ([`engine/tare/collect.py:1-6`](../engine/tare/collect.py)).
 
-So: 12 hooks are in the corpus. There are **978 in the official registry alone**
+So: **112 hooks are in the corpus, and 99 of them produced at least one measurement.** There are
+**978 entries for 866 addresses in the official registry alone**
 (`docs/hooklist-live-20260905.json`), and the registry does not see everything either — see
 section 7. Silence about the other hooks is silence, **not a zero**.
 
@@ -46,24 +55,34 @@ What the code does guarantee is that the gap is *visible*: a pool the node could
 log chunk is printed with the real coverage percentage
 ([`engine/tare/collect.py:46-48`](../engine/tare/collect.py)).
 
-## 3. 265 rows where the pool refused, and 53 pools where it always refused
+## 3. 61,466 rows where the pool refused, and 2,071 pools where it always refused
+
+*Counted here at 265 rows and 53 pools until 10 September 2026. Same shape, forty times the corpus.*
 
 | `NOT_QUOTABLE` reason | rows |
 |---|---|
-| `NOT_ENOUGH_LIQUIDITY` | 250 |
-| raw `execution reverted` from the node | 10 |
-| `ZERO_OUT` (the quote returned zero out) | 5 |
-| **total** | **265** |
+| `NOT_ENOUGH_LIQUIDITY` | 35,883 |
+| raw `execution reverted` from the node | 23,699 |
+| `ZERO_OUT` (the quote returned zero out) | 1,884 |
+| **total** | **61,466** |
 
-**53 of the 199 pools produced only `NOT_QUOTABLE` rows.** Nothing is known about their hooks'
-behaviour from this corpus.
+**2,071 of the 7,817 pools produced only `NOT_QUOTABLE` rows**, and **2,172 produced no measurement
+at all** — the difference is the pools that also hit a `NOT_MEASURABLE`. Nothing is known about
+their hooks' behaviour from this corpus. Of the 112 hooks, **13 never produced a single measured
+row**: they are counted, and they are not attested (see [`docs/ONCHAIN.md`](ONCHAIN.md)).
 
-Direction asymmetry is the dominant cause, and it is measured separately
+Separately, 450 rows are `NOT_MEASURABLE` — **317 of them for `custom accounting`**, where removing
+the bytecode removes the venue rather than a fee (section 4), and the rest for a read the node could
+not serve. Neither number is a zero, and neither is folded into the other.
+
+Direction asymmetry is the dominant cause of `NOT_QUOTABLE`, and it was measured separately on the
+**earlier 199-pool sample** — the figures below describe that sample, not the current corpus, and
+are kept because the experiment is replayable exactly as recorded
 ([`docs/feedback-evidence/quote-direction.json`](feedback-evidence/quote-direction.json), replayable
 with `python3 docs/feedback-evidence/quote_direction.py`):
 
 ```
-pools tested                199
+pools tested                199      <- the 2026-09 sample, not the 7,817-pool corpus
 quote in both directions     56
 quote in exactly one         140      (70.4 %)
 quote in neither               3
@@ -109,7 +128,7 @@ Relatedly: the corpus has **0 `INTERPOLATED` rows**. Interpolation exists in the
 ([`apps/mcp/src/interpolate.ts:23`](../apps/mcp/src/interpolate.ts)) and it never extrapolates
 outside the measured range — but nothing in this dataset was produced by it.
 
-## 6. A high bps is not an abuse — and we have not read the hooks' code
+## 6. A high bps is not an abuse — and for 70 of 112 hooks we still have not read the code
 
 **This is the limit that matters most, and the one most likely to be ignored by someone quoting a
 number from this corpus.**
@@ -120,33 +139,59 @@ bytecode against no-bytecode and has no opinion about what the bytecode was enti
 
 Three facts from this corpus, all recomputed:
 
-**(a) Most of the "hidden fee" rows sit on pools where the protocol expects a hook-set fee.** Of the
-545 rows above 1 bps whose `stored_lp_fee` is zero, **410 are on a `PoolKey` carrying the dynamic-fee
-flag `0x800000`** ([`engine/tare/consts.py:22`](../engine/tare/consts.py)). On those pools
-`slot0.lpFee` reading zero is not an anomaly — it is the documented design. The interesting thing is
-not that the field is zero; it is that **no field anywhere records the magnitude**, which is why this
-corpus exists.
+**(a) Two thirds of the "hidden fee" rows sit on pools where the protocol expects a hook-set fee.**
+Of the **38,857** rows above 1 bps whose `stored_lp_fee` is zero, **26,310 — 67.7 % — are on a
+`PoolKey` carrying the dynamic-fee flag `0x800000`** ([`engine/tare/consts.py:22`](../engine/tare/consts.py)).
+On those pools `slot0.lpFee` reading zero is not an anomaly: it is the documented design, and anyone
+quoting the headline without this split is overstating it.
+
+The remaining **12,547 rows (32.3 %), across 24 hooks**, are on pools with a **static** fee, where a
+stored LP fee of zero means what it says. On that subset alone: **min 1.61, median 99.96, max 300.00
+bps**. That is the part of the finding that needs no caveat — and it is smaller and sharper than the
+headline number, which is why both are printed here.
+
+The interesting thing was never that the field is zero. It is that **no field anywhere records the
+magnitude**, which is why this corpus exists.
 
 **(b) The six hooks are named, public launchpad infrastructure.** Cross-referenced against
 `docs/hooklist-live-20260905.json`, restricted to the Base entry (see false result #6 in
 [`HONESTY.md`](HONESTY.md)):
 
-| hook | registry name | rows > 1 bps @ lpFee 0 | pools | median bps |
-|---|---|---|---|---|
-| `0x0469a4bd…` | Zora Hook | 255 | 51 | 100.00 |
-| `0x985c14ba…` | LaunchHook | 125 | 25 | 99.56 |
-| `0xb429d62f…` | Clanker Static Fee Hook v2 | 95 | 19 | 119.70 |
-| `0xbdf93814…` | DopplerHookInitializer | 50 | 10 | 150.00 |
-| `0x1aea38f0…` | ClankerHookStaticFeeV2 | 10 | 2 | 253.31 |
-| `0xdda9bc41…` | LaunchHook | 10 | 2 | 99.38 |
+| hook | registry name | rows > 1 bps @ lpFee 0 | pools | median bps | fee kind |
+|---|---|---|---|---|---|
+| `0x0469a4bd…` | Zora Hook | 18,808 | 1,594 | 100.00 | dynamic |
+| `0x985c14ba…` | LaunchHook | 11,890 | 1,159 | 99.96 | **static** |
+| `0xbdf93814…` | DopplerHookInitializer | 3,680 | 386 | 150.00 | dynamic |
+| `0xb429d62f…` | Clanker Static Fee Hook v2 (Base) | 3,246 | 457 | 119.70 | dynamic |
+| `0xd60d6b21…` | Clanker Dynamic Fee Hook v2 (Base) | 160 | 20 | 119.85 | dynamic |
+| `0x23321f11…` | Flaunch POSM v4 (Base) | 135 | 9 | 99.95 | **static** |
+
+The last column is the one that decides how the row may be quoted. Note also that the hook *named*
+"Clanker **Static** Fee Hook v2" runs on dynamic-fee pool keys: the registry's name is not the
+pool's flag, and only the flag is read here.
 
 A median of 100.00 bps is **1 %** — a completely ordinary, publicly documented launchpad fee. Reading
 "1 % is being extracted" as "1 % is being stolen" is a category error, and this document exists partly
 to make that error harder to make.
 
-**(c) We have not read a single line of any hook's source.** Not one. The corpus was produced by
-`anvil_setCode` and `eth_call`; no decompilation, no audit, no source fetch, no `verifiedSource`
-check beyond copying the registry's boolean.
+**(c)** ~~*We have not read a single line of any hook's source. Not one.*~~ **This stopped being
+true on 8 September 2026, and the sentence is kept struck through rather than deleted — a limit that
+is lifted is crossed out, not erased, or nobody can tell it ever applied.**
+
+**42 of the 112 measured hooks now have their verified source fetched and read**
+([`docs/hooks-source/`](hooks-source/), 2,309 Solidity files, `analysis.json`). For each, the rate
+the contract *declares* was compared with what the counterfactual had measured **without ever seeing
+that source**: **5 hooks are concordant**, and the worst deviation among them — not the best, the
+worst — is **0.0005 bps**.
+
+That is 5 of 42, not 5 of 112, and the other 37 are labelled, not silent: **31 `NO_CODE_RATE`** (the
+source declares no rate this method can compare), **4 `PARTIAL`**, **1 `NOT_RESOLVABLE`**,
+**1 `NOT_MEASURABLE`**. **70 hooks have no source read at all** and carry no concordance label.
+
+So the limit narrows rather than disappears: the counterfactual is corroborated by the source where
+the source declares a rate, and for **70 of 112 hooks the sentence above still stands word for word.**
+The corpus itself is still produced by `anvil_setCode` and `eth_call` alone — no decompilation, no
+audit, and no `verifiedSource` check beyond copying the registry's boolean.
 
 Therefore:
 

@@ -146,7 +146,9 @@ eth_getLogs(PoolManager, topic0 = Initialize)          collect.py:26-28   consts
         ├─ stateSlot = keccak256(poolId ‖ uint256(6))   poolid.py:39-43
         ├─ liquidity = extsload(stateSlot + 3)          poolid.py:48-49, rescan.py:41-49
         │
-        └─ liquidity > 0  ->  docs/pools-liquides.json  (199 pools)      rescan.py:76-78
+        └─ liquidity > 0  ->  docs/dataset/pools-liquides-full.json      rescan.py:76-78
+                              (7 817 pools ; le premier balayage en rendait 199,
+                               dans docs/pools-liquides.json, garde comme trace)
 ```
 
 **Slot 6.** `PoolManager` holds `mapping(PoolId => Pool.State) pools` at storage slot 6; within
@@ -327,12 +329,15 @@ fact and it already has its own `NOT_QUOTABLE` rows.
 
 | | |
 |---|---|
-| Rows | **995** — 720 `MEASURED`, 265 `NOT_QUOTABLE`, 10 `NOT_MEASURABLE`, 0 `INTERPOLATED` |
-| Pools | 199 discovered with non-zero liquidity, 144 with at least one reading |
-| Hooks | 12 present, 11 with at least one reading |
+| Rows | **125,072** — 63,156 `MEASURED`, 61,466 `NOT_QUOTABLE`, 450 `NOT_MEASURABLE`, 0 `INTERPOLATED` |
+| Pools | 7,817 discovered with non-zero liquidity, 5,645 with at least one reading |
+| Hooks | 112 present, 99 with at least one reading |
 | Chain / block | Base (8453), block **50,614,000**, pinned |
-| Sizes | 1e14 · 1e15 · 1e16 · 1e17 · 1e18 wei of currency-in |
+| Sizes | 8 sizes, 1e12 → 1e19 wei of currency-in |
 | Engine | `tare-engine/0.3.0`, stub `0x8e39b2ad…37a4` |
+
+*This table read 995 rows / 199 pools / 12 hooks until 10 September 2026 — the first sweep. It is
+the same method and the same block; only the width changed.*
 
 Every figure in this table is a field of [`docs/dataset/summary.json`](dataset/summary.json), which
 is itself recomputed from [`docs/dataset/measurements.jsonl`](dataset/measurements.jsonl) — 21 fields

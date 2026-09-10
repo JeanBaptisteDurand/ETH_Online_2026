@@ -447,10 +447,21 @@ describe("l'index pgvector reel", () => {
     expect(res.status).toBe(200);
     const body = (await res.json()) as any;
     expect(body.n).toBeGreaterThan(0);
+    // Un passage doit se relire A SA LIGNE dans le fichier qu'il nomme. C'est ce qui rend
+    // une citation verifiable plutot que plausible — et c'est fragile par construction :
+    // editer un document DECALE ses lignes et perime l'index. Quand ca arrive, l'echec doit
+    // dire QUOI RELANCER, sinon on lit un diff de 300 caracteres sans comprendre que rien
+    // n'est casse dans le code. Le test echoue quand meme, et c'est voulu : un index perime
+    // fait pointer /rag/search a cote, ce qui est un mensonge, pas un retard.
     for (const p of body.passages) {
       const lines = readFileSync(resolve(REPO_ROOT, p.source.file), "utf8").split("\n");
       const replayed = lines.slice(p.source.line_start - 1, p.source.line_end).join("\n");
-      expect(replayed).toBe(p.content);
+      expect(
+        replayed,
+        `INDEX PERIME — ${p.source.file}:${p.source.line_start}-${p.source.line_end} ne rend ` +
+          `plus le texte indexe. Le document a change depuis la construction de l'index. ` +
+          `Relancer : cd engine && python3 -m tare.rag build`,
+      ).toBe(p.content);
       expect(p.distance).toBeGreaterThanOrEqual(0);
     }
     await store.close();

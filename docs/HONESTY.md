@@ -70,11 +70,13 @@ the reason string.
 [`engine/tare/sweep.py:108-119`](../engine/tare/sweep.py).
 
 **What it does not mean.** It does not mean the pool is dead and it does not mean the hook takes
-nothing. 140 of the 199 pools in this corpus quote in exactly one direction
+nothing. On the 199-pool sample measured separately, 140 pools quote in exactly one direction
 ([`docs/feedback-evidence/quote-direction.json`](feedback-evidence/quote-direction.json)); the other
-side of every one of them is a `NOT_QUOTABLE` that says nothing whatsoever about the hook.
+side of every one of them is a `NOT_QUOTABLE` that says nothing whatsoever about the hook. In the
+current corpus, **2,071 of 7,817 pools produced nothing but `NOT_QUOTABLE`**.
 
-265 rows in the corpus: 250 `NOT_ENOUGH_LIQUIDITY`, 10 raw node reverts, 5 `ZERO_OUT`.
+**61,466 rows** in the corpus: 35,883 `NOT_ENOUGH_LIQUIDITY`, 23,699 raw node reverts,
+1,884 `ZERO_OUT`. That is 49 % of every row ever written here — and none of them is a zero.
 
 ## `NOT_MEASURABLE`
 
@@ -134,8 +136,8 @@ was computed from, and it says how much of the hook's surface is *not* measured.
 block. Everything outside that is unmeasured, and unmeasured is not zero.
 
 **We do not upgrade a label to make a point.** The single largest reading in the corpus,
-1176.46 bps, sits next to 265 `NOT_QUOTABLE` rows and 10 `NOT_MEASURABLE` rows in the same file, at
-the same weight, in the same schema.
+1800.99 bps, sits next to **61,466 `NOT_QUOTABLE` rows and 450 `NOT_MEASURABLE` rows** in the same
+file, at the same weight, in the same schema.
 
 ---
 

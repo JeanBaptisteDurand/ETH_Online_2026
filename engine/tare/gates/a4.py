@@ -26,6 +26,8 @@ Au wei pres, sur les deux jambes.
 """
 from __future__ import annotations
 
+import datetime as _dt
+import os
 import argparse
 import json
 import subprocess
@@ -51,6 +53,9 @@ SIG = "swapExactIn((address,address,uint24,int24,address),bool,uint128)(uint256)
 
 class GateError(RuntimeError):
     pass
+
+
+_RACINE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 
 def _cast(args: List[str], timeout: int = 180) -> str:
@@ -176,9 +181,34 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap.add_argument("--n", type=int, default=1)
     ap.add_argument("--probe", default=None, help="sonde deja deployee")
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--write", action="store_true",
+                    help="ecrit docs/dataset/porte-a4.json et ajoute au journal des passages")
     a = ap.parse_args(argv)
 
     rep = run(a.rpc, a.n, a.probe)
+
+    # LE RELEVE SUR DISQUE. La porte A4 est le seul endroit du projet ou une COTATION devient
+    # un SWAP EXECUTE — donc la seule preuve que le corpus entier, qui est de la cotation,
+    # correspond a ce qui se passe vraiment. Et c'etait le seul resultat qui n'ecrivait rien :
+    # « 9 pools, 8 concordants au wei, 1 divergent » n'existait qu'en prose, dans des
+    # documents, sans artefact ni horodatage. Une preuve qui ne s'ecrit pas n'est pas une
+    # preuve, c'est un souvenir.
+    if a.write:
+        rep_dated = dict(rep)
+        rep_dated["schema"] = "tare-porte-a4/1"
+        rep_dated["ecrit_le"] = _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds")
+        out = os.path.join(_RACINE, "docs", "dataset", "porte-a4.json")
+        with open(out, "w") as f:
+            json.dump(rep_dated, f, indent=1)
+            f.write("\n")
+        # Et une piste append-only a cote : un fichier ecrase perdrait les passages
+        # precedents, et une preuve qu'on remplace a chaque fois n'est pas une piste.
+        piste = os.path.join(_RACINE, "docs", "dataset", "porte-a4.jsonl")
+        with open(piste, "a") as f:
+            f.write(json.dumps(rep_dated) + "\n")
+        print(f"ecrit : {os.path.relpath(out, _RACINE)}")
+        print(f"ajoute : {os.path.relpath(piste, _RACINE)}")
+
     if a.json:
         print(json.dumps(rep, indent=1))
         return 0

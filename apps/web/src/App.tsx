@@ -9,6 +9,8 @@ import { RoutePanel } from './components/Route'
 import { ExitPanel } from './components/Exit'
 import { GraphPanels } from './components/Graph'
 import { MachinePanels } from './components/Machine'
+import { ComptePanel } from './components/Compte'
+import { SubstituerPanel } from './components/Substituer'
 import FA from './data/facts.json'
 import { Panel } from './components/Prim'
 import { Chat } from './chat/Chat'
@@ -263,6 +265,12 @@ export default function App() {
         {/* Le peage, l'identite d'agent, les attestations, The Graph et les autres surfaces.
             Tout cela tournait sans qu'aucun visiteur du site n'en voie un mot. */}
         <MachinePanels />
+
+        {/* 15 — la seule surface qui demande un serveur ET un portefeuille. Elle le dit. */}
+        <ComptePanel />
+
+        {/* 16 — la vraie action : et si je passais par une autre porte ? */}
+        <SubstituerPanel />
 
         <footer
           className="t-data-xs px-[16px] py-[12px] flex flex-col gap-[3px]"

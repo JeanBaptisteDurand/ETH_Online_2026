@@ -97,3 +97,69 @@ class TestCeQueLaPorteRefuseDeConfondre(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestReleveSurDisque(unittest.TestCase):
+    """`--write`, et pourquoi il a fallu l'ajouter.
+
+    La porte A4 est le SEUL endroit du projet ou une cotation devient un swap execute — donc
+    la seule preuve que le corpus entier, qui est de la cotation, correspond a ce qui se passe
+    vraiment. Et c'etait le seul resultat qui n'ecrivait rien : « 9 pools, 8 concordants au
+    wei, 1 divergent » n'existait qu'en prose, dans des documents, sans artefact ni
+    horodatage. Une preuve qui ne s'ecrit pas n'est pas une preuve, c'est un souvenir.
+    """
+
+    def test_le_releve_commite_porte_ce_qu_il_faut_pour_le_rejouer(self):
+        import json, os
+        from pathlib import Path
+        from tare.gates import a4
+
+        p = Path(a4._RACINE) / "docs" / "dataset" / "porte-a4.json"
+        if not p.exists():
+            self.skipTest("porte-a4.json absent : lance python3 -m tare.gates.a4 --write")
+        d = json.loads(p.read_text())
+        self.assertEqual(d["schema"], "tare-porte-a4/1")
+        # Un releve sans commande de rejeu ni horodatage ne vaut pas mieux que la prose
+        # qu'il remplace.
+        self.assertIn("tare.gates.a4", d["replay"])
+        self.assertRegex(d["ecrit_le"], r"^\d{4}-\d{2}-\d{2}T")
+        # Le DENOMINATEUR est publie : « 3 pools concordent » ne veut rien dire sans savoir
+        # combien ont ete essayes, ni combien la sonde n'a pas su jouer.
+        self.assertGreaterEqual(d["candidats_essayes"], d["n"])
+        self.assertIn("injouables_par_la_sonde", d)
+        self.assertEqual(len(d["resultats"]), d["n"])
+
+    def test_chaque_resultat_porte_les_deux_cotes_ET_les_deux_executions(self):
+        import json
+        from pathlib import Path
+        from tare.gates import a4
+
+        p = Path(a4._RACINE) / "docs" / "dataset" / "porte-a4.json"
+        if not p.exists():
+            self.skipTest("porte-a4.json absent")
+        for r in json.loads(p.read_text())["resultats"]:
+            # Les quatre nombres, sans exception : sans les deux executions on ne peut pas
+            # verifier le contrefactuel, seulement le croire.
+            for k in ("cote_avec", "cote_sans", "execute_avec", "execute_sans",
+                      "bps_publie", "bps_execute"):
+                self.assertIn(k, r, f"{r.get('hook')} : {k} manquant")
+            # et le verdict de concordance est DERIVE des nombres presents, pas ecrit
+            self.assertEqual(r["identique_avec"], r["cote_avec"] == r["execute_avec"])
+            self.assertEqual(r["identique_sans"], r["cote_sans"] == r["execute_sans"])
+
+    def test_la_piste_est_append_only(self):
+        import json
+        from pathlib import Path
+        from tare.gates import a4
+
+        p = Path(a4._RACINE) / "docs" / "dataset" / "porte-a4.jsonl"
+        if not p.exists():
+            self.skipTest("porte-a4.jsonl absent")
+        lignes = [l for l in p.read_text().splitlines() if l.strip()]
+        self.assertGreaterEqual(len(lignes), 1)
+        # Chaque ligne est un passage complet et datable : un fichier ecrase perdrait les
+        # precedents, et une preuve qu'on remplace a chaque fois n'est pas une piste.
+        for l in lignes:
+            d = json.loads(l)
+            self.assertEqual(d["schema"], "tare-porte-a4/1")
+            self.assertIn("ecrit_le", d)

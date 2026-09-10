@@ -6,6 +6,18 @@ see honesty rule 3 in the README.
 """
 import json, random, subprocess, time
 
+
+def redact(url: str) -> str:
+    """L'URL d'un RPC PORTE la cle d'API. Une erreur qui la recopie finit dans un fichier de
+    resultat, et ce fichier finit dans le depot : c'est exactement ce qui est arrive —
+    « HTTP 429 from https://base-mainnet.g.alchemy.com/v2/<cle> », 65 fois, dans un fichier
+    suivi d'un depot public. Le message garde de quoi reconnaitre le fournisseur, et rien de
+    plus. Un secret ne doit jamais traverser une chaine d'erreur."""
+    import re
+
+    return re.sub(r"(/v[0-9]+/|[?&](?:api[-_]?key|key|apikey)=)[^/?&#\s]+", r"\1<redacted>", url, flags=re.I)
+
+
 class RpcError(RuntimeError):
     pass
 
@@ -41,11 +53,11 @@ def _call_once(url: str, method: str, params: list, timeout: int = 30):
     out = proc.stdout.rsplit("\n", 1)
     body, status = (out[0], out[1].strip()) if len(out) == 2 else ("", "")
     if status in ("429", "503", "502", "504"):
-        raise RateLimited(f"HTTP {status} from {url}")
+        raise RateLimited(f"HTTP {status} from {redact(url)}")
     if not status or status == "000":
         raise RpcError(f"transport failure for {url} ({proc.returncode})")
     if not body:
-        raise RpcError(f"empty body, HTTP {status}, from {url}")
+        raise RpcError(f"empty body, HTTP {status}, from {redact(url)}")
     parsed = json.loads(body)          # full body, never truncated
     if "error" in parsed:
         raise RpcError(str(parsed["error"]))

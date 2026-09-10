@@ -12,12 +12,14 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.14.0",
+    "@noble/curves": "^1.8.1",
+    "@noble/hashes": "^1.7.0",
+    "@tare/keyring": "file:../../packages/keyring",
     "@x402/hedera": "2.23.0",
     "@x402/hono": "2.23.0",
     "hono": "^4.7.1",
     "pg": "^8.23.0",
-    "zod": "^4.5.4",
-    "@tare/keyring": "file:../../packages/keyring"
+    "zod": "^4.5.4"
   },
   "devDependencies": {
     "@types/node": "^22.20.1",

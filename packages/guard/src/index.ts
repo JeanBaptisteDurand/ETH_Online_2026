@@ -3,7 +3,7 @@
  *
  * TARE mesure ce qu'un hook Uniswap v4 prend sur un swap : sur un fork epingle, le bytecode du
  * hook est remplace par un stub inerte de 89 octets conforme a Hooks.sol, le meme swap est cote
- * deux fois, l'ecart EST le prelevement. Ce paquet ne mesure rien : il CONSULTE les 995 mesures
+ * deux fois, l'ecart EST le prelevement. Ce paquet ne mesure rien : il CONSULTE les 125 072 mesures
  * du bloc 50 614 000 avant que tu ne signes.
  *
  *   import { tareGuard, gate, confirmApprover } from "@tare/guard";

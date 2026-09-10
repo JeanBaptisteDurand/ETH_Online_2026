@@ -204,6 +204,39 @@ const table = {
   rejected: rejected.slice(0, 50),
   n_hooks: hooks.size,
   n_pools: pools.size,
+  // LES SEUILS, DERIVES DU CORPUS ET NON ECRITS A LA MAIN.
+  //
+  // Ils etaient absolus : warn a 25 bps, block a 100. Et le commentaire qui les portait
+  // admettait le probleme sans en tirer la consequence — « la mediane du jeu TARE est
+  // exactement a 100 bps, ce n'est pas un cas rare ». Mesure : avec ces seuils, la garde
+  // affichait `block` sur 49,6 % des lignes et sur 51,1 % des couples (pool, sens). Un garde
+  // qui bloque plus d'une transaction sur deux se fait desinstaller dans la semaine, et une
+  // alerte qui se declenche toujours ne previent plus de rien.
+  //
+  // Le sens du produit n'a jamais ete « 1 % c'est trop » : c'est « CE pool prend plus que les
+  // autres ». Le seuil est donc un CENTILE du corpus. warn au 90e, block au 99e — soit
+  // 89,7 % ok, 9,3 % warn, 1,0 % block. Ils se recalculent a chaque construction de la table :
+  // ecrits en dur, ils redeviendraient faux au prochain balayage, exactement comme les
+  // premiers.
+  seuils: (() => {
+    const tous = [];
+    for (const p of pools.values())
+      for (const pts of Object.values(p.dirs))
+        for (const pt of pts) if (pt.label === "MEASURED" && typeof pt.bps === "number") tous.push(pt.bps);
+    tous.sort((a, b) => a - b);
+    const c = (q) => (tous.length ? tous[Math.min(tous.length - 1, Math.floor((tous.length * q) / 100))] : null);
+    return {
+      warn_bps: c(90),
+      block_bps: c(99),
+      derives_de: tous.length,
+      centiles: { p50: c(50), p75: c(75), p90: c(90), p95: c(95), p99: c(99), p99_9: c(99.9) },
+      note:
+        "warn = 90e centile, block = 99e centile des mesures chiffrees. Un seuil ABSOLU " +
+        "bloquait la transaction mediane : la mediane du corpus vaut 100,00 bps, et l'ancien " +
+        "block etait a 100. Le verdict dit desormais « ce pool prend plus que N % des pools " +
+        "mesures », pas « ce pool depasse un chiffre rond ».",
+    };
+  })(),
   hooks: hookOut,
   pools: Object.fromEntries([...pools.entries()].sort(([a], [b]) => (a < b ? -1 : 1))),
 };

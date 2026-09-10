@@ -4,7 +4,7 @@
  * La garde ne mesure pas : mesurer coute ~9 s a froid (deux cotations, anvil_setCode, puis la
  * restauration du bytecode) et un seul mesureur peut tourner par noeud, parce que le stub est
  * de l'etat global. Un portefeuille attend une reponse en moins d'une seconde. La garde
- * consulte donc data/table.json, construit par scripts/build-table.mjs a partir des 995 mesures
+ * consulte donc data/table.json, construit par scripts/build-table.mjs a partir des 125 072 mesures
  * du bloc 50 614 000, et elle porte ce bloc partout.
  *
  * Regle dure n.2 : rien n'est promu. Un pool absent reste NOT_MEASURABLE meme si son hook a ete
@@ -60,6 +60,19 @@ export interface GuardTable {
   n_measurements: number;
   n_hooks: number;
   n_pools: number;
+  /**
+   * Les seuils, DERIVES du corpus par scripts/build-table.mjs — 90e et 99e centile.
+   * Absent d'une table ancienne : verdict.ts retombe alors sur des valeurs ecrites, et le
+   * dit. Ne jamais ecrire un seuil a la main sans dire de quoi il est le centile : le
+   * precedent, absolu, bloquait la transaction mediane du jeu.
+   */
+  seuils?: {
+    warn_bps: number | null;
+    block_bps: number | null;
+    derives_de: number;
+    centiles: Record<string, number | null>;
+    note: string;
+  };
   hooks: Record<string, TableHook>;
   pools: Record<string, TablePool>;
 }

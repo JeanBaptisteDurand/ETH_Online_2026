@@ -16,12 +16,44 @@ export interface Thresholds {
   blockBps: number;
 }
 
+/**
+ * LES SEUILS DE REPLI, et pourquoi ils ne sont plus ce qu'ils etaient.
+ *
+ * Ils valaient 25 et 100 bps — absolus. Et le commentaire qui portait le second admettait
+ * le probleme sans en tirer la consequence : « la mediane du jeu TARE est exactement a
+ * 100 bps, ce n'est pas un cas rare ». Mesure faite : la garde affichait alors `block` sur
+ * **49,6 % des lignes mesurees** et **51,1 % des couples (pool, sens)**. Un garde qui bloque
+ * plus d'une transaction sur deux se fait desinstaller dans la semaine, et une alerte qui se
+ * declenche toujours ne previent plus de rien : elle apprend seulement a etre ignoree.
+ *
+ * Le sens du produit n'a jamais ete « 1 % c'est trop ». C'est « CE pool prend plus que les
+ * autres ». Un seuil doit donc etre un CENTILE du corpus, pas un chiffre rond.
+ *
+ * Ces valeurs-ci ne servent que si la table ne porte pas ses propres seuils (table ancienne).
+ * Elles sont les centiles du corpus au 10 septembre 2026, et `thresholdsFor` prefere toujours
+ * ceux de la table — sinon elles redeviendraient fausses au prochain balayage, exactement
+ * comme les precedentes.
+ */
 export const DEFAULT_THRESHOLDS: Thresholds = {
-  /** 25 bps : au-dela des 0,3 % d'un pool v2 ordinaire une fois retiree la part LP habituelle */
-  warnBps: 25,
-  /** 100 bps = 1 % : la mediane du jeu TARE est exactement a 100 bps, ce n'est pas un cas rare */
-  blockBps: 100,
+  /** 90e centile des 63 156 mesures chiffrees */
+  warnBps: 119.7604,
+  /** 99e centile : au-dela, le pool prend plus que 99 % de ceux qu'on a mesures */
+  blockBps: 300,
 };
+
+/**
+ * Les seuils a appliquer : ceux de la table quand elle les porte, les replis sinon.
+ * `source` est rendu pour que l'ecran puisse dire d'ou vient le verdict.
+ */
+export function thresholdsFor(table: {
+  seuils?: { warn_bps: number | null; block_bps: number | null; derives_de: number } | undefined;
+}): Thresholds & { source: "table" | "repli"; derivesDe: number | null } {
+  const s = table.seuils;
+  if (s && typeof s.warn_bps === "number" && typeof s.block_bps === "number") {
+    return { warnBps: s.warn_bps, blockBps: s.block_bps, source: "table", derivesDe: s.derives_de };
+  }
+  return { ...DEFAULT_THRESHOLDS, source: "repli", derivesDe: null };
+}
 
 export function gradeBps(bps: number, t: Thresholds): Verdict {
   if (bps >= t.blockBps) return "block";

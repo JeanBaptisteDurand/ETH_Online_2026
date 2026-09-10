@@ -9,7 +9,7 @@
  * disent noir sur blanc.
  *
  * Le fait qu'encoder puis decoder redonne exactement la PoolKey de depart est teste sur les
- * 199 pools du jeu : c'est ce qui garantit que la lecture des octets 0xa0..0xc0 n'est pas un
+ * 7 817 pools du jeu : c'est ce qui garantit que la lecture des octets 0xa0..0xc0 n'est pas un
  * coup de chance sur un echantillon.
  */
 import type { PoolKey } from "./types.js";

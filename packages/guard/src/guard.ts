@@ -15,7 +15,7 @@
 import { decodeUniversalRouterCalldata } from "./calldata.js";
 import { ZERO_ADDRESS } from "./poolkey.js";
 import { assertTable, consult, type GuardTable } from "./table.js";
-import { DEFAULT_THRESHOLDS, gradeConsultation, worstVerdict, type Thresholds } from "./verdict.js";
+import { thresholdsFor, gradeConsultation, worstVerdict, type Thresholds } from "./verdict.js";
 import type { Finding, GuardOptions, GuardReport, SwapLeg, TableHit, TxRequest, Verdict } from "./types.js";
 import { chercherAlternative } from "./alternative.js";
 import builtinTable from "../data/table.json" with { type: "json" };
@@ -164,11 +164,15 @@ function headlineOf(verdict: Verdict, findings: Finding[], warnings: string[]): 
  * Le point d'entree. Ne leve jamais, ne mesure jamais, ne devine jamais un nombre.
  */
 export function tareGuard(tx: TxRequest, options: GuardOptions = {}): GuardReport {
-  const th: Thresholds = {
-    warnBps: options.warnBps ?? DEFAULT_THRESHOLDS.warnBps,
-    blockBps: options.blockBps ?? DEFAULT_THRESHOLDS.blockBps,
-  };
   const table = options.table ? assertTable(options.table) : TABLE;
+  // Les seuils viennent de la TABLE : ce sont SES centiles, recalcules a chaque construction.
+  // Ecrits dans le code, ils redeviendraient faux au prochain balayage — c'est exactement ce
+  // qui est arrive aux precedents, absolus, qui bloquaient la transaction mediane du corpus.
+  const derives = thresholdsFor(table);
+  const th: Thresholds = {
+    warnBps: options.warnBps ?? derives.warnBps,
+    blockBps: options.blockBps ?? derives.blockBps,
+  };
   const routers = (options.routers ?? DEFAULT_ROUTERS).map((r) => r.toLowerCase());
   const warnings: string[] = [];
 

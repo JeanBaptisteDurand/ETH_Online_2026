@@ -8,13 +8,33 @@
 	# protocole en silence — donc on les laisse passer, et on les expose au navigateur.
 	header {
 		Access-Control-Allow-Origin "*"
-		Access-Control-Allow-Headers "content-type, payment-signature, x-payment, x-tare-signature, x-tare-timestamp, x-tare-key"
-		Access-Control-Allow-Methods "GET, POST, OPTIONS"
+		# LES DEUX EN-TETES DU COMPTE ETAIENT ABSENTS DE CETTE LISTE, et un en-tete absent
+		# de Allow-Headers fait echouer la requete AU PREFLIGHT : le navigateur ne l'envoie
+		# meme pas. Toutes les routes du compte etaient donc inutilisables depuis un
+		# navigateur, en silence, avec une erreur CORS pour seul indice.
+		#   authorization  le jeton de session (un humain devant un navigateur)
+		#   x-tare-cle     la cle d'API (l'extension, le MCP)
+		Access-Control-Allow-Headers "content-type, authorization, x-tare-cle, payment-signature, x-payment, x-tare-signature, x-tare-timestamp, x-tare-key"
+		# DELETE : /compte/cle/:id et /compte/session en ont besoin. Sans lui, se
+		# deconnecter et revoquer une cle echouaient au preflight.
+		Access-Control-Allow-Methods "GET, POST, DELETE, OPTIONS"
 		Access-Control-Expose-Headers "payment-required, payment-response, x-payment-response, x-tare-units, x-tare-unit-price-usd, x-tare-amount-usd"
 	}
 
 	@preflight method OPTIONS
 	respond @preflight 204
+
+	# L'assistant est un SECOND serveur, sur 8788. Sans cette regle, /assistant/* partait
+	# vers l'API qui rend 404 « route inconnue » — le panneau de conversation lisait ca
+	# comme une panne de l'assistant, ce qui n'etait pas faux mais pas la bonne cause.
+	handle /assistant* {
+		reverse_proxy assistant:8788 {
+			transport http {
+				response_header_timeout 300s
+				read_timeout 300s
+			}
+		}
+	}
 
 	reverse_proxy api:8787 {
 		# Une mesure demande un fork : 5 tailles x 2 sens ont pris 9,4 s en local. Le

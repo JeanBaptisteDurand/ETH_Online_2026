@@ -3,9 +3,16 @@
 **Measures what a Uniswap v4 hook actually takes from your swap.**
 
 Uniswap asks hooks to declare what they charge, through the `HookSwap` and `HookFee` events its own
-developer guide recommends. Of the **84 hooks deployed in the last 24,000 Base blocks, zero emit
-either one**. The official registry describes 978 hooks with 19 fields — 14 permission booleans, 4
-property booleans, one enum, and `chainId`. **Not one of them is a quantity.**
+developer guide recommends. Over the 200,000 Base blocks this corpus is built from, the PoolManager
+initialised pools carrying **1,559 distinct hooks — and 9 of them emit either event, 0.58 %**
+(16 contracts in total do, hooks or not). And an emitted `HookFee` carries an absolute amount on
+one past swap, not the rate you would pay at your size. Re-run it yourself:
+`python3 -m tare.declare --scan` — the offline half costs no requests, and the artefact is
+[`docs/dataset/declarations.json`](docs/dataset/declarations.json).
+
+The official registry describes 978 hooks with **19 describing fields** — 14 permission booleans,
+4 property booleans and one `swapAccess` enum — plus a `chainId` that identifies a network rather
+than describing a hook. **Not one of the 19 is a quantity.**
 
 So TARE measures it.
 

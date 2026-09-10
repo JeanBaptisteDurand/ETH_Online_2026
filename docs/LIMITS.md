@@ -209,7 +209,10 @@ anyone interprets it.
 
 ## 7. The registry is a description, not a ground truth
 
-The official hook registry has 19 fields — 14 permission booleans, 4 property booleans, one enum, and
+The official hook registry has **19 describing fields** — 14 permission booleans, 4 property
+booleans and one `swapAccess` enum — plus a `chainId` that names a network rather than describing a
+hook. Counting `chainId` among the 19 made the decomposition add up to 20; it does not belong there.
+The point is unchanged and verifiable by reading the file:
 `chainId`. **Not one of them is a quantity** ([`FEEDBACK.md`](../FEEDBACK.md)). It can tell you a hook
 *can* run `beforeSwap`; it cannot tell you what that costs.
 

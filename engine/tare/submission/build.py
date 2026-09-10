@@ -22,6 +22,12 @@ ANALYSIS = REPO / "docs" / "hooks-source" / "analysis.json"
 REGISTRY = REPO / "docs" / "hooklist-live-20260905.json"
 OUT = REPO / "docs" / "SUBMISSION.md"
 SETTLEMENTS = REPO / "docs" / "x402-settlements.jsonl"
+# Le releve du scan des deux evenements de declaration, ecrit par `python3 -m tare.declare
+# --scan --write`. Le paragraphe d'ouverture citait « 0 des 84 sur 24 000 blocs » EN DUR :
+# ces chiffres venaient du premier corpus, quand un RPC public ne servait pas plus large, et
+# ils etaient contredits par les 200 000 blocs deja collectes. Un texte que le juge lit en
+# premier ne doit pas etre le seul endroit du depot ou un nombre n'est produit par rien.
+DECLARATIONS = REPO / "docs" / "dataset" / "declarations.json"
 
 
 def rows() -> list[dict]:
@@ -34,6 +40,7 @@ def facts() -> dict:
     zero = [x for x in r
             if x.get("stored_lp_fee") == 0 and x["label"] == "MEASURED" and (x.get("bps") or 0) > 1]
     bps = sorted(x["bps"] for x in zero)
+    dec = json.loads(DECLARATIONS.read_text()) if DECLARATIONS.exists() else None
     reg = json.loads(REGISTRY.read_text()) if REGISTRY.exists() else []
     reg = reg if isinstance(reg, list) else reg.get("hooks", [])
     addrs = {(e.get("hook") or {}).get("address", "").lower() for e in reg}
@@ -73,6 +80,7 @@ def facts() -> dict:
         "bps_min": bps[0] if bps else None,
         "bps_med": bps[len(bps) // 2] if bps else None,
         "bps_max": bps[-1] if bps else None,
+        "declarations": dec,
         "registry_total": len(reg),
         "not_in_registry": sorted(measured - addrs),
         "source_read": len(read), "source_total": len(hooks),
@@ -80,6 +88,42 @@ def facts() -> dict:
         "worst_deviation": max(devs) if devs else None,
         "concordant_pools": pools_conc,
     }
+
+
+def declaration_paragraph(f: dict) -> str:
+    """Le paragraphe d'ouverture, ECRIT DEPUIS LE SCAN et non a la main.
+
+    Il portait « 0 des 84 hooks sur 24 000 blocs, cinq contrats au total ». Le scan reel, sur
+    les 200 000 blocs deja collectes, dit autre chose — et dit quelque chose de plus fort :
+    la declaration existe, elle est juste rarissime, et meme quand elle existe elle ne donne
+    pas le taux qu'on paierait. Un zero absolu invitait a chercher le contre-exemple ; 9 sur
+    1 559 est verifiable et resiste.
+
+    Sans releve sur disque, on ne fabrique pas de chiffre : on dit que le scan n'a pas tourne.
+    """
+    d = f.get("declarations")
+    if not d or not (d.get("conclusion") or {}).get("publiable"):
+        raison = ((d or {}).get("conclusion") or {}).get("raison", "no scan on disk")
+        return (
+            "Uniswap's own developer guide asks hooks to declare what they charge, through the "
+            "`HookSwap` and `HookFee` events. **This repository does not currently publish a "
+            f"figure for how many do**: {raison}. Run "
+            "`python3 -m tare.declare --scan --write` to produce it."
+        )
+    c, ini = d["conclusion"], d["initialize"]
+    return (
+        "Uniswap's own developer guide asks hooks to declare what they charge, through the "
+        "`HookSwap` and `HookFee` events. I computed both topic0 values from their signatures and "
+        f"scanned the same {ini['span_blocs']:,} Base blocks the corpus is built from "
+        f"({ini['bloc_debut']:,} to {ini['bloc_fin']:,}, coverage "
+        f"{d['scan']['couverture_min']}): **{d['scan']['n_emetteurs_tous_contrats']} contracts in "
+        f"total emit either one**. Over the same window the PoolManager emitted "
+        f"{ini['n_evenements']:,} `Initialize` events covering **{c['n_hooks']:,} distinct hooks — "
+        f"and {c['n_hooks_qui_declarent']} of them emit either event**, "
+        f"{c['n_hooks_qui_declarent'] / c['n_hooks'] * 100:.2f} %. And an emitted `HookFee` carries "
+        "an absolute amount on one past swap, not the rate you would pay at your size — which is "
+        "the number a swapper actually needs."
+    )
 
 
 def render(f: dict) -> str:
@@ -91,10 +135,7 @@ def render(f: dict) -> str:
 
 # How it's made
 
-Uniswap's own developer guide asks hooks to declare what they charge, through the `HookSwap` and
-`HookFee` events. I computed both topic0 values and scanned 24,000 Base blocks: **five contracts in
-total emit either one**. In the same window the PoolManager emitted 1,892 `Initialize` events
-covering **84 distinct hooks — and none of those 84 emit either event.** The official registry
+{declaration_paragraph(f)} The official registry
 describes **{f['registry_total']} hooks** with 14 permission booleans, four property booleans, a
 `swapAccess` enum and a `chainId`. **Not one of its fields is a quantity.**
 

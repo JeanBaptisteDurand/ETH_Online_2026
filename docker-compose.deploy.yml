@@ -1,9 +1,15 @@
 # Le deploiement : le service x402 en ligne, avec TLS.
 #
-#   BASE_RPC_URL=... TARE_DOMAIN=tare.exemple.fr docker compose -f docker-compose.deploy.yml up -d
+#   BASE_RPC_URL=...  TARE_DOMAIN=tare.exemple.fr  TARE_DB_PASSWORD=<un vrai mot de passe> \
+#     docker compose -f docker-compose.deploy.yml up -d
 #
-# Trois conteneurs, et aucun de trop :
+# Cinq conteneurs, et aucun de trop :
 #
+#   db     Postgres. Les NEUF routes du compte en dependent : connexion par portefeuille,
+#          cles d'API, historique, telechargements. Sans elle, elles rendent 503 — et
+#          c'etait le cas, ce fichier n'embarquait aucune base.
+#   assistant  le second serveur, sur 8788. Rien ne le lancait, donc le panneau de
+#          conversation du site pointait vers un service inexistant.
 #   anvil  le fork Base epingle au bloc 50614000. C'est LUI qui rend la mesure possible :
 #          anvil_setCode remplace le bytecode du hook par le stub inerte. Sans fork, pas
 #          de contrefactuel, donc pas de mesure — seulement un jeu de donnees a relire.
@@ -17,6 +23,29 @@
 # simple : NE PAS redemarrer anvil. `restart: unless-stopped` est la pour ca. Le volume de
 # cache, lui, ne sauve rien — anvil 1.8.1 n'ecrit jamais son cache de fork sur disque.
 services:
+  # LA BASE. Sans elle, les NEUF routes du compte rendent 503 « aucune base n'est
+  # configuree » — donc pas de connexion par portefeuille, pas de cle d'API, pas
+  # d'historique, pas de telechargement. Ce fichier n'en embarquait aucune, et ne passait
+  # ni DATABASE_URL ni TARE_PG_DSN : la moitie du produit etait injoignable sur la machine
+  # hebergee sans qu'aucun message ne le dise autrement que par un 503.
+  #
+  # AUCUN PORT N'EST PUBLIE. Une base exposee sur l'internet public avec le mot de passe
+  # « tare » est une base ouverte a tous. Seuls les conteneurs du reseau compose la voient,
+  # et c'est tout ce dont ils ont besoin.
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: tare
+      POSTGRES_PASSWORD: ${TARE_DB_PASSWORD:?TARE_DB_PASSWORD est obligatoire — ne deploie pas avec le mot de passe de developpement}
+      POSTGRES_DB: tare
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tare"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
   anvil:
     image: ghcr.io/foundry-rs/foundry:latest
     # L'ENTRYPOINT de l'image est ["/bin/sh","-c"] : la commande doit lui arriver en UN
@@ -62,11 +91,46 @@ services:
       # le service annonce lequel il a utilise.
       HEDERA_PAYER_PRIVATE_KEY: ${HEDERA_PAYER_PRIVATE_KEY:-}
       TARE_KEYRING: /srv/tare/var/keyring.json
+      # Les comptes. `tare_pg_dsn` gagne sur `database_url` cote code ; on pose les deux
+      # parce que d'autres modules lisent l'une ou l'autre.
+      TARE_PG_DSN: postgresql://tare:${TARE_DB_PASSWORD}@db:5432/tare
+      DATABASE_URL: postgresql://tare:${TARE_DB_PASSWORD}@db:5432/tare
+      # L'abonnement, LU sur la chaine. Absentes, GET /compte repond « abonnement non
+      # verifie, donc pas actif » : un refus motive, pas une panne — mais un refus.
+      TARE_ABONNEMENT_CONTRAT: ${TARE_ABONNEMENT_CONTRAT:-}
+      TARE_ABONNEMENT_RPC: ${TARE_ABONNEMENT_RPC:-}
+      TARE_ABONNEMENT_CHAIN_ID: ${TARE_ABONNEMENT_CHAIN_ID:-84532}
+      # Le noeud de POST /alternative : cotation vivante + les deux lectures Permit2. Ces
+      # appels sont FACTURES ; la route ne les fait que si une porte mesuree moins chere
+      # existe, ce qui arrive sur 15 des 125 072 lignes du corpus. A defaut du fork local,
+      # qui est epingle a un bloc et ne peut donc pas coter « maintenant ».
+      TARE_SUBSTITUTION_RPC: ${TARE_SUBSTITUTION_RPC:-}
     volumes:
       # Lecture seule : le service ouvre le trousseau, il ne le modifie jamais.
       - ./var:/srv/tare/var:ro
     depends_on:
       anvil: { condition: service_healthy }
+      db: { condition: service_healthy }
+    restart: unless-stopped
+
+  # L'ASSISTANT. C'est un SECOND serveur, sur un autre port, et rien ne le lancait : le
+  # panneau de conversation du site pointait donc vers un service inexistant. Meme image,
+  # meme code, un autre point d'entree — il n'y a pas de raison d'en faire une seconde.
+  assistant:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["tsx", "apps/api/src/assistant/server.ts"]
+    environment:
+      ASSISTANT_PORT: 8788
+      TARE_RPC_URL: http://anvil:8545
+      TARE_PG_DSN: postgresql://tare:${TARE_DB_PASSWORD}@db:5432/tare
+      DATABASE_URL: postgresql://tare:${TARE_DB_PASSWORD}@db:5432/tare
+      TARE_EMBED_MODEL: ${TARE_EMBED_MODEL:-granite-embedding:278m}
+      OLLAMA_URL: ${OLLAMA_URL:-}
+    depends_on:
+      anvil: { condition: service_healthy }
+      db: { condition: service_healthy }
     restart: unless-stopped
 
   caddy:
@@ -78,10 +142,11 @@ services:
       - ./infra/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
-    depends_on: [api]
+    depends_on: [api, assistant]
     restart: unless-stopped
 
 volumes:
+  pgdata:
   foundry_cache:
   caddy_data:
   caddy_config:

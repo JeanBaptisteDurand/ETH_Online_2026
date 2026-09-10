@@ -42,9 +42,28 @@ quelqu'un d'autre. Mieux vaut ne pas démarrer que servir des 402 qui ne mènent
 
 | | rôle | pourquoi il est indispensable |
 |---|---|---|
+| `db` | Postgres (pgvector/pg16) | les **neuf** routes du compte en dépendent : connexion par portefeuille, clés d'API, historique, téléchargements. Sans elle elles rendent 503 — et ce fichier n'en embarquait aucune. **Aucun port n'est publié** : une base joignable depuis l'internet public avec le mot de passe de développement est une base ouverte à tous |
 | `anvil` | fork Base épinglé au bloc 50 614 000 | c'est **lui** qui rend la mesure possible : `anvil_setCode` remplace le bytecode du hook par le stub inerte de 89 octets. Sans fork, pas de contrefactuel |
 | `api` | l'API x402 + le moteur Python | inséparables : `POST /measure` exécute `measure_one.py` et lit sa sortie |
+| `assistant` | le second serveur, port 8788 | même image, autre point d'entrée. **Rien ne le lançait** : le panneau de conversation du site pointait donc vers un service inexistant. Caddy route `/assistant*` vers lui |
 | `caddy` | TLS automatique | un service « en ligne » sans TLS n'est pas un service, c'est une démo |
+
+### Les variables que le script exige, et pourquoi il refuse sans elles
+
+| variable | sans elle |
+|---|---|
+| `TARE_DOMAIN` | Caddy ne peut pas demander de certificat |
+| `BASE_RPC_URL` | pas de fork, donc pas de contrefactuel : seulement un jeu de données à relire |
+| `HEDERA_PAY_TO` | le péage encaisserait chez quelqu'un d'autre |
+| `HEDERA_FEE_PAYER` | le facilitateur ne sait pas qui annonce le paiement |
+| `TARE_DB_PASSWORD` | Postgres démarrerait avec le mot de passe de développement, **sur une machine publique** |
+
+Et trois **facultatives**, dont l'absence est annoncée au lieu d'être silencieuse :
+`TARE_ABONNEMENT_CONTRAT` / `_RPC` (sans elles `GET /compte` répond « abonnement non vérifié,
+donc pas actif » — un refus motivé, mais un refus : aucune clé ni aucun téléchargement n'est
+délivré) et `TARE_SUBSTITUTION_RPC` (sans elle `POST /alternative` ne peut pas coter en direct,
+donc pas de plancher de sortie, donc pas de transaction envoyable — le fork est épinglé à un
+bloc et ne peut pas coter « maintenant »).
 
 Le volume de cache d'anvil n'est pas un raffinement : une cotation à froid contre un RPC
 public a été mesurée à **8,96 s**, et à **0,01 s** une fois l'état local.

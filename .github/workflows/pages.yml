@@ -1,9 +1,10 @@
 # Publishes the two surfaces to GitHub Pages.
 #
-# Both are fully static: the 995 measurements are baked into the bundle at build time, so the
-# verdict, the table, the curve and the permission LEDs work with no backend at all. The assistant
-# is the only part that needs a server, and the client says so plainly when it cannot reach one
-# rather than degrading into silence.
+# Both are fully static: the 125 072 measurements are baked into the bundle at build time (7,9 Mo
+# apres encodage par colonne), so the verdict, the table, the curve and the permission LEDs work
+# with no backend at all. The assistant and the graph insets are the only parts that need a
+# server, and both now distinguish « aucun serveur publie pour cette version » from « le serveur
+# est en panne » — deux etats que le visiteur ne peut pas trancher lui-meme.
 #
 #   /        the presentation page  (~13 kB gzip before the verdict is readable)
 #   /hooks/  the instrument
@@ -46,6 +47,32 @@ jobs:
           echo "SITE_BASE=$BASE" >> "$GITHUB_ENV"
           echo "sous-chemin du site : $BASE"
 
+      # OU LES DEUX SURFACES IRONT CHERCHER L'API, si elle existe.
+      #
+      # Sans ces variables, le paquet publie porte `http://127.0.0.1:8787` en dur : sur une
+      # URL publique, les encarts du graphe et l'assistant affichent donc « 127.0.0.1
+      # injoignable » a un visiteur, ce qui se lit comme « ce site est casse » et pas comme
+      # « il n'y a pas d'API publiee ».
+      #
+      # Elles sont FACULTATIVES et la construction ne les exige pas : le verdict, la table,
+      # la courbe et les diodes viennent du paquet et ne demandent aucun serveur. Quand elles
+      # sont absentes, les deux surfaces disent maintenant « aucune API publiee pour cette
+      # version », ce qui est la verite.
+      #
+      # Pour les poser : Settings -> Secrets and variables -> Actions -> Variables ->
+      #   TARE_API        https://api.exemple.tld
+      #   ASSISTANT_URL   https://api.exemple.tld/assistant
+      - name: Ou l'API sera cherchee
+        run: |
+          A="${{ vars.TARE_API }}"
+          B="${{ vars.ASSISTANT_URL }}"
+          echo "VITE_TARE_API=$A" >> "$GITHUB_ENV"
+          echo "VITE_ASSISTANT_URL=$B" >> "$GITHUB_ENV"
+          if [ -n "$A" ]; then echo "API      : $A"; else
+            echo "API      : AUCUNE — les encarts du graphe diront qu'aucune n'est publiee"; fi
+          if [ -n "$B" ]; then echo "assistant: $B"; else
+            echo "assistant: AUCUN — le panneau le dira, au lieu d'annoncer une panne"; fi
+
       - name: Build the presentation page
         working-directory: apps/landing
         run: npm ci && npm run build
@@ -59,6 +86,8 @@ jobs:
         run: npm ci && npm run build
         env:
           BASE_URL: ${{ env.SITE_BASE }}hooks/
+          VITE_TARE_API: ${{ env.VITE_TARE_API }}
+          VITE_ASSISTANT_URL: ${{ env.VITE_ASSISTANT_URL }}
 
       - name: Assemble
         run: |

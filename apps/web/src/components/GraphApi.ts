@@ -1,3 +1,5 @@
+import { rienAJoindre } from '../lib/local'
+
 /**
  * Le client du graphe.
  *
@@ -13,9 +15,33 @@
  */
 
 /** Base de l'API. `VITE_TARE_API=https://…` au build pour pointer ailleurs. */
-export const API_BASE: string =
-  (import.meta.env['VITE_TARE_API'] as string | undefined)?.replace(/\/+$/, '') ??
-  'http://127.0.0.1:8787'
+const CONFIGUREE = (import.meta.env['VITE_TARE_API'] as string | undefined)?.replace(/\/+$/, '')
+export const API_BASE: string = CONFIGUREE ?? 'http://127.0.0.1:8787'
+
+/** Vrai quand une API a ete DONNEE au build. Faux quand on est sur le repli local. */
+export const API_DONNEE = Boolean(CONFIGUREE)
+
+/**
+ * La raison, quand il n'y a rien a joindre — ou `null` s'il y a lieu d'essayer.
+ *
+ * Rendue AVANT tout appel reseau : faire attendre huit secondes un serveur qui ne peut pas
+ * exister est un cout sans contrepartie. La decision elle-meme vit dans ../lib/local.ts,
+ * qui est pur et teste — elle etait ecrite deux fois, ici et dans chat/client.ts.
+ */
+export function pasDApi(): string | null {
+  const rien = rienAJoindre({
+    base: API_BASE,
+    donneeAuBuild: API_DONNEE,
+    hostname: typeof location === 'undefined' ? '' : location.hostname,
+  })
+  if (!rien) return null
+  return (
+    "cet encart lit l'API de mesure, et aucune n'a ete publiee pour cette version du site " +
+    "(VITE_TARE_API n'etait pas fournie au build). Ce n'est pas une panne : tout le reste de " +
+    "cette page vient du paquet et ne demande aucun serveur. Pour l'avoir en local : " +
+    'cd apps/api && npm start'
+  )
+}
 
 export const CLI = 'PYTHONPATH=engine python3 -m tare.graph.cli'
 
@@ -163,6 +189,11 @@ export type Fetched<T> =
 const DELAI_MS = 8000
 
 export async function getJson<T>(path: string, signal?: AbortSignal): Promise<Fetched<T>> {
+  // Aucune API publiee et une page publique : on le dit tout de suite, sans faire attendre
+  // huit secondes un serveur qui ne peut pas repondre.
+  const rien = pasDApi()
+  if (rien !== null) return { state: 'error', detail: rien }
+
   let res: Response
   const horloge = new AbortController()
   const t = setTimeout(() => horloge.abort(), DELAI_MS)

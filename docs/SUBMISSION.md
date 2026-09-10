@@ -3,10 +3,7 @@
 
 # How it's made
 
-Uniswap's own developer guide asks hooks to declare what they charge, through the `HookSwap` and
-`HookFee` events. I computed both topic0 values and scanned 24,000 Base blocks: **five contracts in
-total emit either one**. In the same window the PoolManager emitted 1,892 `Initialize` events
-covering **84 distinct hooks — and none of those 84 emit either event.** The official registry
+Uniswap's own developer guide asks hooks to declare what they charge, through the `HookSwap` and `HookFee` events. I computed both topic0 values from their signatures and scanned the same 200,000 Base blocks the corpus is built from (50,414,001 to 50,614,000, coverage 1.0): **16 contracts in total emit either one**. Over the same window the PoolManager emitted 22,896 `Initialize` events covering **1,559 distinct hooks — and 9 of them emit either event**, 0.58 %. And an emitted `HookFee` carries an absolute amount on one past swap, not the rate you would pay at your size — which is the number a swapper actually needs. The official registry
 describes **978 hooks** with 14 permission booleans, four property booleans, a
 `swapAccess` enum and a `chainId`. **Not one of its fields is a quantity.**
 

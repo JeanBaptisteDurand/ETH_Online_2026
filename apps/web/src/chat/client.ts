@@ -55,6 +55,8 @@ export interface Answer {
   timings_ms: { plan: number; execute: number; narrate: number; total: number }
 }
 
+import { rienAJoindre } from '../lib/local'
+
 const DEFAULT_BASE = 'http://127.0.0.1:8788/assistant'
 const STORAGE_KEY = 'tare.assistant.base'
 
@@ -76,6 +78,24 @@ export function assistantBase(): string {
 }
 
 export const START_COMMAND = 'cd apps/api && npx tsx src/assistant/server.ts'
+
+/**
+ * VRAI quand l'adresse de l'assistant est le repli local ET que la page est publique.
+ *
+ * Un visiteur d'une URL publique verrait sinon « http://127.0.0.1:8788 injoignable » et le
+ * lirait comme « ce site est casse » — alors que la verite est « aucun assistant n'est
+ * publie pour cette version ». La decision vit dans ../lib/local.ts, partagee avec les
+ * encarts du graphe : ecrite deux fois, elle aurait divergé.
+ */
+export function assistantNonPublie(base = assistantBase()): boolean {
+  return rienAJoindre({
+    base,
+    // `?assistant=` et localStorage sont des choix explicites de l'utilisateur : si l'un des
+    // deux a pose une adresse, on la laisse essayer, locale ou non.
+    donneeAuBuild: Boolean((import.meta.env?.VITE_ASSISTANT_URL as string | undefined) ?? '') || base !== DEFAULT_BASE,
+    hostname: typeof location === 'undefined' ? '' : location.hostname,
+  })
+}
 
 export interface Health {
   ok: boolean

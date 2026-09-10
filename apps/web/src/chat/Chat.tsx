@@ -7,7 +7,7 @@ import { EMPTY_VIEW } from './types'
 import type { Model } from './model'
 import { applyActions, crossCheck, encodeView } from './engine'
 import { parseActions } from './validate'
-import { askStream, assistantBase, health, sessionId, START_COMMAND, type Answer, type Health } from './client'
+import { askStream, assistantBase, assistantNonPublie, health, sessionId, START_COMMAND, type Answer, type Health } from './client'
 
 // LE PANNEAU DE CHAT.
 //
@@ -457,12 +457,13 @@ export function Chat({
               commande de rejeu.
             </p>
             {santeErreur && (
-              <Bloc titre="assistant injoignable">
+              <Bloc titre={assistantNonPublie(base) ? 'aucun assistant publie' : 'assistant injoignable'}>
                 <Ligne k="adresse" v={base} />
                 <Ligne k="motif" v={santeErreur} />
                 <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                  Rien n'est fabrique localement pour compenser : sans l'assistant, il n'y a pas de
-                  reponse. Demarre-le, ou passe une autre adresse avec ?assistant=
+                  {assistantNonPublie(base)
+                    ? "Cette version du site est servie sans assistant : l'adresse ci-dessus est le repli local, et il n'y a rien a joindre depuis ici. Ce n'est pas une panne — tout le reste de cet ecran vient du paquet et ne demande aucun serveur. Pour l'essayer : lance la commande, puis reviens avec ?assistant=http://127.0.0.1:8788/assistant"
+                    : "Rien n'est fabrique localement pour compenser : sans l'assistant, il n'y a pas de reponse. Demarre-le, ou passe une autre adresse avec ?assistant="}
                 </div>
                 <Replay cmd={START_COMMAND} />
               </Bloc>

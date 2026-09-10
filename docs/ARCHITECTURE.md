@@ -8,7 +8,7 @@ perdrait-on en la retirant ?* Chaque chiffre cité a été relevé sur le dépô
 ## 0. Le problème, en une phrase
 
 Un pool Uniswap v4 peut afficher **0 % de frais** — lu sur la chaîne, dans `slot0` — et son hook
-t'en prendre **18 %**. Rien ne publie ce nombre : **zéro des 84 hooks** déployés en 24 000 blocs
+t'en prendre **18 %**. Rien ne publie ce nombre : **9 des 1 559 hooks** vus en 200 000 blocs déclarent — 0,58 %, et ce qu'ils déclarent est un montant absolu sur un swap passé, pas le taux qu'on paierait ; les 1 550 autres ne déclarent rien du tout, alors qu'ils ont été déployés en 200 000 blocs
 Base n'émet l'événement qu'Uniswap leur demande d'émettre, et le registre officiel décrit
 **978 hooks avec 19 champs dont un seul est numérique — `chainId`**.
 

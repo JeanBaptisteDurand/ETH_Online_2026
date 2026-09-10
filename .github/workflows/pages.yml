@@ -30,10 +30,27 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: "22" }
+      # Rend base_path : « /<depot> » sur une page de projet, « » sur une page d'utilisateur.
+      - id: pages
+        uses: actions/configure-pages@v5
+
+      # GitHub Pages sert un depot de PROJET sous /<depot>/, pas sous /. Sans ces deux
+      # variables, les deux surfaces se construisent avec des chemins absolus qui pointent a
+      # la racine du domaine : les polices, l'icone et le module d'amorcage rendent 404, et
+      # le seul lien qui mene a l'instrument mene nulle part.
+      - name: Ou le site sera servi
+        run: |
+          BASE="${{ steps.pages.outputs.base_path }}"
+          [ -n "$BASE" ] || BASE="/${GITHUB_REPOSITORY#*/}"
+          BASE="${BASE%/}/"
+          echo "SITE_BASE=$BASE" >> "$GITHUB_ENV"
+          echo "sous-chemin du site : $BASE"
 
       - name: Build the presentation page
         working-directory: apps/landing
         run: npm ci && npm run build
+        env:
+          BASE_URL: ${{ env.SITE_BASE }}
 
       # verify.mjs recounts every published claim against the raw dataset; if the page states
       # something the measurements do not support, the deploy stops here rather than shipping it.
@@ -41,7 +58,7 @@ jobs:
         working-directory: apps/web
         run: npm ci && npm run build
         env:
-          BASE_URL: /hooks/
+          BASE_URL: ${{ env.SITE_BASE }}hooks/
 
       - name: Assemble
         run: |

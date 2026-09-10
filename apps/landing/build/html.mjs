@@ -107,6 +107,12 @@ const rampLegend = () => `
 
 const chip = (t) => `<span class="chip">${esc(t)}</span>`;
 
+/* Ou vit l'instrument, vu depuis la page d'accueil. Sur une page de PROJET GitHub Pages le
+   site est servi sous /<depot>/, donc un « /hooks » absolu pointe a cote et rend un 404 —
+   c'est-a-dire que le seul lien qui mene au produit ne mene nulle part. */
+const BASE = (process.env.BASE_URL ?? "/").replace(/\/*$/, "/");
+const INSTRUMENT = `${BASE}hooks/`;
+
 /* The page ships as one response and holds itself to a 14 kB gzip critical document, which
    `npm run budget` measures. The markup below is indented for whoever reads this file; the
    wire does not need that indentation. Runs of whitespace between tags collapse to a single
@@ -140,7 +146,7 @@ export function render(f) {
   <div class="wrap topbar-in">
     <a class="mark" href="#top"><span>TARE</span><i class="mark-rule"></i><span class="caption">MEASURES WHAT A UNISWAP V4 HOOK TAKES</span></a>
     <nav class="topnav caption">
-      <a class="link" href="/hooks">INSTRUMENT →</a>
+      <a class="link" href="${INSTRUMENT}">INSTRUMENT →</a>
       <a class="link" href="${esc(f.repo.url)}">SOURCE →</a>
     </nav>
   </div>
@@ -647,7 +653,7 @@ make gate-a3</code>
       Hedera and read back on the mirror node, the agent identity on that same topic, the attestations
       written on-chain, an independent count from The Graph, and an executed swap matching the quote
       to the wei. Two panels need a local engine and say so.</p>
-      <a class="cta" href="/hooks">OPEN THE FULL INSTRUMENT <span aria-hidden="true">↳</span></a>
+      <a class="cta" href="${INSTRUMENT}">OPEN THE FULL INSTRUMENT <span aria-hidden="true">↳</span></a>
     </div>
   </div>
 </section>`;

@@ -56,7 +56,10 @@ function inlineCss(): Plugin {
 }
 
 export default defineConfig({
-  base: "/",
+  // Comme apps/web. Sur une page de PROJET GitHub Pages, le site est servi sous
+  // /<depot>/ et non sous / : une base figee a "/" casse chaque chemin absolu — les
+  // polices, l'icone, le module d'amorcage — et la page se charge nue.
+  base: process.env.BASE_URL ?? "/",
   plugins: [bakeFacts(), inlineCss()],
   css: { devSourcemap: true },
   build: {

@@ -24,6 +24,10 @@ export { Region, OutOfBounds, MalformedWord, hexToBytes, bytesToHex } from "./ab
 export { assertTable, consult, hookContext, BadTable } from "./table.js";
 export type { GuardTable, TablePool, TablePoint, TableHook, Consultation } from "./table.js";
 export { DEFAULT_THRESHOLDS, gradeBps, gradeConsultation, worstVerdict } from "./verdict.js";
+// La porte de remplacement : la seule piece qui touche a une transaction au moment ou elle
+// part. Elle CONSTRUIT le calldata, elle ne l'envoie jamais.
+export { chercherAlternative, jetonDuPool, ECONOMIE_MIN_BPS } from "./alternative.js";
+export type { Alternative, EtatAlternative, Porte } from "./alternative.js";
 export type { Thresholds } from "./verdict.js";
 export {
   gate,

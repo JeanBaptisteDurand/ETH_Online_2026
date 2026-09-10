@@ -14,6 +14,7 @@ import { measureTool } from "./tools/measure.js";
 import { lookupTool } from "./tools/lookup.js";
 import { impactTool } from "./tools/impact.js";
 import { twinsTool } from "./tools/twins.js";
+import { creerJournal, type Journal } from "./journal.js";
 
 export const SERVER_NAME = "tare";
 export const SERVER_VERSION = "0.1.0";
@@ -56,7 +57,63 @@ function errorResult(e: unknown) {
   };
 }
 
-export function createServer(cfg: Config = loadConfig(), store: Store = createStore()): McpServer {
+/**
+ * Enveloppe un outil : il repond d'abord, l'historique part ensuite.
+ *
+ * L'ordre est le point. Le depot dans l'historique du compte n'est PAS attendu : un outil de
+ * mesure qui devient lent parce qu'un service d'historique est injoignable serait un mauvais
+ * echange. Et une erreur est deposee AUSSI — un historique qui ne montrerait que les succes
+ * donnerait une image fausse de ce que l'agent a reellement fait.
+ */
+function avecJournal<A>(
+  nom: string,
+  journal: Journal,
+  executer: (a: A) => Promise<unknown> | unknown,
+) {
+  return async (args: A) => {
+    const t0 = Date.now();
+    try {
+      const r = await executer(args);
+      journal.deposer("mesure", sujetDe(args), {
+        outil: nom,
+        ...aplatir(args),
+        ms: Date.now() - t0,
+        refuse: Boolean((r as { isError?: boolean }).isError),
+      });
+      return r as never;
+    } catch (e) {
+      journal.deposer("mesure", sujetDe(args), {
+        outil: nom,
+        ...aplatir(args),
+        ms: Date.now() - t0,
+        erreur: (e as Error).message.slice(0, 200),
+      });
+      return errorResult(e) as never;
+    }
+  };
+}
+
+/** Le sujet d'une ligne d'historique : le hook, quand l'outil en prend un. */
+function sujetDe(args: unknown): string | null {
+  const h = (args as { hook?: unknown }).hook;
+  return typeof h === "string" ? h : null;
+}
+
+/** Ce qu'on garde des arguments. Rien d'autre : aucun argument n'est un secret, mais on ne
+ * recopie pas un objet inconnu dans une base sans savoir ce qu'il contient. */
+function aplatir(args: unknown): Record<string, unknown> {
+  const a = args as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  for (const k of ["hook", "pool", "size", "direction", "block"])
+    if (a[k] !== undefined) out[k] = a[k];
+  return out;
+}
+
+export function createServer(
+  cfg: Config = loadConfig(),
+  store: Store = createStore(),
+  journal: Journal = creerJournal(cfg),
+): McpServer {
   const server = new McpServer(
     { name: SERVER_NAME, version: SERVER_VERSION },
     {
@@ -67,7 +124,10 @@ export function createServer(cfg: Config = loadConfig(), store: Store = createSt
         "label (MEASURED, INTERPOLATED, NOT_MEASURABLE, NOT_QUOTABLE), its block, its size, its " +
         "direction and its replay command. A NOT_MEASURABLE is a result, not a failure to work around. " +
         `This service's HCS-14 agent identity is ${SERVER_UAID} — announced on Hedera topic ` +
-        "0.0.10371106 and recomputable from the six canonical fields returned by GET /agent.",
+        "0.0.10371106 and recomputable from the six canonical fields returned by GET /agent. " +
+        (journal.etat().actif
+          ? "Each tool call you make is recorded in the operator's account history."
+          : "No tool call is recorded anywhere: this server holds no API key and sends nothing."),
     },
   );
 
@@ -105,13 +165,7 @@ export function createServer(cfg: Config = loadConfig(), store: Store = createSt
       },
       annotations: { readOnlyHint: true, openWorldHint: true },
     },
-    async (args) => {
-      try {
-        return await measureTool(args as never, cfg, store);
-      } catch (e) {
-        return errorResult(e);
-      }
-    },
+    avecJournal("tare_measure", journal, (args) => measureTool(args as never, cfg, store)),
   );
 
   server.registerTool(
@@ -127,13 +181,7 @@ export function createServer(cfg: Config = loadConfig(), store: Store = createSt
       inputSchema: { hook: HOOK },
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
-    async (args) => {
-      try {
-        return lookupTool(args as never, cfg, store);
-      } catch (e) {
-        return errorResult(e);
-      }
-    },
+    avecJournal("tare_lookup", journal, (args) => lookupTool(args as never, cfg, store)),
   );
 
   server.registerTool(
@@ -149,13 +197,7 @@ export function createServer(cfg: Config = loadConfig(), store: Store = createSt
       inputSchema: { hook: HOOK },
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
-    async (args) => {
-      try {
-        return impactTool(args as never, cfg, store);
-      } catch (e) {
-        return errorResult(e);
-      }
-    },
+    avecJournal("tare_impact", journal, (args) => impactTool(args as never, cfg, store)),
   );
 
   server.registerTool(
@@ -171,13 +213,7 @@ export function createServer(cfg: Config = loadConfig(), store: Store = createSt
       inputSchema: { hook: HOOK },
       annotations: { readOnlyHint: true, openWorldHint: true },
     },
-    async (args) => {
-      try {
-        return await twinsTool(args as never, cfg, store);
-      } catch (e) {
-        return errorResult(e);
-      }
-    },
+    avecJournal("tare_twins", journal, (args) => twinsTool(args as never, cfg, store)),
   );
 
   return server;

@@ -15,6 +15,9 @@
  */
 import type { Config } from "../config.js";
 import type { Store } from "../store.js";
+import { relative } from "node:path";
+import { REPO_ROOT } from "../paths.js";
+import { loadDataset } from "../dataset.js";
 import { measureViaApi, probe } from "../api.js";
 import { runEngine } from "../engine.js";
 import { blockNumber } from "../rpc.js";
@@ -23,6 +26,15 @@ import { permissions, maskHex, touchesSwap } from "../hookflags.js";
 import { replayDatasetPoolsForHook, replayDatasetRow, replayEngine, replayPermissionMask } from "../replay.js";
 import { directionLabel, pad, padLeft, render, v, type Payload } from "../answer.js";
 import type { Label } from "../labels.js";
+
+/**
+ * Le fichier reellement lu, relatif a la racine. Ecrit en dur, ce libelle citait
+ * `docs/measurements-v1.json` alors que le serveur lit le corpus complet : une reponse
+ * annoncait donc une source qu'elle n'avait pas ouverte.
+ */
+function sourceLue(): string {
+  return relative(REPO_ROOT, loadDataset().provenance.measurements_file);
+}
 
 export interface MeasureInput {
   hook: string;
@@ -95,7 +107,7 @@ export async function measureTool(input: MeasureInput, cfg: Config, store: Store
       stub_hash: row.stub_hash,
       engine_ver: row.engine_ver,
       observed_at: row.observed_at,
-      source: "dataset:docs/measurements-v1.json",
+      source: `dataset:${sourceLue()}`,
       replay: replayDatasetRow({ hook, poolId, amountIn, zeroForOne, block }),
     };
     return render(lines(payload, row.label, row.bps, row.reason, pool ?? null), payload);
@@ -201,7 +213,7 @@ export async function measureTool(input: MeasureInput, cfg: Config, store: Store
       zero_for_one: zeroForOne,
       method: interp.method,
       between: [interp.lower, interp.upper],
-      source: "interpolation between two MEASURED rows of docs/measurements-v1.json",
+      source: `interpolation between two MEASURED rows of ${sourceLue()}`,
       replay: replayDatasetRow({ hook, poolId, amountIn: interp.lower.amountIn, zeroForOne, block }),
       replay_upper: replayDatasetRow({ hook, poolId, amountIn: interp.upper.amountIn, zeroForOne, block }),
     };

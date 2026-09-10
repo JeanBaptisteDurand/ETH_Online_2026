@@ -4,12 +4,18 @@ import { poolId } from "../src/poolid.js";
 import { store } from "./helpers.js";
 
 test("the TypeScript poolId agrees with the Python engine on every measured pool", () => {
-  // The engine wrote these ids into docs/measurements-v1.json from PoolKeys that live in
-  // docs/pools-liquides.json. If the two derivations ever diverge, the join silently empties.
+  // Le moteur a ecrit ces identifiants depuis des PoolKey qui vivent dans le recensement. Si
+  // les deux derivations divergent, la jointure se vide EN SILENCE — c'est ca qu'on teste,
+  // pas le nombre de pools, qui change a chaque balayage.
   const measured = new Set(store.dataset.measurements.map((m) => m.pool_id));
-  assert.equal(measured.size, 32);
+  assert.ok(measured.size > 1000, `seulement ${measured.size} pools mesures`);
   const derived = new Set(store.dataset.pools.map((p) => p.pool_id));
-  for (const id of measured) assert.ok(derived.has(id), `poolId ${id} not reproduced from any PoolKey`);
+  const orphelins = [...measured].filter((id) => !derived.has(id));
+  assert.equal(
+    orphelins.length,
+    0,
+    `${orphelins.length} poolId mesures introuvables dans le recensement, dont ${orphelins.slice(0, 3).join(", ")}`,
+  );
 });
 
 test("poolId is keccak256(abi.encode(currency0, currency1, fee, tickSpacing, hooks))", () => {

@@ -62,8 +62,11 @@ test("the live counterfactual reproduces the committed row, quote leg for quote 
 
 test("tare_measure reaches the live engine for a size the dataset does not contain", { skip: live ? false : why }, async () => {
   const res = await measureTool(
-    // 1e16 sits between the two recorded sizes, so a dataset-only server would interpolate.
-    { hook: HOOK_EXTRACTOR, pool: POOL_EXTRACTOR, size: "10000000000000000", direction: "0to1", block: BLOCK },
+    // Une taille que le corpus ne contient PAS, choisie parce qu'elle n'est pas une
+    // puissance de dix : le balayage ne mesure qu'aux puissances de dix, donc 3e15 ne peut
+    // pas s'y trouver. 1e16 y etait autrefois absente ; sur le corpus complet elle existe,
+    // et le test testait alors le chemin du corpus en croyant tester le moteur.
+    { hook: HOOK_EXTRACTOR, pool: POOL_EXTRACTOR, size: "3000000000000000", direction: "0to1", block: BLOCK },
     cfg({ apiUrl: "http://127.0.0.1:1", apiTimeoutMs: 50, engineTimeoutMs: 120000 }),
     store,
   );

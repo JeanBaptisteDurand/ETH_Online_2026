@@ -1,6 +1,9 @@
 /**
- * Everything the operator can point somewhere else. No secret is read here: the fork URL is
- * local, and the upstream RPC key lives in the engine's `.env`, never in this process.
+ * Everything the operator can point somewhere else.
+ *
+ * Un seul secret est lu ici, `TARE_CLE_API`, et il est facultatif : il ne sert qu'a deposer
+ * les appels dans l'historique du compte. La cle du RPC amont, elle, vit dans le `.env` du
+ * moteur et n'entre jamais dans ce processus.
  */
 export interface Config {
   /** Pinned local fork. `docker compose up -d anvil` in the repository root. */
@@ -15,6 +18,15 @@ export interface Config {
   apiTimeoutMs: number;
   /** Set to "0" to forbid the server from touching the fork at all. */
   liveEnabled: boolean;
+  /**
+   * La cle d'API du compte, de portee « mcp ». FACULTATIVE, et c'est un choix : les outils
+   * lisent le corpus commite et le fork local, donc ils n'ont besoin de personne. Elle ne
+   * sert qu'a deposer chaque appel dans l'historique du compte (voir ./journal.ts).
+   *
+   * C'est le SEUL secret que ce processus lit. Il n'est jamais recopie dans une reponse
+   * d'outil, ni dans un message d'erreur.
+   */
+  cleApi: string | null;
 }
 
 function int(name: string, fallback: number): number {
@@ -33,5 +45,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     engineTimeoutMs: int("TARE_ENGINE_TIMEOUT_MS", 60000),
     apiTimeoutMs: int("TARE_API_TIMEOUT_MS", 1200),
     liveEnabled: (env["TARE_LIVE"]?.trim() ?? "1") !== "0",
+    cleApi: env["TARE_CLE_API"]?.trim() || null,
   };
 }

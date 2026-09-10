@@ -70,7 +70,10 @@ test("every answer carries the fingerprint of the evidence it was built from", a
   ]) {
     const prov = payloadOf(a)["provenance"] as Record<string, string>;
     assert.match(prov["measurements_sha256"] as string, /^0x[0-9a-f]{64}$/);
-    assert.equal(prov["measurements_rows"] as unknown, 128);
+    // Le compte vient du corpus reellement lu, pas d'un litteral : un litteral redevient
+    // faux au prochain balayage et le test rougit pour la mauvaise raison.
+    assert.equal(prov["measurements_rows"] as unknown, store.dataset.provenance.measurements_rows);
+    assert.ok((prov["measurements_rows"] as unknown as number) > 100000);
   }
 });
 

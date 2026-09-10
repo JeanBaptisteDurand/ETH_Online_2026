@@ -12,7 +12,8 @@
  */
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
-import { MEASUREMENTS_PATH, POOLS_PATH } from "./paths.js";
+import { existsSync } from "node:fs";
+import { MEASUREMENTS_JSONL, MEASUREMENTS_PATH, POOLS_FULL_PATH, POOLS_PATH } from "./paths.js";
 import { normalizeLabel, type Label } from "./labels.js";
 import { poolId } from "./poolid.js";
 
@@ -64,6 +65,11 @@ export interface Dataset {
     measurements_file: string;
     measurements_sha256: string;
     measurements_rows: number;
+    /**
+     * Les lignes illisibles du .jsonl. Jamais avalees : le fichier est ecrit en direct par
+     * les balayages, donc une derniere ligne tronquee est normale — et comptee.
+     */
+    measurements_rejected_lines: number;
     pools_file: string;
     pools_sha256: string;
     pools_rows: number;
@@ -72,6 +78,44 @@ export interface Dataset {
 
 function sha256(text: string): string {
   return "0x" + createHash("sha256").update(text, "utf8").digest("hex");
+}
+
+function normalizeRow(r: Record<string, unknown>, i: number, source: string): MeasurementRow {
+  if (typeof r?.["hook"] !== "string" || typeof r?.["pool_id"] !== "string") {
+    throw new Error(`${source}: measurement row ${i} is missing hook/pool_id`);
+  }
+  const bps = r["bps"];
+  if (bps !== null && typeof bps !== "number") throw new Error(`${source}: row ${i}: bps is not a number`);
+  return {
+    ...(r as unknown as MeasurementRow),
+    hook: (r["hook"] as string).toLowerCase(),
+    pool_id: (r["pool_id"] as string).toLowerCase(),
+    amount_in: String(r["amount_in"]),
+    label: normalizeLabel(String(r["label"])),
+  };
+}
+
+/**
+ * Le corpus en lignes, une mesure par ligne.
+ *
+ * UNE DERNIERE LIGNE TRONQUEE EST NORMALE : ce fichier est ecrit EN DIRECT par les balayages.
+ * On la compte dans `rejetees` et on la publie, jamais on ne l'avale — c'est exactement la
+ * regle que tient apps/api/src/route.ts sur le meme fichier.
+ */
+function loadJsonl(text: string): { rows: MeasurementRow[]; rejetees: number } {
+  const rows: MeasurementRow[] = [];
+  let rejetees = 0;
+  const lignes = text.split("\n");
+  for (let i = 0; i < lignes.length; i++) {
+    const l = lignes[i]!.trim();
+    if (!l) continue;
+    try {
+      rows.push(normalizeRow(parseJsonBigSafe(l) as Record<string, unknown>, i + 1, "measurements.jsonl"));
+    } catch {
+      rejetees += 1;
+    }
+  }
+  return { rows, rejetees };
 }
 
 function loadMeasurements(text: string): MeasurementRow[] {
@@ -123,19 +167,30 @@ let cached: Dataset | null = null;
 
 export function loadDataset(): Dataset {
   if (cached) return cached;
-  const mText = readFileSync(MEASUREMENTS_PATH, "utf8");
-  const pText = readFileSync(POOLS_PATH, "utf8");
-  const measurements = loadMeasurements(mText);
+
+  // Le corpus complet quand il est la, l'echantillon sinon — et on DIT lequel. Le serveur
+  // repondait auparavant sur 128 mesures en s'annoncant « TARE » : 0,1 % du corpus.
+  const jsonl = existsSync(MEASUREMENTS_JSONL);
+  const mFile = jsonl ? MEASUREMENTS_JSONL : MEASUREMENTS_PATH;
+  const mText = readFileSync(mFile, "utf8");
+  const lu = jsonl ? loadJsonl(mText) : { rows: loadMeasurements(mText), rejetees: 0 };
+  const measurements = lu.rows;
+  if (measurements.length === 0) throw new Error(`${mFile} is empty — refusing to serve`);
+
+  const full = existsSync(POOLS_FULL_PATH);
+  const pFile = full ? POOLS_FULL_PATH : POOLS_PATH;
+  const pText = readFileSync(pFile, "utf8");
   const pools = loadPools(pText);
-  if (measurements.length === 0) throw new Error("measurements-v1.json is empty — refusing to serve");
+
   cached = {
     measurements,
     pools,
     provenance: {
-      measurements_file: MEASUREMENTS_PATH,
+      measurements_file: mFile,
       measurements_sha256: sha256(mText),
       measurements_rows: measurements.length,
-      pools_file: POOLS_PATH,
+      measurements_rejected_lines: lu.rejetees,
+      pools_file: pFile,
       pools_sha256: sha256(pText),
       pools_rows: pools.length,
     },

@@ -5,7 +5,36 @@
  * built from the same fields that produced the answer, so a wrong answer produces a command that
  * exposes it.
  */
-import { REPO_ROOT } from "./paths.js";
+import { relative } from "node:path";
+import { MEASUREMENTS_JSONL, POOLS_FULL_PATH, REPO_ROOT } from "./paths.js";
+import { loadDataset } from "./dataset.js";
+
+/**
+ * LE FICHIER REELLEMENT LU, et la forme de filtre qui va avec.
+ *
+ * Ces commandes etaient ecrites en dur sur `docs/measurements-v1.json`. Le serveur lit
+ * desormais `docs/dataset/measurements.jsonl` quand il existe — 125 072 lignes contre 128 —
+ * et une commande qui cite le mauvais fichier ne rend RIEN. Une citation qui ne reproduit pas
+ * est pire qu'une absence de citation : elle donne l'air d'etre verifiable.
+ *
+ * Les deux enveloppes ne se filtrent pas pareil. Un tableau JSON demande `.[] | select(…)` ;
+ * un fichier a une mesure par ligne se filtre directement, `select(…)`, parce que jq lit
+ * chaque ligne comme un document.
+ */
+function corpus(): { fichier: string; jsonl: boolean } {
+  const f = loadDataset().provenance.measurements_file;
+  return { fichier: relative(REPO_ROOT, f), jsonl: f === MEASUREMENTS_JSONL };
+}
+
+function recensement(): string {
+  return relative(REPO_ROOT, loadDataset().provenance.pools_file);
+}
+
+/** `.[] | select(…)` sur un tableau, `select(…)` sur un fichier a une ligne par mesure. */
+function surChaqueMesure(select: string): { filtre: string; fichier: string } {
+  const c = corpus();
+  return { filtre: c.jsonl ? select : `.[] | ${select}`, fichier: c.fichier };
+}
 
 function sq(s: string): string {
   return "'" + String(s).replace(/'/g, `'\\''`) + "'";
@@ -21,21 +50,23 @@ export interface DatasetCite {
 
 /** Re-read the exact row out of the committed evidence file. */
 export function replayDatasetRow(c: DatasetCite): string {
-  const filter =
-    `.[] | select(.hook==${JSON.stringify(c.hook)} and .pool_id==${JSON.stringify(c.poolId)} ` +
-    `and .amount_in==${JSON.stringify(c.amountIn)} and .zero_for_one==${c.zeroForOne} ` +
-    `and .block_number==${c.block})`;
-  return `cd ${sq(REPO_ROOT)} && jq ${sq(filter)} docs/measurements-v1.json`;
+  const { filtre, fichier } = surChaqueMesure(
+    `select(.hook==${JSON.stringify(c.hook)} and .pool_id==${JSON.stringify(c.poolId)} ` +
+      `and .amount_in==${JSON.stringify(c.amountIn)} and .zero_for_one==${c.zeroForOne} ` +
+      `and .block_number==${c.block})`,
+  );
+  return `cd ${sq(REPO_ROOT)} && jq ${sq(filtre)} ${fichier}`;
 }
 
 export function replayDatasetHook(hook: string): string {
-  const filter = `[.[] | select(.hook==${JSON.stringify(hook)})]`;
-  return `cd ${sq(REPO_ROOT)} && jq ${sq(filter)} docs/measurements-v1.json`;
+  const { filtre, fichier } = surChaqueMesure(`select(.hook==${JSON.stringify(hook)})`);
+  // `-s` rassemble le flux en tableau : sur 125 072 lignes, une sortie en flux est illisible.
+  return `cd ${sq(REPO_ROOT)} && jq -s ${sq(`[.[] | ${filtre}]`)} ${fichier}`;
 }
 
 export function replayDatasetPoolsForHook(hook: string): string {
   const filter = `[.[] | select(.[0]==${JSON.stringify(hook)})]`;
-  return `cd ${sq(REPO_ROOT)} && jq ${sq(filter)} docs/pools-liquides.json`;
+  return `cd ${sq(REPO_ROOT)} && jq ${sq(filter)} ${recensement()}`;
 }
 
 export interface EngineCite extends DatasetCite {

@@ -34,7 +34,16 @@ claude mcp add tare -- node /Users/beorlor/Documents/ethonline/ETH_Online_2026/a
 ```
 
 Nothing else is required. With no fork, no API and no network the server still answers from the
-128 committed measurements — it just labels what it cannot measure `NOT_MEASURABLE`.
+**125 072 committed measurements** of `docs/dataset/measurements.jsonl` — it just labels what it
+cannot measure `NOT_MEASURABLE`. Every answer publishes the file it actually read, its sha256 and
+its row count under `provenance`, and every replay command names that same file: the server used
+to read a 128-row sample while citing it as "TARE", and its replay commands pointed at a file it
+was no longer reading.
+
+**Optional — the account history.** Set `TARE_CLE_API` to an API key of scope `mcp`, generated
+from your account, and every tool call is deposited in your history on the site. Without it the
+server sends nothing at all: the tools read the committed corpus and the local fork, so they need
+no one. The deposit never delays an answer and never fails a call.
 
 **To also measure swaps that are not in the dataset**, bring the pinned fork up first:
 

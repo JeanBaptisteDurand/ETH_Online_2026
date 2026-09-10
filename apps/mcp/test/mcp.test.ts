@@ -10,7 +10,7 @@ import { join } from "node:path";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { REPO_ROOT } from "../src/paths.js";
-import { BLOCK, HOOK_EXTRACTOR, POOL_EXTRACTOR } from "./helpers.js";
+import { BLOCK, HOOK_EXTRACTOR, POOL_EXTRACTOR, store } from "./helpers.js";
 
 const ENTRY = join(REPO_ROOT, "apps", "mcp", "dist", "src", "index.js");
 
@@ -64,10 +64,25 @@ test("MCP tools/call tare_measure returns the recorded measurement over the wire
   });
   const text = textOf(res);
   assert.match(text, /LABEL\s+MEASURED/);
-  assert.match(text, /^bps\s+99\.96$/m);
+  // La ligne « bps » doit porter LE nombre de la ligne du corpus, pas un litteral : le
+  // corpus complet garde quatre decimales la ou l'ancien echantillon en gardait deux, et un
+  // 0,0 arrondi ressemblait a un vrai zero.
+  assert.match(text, /^bps\s+[0-9]+\.[0-9]+$/m);
+  const ligne = store.dataset.measurements.find(
+    (m) =>
+      m.pool_id === POOL_EXTRACTOR.toLowerCase() &&
+      m.amount_in === "1000000000000000" &&
+      m.zero_for_one === true &&
+      m.block_number === BLOCK,
+  );
+  assert.ok(ligne, "la ligne de reference n'est pas dans le corpus lu");
+  assert.match(text, new RegExp(`^bps\\s+${String(ligne.bps).replace(".", "\\.")}$`, "m"));
   assert.match(text, /442747808421317694054679/);
   assert.match(text, /replay:/);
-  assert.match(text, /measurements-v1\.json/);
+  // La commande de rejeu doit citer le fichier REELLEMENT lu : elle etait ecrite en dur sur
+  // docs/measurements-v1.json, et sur le corpus complet elle ne rendait donc rien.
+  const lu = store.dataset.provenance.measurements_file.split("/").pop()!;
+  assert.match(text, new RegExp(lu.replace(".", "\\.")));
 });
 
 test("MCP tools/call tare_twins answers NOT_MEASURABLE for the parts it cannot prove", async () => {

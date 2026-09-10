@@ -132,21 +132,32 @@ class TestRejeu(unittest.TestCase):
 
 # --------------------------------------------------------- l'en-tete de graphe
 
+# LE GRAPHE EST UN ARTEFACT DERIVE, absent d'un clone neuf depuis qu'il a ete retire de
+# l'historique (188 Mo, au-dessus de la limite de GitHub). Sans lui ces tests ne peuvent rien
+# verifier — mais ils doivent le DIRE et nommer la commande.
+#
+# ET ILS DOIVENT ETRE COMPTES. `raise unittest.SkipTest` dans `setUpClass` imprime bien le
+# message, mais la classe rend « Ran 0 » : les douze tests ne sont comptes NI comme passes NI
+# comme ignores, ils disparaissent. Sur un clone frais, scripts/test-all.sh annoncait donc
+# « engine 332/332 » — un compte qui se lit complet alors que vingt tests d'honnetete n'ont
+# pas tourne. C'est le motif exact que ce projet refuse partout ailleurs : une absence rendue
+# comme un resultat complet.
+#
+# `@unittest.skipUnless` sur la CLASSE marque chaque methode comme ignoree, et elle apparait
+# alors dans `testsRun` et dans la ligne « tests ignores » du releve.
+_SANS_GRAPHE = (
+    f"{GH.DEFAULT_GRAPH.name} absent : construire avec "
+    "`cd engine && python3 -m tare.graph.cli build` "
+    "(ou `bash scripts/regenerate.sh`, qui reconstruit tout)"
+)
+
+
+@unittest.skipUnless(GH.DEFAULT_GRAPH.exists(), _SANS_GRAPHE)
 class TestEnTete(unittest.TestCase):
     """La technique centrale reprise de cobol-explorer : l'en-tete AVANT le texte."""
 
     @classmethod
     def setUpClass(cls):
-        # Le graphe est un artefact DERIVE, absent d'un clone neuf depuis qu'il a ete
-        # retire de l'historique (188 Mo, au-dessus de la limite de GitHub). Sans lui ce
-        # test ne peut rien verifier — mais il doit le DIRE et nommer la commande, pas
-        # exploser sur un fichier manquant. Un juge qui clone merite une phrase, pas une
-        # trace de pile.
-        if not GH.DEFAULT_GRAPH.exists():
-            raise unittest.SkipTest(
-                f"{GH.DEFAULT_GRAPH.name} absent : construire avec "
-                "`cd engine && python3 -m tare.graph.cli build` "
-                "(ou `bash scripts/regenerate.sh`, qui reconstruit tout)")
         cls.gi = GH.load_graph_index()
 
     def test_le_texte_vectorise_commence_par_l_en_tete(self):
@@ -471,6 +482,24 @@ class TestIndexPeuple(unittest.TestCase):
                          f"sed -n '{p.line_start},{p.line_end}p' {p.source_file}")
 
 
+def _db_joignable() -> tuple[bool, str]:
+    """Une seule sonde, au chargement du module, pour la decision de `skipUnless`.
+
+    Elle est evaluee a l'import parce qu'un decorateur l'exige. Sans base elle echoue vite ;
+    avec base elle coute une connexion. C'est le prix pour que les huit tests de cette classe
+    soient COMPTES comme ignores au lieu de disparaitre du releve — voir la note de
+    TestEnTete.
+    """
+    try:
+        return _store("rag_chunks_test_jetable", dim=4).reachable()
+    except Exception as e:  # noqa: BLE001 — une sonde ne doit jamais casser la collecte
+        return False, f"sonde impossible : {e}"
+
+
+_DB_OK, _DB_WHY = _db_joignable()
+
+
+@unittest.skipUnless(_DB_OK, "pgvector injoignable: " + _DB_WHY)
 class TestStoreRefuse(unittest.TestCase):
     """Le magasin refuse plutot que de mentir. Table jetable : l'index reel
     n'est jamais touche par ces tests."""
@@ -480,9 +509,6 @@ class TestStoreRefuse(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.s = _store(cls.TABLE, dim=4)
-        ok, why = cls.s.reachable()
-        if not ok:
-            raise unittest.SkipTest("pgvector injoignable: " + why)
         with cls.s._conn() as c:
             c.execute(f"DROP TABLE IF EXISTS {cls.TABLE}")
             c.execute(f"DROP TABLE IF EXISTS {cls.TABLE}_builds")

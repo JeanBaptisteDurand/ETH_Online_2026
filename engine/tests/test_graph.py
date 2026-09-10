@@ -726,6 +726,16 @@ if __name__ == "__main__":
     unittest.main(verbosity=2)
 
 
+# `skipUnless` sur la CLASSE, et non `raise SkipTest` dans `setUpClass`.
+#
+# La seconde forme imprime bien son message, mais la classe rend « Ran 0 » : les quatre tests
+# ne sont comptes ni comme passes ni comme ignores, ils disparaissent du releve. Sur un clone
+# frais — ou graph.json est absent, 198 Mo retires de l'historique — scripts/test-all.sh
+# annoncait « engine 332/332 », un compte qui se lit complet. Une absence rendue comme un
+# resultat complet est precisement ce que ce projet refuse ailleurs.
+@unittest.skipUnless(
+    GRAPH_JSON.exists(), f"{GRAPH_JSON.name} absent : python3 -m tare.graph.cli build"
+)
 class TestCacheBench(unittest.TestCase):
     """Le README publie des durees de cache. Elles doivent venir d'une commande.
 
@@ -740,8 +750,6 @@ class TestCacheBench(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         from tare.graph import cachebench
-        if not cachebench.DEFAULT_GRAPH.exists():
-            raise unittest.SkipTest("graph.json absent : python3 -m tare.graph.cli build")
         # UNE repetition, pas trois. Le banc mesure entre autres la reconstruction depuis
         # les sources — le geste que le cache existe pour eviter — et ce geste coutait
         # 929 ms sur 995 mesures. Sur 125 072 il coute une centaine de secondes, et trois

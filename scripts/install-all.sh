@@ -43,6 +43,25 @@ if [ -f apps/web/package.json ] && [ -d apps/web/node_modules ]; then
   fi
 fi
 
+# packages/guard lit data/table.json, gitignore parce qu'il pese 21 Mo et se recalcule depuis
+# docs/dataset/measurements.jsonl — aucun reseau, aucun RPC, que des fichiers du depot.
+#
+# SANS LUI, LE PAQUET NE SE CHARGE MEME PAS : src/guard.ts fait
+# `import builtinTable from "../data/table.json"`, un import STATIQUE. Ce n'est donc pas
+# quelques tests qui tombent, ce sont les 206 — plus la route POST /alternative de l'API, qui
+# lit le meme fichier. Sur un clone frais la suite annoncait ces echecs sans dire qu'il ne
+# manquait qu'une commande locale.
+if [ -f packages/guard/package.json ] && [ -d packages/guard/node_modules ]; then
+  printf "  %-24s " "packages/guard (table)"
+  if (cd packages/guard && npm run --silent build:table >/dev/null 2>&1); then
+    n=$(node -e "process.stdout.write(String(require('./packages/guard/data/table.json').n_measurements))" 2>/dev/null || echo "?")
+    echo "ok ($n mesures)"
+  else
+    echo "ECHEC — la garde ET la route /alternative en dependent"
+    rate+=("packages/guard (table)")
+  fi
+fi
+
 echo "  ----------------------------------------"
 printf "  %d installes" "${#ok[@]}"
 if [ ${#rate[@]} -gt 0 ]; then
@@ -52,3 +71,7 @@ if [ ${#rate[@]} -gt 0 ]; then
 fi
 echo
 echo "  Ensuite : bash scripts/test-all.sh"
+echo
+echo "  Les trois artefacts derives que ce script vient de construire sont gitignores parce"
+echo "  qu'ils se recalculent : apps/web/src/data/{dataset,facts}.json et"
+echo "  packages/guard/data/table.json (21 Mo). Aucun ne demande de reseau."

@@ -177,3 +177,45 @@ class TestReadmeLiens(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class TestLesArtefactsDerivesSontConstruits(unittest.TestCase):
+    """Un clone frais doit pouvoir tout tester apres UNE commande.
+
+    Trois fichiers derives sont gitignores parce qu'ils se recalculent depuis le depot, sans
+    reseau ni RPC :
+
+        apps/web/src/data/dataset.json     le corpus encode par colonnes
+        apps/web/src/data/facts.json       les faits des panneaux
+        packages/guard/data/table.json     21 Mo, la table de la garde
+
+    `scripts/install-all.sh` construisait les DEUX PREMIERS et pas le troisieme. Sur un clone
+    frais la suite annoncait donc « api 151/161, guard 112/116 » plus 73 tests ignores —
+    quatorze echecs et soixante-treize silences pour une commande locale manquante. Et le
+    message d'installation disait « 7 installes » sans un mot.
+
+    Ce test lit le SCRIPT : il ne peut pas verifier un clone frais depuis un depot deja
+    construit, mais il peut verifier que l'etape existe et qu'elle est nommee.
+    """
+
+    def test_install_all_construit_les_trois_artefacts(self):
+        from pathlib import Path
+
+        s = (Path(__file__).resolve().parents[2] / "scripts" / "install-all.sh").read_text()
+        # les deux du front
+        self.assertIn("npm run --silent data", s)
+        # et celui de la garde, qui manquait
+        self.assertIn("build:table", s)
+        self.assertIn("packages/guard (table)", s)
+        # l'echec doit etre COMPTE, pas seulement affiche
+        i = s.index("packages/guard (table)")
+        bloc = s[i : i + 700]
+        self.assertIn('rate+=("packages/guard (table)")', bloc)
+
+    def test_le_script_dit_pourquoi_l_import_est_statique(self):
+        """La raison compte : ce ne sont pas quelques tests, c'est le paquet entier."""
+        from pathlib import Path
+
+        s = (Path(__file__).resolve().parents[2] / "scripts" / "install-all.sh").read_text()
+        self.assertIn("import STATIQUE", s)
+        self.assertIn("/alternative", s)

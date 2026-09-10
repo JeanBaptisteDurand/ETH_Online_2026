@@ -88,6 +88,43 @@ curl -i -X POST https://tare.exemple.fr/measure \
 TARE_API_URL=https://tare.exemple.fr/measure npx tsx apps/api/src/pay/cli.ts payer
 ```
 
+## Si Docker lâche le jour J — la sortie de secours
+
+Mesuré le 10 septembre sur la machine de développement : **la même lecture d'état coûte
+0,029 s contre un `anvil` natif et 45 s — c'est-à-dire un timeout — à travers le conteneur
+Docker.** Les commandes `docker` elles-mêmes mettaient plus de cinq minutes à rendre la main.
+Le conteneur répondait aux méthodes locales (`eth_chainId`, `eth_blockNumber`, servies de
+mémoire) et échouait sur **tout** ce qui demande une lecture amont. Ni la clé RPC — Alchemy
+rend le même créneau en 0,12 s — ni l'état d'archive au bloc épinglé, encore servi, n'étaient
+en cause : c'était le réseau de Docker.
+
+Conséquence pratique : `make replay` rendait `NOT_MEASURABLE` au lieu de 99,9942 bps. Le
+moteur s'est bien conduit — une lecture bornée est une étiquette, jamais un nombre — mais la
+démonstration, elle, avait l'air cassée.
+
+**Le fork n'a pas besoin de Docker.** Si `anvil` est installé :
+
+```bash
+anvil --fork-url $BASE_RPC_URL --fork-block-number 50614000 \
+      --host 127.0.0.1 --port 8545 --compute-units-per-second 200000 --silent
+```
+
+Vérifié dans ces conditions, le rejeu rend **`99.9942` contre `99.9942`, identique au wei
+près**. Les conteneurs `api` et `caddy` restent utiles pour l'hébergement ; `anvil` est celui
+dont on peut se passer, et c'est celui qui casse.
+
+**À faire avant toute démonstration, dans cet ordre :**
+
+```bash
+curl -s -m 10 -X POST http://127.0.0.1:8545 \
+  -H 'content-type: application/json' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"eth_getStorageAt","params":["0x498581ff718922c3f8e6a244956af099b2652b2b","0x0","latest"]}' \
+  -w ' [%{time_total}s]'
+```
+
+Au-delà d'une seconde, le fork ne servira aucune mesure : relancer `anvil` en natif avant de
+commencer, pas pendant.
+
 ## Ce qui n'est pas fait
 
 **Aucune machine n'héberge encore ce service.** Tout ce qui précède est vérifié en local,

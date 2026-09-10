@@ -24,7 +24,7 @@
 
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { readFileSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 
@@ -309,4 +309,20 @@ test("les pools a sens unique sont COMPTES, pas seulement donnes en exemple", ()
   assert.ok(src.includes('FA.sens_unique.pools_deux_sens'), 'le denominateur doit etre a l ecran')
   assert.ok(src.includes('seuil_lourd_bps'), 'le seuil doit etre a l ecran')
   assert.ok(src.includes('pas une'), "et dit comme un choix, pas comme une frontiere")
+})
+
+/* ------------------ 11. le README ne doit pas annoncer une taille perimee */
+
+test('la taille du jeu embarque annoncee par le README est la vraie', () => {
+  // Elle a deja derive : le README annoncait 87 Mo apres que l'encodage par colonne l'eut
+  // ramene a 7,9. Un chiffre d'accueil faux est le premier que lit un tiers.
+  const readme = readFileSync(resolve(ICI, '../../../../README.md'), 'utf8')
+  const m = readme.match(/the instrument's bundled dataset \(([\d.]+) MB\)/)
+  assert.ok(m, 'le README doit annoncer cette taille')
+  const annonce = Number(m[1])
+  const reel = statSync(resolve(ICI, '../data/dataset.json')).size / 1e6
+  assert.ok(
+    Math.abs(annonce - reel) < 0.5,
+    `le README annonce ${annonce} Mo, le fichier en pese ${reel.toFixed(1)}`,
+  )
 })

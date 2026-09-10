@@ -188,9 +188,15 @@ cd apps/api && npx tsx src/server.ts
 
 The repository ships the **evidence** — `docs/dataset/measurements.jsonl`, 125,072 measurements,
 86 MB — and the code that produced it. It does not ship what that evidence generates: the graph
-(189 MB), the guard's lookup table (21 MB) and the instrument's bundled dataset (87 MB) are
+(189 MB), the guard's lookup table (21 MB) and the instrument's bundled dataset (7.9 MB) are
 recomputed, not versioned. One of them is over GitHub's file limit, and versioning a derived file
 is how the graph once came to carry ten numbers the dataset had already retracted.
+
+The instrument's dataset is the same 125,072 rows as the corpus, written **by column** rather than
+by object — the same stub hash repeated 125,072 times costs one string, not 125,072. It went from
+87 MB to 7.9 MB that way, which is why the page paints in 2.7 s instead of 10.3 s. The encoder
+decodes what it just wrote and compares all 125,072 rows before emitting: a codec that is wrong in
+silence would turn one measurement into another.
 
 ```bash
 bash scripts/regenerate.sh      # rebuilds all three, in dependency order, then runs every suite

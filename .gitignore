@@ -13,7 +13,17 @@ node_modules/
 !docs/hooks-source/**/node_modules/
 !docs/hooks-source/**/node_modules/**
 dist/
+# Les sorties de packages/guard/scripts/paqueter-extension.mjs. Aucune n'est une source :
+# `npm run build:paquet` les reconstruit toutes depuis extension/*.src.ts et data/table.json.
+# La table copiee pese 21 Mo — c'est elle que le service worker charge par fetch.
 packages/guard/extension/inject.js
+packages/guard/extension/pont.js
+packages/guard/extension/worker.js
+packages/guard/extension/options.js
+packages/guard/extension/table.json
+packages/guard/dist/
+# `npm pack` d'apps/mcp, reconstruit a la demande par apps/api/src/compte/telechargement.ts
+apps/mcp/dist-paquet/
 
 # --- artefacts DERIVES, reconstruits par scripts/regenerate.sh ---------------
 # Ils pesaient 296 Mo a eux trois et l'un depassait la limite de 100 Mo de GitHub.

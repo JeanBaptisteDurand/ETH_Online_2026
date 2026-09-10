@@ -1,15 +1,32 @@
 {
   "manifest_version": 3,
   "name": "TARE Guard",
-  "version": "0.1.0",
-  "description": "Dit ce qu'un hook Uniswap v4 prend sur ton swap, avant que tu signes.",
+  "version": "0.2.0",
+  "description": "Dit ce qu'un hook Uniswap v4 prend sur ton swap, avant que tu signes. 125 072 mesures embarquees, aucune requete reseau necessaire.",
   "icons": { "128": "icon128.png" },
+  "permissions": ["storage"],
+  "host_permissions": ["http://127.0.0.1:8787/*", "https://*/*"],
+  "background": { "service_worker": "worker.js", "type": "module" },
+  "options_ui": { "page": "options.html", "open_in_tab": true },
+  "web_accessible_resources": [
+    {
+      "resources": ["table.json"],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
       "js": ["inject.js"],
       "run_at": "document_start",
       "world": "MAIN",
+      "all_frames": true
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["pont.js"],
+      "run_at": "document_start",
+      "world": "ISOLATED",
       "all_frames": true
     }
   ]

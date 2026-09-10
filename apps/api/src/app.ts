@@ -623,7 +623,7 @@ export function createApp(deps: AppDeps = {}) {
   app.route("/", createRouteRouter());
 
   // POST /alternative — la substitution, atteignable en HTTP. Deux etages : la comparaison
-  // est locale et gratuite (et repond « une seule porte » dans 99,8 % des cas), les trois
+  // est locale et gratuite (et repond « une seule porte » dans 99,71 % des cas), les trois
   // lectures on-chain n'ont lieu QUE si une porte mesuree moins chere existe. Le compte des
   // appels RPC est rendu dans la reponse.
   app.route("/", createAlternativeRouter());
@@ -635,6 +635,48 @@ export function createApp(deps: AppDeps = {}) {
     if (!m) return c.text("mesure inconnue\n", 404);
     return c.text(m.replay.command_exact + "\n");
   });
+
+  /* --------------------------------------------------- ce qui rate, et ce qu'on en dit */
+
+  /**
+   * LE DERNIER FILET. Sans lui, toute exception non rattrapee sortait en
+   * `Internal Server Error`, en `text/plain`, sans un mot sur ce qui s'est passe — et un
+   * client qui parse du JSON recevait alors une chaine qui n'en est pas, donc une deuxieme
+   * erreur qui masquait la premiere.
+   *
+   * On ne publie PAS la pile : elle porte des chemins de fichiers du serveur. On publie le
+   * message, la route, et un identifiant qu'on ecrit aussi dans les journaux du serveur —
+   * c'est ce qui permet de relier ce que l'utilisateur voit a ce que l'exploitant lit.
+   */
+  app.onError((e, c) => {
+    const ref = Math.random().toString(36).slice(2, 10);
+    console.error(`[api] ${ref} ${c.req.method} ${c.req.path} : ${e.stack ?? e.message}`);
+    // Une HTTPException de Hono porte deja son propre statut et sa reponse : on la respecte.
+    const httpe = e as Error & { getResponse?: () => Response; status?: number };
+    if (typeof httpe.getResponse === "function") return httpe.getResponse();
+    return c.json(
+      {
+        error: "erreur interne",
+        detail: e.message.slice(0, 300),
+        route: `${c.req.method} ${c.req.path}`,
+        reference: ref,
+        note: "la reference figure aussi dans les journaux du serveur ; la pile n'est pas publiee, elle porte des chemins internes",
+      },
+      500,
+    );
+  });
+
+  /** Un 404 qui dit ou regarder plutot que de laisser deviner. */
+  app.notFound((c) =>
+    c.json(
+      {
+        error: "route inconnue",
+        route: `${c.req.method} ${c.req.path}`,
+        note: "GET / liste toutes les routes, y compris celles du compte",
+      },
+      404,
+    ),
+  );
 
   return { app, cfg, metering, layer, buildReplay };
 }

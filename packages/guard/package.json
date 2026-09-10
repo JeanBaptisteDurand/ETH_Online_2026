@@ -20,14 +20,15 @@
   ],
   "scripts": {
     "build:table": "node scripts/build-table.mjs",
-    "build:bundle": "node scripts/build-bundle.mjs",
-    "build": "npm run build:table && npm run build:bundle",
+    "build": "npm run build:table && npm run build:paquet",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "example": "node scripts/serve-example.mjs",
-    "build:extension": "esbuild extension/inject.src.ts --bundle --format=iife --target=chrome110 --outfile=extension/inject.js"
+    "build:extension": "node scripts/paqueter-extension.mjs --sans-zip",
+    "build:paquet": "node scripts/paqueter-extension.mjs"
   },
   "devDependencies": {
+    "@types/chrome": "^0.0.287",
     "@types/node": "^22.20.1",
     "esbuild": "^0.25.0",
     "typescript": "^5.9.3",

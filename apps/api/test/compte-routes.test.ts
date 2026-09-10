@@ -296,3 +296,147 @@ describe.skipIf(!vivant)("l'historique", () => {
     expect(j.total).toBe(0);
   });
 });
+
+/* ------------------------------------------------------------------------- */
+/* LES TELECHARGEMENTS, ET LES TROIS CONTROLES QUI DECIDENT DE LES OUVRIR.   */
+/* Ils etaient annonces par GET /compte et rendaient 404 : un service qui    */
+/* publie une adresse et n'y repond pas envoie l'utilisateur chercher chez   */
+/* lui.                                                                     */
+/* ------------------------------------------------------------------------- */
+
+describe.skipIf(!vivant)("les telechargements", () => {
+  for (const chemin of ["/compte/extension.zip", "/compte/mcp.tgz"]) {
+    it(`${chemin} exige une session`, async () => {
+      const r = await get(chemin);
+      expect(r.status).toBe(401);
+      expect((await lire(r)).detail).toMatch(/authorization/);
+    });
+
+    it(`${chemin} exige un abonnement ACTIF, et le dit`, async () => {
+      const { jeton } = await connecter();
+      const r = await get(chemin, { authorization: `Bearer ${jeton}` });
+      expect(r.status).toBe(402);
+      const b = await lire(r);
+      expect(b.error).toBe("abonnement inactif");
+      expect(b.note).toMatch(/fermes tant que l'abonnement/);
+    });
+
+    it(`${chemin} sert le fichier quand l'abonnement est actif`, async () => {
+      const { jeton, adresse } = await connecter();
+      await abonner(adresse);
+      const r = await get(chemin, { authorization: `Bearer ${jeton}` });
+
+      // 503 est une reponse LEGITIME ici : le paquet n'est pas construit sur cette machine.
+      // Ce qui n'est pas legitime, c'est un 404 ou un corps vide.
+      if (r.status === 503) {
+        const b = await lire(r);
+        expect(b.error).toBe("paquet non construit");
+        expect(b.commande).toMatch(/npm run/);
+        expect(b.note).toMatch(/pas une erreur de ton cote/);
+        return;
+      }
+
+      expect(r.status).toBe(200);
+      const octets = new Uint8Array(await r.arrayBuffer());
+      expect(octets.length).toBeGreaterThan(1000);
+      expect(r.headers.get("content-disposition")).toMatch(/^attachment; filename=/);
+      // le sha256 est annonce pour qu'on puisse verifier le fichier recu sans nous croire
+      const somme = r.headers.get("x-tare-sha256")!;
+      expect(somme).toMatch(/^[0-9a-f]{64}$/);
+      const { createHash } = await import("node:crypto");
+      expect(createHash("sha256").update(octets).digest("hex")).toBe(somme);
+      expect(Number(r.headers.get("content-length"))).toBe(octets.length);
+    });
+
+    it(`${chemin} laisse une trace dans l'historique du compte`, async () => {
+      const { jeton, adresse } = await connecter();
+      await abonner(adresse);
+      const avant = (await lire(await get("/compte/journal", { authorization: `Bearer ${jeton}` }))).lignes.length;
+      const r = await get(chemin, { authorization: `Bearer ${jeton}` });
+      if (r.status === 503) return; // paquet absent : rien a journaliser
+      const apres = await lire(await get("/compte/journal", { authorization: `Bearer ${jeton}` }));
+      expect(apres.lignes.length).toBe(avant + 1);
+      expect(apres.lignes[0].detail.telechargement).toBeDefined();
+      expect(apres.lignes[0].detail.sha256).toMatch(/^[0-9a-f]{64}$/);
+    });
+  }
+
+  it("GET /compte/paquets decrit les deux paquets meme sans abonnement", async () => {
+    const { jeton } = await connecter();
+    const r = await get("/compte/paquets", { authorization: `Bearer ${jeton}` });
+    expect(r.status).toBe(200);
+    const b = await lire(r);
+    expect(b.ouverts).toBe(false);
+    expect(b.note).toMatch(/telechargement est ferme/);
+    // decrits quand meme : l'ecran peut afficher la taille avant de proposer le bouton
+    for (const p of [b.extension, b.mcp]) {
+      expect(typeof p.disponible).toBe("boolean");
+      if (p.disponible) {
+        expect(p.octets).toBeGreaterThan(0);
+        expect(p.sha256).toMatch(/^[0-9a-f]{64}$/);
+      } else {
+        expect(p.raison).toBeTruthy();
+        expect(p.commande).toBeTruthy();
+      }
+    }
+  });
+
+  it("GET /compte annonce les trois adresses quand l'abonnement est actif", async () => {
+    const { jeton, adresse } = await connecter();
+    await abonner(adresse);
+    const b = await lire(await get("/compte", { authorization: `Bearer ${jeton}` }));
+    expect(b.abonnement.actif).toBe(true);
+    expect(b.telechargements.extension).toBe("/compte/extension.zip");
+    expect(b.telechargements.mcp).toBe("/compte/mcp.tgz");
+    expect(b.telechargements.details).toBe("/compte/paquets");
+  });
+});
+
+/* ------------------------------------------------------------------------- */
+/* LES DEUX DEFAUTS D'EXPLOITATION QUE L'AUDIT A TROUVES.                    */
+/* ------------------------------------------------------------------------- */
+
+describe.skipIf(!vivant)("les refus qui rendaient un 500", () => {
+  it("?limite=abc rend un 400 motive, pas un 500 muet", async () => {
+    const { jeton } = await connecter();
+    // Number("abc") vaut NaN, NaN traverse Math.min/Math.max intact et finit dans un LIMIT
+    // SQL que Postgres refuse : l'API rendait « Internal Server Error » en texte brut.
+    for (const mauvais of ["abc", "-1", "0", "501", "1.5", ""]) {
+      const r = await get(`/compte/journal?limite=${encodeURIComponent(mauvais)}`, {
+        authorization: `Bearer ${jeton}`,
+      });
+      expect(r.status, `limite=${mauvais}`).toBe(400);
+      expect((await lire(r)).attendu).toMatch(/entier entre 1 et 500/);
+    }
+    // et les bonnes valeurs passent
+    for (const bon of ["1", "50", "500"]) {
+      const r = await get(`/compte/journal?limite=${bon}`, { authorization: `Bearer ${jeton}` });
+      expect(r.status, `limite=${bon}`).toBe(200);
+    }
+  });
+
+  it("une cle valide ne survit PAS a l'expiration de l'abonnement", async () => {
+    const { jeton, adresse } = await connecter();
+    const c = await abonner(adresse);
+    const cle = (await lire(await post("/compte/cle", { portee: "extension", nom: "t" }, { authorization: `Bearer ${jeton}` }))).cle;
+
+    // elle ecrit tant que l'abonnement tient
+    const ok = await post("/compte/journal", { source: "extension", quoi: "verdict", sujet: "0xa" }, { "x-tare-cle": cle });
+    expect(ok.status).toBe(201);
+
+    // l'abonnement expire : la CLE est toujours valide, mais l'historique se ferme
+    await store!.ecrireAbonnement(c.id, {
+      contrat: "0x" + "11".repeat(20),
+      chainId: 84532,
+      transaction: "0xtest",
+      actifJusquAu: new Date(Date.now() - 864e5).toISOString(),
+      raison: "expire pour le test",
+    });
+    const apres = await post("/compte/journal", { source: "extension", quoi: "verdict", sujet: "0xb" }, { "x-tare-cle": cle });
+    expect(apres.status).toBe(402);
+    const b = await lire(apres);
+    expect(b.error).toBe("abonnement inactif");
+    // et le refus dit a l'extension de continuer a analyser
+    expect(b.note).toMatch(/L'analyse locale, elle, ne depend pas de ce service/);
+  });
+});

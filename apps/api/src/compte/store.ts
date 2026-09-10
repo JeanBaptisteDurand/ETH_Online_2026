@@ -59,17 +59,46 @@ export class CompteStore {
   constructor(readonly dsn: string) {}
 
   private p(): pg.Pool {
-    if (!this.pool) this.pool = new pg.Pool({ connectionString: this.dsn, max: 4 });
+    if (!this.pool) {
+      this.pool = new pg.Pool({ connectionString: this.dsn, max: 4 });
+      // SANS CET ECOUTEUR, LE PROCESSUS MEURT. `pg` emet 'error' sur le pool quand une
+      // connexion INACTIVE tombe — un redemarrage de la base, un `pg_terminate_backend`, un
+      // reseau qui coupe. Un 'error' sans ecouteur est une exception non capturee en Node :
+      // toute l'API s'arrete, y compris les routes qui n'ont jamais touche a Postgres.
+      // On journalise et on laisse le pool se reconnecter a la requete suivante.
+      this.pool.on("error", (e) => {
+        console.error(`[compte] connexion inactive perdue : ${e.message}. Le pool se reconnectera.`);
+      });
+      // Une migration faite sur une base qui a ensuite disparu n'est plus faite : le drapeau
+      // du routeur doit repasser a faux, sinon la premiere requete apres le redemarrage
+      // echoue sur des tables absentes en annoncant autre chose.
+      this.migre = false;
+    }
     return this.pool;
+  }
+
+  /**
+   * Vrai quand `migrer()` a abouti SUR LE POOL COURANT. Remis a faux des qu'un pool est
+   * recree, parce qu'une base redemarree peut etre une base vide.
+   */
+  private migre = false;
+
+  /** Migre une seule fois par pool, et re-migre apres une perte de base. */
+  async migrerSiBesoin(): Promise<void> {
+    if (this.migre) return;
+    await this.migrer();
+    this.migre = true;
   }
 
   async migrer(): Promise<void> {
     await this.p().query(SCHEMA_SQL);
+    this.migre = true;
   }
 
   async close(): Promise<void> {
     if (this.pool) await this.pool.end();
     this.pool = null;
+    this.migre = false;
   }
 
   /* ------------------------------------------------------------ les comptes */

@@ -1,0 +1,65 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>TARE Guard — reglages</title>
+<style>
+  :root { color-scheme: light dark; --encre: #12151c; --pale: #6b7386; --bord: #d6dae4; --fond: #fbfbfd; }
+  @media (prefers-color-scheme: dark) {
+    :root { --encre: #e8eaf0; --pale: #98a0b3; --bord: #2a3040; --fond: #0f1116; }
+  }
+  body { margin: 0; padding: 40px 20px; background: var(--fond); color: var(--encre);
+    font: 15px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 620px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 4px; letter-spacing: -.01em; }
+  .sous { color: var(--pale); font-size: 13.5px; margin: 0 0 28px; }
+  label { display: block; font-weight: 550; font-size: 13px; margin: 20px 0 6px; }
+  input[type=text] { width: 100%; box-sizing: border-box; padding: 9px 11px; border-radius: 8px;
+    border: 1px solid var(--bord); background: transparent; color: inherit;
+    font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .aide { color: var(--pale); font-size: 12.5px; margin-top: 6px; }
+  .ligne { display: flex; align-items: center; gap: 9px; margin-top: 18px; font-size: 13.5px; }
+  .pied { display: flex; gap: 10px; align-items: center; margin-top: 26px; }
+  button { font: inherit; font-weight: 550; padding: 9px 18px; border-radius: 8px; cursor: pointer;
+    border: 1px solid var(--bord); background: transparent; color: inherit; }
+  #etat { font-size: 13px; color: var(--pale); }
+  .note { border-left: 2px solid var(--bord); padding: 2px 0 2px 14px; margin: 30px 0 0;
+    color: var(--pale); font-size: 13px; }
+  code { font: 12.5px ui-monospace, Menlo, monospace; }
+</style>
+<main>
+  <h1>TARE Guard</h1>
+  <p class="sous">
+    L'analyse est locale : la table des 125 072 mesures est dans l'extension, et aucun verdict
+    ne depend d'un serveur. Les reglages ci-dessous ne servent qu'a l'historique.
+  </p>
+
+  <label for="cle">Cle d'API — portee « extension »</label>
+  <input id="cle" type="text" placeholder="laisse vide pour ne rien envoyer" spellcheck="false" />
+  <p class="aide">
+    Genere-la sur ton compte. Elle sert uniquement a deposer tes verdicts dans l'historique du
+    compte. Sans elle, l'extension fonctionne exactement pareil — elle n'envoie simplement rien.
+  </p>
+
+  <label for="api">Adresse de l'API</label>
+  <input id="api" type="text" spellcheck="false" />
+  <p class="aide">La meme que celle du site sur lequel tu as genere la cle.</p>
+
+  <div class="ligne">
+    <input id="journaliser" type="checkbox" />
+    <label for="journaliser" style="margin:0;font-weight:400">Deposer mes verdicts dans l'historique</label>
+  </div>
+
+  <div class="pied">
+    <button id="enregistrer">Enregistrer</button>
+    <button id="essayer">Tester la cle</button>
+    <span id="etat"></span>
+  </div>
+
+  <p class="note">
+    Ce qui n'est pas garanti, et il vaut mieux le lire ici : le script qui intercepte vit dans
+    le monde de la page. Une page hostile peut donc fabriquer un verdict favorable. Ce n'est pas
+    le probleme que cette extension resout — elle met un chiffre <em>mesure</em> devant les yeux
+    de quelqu'un qui allait signer de bonne foi. Chaque verdict porte son bloc, sa taille et sa
+    commande de rejeu : <code>python3 apps/api/scripts/measure_one.py …</code>
+  </p>
+</main>
+<script src="options.js" type="module"></script>

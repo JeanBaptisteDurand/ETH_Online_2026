@@ -10,6 +10,8 @@
  *   GET  /compte            -> le compte, son abonnement, ses cles, ses compteurs
  *   POST /compte/cle        -> une cle d'API. Le secret est rendu UNE FOIS.
  *   DELETE /compte/cle/:id  -> revoquee
+ *   GET  /compte/extension.zip -> l'extension, empaquetee, abonnement actif requis
+ *   GET  /compte/mcp.tgz    -> le serveur MCP, empaquete par `npm pack`
  *   GET  /compte/journal    -> l'historique : analyses, verdicts, substitutions
  *   POST /compte/journal    -> l'extension et le MCP y deposent, authentifies par CLE
  *   DELETE /compte/session  -> deconnexion
@@ -23,11 +25,14 @@
  * mal — c'est la meme regle que les etiquettes du corpus.
  */
 import { Hono } from "hono";
+import type { Context } from "hono";
+import { readFileSync } from "node:fs";
 import { z } from "zod";
 import { CompteStore, dsnDepuisEnv, type Compte } from "./store.js";
 import { adresseQuiASigne, estAdresse, messageAsigner, SignatureInvalide } from "./adresse.js";
 import { NATURES, PORTEES, SOURCES } from "./schema.js";
 import { verifierAbonnement, type ConfigAbonnement } from "./abonnement.js";
+import { estAbsent, paquetExtension, paquetMcp, type Resultat } from "./telechargement.js";
 
 const Nonce = z.object({ adresse: z.string() });
 const Session = z.object({ adresse: z.string(), nonce: z.string(), signature: z.string() });
@@ -53,15 +58,16 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
   const dsn = dsnDepuisEnv();
   const store = deps.store ?? (dsn ? new CompteStore(dsn) : null);
   const verifier = deps.verifier ?? verifierAbonnement;
-  let migre = false;
 
-  /** La base doit exister avant la premiere requete. On migre une fois, paresseusement. */
+  /**
+   * La base doit exister avant la premiere requete. La memoire de « c'est fait » vit dans le
+   * STORE et pas ici : un drapeau local resterait vrai apres une perte de base, et la
+   * requete suivante echouerait sur des tables absentes en annoncant autre chose. Le store
+   * remet son drapeau a faux des qu'il recree un pool.
+   */
   async function pret(): Promise<CompteStore | null> {
     if (!store) return null;
-    if (!migre) {
-      await store.migrer();
-      migre = true;
-    }
+    await store.migrerSiBesoin();
     return store;
   }
 
@@ -177,7 +183,7 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
       cles,
       compteurs: resume,
       telechargements: abonnement.actif
-        ? { extension: "/compte/extension.zip", mcp: "/compte/mcp.tgz" }
+        ? { extension: "/compte/extension.zip", mcp: "/compte/mcp.tgz", details: "/compte/paquets" }
         : null,
       note: abonnement.actif ? null : "l'abonnement n'est pas actif : les telechargements sont fermes",
     });
@@ -254,6 +260,120 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
     return c.json({ abonnement: ab, lecture: lu }, ab.actif ? 200 : 402);
   });
 
+  /* ------------------------------------------------------- les telechargements */
+
+  /**
+   * Les deux paquets, derriere la session ET l'abonnement.
+   *
+   * L'abonnement est relu EN BASE a chaque appel, pas deduit du fait qu'une session existe :
+   * une session ouverte pendant l'abonnement survivrait a son expiration, et le
+   * telechargement avec elle.
+   *
+   * Le refus dit toujours QUOI FAIRE. Un paquet non construit rend un 503 portant la commande
+   * exacte — c'est un defaut d'exploitation de notre cote, pas une erreur de l'utilisateur,
+   * et le faire passer pour un 404 lui ferait chercher chez lui.
+   */
+  async function servir(c: Context, produire: () => Resultat): Promise<Response> {
+    const s = await pret();
+    if (!s) return c.json(sansBase(), 503);
+    const r = await parSession(s, c.req.header("authorization"));
+    if ("error" in r) return c.json(r, 401);
+
+    const ab = await s.abonnement(r.compte.id);
+    if (!ab.actif)
+      return c.json(
+        {
+          error: "abonnement inactif",
+          detail: ab.raison,
+          abonnement: ab,
+          note: "les telechargements sont fermes tant que l'abonnement n'est pas actif sur la chaine",
+        },
+        402,
+      );
+
+    let p: Resultat;
+    try {
+      p = produire();
+    } catch (e) {
+      return c.json({ error: "empaquetage impossible", detail: (e as Error).message.slice(0, 200) }, 503);
+    }
+    if (estAbsent(p))
+      return c.json(
+        {
+          error: "paquet non construit",
+          raison: p.raison,
+          commande: p.commande,
+          note: "ce n'est pas une erreur de ton cote : l'artefact n'a pas ete produit sur le serveur",
+        },
+        503,
+      );
+
+    // La ligne d'historique part AVANT l'envoi : un telechargement qu'on n'a pas note est un
+    // trou dans l'historique que le compte promet de montrer.
+    await s
+      .journaliser(r.compte.id, {
+        source: "site",
+        quoi: "analyse",
+        sujet: p.nom,
+        detail: { telechargement: p.nom, version: p.version, sha256: p.sha256, octets: p.octets },
+      })
+      .catch(() => {
+        /* un journal indisponible ne prive personne de son telechargement */
+      });
+
+    const corps = new Uint8Array(readFileSync(p.chemin));
+    return new Response(corps, {
+      status: 200,
+      headers: {
+        "content-type": p.type,
+        "content-length": String(p.octets),
+        "content-disposition": `attachment; filename="${p.nom}"`,
+        // Le sha256 est dans un en-tete pour qu'on puisse verifier le fichier recu sans
+        // nous refaire confiance : `shasum -a 256 tare-guard.zip`.
+        "x-tare-sha256": p.sha256,
+        "x-tare-version": p.version ?? "inconnue",
+        "x-tare-construit-le": p.construit_le,
+        "cache-control": "no-store",
+      },
+    });
+  }
+
+  app.get("/compte/extension.zip", (c) => servir(c, paquetExtension));
+  app.get("/compte/mcp.tgz", (c) => servir(c, paquetMcp));
+
+  /**
+   * Ce que les deux paquets contiennent, SANS les telecharger. L'ecran du compte s'en sert
+   * pour afficher la taille et la version avant de proposer le bouton.
+   */
+  app.get("/compte/paquets", async (c) => {
+    const s = await pret();
+    if (!s) return c.json(sansBase(), 503);
+    const r = await parSession(s, c.req.header("authorization"));
+    if ("error" in r) return c.json(r, 401);
+    const ab = await s.abonnement(r.compte.id);
+    const decrire = (p: Resultat) =>
+      estAbsent(p)
+        ? { disponible: false, raison: p.raison, commande: p.commande }
+        : {
+            disponible: true,
+            nom: p.nom,
+            octets: p.octets,
+            sha256: p.sha256,
+            version: p.version,
+            construit_le: p.construit_le,
+            contenu: p.contenu,
+          };
+    return c.json({
+      abonnement: { actif: ab.actif, raison: ab.raison },
+      ouverts: ab.actif,
+      extension: decrire(paquetExtension()),
+      mcp: decrire(paquetMcp()),
+      note: ab.actif
+        ? null
+        : "les paquets sont decrits mais leur telechargement est ferme : l'abonnement n'est pas actif",
+    });
+  });
+
   /* -------------------------------------------------------------- le journal */
 
   app.get("/compte/journal", async (c) => {
@@ -264,8 +384,28 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
     const quoiBrut = c.req.query("quoi");
     if (quoiBrut && !(NATURES as readonly string[]).includes(quoiBrut))
       return c.json({ error: `nature inconnue : ${quoiBrut}`, attendu: NATURES }, 400);
+
+    // `Number("abc")` vaut NaN, et un NaN traverse Math.min/Math.max intact pour finir dans
+    // un `LIMIT` SQL, ou Postgres refuse et ou l'API rendait un 500 muet. Le refus est ici,
+    // et il dit ce qu'il attendait.
+    const limiteBrute = c.req.query("limite");
+    let limite = 50;
+    if (limiteBrute !== undefined) {
+      if (!/^[0-9]+$/.test(limiteBrute))
+        return c.json(
+          { error: `limite invalide : ${limiteBrute}`, attendu: "un entier entre 1 et 500" },
+          400,
+        );
+      limite = Number(limiteBrute);
+      if (limite < 1 || limite > 500)
+        return c.json(
+          { error: `limite hors bornes : ${limite}`, attendu: "un entier entre 1 et 500" },
+          400,
+        );
+    }
+
     const j = await s.journal(r.compte.id, {
-      limite: Number(c.req.query("limite") ?? 50),
+      limite,
       quoi: quoiBrut as (typeof NATURES)[number] | undefined,
     });
     return c.json(j);
@@ -297,6 +437,28 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
           detail: `inconnue, revoquee, ou de portee differente de « ${portee} » (deduite de source=${corps.data.source})`,
         },
         401,
+      );
+
+    // LA CLE NE SUFFIT PAS : l'abonnement doit etre actif au moment de l'ecriture. Sans ce
+    // controle, une cle delivree pendant l'abonnement continuait d'ecrire indefiniment apres
+    // son expiration — le service etait donc gratuit a vie pour qui s'etait abonne une fois.
+    //
+    // Le refus est NON DESTRUCTIF, et c'est important : l'extension analyse hors ligne, avec
+    // sa table embarquee, et n'a besoin de personne pour rendre un verdict. Seul
+    // l'HISTORIQUE sur le compte est un service abonne. Un 402 lui dit de continuer sans
+    // journaliser, pas de s'arreter.
+    const ab = await s.abonnement(compte.id);
+    if (!ab.actif)
+      return c.json(
+        {
+          error: "abonnement inactif",
+          detail: ab.raison,
+          abonnement: ab,
+          note:
+            "la cle est valide mais l'abonnement ne l'est plus : l'historique est ferme. " +
+            "L'analyse locale, elle, ne depend pas de ce service et continue de fonctionner.",
+        },
+        402,
       );
 
     const ligne = await s.journaliser(compte.id, {

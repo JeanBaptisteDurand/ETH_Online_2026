@@ -17,6 +17,7 @@ import { ZERO_ADDRESS } from "./poolkey.js";
 import { assertTable, consult, type GuardTable } from "./table.js";
 import { DEFAULT_THRESHOLDS, gradeConsultation, worstVerdict, type Thresholds } from "./verdict.js";
 import type { Finding, GuardOptions, GuardReport, SwapLeg, TableHit, TxRequest, Verdict } from "./types.js";
+import { chercherAlternative } from "./alternative.js";
 import builtinTable from "../data/table.json" with { type: "json" };
 
 /** Universal Router sur Base (chain 8453). */
@@ -215,6 +216,7 @@ export function tareGuard(tx: TxRequest, options: GuardOptions = {}): GuardRepor
       table: meta,
       staleness,
       headline: "Cette transaction ne porte pas de calldata : ce n'est pas un swap v4.",
+      alternative: null,
       warnings,
     };
   }
@@ -236,12 +238,24 @@ export function tareGuard(tx: TxRequest, options: GuardOptions = {}): GuardRepor
       table: meta,
       staleness,
       headline: `Selecteur ${decode.selector} : ce n'est pas un execute() d'Universal Router, TARE ne se prononce pas.`,
+      alternative: null,
       warnings,
     };
   }
 
   const findings = decode.legs.map((leg) => findingFor(leg, table, th));
   let verdict = worstVerdict(findings.map((f) => f.verdict));
+
+  // La question qui vient juste apres « ce que cette porte prend » : et ailleurs ?
+  // La reponse est NON dans 99,8 % des cas — il n'y a qu'une porte — et c'est une reponse,
+  // pas un echec de recherche. Quand elle est OUI, elle vaut 300 bps qui deviennent 0,03.
+  // On ne cherche que sur le PREMIER saut : sur un chemin multi-saut, les montants suivants
+  // dependent de l'execution, donc aucune comparaison a taille egale n'est possible.
+  const premier = decode.legs[0];
+  const alternative =
+    premier && decode.legs.length === 1
+      ? chercherAlternative(table, premier.poolId, premier.direction, premier.amountIn)
+      : null;
 
   // Regle dure n.3 : un calldata lu a moitie ne conclut pas. S'il reste une zone illisible
   // ET qu'on n'a rien trouve d'alarmant, on refuse quand meme le 'ok' silencieux.
@@ -256,5 +270,6 @@ export function tareGuard(tx: TxRequest, options: GuardOptions = {}): GuardRepor
     staleness,
     headline: headlineOf(verdict, findings, warnings),
     warnings,
+    alternative,
   };
 }

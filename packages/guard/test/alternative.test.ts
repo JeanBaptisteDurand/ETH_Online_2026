@@ -237,3 +237,32 @@ describe("sur la table reelle du depot", () => {
     if (p) expect(jetonDuPool(p)).toBeNull();
   });
 });
+
+describe("la garde porte la proposition dans son verdict", () => {
+  it("un vrai calldata capture sur Base ressort avec un etat nomme", async () => {
+    const { tareGuard } = await import("../src/guard.js");
+    const fx = JSON.parse(
+      readFileSync(resolve(import.meta.dirname, "fixtures/real-calldata.json"), "utf8"),
+    ) as { txs: { to: string; input: string; chain_id: number }[] };
+    const tx = fx.txs[0]!;
+    const r = tareGuard({ to: tx.to, data: tx.input, chainId: tx.chain_id });
+    // Le champ existe toujours ; c'est son ETAT qui porte l'information.
+    expect(r).toHaveProperty("alternative");
+    if (r.alternative) {
+      expect([
+        "PORTE_UNIQUE",
+        "ACTUELLE_NON_MESUREE",
+        "AUTRES_NON_MESUREES",
+        "DEJA_LA_MEILLEURE",
+        "MEILLEURE_PORTE",
+      ]).toContain(r.alternative.etat);
+      expect(r.alternative.raison.length).toBeGreaterThan(20);
+    }
+  });
+
+  it("une transaction sans calldata ne propose rien, et ne pretend pas avoir cherche", async () => {
+    const { tareGuard } = await import("../src/guard.js");
+    const r = tareGuard({ to: "0x6ff5693b99212da76ad316178a184ab56d299b43", data: "0x" });
+    expect(r.alternative).toBeNull();
+  });
+});

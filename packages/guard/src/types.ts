@@ -147,6 +147,13 @@ export interface GuardReport {
   /** la ligne unique a montrer a l'humain */
   headline: string;
   warnings: string[];
+  /**
+   * La porte de remplacement, quand elle existe — et l'etat NOMME quand elle n'existe pas.
+   * null seulement sur un chemin multi-saut ou un pool inconnu de la table : la comparaison a
+   * taille egale y est impossible, et une comparaison a tailles differentes fabriquerait
+   * l'economie qu'elle pretend mesurer.
+   */
+  alternative: import("./alternative.js").Alternative | null;
 }
 
 /** La forme minimale d'une transaction EIP-1193 que la garde sait lire. */

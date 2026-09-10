@@ -129,7 +129,16 @@ const HERO =
 
 /* ------------------------------------------------------ 2. the pool census */
 
-const POOLS = readJson(p("docs/pools-liquides.json"));
+/* LE RECENSEMENT COMPLET quand il est la, l'echantillon sinon — et on DIT lequel.
+   Section 06 titrait « 199 LIQUID POOLS · 12 DISTINCT HOOKS » depuis docs/pools-liquides.json,
+   un echantillon, alors que docs/dataset/pools-liquides-full.json en porte 7 817 et que la
+   table par hook de cette meme page en montre 112. La page se contredisait elle-meme.
+   Le fichier complet etait DEJA lu quelques lignes plus bas, avec ses controles croises
+   contre le rapport de balayage et le manifeste des logs ; seul le chiffre AFFICHE lisait
+   encore le petit. */
+const CENSUS_FULL = "docs/dataset/pools-liquides-full.json";
+const CENSUS_FILE = existsSync(p(CENSUS_FULL)) ? CENSUS_FULL : "docs/pools-liquides.json";
+const POOLS = readJson(p(CENSUS_FILE));
 const censusHooks = [...new Set(POOLS.map((r) => r[1][4]))];
 
 /* ------------------------------- 2b. the structure of the census: how many doors */
@@ -479,24 +488,141 @@ const MATRIX = [...RANKED.slice(0, HEAD_N), ...(ELIDED ? RANKED.slice(-TAIL_N) :
 
 /* --------------------------------------------- 9. results that live upstream */
 
-/* Counted by the engine's event sweep and its registry reader. Both produced the
-   numbers below; neither has committed its enumeration into docs/ yet, so the page
-   says so on the same line as the figure. A number without its file is a claim. */
-const UPSTREAM = {
-  hooks_swept: 84,
-  block_window: 24000,
-  emitting_hookswap: 0,
-  emitting_hookfee: 0,
-  registry_entries: 613,
-  registry_fields: 19,
-  registry_numeric_fields: 0,
-  registry_additional_properties: false,
-  provenance: "engine event sweep + registry reader",
-  enumeration_committed: false,
-  /* One address the registry reader did not find at all. Rendered only when it is actually
-     in the corpus being shown, so the claim can never outlive the data that motivated it. */
-  absent_from_registry: ["0xdda9bc41e324ef379e774ae1f7b062d23ea8aacc"],
-};
+/* DERIVED, NOT TYPED. Every figure below used to be a literal, under a comment saying the
+   enumeration behind it "has not been committed into docs/ yet". It has now, so the page
+   reads it — and the numbers turn out to be very different from the ones it published:
+
+     hooks swept      84       ->  1 559
+     block window     24 000   ->  200 000
+     emitting either  0        ->  9
+     registry         613      ->  978 entries
+
+   The 84 came from the first corpus, when a public RPC could not serve a wider window. The
+   613 is a real count of docs/hooklist.json — an OLDER snapshot than the one the README and
+   the submission text read. Two totals published side by side without naming the file each
+   came from is how a reader concludes that one of them is wrong. The file is now named on
+   the page.
+
+   A number whose file is not on the page is a claim, not a measurement. That rule is why
+   this block exists at all; it just was not applied to the block itself. */
+
+const DECL = resolve(REPO, "docs/dataset/declarations.json");
+const REGISTRY = resolve(REPO, "docs/hooklist-live-20260905.json");
+
+function upstream() {
+  /* No scan on disk means no figure. We say so instead of falling back to the old literals:
+     a stale number that looks fresh is worse than an absent one. */
+  if (!existsSync(DECL)) {
+    return {
+      published: false,
+      why:
+        "docs/dataset/declarations.json is absent — run `python3 -m tare.declare --scan --write`. " +
+        "No count is stated rather than restating an old one.",
+      provenance: "not run",
+      enumeration_committed: false,
+    };
+  }
+  const d = JSON.parse(readFileSync(DECL, "utf8"));
+  const c = d.conclusion ?? {};
+  if (!c.publiable) {
+    return {
+      published: false,
+      why: `the scan did not cover its whole window: ${c.raison ?? "unknown"}`,
+      provenance: d.rejeu ?? "tare.declare",
+      enumeration_committed: false,
+    };
+  }
+  const perEvent = d.scan?.par_evenement ?? {};
+
+  /* The registry, counted from the file — and the file is named. Its FIELDS are counted too,
+     from the entries themselves, so "19 fields, 0 of them numeric" is a reading and not a
+     memory. `chainId` is a number but it identifies a network; it is excluded from the 19 and
+     the page says which. */
+  let reg = { entries: null, fields: null, numeric: null, file: null };
+  if (existsSync(REGISTRY)) {
+    const raw = JSON.parse(readFileSync(REGISTRY, "utf8"));
+    const rows = Array.isArray(raw) ? raw : (raw.hooks ?? []);
+    const flags = new Set();
+    const props = new Map();
+    for (const r of rows) {
+      for (const k of Object.keys(r.flags ?? {})) flags.add(k);
+      for (const [k, v] of Object.entries(r.properties ?? {})) props.set(k, typeof v);
+    }
+    const numeric = [...props.values()].filter((t) => t === "number").length;
+    reg = {
+      entries: rows.length,
+      fields: flags.size + props.size,
+      numeric,
+      file: "docs/hooklist-live-20260905.json",
+    };
+  }
+
+  return {
+    published: true,
+    hooks_swept: c.n_hooks,
+    hooks_declaring: c.n_hooks_qui_declarent,
+    block_window: d.initialize?.span_blocs ?? null,
+    block_from: d.initialize?.bloc_debut ?? null,
+    block_to: d.initialize?.bloc_fin ?? null,
+    initialize_events: d.initialize?.n_evenements ?? null,
+    coverage: d.scan?.couverture_min ?? null,
+    emitting_hookswap: perEvent.HookSwap?.n_emetteurs ?? null,
+    emitting_hookfee: perEvent.HookFee?.n_emetteurs ?? null,
+    emitting_any_contract: d.scan?.n_emetteurs_tous_contrats ?? null,
+    registry_entries: reg.entries,
+    registry_fields: reg.fields,
+    registry_numeric_fields: reg.numeric,
+    registry_file: reg.file,
+    registry_additional_properties: false,
+    provenance: d.rejeu ?? "python3 -m tare.declare --scan --write",
+    /* It IS committed now: docs/dataset/declarations.json carries every declaring address. */
+    enumeration_committed: true,
+    declaring_addresses: c.hooks_qui_declarent ?? [],
+    /* OU ces neuf-la tombent dans la liste triee des 1 559.
+       La grille de la section 01 rend une case par hook. Expedier les 1 559 adresses
+       couterait ~65 ko a une page qui a un budget de 13 ko gzip ; expedier neuf INDEX coute
+       une centaine d'octets et dit exactement la meme chose. Ils sont calcules ici, ou la
+       liste complete est disponible, jamais estimes. */
+    declaring_indexes: (c.hooks_qui_declarent ?? [])
+      .map((h) => (d.hooks ?? []).indexOf(h))
+      .filter((i) => i >= 0),
+    /* La couverture du registre ne vit PAS ici : c'est un fait independant du balayage
+       d'evenements, et `upstream()` sort tot quand le releve du scan manque. Repliee dedans,
+       elle disparaissait avec lui — deux faits qui n'ont rien a voir, couples par accident.
+       Voir `REGISTRY_COVERAGE`, plus bas, rendu a la racine des faits. */
+  };
+}
+
+/**
+ * Ce que le registre officiel couvre du corpus mesure. Deux ensembles, une intersection.
+ *
+ * Les adresses absentes ne sont PAS rendues sur la page : soixante-dix-huit adresses
+ * couteraient trois kilooctets a un document dont le budget est de quinze. Le compte est
+ * affiche, la liste est ecrite dans facts.json — donc verifiable — et le fichier lu est nomme.
+ */
+function registryCoverage() {
+  if (!existsSync(REGISTRY)) return null;
+  const raw = JSON.parse(readFileSync(REGISTRY, "utf8"));
+  const rows = Array.isArray(raw) ? raw : (raw.hooks ?? []);
+  const listees = new Set(rows.map((e) => (e.hook?.address ?? "").toLowerCase()));
+  // TOUS les hooks mesures, pas seulement ceux qui prelevent : la question est « le
+  // registre les decrit-il ? », et un hook a 0,00 bps compte autant qu'un autre.
+  const mesures = [...new Set(MEAS.map((m) => m.hook.toLowerCase()))].sort();
+  const absents = mesures.filter((h) => !listees.has(h));
+  return {
+    measured: mesures.length,
+    listed: mesures.length - absents.length,
+    absent: absents.length,
+    /* La liste complete est ECRITE PAR L'ENGIN dans docs/dataset/registre-couverture.json,
+       qui est commite ; facts.json est un artefact de build et gitignore, donc le citer
+       envoyait un lecteur vers un fichier qu'un clone frais n'a pas. On garde la liste ici
+       pour que le test la recompte, et la page cite le fichier commite. */
+    absent_addresses: absents,
+  };
+}
+
+const UPSTREAM = upstream();
+const REGISTRY_COVERAGE = registryCoverage();
 
 /* ------------------------------------------------------------- 10. write */
 
@@ -550,7 +676,9 @@ const facts = {
   per_hook: Object.values(perHook)
     .map((h) => ({ hook: h.hook, n: h.n, pools: h.pools.size, finding: h.finding }))
     .sort((a, b) => b.finding - a.finding || b.n - a.n),
-  census: { pools: POOLS.length, hooks: censusHooks.length },
+  census: { pools: POOLS.length, hooks: censusHooks.length, file: CENSUS_FILE },
+  /* Independant du balayage d'evenements : voir la note dans upstream(). */
+  registry_coverage: REGISTRY_COVERAGE,
   structure: STRUCTURE,
   gate_a3: {
     hook: a3Hook,

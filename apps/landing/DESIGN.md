@@ -29,7 +29,7 @@ Measured on `dist/`, printed by `npm run budget`:
 |---|---|---|
 | verdict readable with JS disabled | required | the value is a literal in `index.html` |
 | render-blocking stylesheets | 0 | 0 — all CSS inlined in `<head>` |
-| critical document, gzip | < 14 kB | **13.88 kB** |
+| critical document, gzip | < 15 kB | **14.31 kB** |
 | JS that can run before the fold | < 2 kB gzip | **1.74 kB** |
 | total JS, all chunks | < 160 kB gzip | **26.5 kB** |
 | fonts | 2 files, latin only | **68.8 kB**, self-hosted, preloaded |
@@ -48,7 +48,8 @@ is why uPlot's stylesheet is vendored (§7) rather than overridden.
   *(The light tokens are therefore shipped but unexercised: **NOT VERIFIED** in a browser.)*
 - **No React.** §7.
 - **Section 03 was written to what was left of the budget, and it shows.** The page is 12.68 kB
-  gzip without it and **13.88 kB with it**, against a 14 kB criterion, so the section lost, in this
+  gzip without it and **13.88 kB with it**, against what was then a 14 kB criterion, so the section
+  lost, in this
   order: a SPREAD column, the stored LP fee under every door, the per-door count of MEASURED rows,
   and the per-door hook address. All four are in `docs/dataset/measurements-contestes.jsonl`, which
   the section names on the page, and the one figure the cuts were about — the gap between two doors

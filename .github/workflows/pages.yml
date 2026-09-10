@@ -6,7 +6,7 @@
 # server, and both now distinguish « aucun serveur publie pour cette version » from « le serveur
 # est en panne » — deux etats que le visiteur ne peut pas trancher lui-meme.
 #
-#   /        the presentation page  (~13 kB gzip before the verdict is readable)
+#   /        the presentation page  (~14 kB gzip before the verdict is readable)
 #   /hooks/  the instrument
 name: pages
 

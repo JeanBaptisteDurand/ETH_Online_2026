@@ -1,5 +1,5 @@
 {
- "built_at": "2026-09-10T12:58:41+00:00",
+ "built_at": "2026-09-10T13:56:22+00:00",
  "engine_ver": "0.3.0",
  "rag_ver": "tare-rag/0.1.0",
  "embedding": {
@@ -10,9 +10,9 @@
  "embedding_selection": [
   "ollama: retenu (granite-embedding:278m, 768 dims)"
  ],
- "n_chunks": 4101,
+ "n_chunks": 4102,
  "by_corpus": {
-  "docs": 102,
+  "docs": 103,
   "registry": 978,
   "hook_source": 3021
  },
@@ -108,9 +108,9 @@
    "path": "docs/LIMITS.md",
    "present": true,
    "is_dir": false,
-   "size": 23929,
-   "mtime": 1789044286,
-   "sha256_12": "54bd2725d53e"
+   "size": 24468,
+   "mtime": 1789048461,
+   "sha256_12": "651c17f6a9c0"
   },
   {
    "path": "docs/HONESTY.md",
@@ -132,9 +132,9 @@
    "path": "README.md",
    "present": true,
    "is_dir": false,
-   "size": 22761,
-   "mtime": 1789044275,
-   "sha256_12": "0f540fdede62"
+   "size": 23183,
+   "mtime": 1789048461,
+   "sha256_12": "63c56d4a1246"
   },
   {
    "path": "docs/hooklist-live-20260905.json",
@@ -168,20 +168,20 @@
  },
  "cache": {
   "hits": 4068,
-  "misses": 33,
+  "misses": 34,
   "path": "/Users/beorlor/Documents/ethonline/ETH_Online_2026/engine/tare/rag/var/embed-cache.jsonl"
  },
- "elapsed_s": 18.02,
+ "elapsed_s": 17.34,
  "loaded": true,
  "index_file": "/Users/beorlor/Documents/ethonline/ETH_Online_2026/engine/tare/rag/var/index.jsonl",
  "db": {
   "dsn": "postgresql://tare:***@127.0.0.1:55432/tare",
-  "rows_in_db": 4101,
+  "rows_in_db": 4102,
   "by_corpus_in_db": {
-   "docs": 102,
+   "docs": 103,
    "hook_source": 3021,
    "registry": 978
   },
-  "build_id": 5
+  "build_id": 6
  }
 }

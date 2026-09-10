@@ -224,46 +224,93 @@ make measure HOOK=${esc(f.hero.hook)} BLOCK=${f.hero.block}</code>
 </section>`;
 
   /* -------------------------------------------------------------- section 1 */
-  /* No per-cell title: the enumeration behind this count is not committed (see the note in the
-     section), so a tooltip could only repeat the caption 84 times and cost 6 kB doing it. */
-  const cells = '<i class="hcell"></i>'.repeat(f.upstream.hooks_swept);
+  /* UNE CASE PAR HOOK, et neuf d'entre elles sont COLOREES.
+     Cette section rendait 84 cases toutes vides sous la phrase « nothing here declares
+     anything ». Les deux etaient faux : le balayage couvre 200 000 blocs et 1 559 hooks, et
+     NEUF declarent. Le corriger donne une image plus forte que celle qu'il remplace — la
+     rarete se voit d'autant mieux qu'il y a dix-huit fois plus de cases autour.
+     Les neuf positions sont calculees dans facts.mjs sur la liste complete, jamais estimees ;
+     seuls les index voyagent, parce que 1 559 adresses couteraient 65 ko a une page qui a un
+     budget de 13 ko. */
+  const u = f.upstream;
 
-  const s1 = `
+  /* LA GRILLE EN SVG, et pourquoi pas en HTML.
+     1 559 elements <i> pesaient 2,5 ko gzip et cassaient le budget de 14 ko du document
+     critique — pour dessiner un quadrillage regulier. Un <pattern> tuile les 1 559 cases en
+     une centaine d'octets, un rectangle masque la queue de la derniere ligne, et les NEUF
+     qui declarent sont neuf rectangles a leur position exacte.
+     Rien n'est approxime : les index viennent de facts.mjs, qui les calcule sur la liste
+     complete des 1 559 adresses. */
+  const COLS = 48;
+  const PAS = 13; // 12 px de cellule + 1 px de gouttiere
+  const grille = (() => {
+    const n = u.hooks_swept ?? 0;
+    const lignes = Math.ceil(n / COLS);
+    const reste = n - (lignes - 1) * COLS; // cases occupees sur la derniere ligne
+    const w = COLS * PAS - 1;
+    const h = lignes * PAS - 1;
+    /* UN SEUL <path> pour les neuf marques, et non neuf <rect>.
+       Le budget du document critique est de 14 ko gzip, et la page etait a 13,99 : neuf
+       elements <rect> avec leurs attributs distincts ne compressent pas et le cassaient. Neuf
+       sous-chemins « M x y h12 v12 h-12 z » disent la meme chose en un tiers du poids. */
+    const d = (u.declaring_indexes ?? [])
+      .map((i) => `M${(i % COLS) * PAS} ${Math.floor(i / COLS) * PAS}h12v12h-12z`)
+      .join("");
+    return `<svg class="hgrid" viewBox="0 0 ${w} ${h}" role="img" aria-label="${grp(n)} hooks, ${
+      u.hooks_declaring
+    } emitting a fee event"><defs><pattern id="hc" width="${PAS}" height="${PAS}" patternUnits="userSpaceOnUse"><rect width="12" height="12" class="off"/></pattern></defs><rect width="${w}" height="${h}" fill="url(#hc)"/><rect x="${
+      reste * PAS
+    }" y="${(lignes - 1) * PAS}" width="${(COLS - reste) * PAS}" height="${PAS}" class="mask"/><path class="on" d="${d}"/></svg>`;
+  })();
+
+  const s1 = !u.published
+    ? `
 <section id="fact" class="band" data-reveal>
   <div class="wrap">
-    ${sindex("01", "The declaration<br>that never comes", `${grp(f.upstream.hooks_swept)} HOOKS SWEPT`)}
+    ${sindex("01", "The declaration<br>that never comes", "NOT MEASURED")}
+    <div class="s1-in">
+      <p class="data-sm">${esc(u.why)}</p>
+    </div>
+  </div>
+</section>`
+    : `
+<section id="fact" class="band" data-reveal>
+  <div class="wrap">
+    ${sindex("01", "The declaration<br>that almost never comes", `${grp(u.hooks_declaring)} OF ${grp(u.hooks_swept)} DECLARE`)}
     <div class="s1-in">
       <figure class="s1-grid">
-        <div class="hgrid" role="img" aria-label="${f.upstream.hooks_swept} hooks, none of them emitting a fee event">${cells}</div>
-        <figcaption class="data-xs">One cell per hook deployed in the last ${grp(
-          f.upstream.block_window,
-        )} Base blocks. Colour on this page encodes extraction. Nothing here is coloured,
-        because nothing here declares anything.</figcaption>
+        ${grille}
+        <figcaption class="data-xs">One cell per hook initialised in ${grp(
+          u.block_window,
+        )} Base blocks (to ${grp(u.block_to)}, coverage ${u.coverage}).
+        <strong class="ink">${u.hooks_declaring} are lit</strong> — and what they emit is an
+        absolute amount on one past swap, not the rate you would pay at your size.</figcaption>
       </figure>
 
       <div class="s1-side">
         <div class="stat">
-          <span class="label">HookSwap</span>
-          <p class="metric">${f.upstream.emitting_hookswap} <span class="over">/ ${f.upstream.hooks_swept}</span></p>
-        </div>
-        <div class="stat">
-          <span class="label">HookFee</span>
-          <p class="metric">${f.upstream.emitting_hookfee} <span class="over">/ ${f.upstream.hooks_swept}</span></p>
+          <span class="label">HOOKS THAT DECLARE</span>
+          <p class="metric">${u.hooks_declaring} <span class="over">/ ${grp(u.hooks_swept)}</span></p>
+          <p class="data-sm">${((u.hooks_declaring / u.hooks_swept) * 100).toFixed(2)} % of the hooks
+          in ${grp(u.initialize_events)} <code>Initialize</code> events.
+          ${u.emitting_any_contract} contracts emit either event over the same window —
+          ${u.emitting_hookswap} <code>HookSwap</code>, ${u.emitting_hookfee} <code>HookFee</code>.</p>
         </div>
         <hr class="hr">
         <div class="stat">
           <span class="label">OFFICIAL REGISTRY</span>
-          <p class="metric">${grp(f.upstream.registry_entries)} <span class="over">entries</span></p>
-          <p class="data-sm">${f.upstream.registry_fields} fields per entry.
-          <strong class="ink">${f.upstream.registry_numeric_fields} of them numeric.</strong></p>
-          <pre class="code-in hex">"additionalProperties": ${f.upstream.registry_additional_properties}</pre>
+          <p class="metric">${grp(u.registry_entries)} <span class="over">entries</span></p>
+          <p class="data-sm">${u.registry_fields} describing fields per entry.
+          <strong class="ink">${u.registry_numeric_fields} of them numeric.</strong>
+          <code>chainId</code> is a number, but it names a network.</p>
+          <pre class="code-in hex">"additionalProperties": ${u.registry_additional_properties}</pre>
           <p class="data-sm">The schema does not merely omit a number. It forbids adding one.</p>
         </div>
-        <p class="data-xs prov-note">SOURCE · ${esc(f.upstream.provenance)}. ${
-          f.upstream.enumeration_committed
-            ? ""
-            : "The per-hook enumeration behind these counts is not committed under docs/ yet, so the list is <b>NOT PUBLISHED</b> — the counts are stated, the addresses are not claimed."
-        }</p>
+        <p class="data-xs prov-note">SOURCE · <code>${esc(u.registry_file ?? "not read")}</code>,
+        and <code>${esc(u.provenance)}</code> for the sweep. Both topic0 values are computed from
+        their signatures; every declaring address is committed in
+        <code>docs/dataset/declarations.json</code>, so the counts are stated <b>and</b> the list
+        is published.</p>
       </div>
     </div>
   </div>
@@ -333,12 +380,20 @@ make measure HOOK=${esc(f.hero.hook)} BLOCK=${f.hero.block}</code>
     )} measurements · ${Object.entries(f.corpus.by_label)
       .map(([k, v]) => `${v} ${k}`)
       .join(" · ")} · block ${B}.${
-      f.upstream.absent_from_registry.filter((h) => f.per_hook.some((p) => p.hook === h)).length
-        ? ` ${f.upstream.absent_from_registry
-            .filter((h) => f.per_hook.some((p) => p.hook === h))
-            .map((h) => `<span class="hex">${esc(h)}</span>`)
-            .join(", ")} is not in the official registry at all: the registry describes without
-            quantifying, and it does not see everything.`
+      /* Cette phrase portait UNE adresse ecrite a la main : « one hook is not in the official
+         registry at all ». Le compte reel est de 78 sur 112, et il est bien plus fort — le
+         registre officiel ne decrit pas les deux tiers des hooks qu'on a mesures. Les 78
+         adresses ne sont PAS rendues : elles couteraient trois kilooctets a un document dont
+         le budget est de quinze. Elles sont dans facts.json, donc verifiables. */
+      f.registry_coverage
+        ? ` Of the ${f.registry_coverage.measured} hooks measured here,
+            <strong class="ink">${f.registry_coverage.absent} are not in the official
+            registry at all</strong> — ${(
+              (f.registry_coverage.absent / f.registry_coverage.measured) *
+              100
+            ).toFixed(0)} %. It describes without quantifying, and it does not see most of them.
+            The ${f.registry_coverage.absent} addresses are in
+            <code>docs/dataset/registre-couverture.json</code>.`
         : ""
     }</p>
   </div>
@@ -647,7 +702,9 @@ make gate-a3</code>
     <div class="s6-ft">
       <p class="data-xs">Same cells as the instrument: value, uncertainty, provenance. No simplified
       landing variant exists. Uncertainty is ±0.00 because both quotes are integer outputs of the same
-      pinned block — the measurement has no sampling error, only the limits listed in 07.</p>
+      pinned block — the measurement has no sampling error, only the limits listed in 07.
+      The census above is counted from <code>${esc(f.census.file)}</code>: the heading used to read
+      199 pools and 12 hooks, from a sample, while this page's own per-hook table showed 112.</p>
       <p class="data-xs">It opens on one question — <strong>paste a token address, read what comes
       back out of 100</strong> — then fifteen panels: every door of a pair priced, the API settled on
       Hedera and read back on the mirror node, the agent identity on that same topic, the attestations

@@ -158,11 +158,22 @@
 .s1-in { display: grid; grid-template-columns: 1fr; gap: var(--s7); }
 @media (min-width: 1024px) { .s1-in { grid-template-columns: minmax(0, 1fr) 320px; gap: var(--s8); } }
 
-/* 84 cells as 12 columns of 7: the count is legible in the shape, and the block is tall
-   enough to carry the column. Square cells, 1px rule, no colour — the absence is the image. */
-.hgrid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px; max-width: 620px; }
-.hcell { aspect-ratio: 1; border: var(--hair); background: var(--bg-2); display: block; }
-@media (max-width: 560px) { .hgrid { grid-template-columns: repeat(7, minmax(0, 1fr)); } }
+/* 1 559 cellules, une par hook, et NEUF allumees.
+   Cette grille faisait 12 colonnes pour 84 cellules. Le balayage reel en porte 1 559 : a 12
+   colonnes le bloc mesurerait sept mille pixels de haut. A 48 colonnes il en fait quatre
+   cents, et la rarete se lit d'un coup — un champ, et neuf points dedans. C'est l'image que
+   le chiffre merite, et elle est plus forte que 84 cases toutes vides.
+   Dessinee en SVG : 1 559 elements HTML pesaient 2,5 ko gzip et cassaient le budget de 14 ko
+   du document critique, pour un quadrillage regulier qu'un <pattern> tuile en cent octets. */
+.hgrid { display: block; width: 100%; height: auto; max-width: 620px; }
+.hgrid .off { fill: var(--bg-2); stroke: var(--line); stroke-width: 1; }
+/* La queue de la derniere ligne : le motif ne sait pas s'arreter en milieu de ligne, donc on
+   recouvre les cases qui n'existent pas. Sans ce masque la grille annoncerait 1 584 hooks. */
+.hgrid .mask { fill: var(--bg-1); }
+/* Les neuf qui declarent. La couleur de cette page encode le prelevement ; celle-ci encode
+   « il a dit quelque chose » — et le haut de la rampe est le seul ton qui ressorte a 12 px. */
+.hgrid .on { fill: var(--m-6); }
+
 .s1-grid figcaption { margin-top: var(--s5); max-width: 62ch; }
 
 .s1-side { display: flex; flex-direction: column; gap: var(--s5); }

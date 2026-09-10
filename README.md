@@ -10,9 +10,15 @@ one past swap, not the rate you would pay at your size. Re-run it yourself:
 `python3 -m tare.declare --scan` — the offline half costs no requests, and the artefact is
 [`docs/dataset/declarations.json`](docs/dataset/declarations.json).
 
-The official registry describes 978 hooks with **19 describing fields** — 14 permission booleans,
-4 property booleans and one `swapAccess` enum — plus a `chainId` that identifies a network rather
-than describing a hook. **Not one of the 19 is a quantity.**
+The official registry describes 978 entries — 866 distinct addresses, the rest declared on more
+than one chain — with **19 describing fields**: 14 permission booleans, 4 property booleans and one
+`swapAccess` enum, plus a `chainId` that identifies a network rather than describing a hook.
+**Not one of the 19 is a quantity.**
+
+And it does not see most of what takes something. Of the **112 hooks measured here, 78 are absent
+from that registry entirely — 69.64 %.** Only 34 are listed. The 78 addresses are enumerated in
+[`docs/dataset/registre-couverture.json`](docs/dataset/registre-couverture.json) — counted from
+the two files by `python3 -m tare.registre`, never typed.
 
 So TARE measures it.
 

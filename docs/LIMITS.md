@@ -211,17 +211,24 @@ anyone interprets it.
 
 The official hook registry has **19 describing fields** — 14 permission booleans, 4 property
 booleans and one `swapAccess` enum — plus a `chainId` that names a network rather than describing a
-hook. Counting `chainId` among the 19 made the decomposition add up to 20; it does not belong there.
-The point is unchanged and verifiable by reading the file:
-`chainId`. **Not one of them is a quantity** ([`FEEDBACK.md`](../FEEDBACK.md)). It can tell you a hook
-*can* run `beforeSwap`; it cannot tell you what that costs.
+hook. Counting `chainId` among the 19 made the decomposition add up to 20; it does not belong
+there. **Not one of the 19 is a quantity** ([`FEEDBACK.md`](../FEEDBACK.md)) — verifiable by
+reading the file, and `apps/landing/build/facts.mjs` now counts the fields rather than
+remembering them. The registry can tell you a hook *can* run `beforeSwap`; it cannot tell you
+what that costs.
 
-It is also incomplete and it is keyed in a way that misleads:
+It is also incomplete — far more than this document used to say — and it is keyed in a way that
+misleads:
 
-- **Two of the 12 hooks in this corpus are absent from the 978-entry live registry** —
-  `0xb995b9efcc8021300bdc93fbd0c156e9a5ca0088` and `0xc71b7fa56c92b05fbe2448a8bfeb2e9c085fe000`.
-- **The registry has 978 entries but only 866 distinct addresses.** 27 addresses are declared on
-  several chains, one on eighteen — hooks are CREATE2-mined for their permission bits, so the same
+- **78 of the 112 hooks in this corpus are absent from the 978-entry live registry — 70 %.**
+  Only 34 are listed. This section previously said "two of the 12 hooks", from a corpus of 128
+  measurements; the corpus now holds 125 072 and the count is derived, not typed. The 78
+  addresses are enumerated in [`docs/dataset/registre-couverture.json`](dataset/registre-couverture.json),
+  written by `python3 -m tare.registre --write`, and the landing page states the count on the
+  same line as the corpus it came from.
+- **The registry has 978 entries but only 866 distinct addresses.** **64** addresses are declared
+  on several chains, one on eighteen — this line said 27, counted before the snapshot grew;
+  `tare.registre` counts it now — hooks are CREATE2-mined for their permission bits, so the same
   address redeploys elsewhere. One of our own measured hooks, `0xbdf938149a…`, exists on both `base`
   and `ethereum`. An address-keyed index attaches whichever entry it met first. That produced false
   result #6; the fix is [`apps/api/src/dataset.ts:213-222`](../apps/api/src/dataset.ts).

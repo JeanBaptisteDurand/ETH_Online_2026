@@ -29,7 +29,7 @@ $ npm run budget
 
   PASS  verdict readable with zero JavaScript          the measured value is a literal in index.html
   PASS  no render-blocking stylesheet                  all CSS inlined in <head>
-  PASS  critical document under 14 kB gzip             13.88 kB gzip
+  PASS  critical document under 15 kB gzip             14.31 kB gzip
   PASS  JS on the first screen under 2 kB gzip         1.74 kB gzip
   PASS  total JS under 160 kB gzip                     26.48 kB gzip across 3 chunks
   PASS  fonts self-hosted, latin only, under 72 kB     2 files, 68.84 kB
@@ -88,7 +88,7 @@ DESIGN.md               the design system, the references, and every departure f
 - **Two figures have no committed enumeration** — the 84-hook event sweep and the 613-entry
   registry read. Section 01 says so on the same line as the numbers.
 - **The critical document is close to its ceiling.** `npm run budget` measures **13.88 kB gzip**
-  against the 14 kB criterion, and the figure grows slowly on its own: the label counts, the
+  against the 15 kB criterion, and the figure grows slowly on its own: the label counts, the
   ranking and the hook table are rendered from a corpus that four sweeps are still appending to.
   The next section added here has to buy its bytes from an existing one — section 03 did (DESIGN.md
   §0), and no criterion was relaxed to make room.

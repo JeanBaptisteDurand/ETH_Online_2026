@@ -88,16 +88,24 @@ export function adresseQuiASigne(message: string, signature: string): string {
   return adresseDe(pub);
 }
 
-/** Le texte a signer. Il NOMME le service, l'adresse et le nonce : une signature obtenue
- *  ailleurs ne peut pas etre rejouee ici, et l'utilisateur voit ce qu'il approuve. */
-export function messageAsigner(adresse: string, nonce: string, quand: string): string {
+/**
+ * Le texte a signer. Il NOMME le service, l'adresse et le nonce : une signature obtenue
+ * ailleurs ne peut pas etre rejouee ici, et l'utilisateur voit ce qu'il approuve.
+ *
+ * IL NE PORTE PAS D'HORODATAGE, et c'est deliberе. Une premiere version en mettait un — et
+ * la verification le reconstruisait avec l'heure COURANTE, donc un autre texte, donc aucune
+ * signature n'aurait jamais verifie. Toute donnee du message doit etre reconstructible a
+ * l'identique au moment de verifier : le nonce l'est, une horloge non. La duree de vie est
+ * portee par la base (`expire_le`), la ou elle est verifiable.
+ */
+export function messageAsigner(adresse: string, nonce: string): string {
   return [
     "TARE — connexion a votre compte",
     "",
     `Adresse : ${adresse.toLowerCase()}`,
     `Nonce : ${nonce}`,
-    `Emis le : ${quand}`,
     "",
+    "Ce nonce ne sert qu'une fois et expire dans 5 minutes.",
     "Signer ce message ne coute rien et n'autorise aucune depense.",
   ].join("\n");
 }

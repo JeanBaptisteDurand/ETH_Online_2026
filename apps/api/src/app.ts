@@ -17,6 +17,8 @@ import { buildExitTest, phrase } from "./exit.js";
 import { engineHealth, runPlans, type EngineHealth , assertNodeMatches } from "./engine.js";
 import { createMetering, toMeasurementUnit, type BatchReceipt } from "./metering/index.js";
 import { createAgentRouter } from "./agent/router.js";
+import { createCompteRouter } from "./compte/router.js";
+import { configDepuisEnv } from "./compte/abonnement.js";
 import { createGraphRouter } from "./graph-routes.js";
 import { createRagRouter } from "./rag/index.js";
 import { createRouteRouter } from "./route.js";
@@ -573,6 +575,11 @@ export function createApp(deps: AppDeps = {}) {
   // L'identite d'agent HCS-14. Elle ne depend d'aucun etat du serveur : c'est une fonction
   // pure des six champs, et la route en donne de quoi la recalculer sans nous croire.
   app.route("/", createAgentRouter());
+
+  // Le compte : identite par portefeuille, cles d'API, abonnement lu sur la chaine, et
+  // l'historique de ce que l'extension et le MCP ont depose. Sans base configuree, chaque
+  // route rend 503 en le DISANT — elle ne fait pas semblant de marcher.
+  app.route("/", createCompteRouter({ abonnement: configDepuisEnv() }));
 
   /* --------------------------------------------------------------- graphe */
 

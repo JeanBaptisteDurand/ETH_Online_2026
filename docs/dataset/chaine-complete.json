@@ -1,0 +1,92 @@
+{
+ "v": "tare.chaine.v1",
+ "debut": "2026-09-10T09:00:11.164Z",
+ "fin": "2026-09-10T09:00:11.773Z",
+ "duree_ms": 609,
+ "complete": false,
+ "n_ok": 3,
+ "n_total": 6,
+ "etapes": [
+  {
+   "n": 1,
+   "quoi": "une vraie transaction Base, rejouable par son hash",
+   "etat": "OK",
+   "detail": "capturee sur Base mainnet",
+   "faits": {
+    "hash": "0x226ac6c7e160f5e05918fd928d282d52457673dc4b71404045278c1950c4ef58",
+    "bloc": 50889309,
+    "chain_id": 8453,
+    "vers": "0x6ff5693b99212da76ad316178a184ab56d299b43",
+    "rejeu": "cast tx 0x226ac6c7e160f5e05918fd928d282d52457673dc4b71404045278c1950c4ef58 --rpc-url $BASE_RPC_URL",
+    "basescan": "https://basescan.org/tx/0x226ac6c7e160f5e05918fd928d282d52457673dc4b71404045278c1950c4ef58"
+   },
+   "a_ms": 1,
+   "pour_la_faire_tourner": null
+  },
+  {
+   "n": 2,
+   "quoi": "la garde decode le calldata et rend un verdict",
+   "etat": "OK",
+   "detail": "TARE n'a pas mesure ce pool a cette taille. Le meme hook a pris 250.00 bps ailleurs, au bloc 50614000. Continuer ?",
+   "faits": {
+    "verdict": "block",
+    "calldata_lu_en_entier": true,
+    "hook": "0x0469a4bd3724dc86c9542f4694c976da13c450c0",
+    "pool_id": "0x43a3e58748d3dd996ef780b82232bdefeb908507d945f3b70d1ba5e2c9e566f8",
+    "direction": "1->0",
+    "amount_in": "1995142195306018451",
+    "prelevement_bps": null,
+    "etiquette": "NOT_MEASURABLE",
+    "bloc_de_la_table": 50614000
+   },
+   "a_ms": 606,
+   "pour_la_faire_tourner": null
+  },
+  {
+   "n": 3,
+   "quoi": "y a-t-il une autre porte ?",
+   "etat": "OK",
+   "detail": "chemin multi-saut : aucune comparaison a taille egale n'est possible",
+   "faits": {
+    "etat": "NON_COMPARABLE"
+   },
+   "a_ms": 606,
+   "pour_la_faire_tourner": null
+  },
+  {
+   "n": 4,
+   "quoi": "une mesure neuve, payee en x402 sur Hedera",
+   "etat": "NON_EXECUTE",
+   "detail": "mode --sec : aucun reseau",
+   "faits": {},
+   "a_ms": 606,
+   "pour_la_faire_tourner": "relancer sans --sec"
+  },
+  {
+   "n": 5,
+   "quoi": "le lot est ancre sur le topic HCS",
+   "etat": "NON_EXECUTE",
+   "detail": "mode --sec : aucun reseau",
+   "faits": {},
+   "a_ms": 606,
+   "pour_la_faire_tourner": "relancer sans --sec"
+  },
+  {
+   "n": 6,
+   "quoi": "le rapport encode en EIP-712, rendu ecran par ecran sur l'appareil",
+   "etat": "NON_EXECUTE",
+   "detail": "enregistrement du 2026-09-09 relu, PAS rejoue dans cette chaine",
+   "faits": {
+    "appareil": "Speculos — application Ethereum officielle (Nano X)",
+    "materiel_physique": false,
+    "ecrans": 46,
+    "verdict_affiche": "block",
+    "signature_v": 28,
+    "transaction": "0xfa82cb2cf32bf1d7ba8c33d8ae3f6d4787a16e54dbf612cead72da4bd22d9b13",
+    "meme_transaction_qu_a_l_etape_1": false
+   },
+   "a_ms": 609,
+   "pour_la_faire_tourner": "./scripts/ledger/run-speculos.sh ethereum, puis npx tsx packages/guard/scripts/speculos-approve.ts"
+  }
+ ]
+}

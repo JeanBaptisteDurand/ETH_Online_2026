@@ -103,11 +103,16 @@ public) a rate-limite, la lecture est revenue vide, et une lecture vide est un
 
 ## Ce qui n'est PAS verifie
 
-* **Un paiement Hedera reel n'a jamais ete regle** de bout en bout : il faudrait un
-  compte testnet finance et un client x402. Ce qui est verifie : le 402 est emis avec
-  des `accepts[]` corrects, le montant suit le nombre de mesures, et le facilitateur
-  annonce bien `exact` sur `hedera:testnet`. La verification et le reglement sont
-  delegues a `@x402/hono`, non reimplementes ici.
+* ~~**Un paiement Hedera reel n'a jamais ete regle** de bout en bout.~~ **Ce n'est plus
+  vrai depuis le 8 septembre 2026**, et la phrase est gardee barree parce qu'une limite
+  levee se raye, elle ne s'efface pas : effacer donnerait a croire qu'elle n'a jamais
+  existe. **4 reglements** ont abouti sur `hedera:testnet`, en USDC (`0.0.429274`), par le
+  facilitateur Blocky402, chacun RELU sur le mirror node avant d'etre appele regle — un
+  200 dit que le serveur a rendu la ressource, pas que l'argent a bouge. Le journal :
+  [`docs/x402-settlements.jsonl`](../../docs/x402-settlements.jsonl), en ajout seul ;
+  le recit : [`X402.md`](../../X402.md). Dont **2** signes par une cle servie par le
+  Ledger Key Ring et non par un fichier. La verification et le reglement restent delegues
+  a `@x402/hono`, non reimplementes ici.
 * `payTo` vaut par defaut `HEDERA_FEE_PAYER` (`0.0.7162784`), c'est-a-dire le compte du
   facilitateur. **Mets un vrai compte TARE dans `HEDERA_PAY_TO` avant toute demo payante.**
 * `replay.command` (`make measure HOOK=… BLOCK=…`) est la forme courte publiee dans le

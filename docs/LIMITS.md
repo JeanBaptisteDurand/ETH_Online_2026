@@ -232,7 +232,7 @@ rather than a number is [`engine/tare/sweep.py:137-142`](../engine/tare/sweep.py
 *This section said "No x402 payment has ever settled" until 8 September 2026. It is kept here,
 corrected, because what the first real settlement broke matters more than the fact that it worked.*
 
-Six payments have settled on `hedera:testnet`, in USDC (`0.0.429274`), through the Blocky402
+4 payments have settled on `hedera:testnet`, in USDC (`0.0.429274`), through the Blocky402
 facilitator, each read back on the mirror node before being called settled — a 200 says the server
 returned the resource, not that money moved. The record is
 [`docs/x402-settlements.jsonl`](x402-settlements.jsonl), append-only; the account of it is

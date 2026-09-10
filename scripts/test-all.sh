@@ -72,6 +72,9 @@ echo "  ----------------------------------------"
 # une suite verte. Les melanger reviendrait a lire une panne comme une absence.
 if [ ${#broken[@]} -gt 0 ]; then
   printf "  suites qui ne tournent pas : %s\n" "${broken[*]}"
+  # Sur un clone frais c'est TOUJOURS la meme cause, et personne ne peut la deviner : il n'y
+  # a pas de racine npm avec des workspaces, donc chaque paquet s'installe separement.
+  printf "  -> sur un clone frais, il manque les dependances : bash scripts/install-all.sh\n"
 fi
 if [ ${#failed[@]} -gt 0 ]; then
   printf "  suites en echec : %s\n" "${failed[*]}"

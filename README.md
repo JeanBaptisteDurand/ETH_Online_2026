@@ -199,8 +199,14 @@ decodes what it just wrote and compares all 125,072 rows before emitting: a code
 silence would turn one measurement into another.
 
 ```bash
+bash scripts/install-all.sh     # each package has its own lockfile: there is no workspace root
 bash scripts/regenerate.sh      # rebuilds all three, in dependency order, then runs every suite
 ```
+
+Without the first line, `scripts/test-all.sh` reports **six suites that do not run** rather than
+a failure — it distinguishes the two, and says which. Without the second, the graph suites
+**skip** and print the one command that would enable them. Neither is reported green, and neither
+is reported red: a missing prerequisite is a state, not an accusation.
 
 It refuses to run while a sweep is writing to the corpus: artefacts built from a moving dataset
 disagree with each other, which is worse than artefacts that are merely old.
@@ -281,6 +287,11 @@ What is not AI-generated is the measurement: every number in `docs/dataset/` com
 and [`engine/tare/gates/a3.py`](engine/tare/gates/a3.py) recomputes five of them on every run.
 
 ## What we could not do, and where the fix belongs upstream
+
+The eleven findings sent to the Uniswap Foundation are in [`FEEDBACK.md`](FEEDBACK.md), each with
+the file and line in `v4-core` or `v4-periphery` that produced it. The schema change that would let
+the registry carry a rate at all is written, validated and ready to open as a pull request against
+`Uniswap/hooklist`: [`docs/pr-hooklist/`](docs/pr-hooklist/).
 
 The guard's hardware leg stops one step short of a Ledger screen, and the step is not ours to take
 alone: the Ethereum app displays an arbitrary EIP-712 struct field by field only when Ledger holds

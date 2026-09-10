@@ -7,7 +7,8 @@ pas :
 > Blocky402 facilitator »*
 > *« …completes **at least one real paid request** end to end »*
 
-La seconde est faite, et prouvée : six règlements réels dans
+La seconde est faite, et prouvée : 4 règlements réels — comptés dans le journal, pas
+affirmés — dans
 [`docs/x402-settlements.jsonl`](docs/x402-settlements.jsonl), relus sur le mirror node.
 La première demande une machine allumée.
 

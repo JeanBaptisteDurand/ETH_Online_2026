@@ -213,7 +213,16 @@ export type EtatPermit2 =
   /** approuve, et l'autorisation du routeur couvre le montant : rien a signer */
   | "DEJA_AUTORISE"
   /** approuve, mais l'autorisation manque ou expire : une signature suffit */
-  | "SIGNATURE_SUFFIT";
+  | "SIGNATURE_SUFFIT"
+  /**
+   * L'autorisation actuelle du routeur n'a pas ete LUE, donc son `nonce` est inconnu.
+   *
+   * Ce n'est pas « pas encore autorise » : Permit2 refuse un permit dont le nonce n'est pas
+   * exactement le suivant attendu, et il le refuse par un revert que rien n'annonce avant
+   * l'envoi. Ecrire 0 quand on n'a pas lu produisait une signature valide en apparence, que
+   * l'utilisateur signait, et que la chaine rejetait. Un nonce non lu est un refus motive.
+   */
+  | "NONCE_NON_LU";
 
 export interface Besoin {
   etat: EtatPermit2;
@@ -276,7 +285,18 @@ export function besoin(args: {
     };
 
   const a = args.autorisationDuRouteur;
-  if (a && a.montant >= args.montant && a.expiration > now)
+  if (a === null)
+    return {
+      etat: "NONCE_NON_LU",
+      raison:
+        "l'autorisation actuelle du routeur chez Permit2 n'a pas pu etre lue, donc son nonce est " +
+        "inconnu. Permit2 rejette un permit au mauvais nonce, et il le rejette a l'envoi : " +
+        "signer maintenant ferait perdre le gaz. Relire allowance(proprietaire,jeton,routeur) d'abord",
+      approbation: null,
+      aSigner: null,
+    };
+
+  if (a.montant >= args.montant && a.expiration > now)
     return {
       etat: "DEJA_AUTORISE",
       raison: `le routeur est deja autorise pour ${a.montant} jusqu'a ${a.expiration} : rien a signer`,
@@ -291,7 +311,8 @@ export function besoin(args: {
       // 30 jours : assez pour ne pas re-signer a chaque swap, assez court pour que
       // l'autorisation ne traine pas indefiniment si la cle est perdue.
       expiration: now + 30n * 86400n,
-      nonce: a ? a.nonce : 0n,
+      // Le nonce vient de la chaine, jamais d'un defaut : voir NONCE_NON_LU plus haut.
+      nonce: a.nonce,
     },
     spender,
     // 30 minutes : la SIGNATURE elle-meme perime vite, meme si l'autorisation dure.
@@ -299,9 +320,10 @@ export function besoin(args: {
   };
   return {
     etat: "SIGNATURE_SUFFIT",
-    raison: a
-      ? `autorisation du routeur insuffisante ou expiree (${a.montant} jusqu'a ${a.expiration}) : une signature la renouvelle`
-      : "aucune autorisation du routeur lue : une signature suffit, sans transaction",
+    raison:
+      a.montant === 0n && a.expiration === 0n
+        ? `le routeur n'a encore aucune autorisation sur ce jeton (nonce ${a.nonce} lu) : une signature suffit, sans transaction`
+        : `autorisation du routeur insuffisante ou expiree (${a.montant} jusqu'a ${a.expiration}, nonce ${a.nonce}) : une signature la renouvelle`,
     approbation: null,
     aSigner: messageTypeAsigner(permit, args.chainId),
   };

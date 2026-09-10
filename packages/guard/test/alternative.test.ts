@@ -73,8 +73,8 @@ describe("une porte unique n'est pas un echec de recherche", () => {
     expect(a.proposee).toBeNull();
     expect(a.calldata).toBeNull();
     // « je n'ai pas trouve mieux » ne dirait pas si c'est parce qu'il n'y a rien.
-    expect(a.raison).toMatch(/n'existe que dans ce pool/);
-    expect(a.raison).toMatch(/97,2 %/);
+    expect(a.raison).toMatch(/aucun autre pool du corpus n'echange/);
+    expect(a.raison).toMatch(/99,71 %/);
   });
 });
 
@@ -282,5 +282,101 @@ describe("un pool absent du corpus le dit, au lieu de rendre null", () => {
     expect(a.proposee).toBeNull();
     expect(a.calldata).toBeNull();
     expect(a.economie_bps).toBeNull();
+  });
+});
+
+
+/* --------------------------------------------------------------------------- */
+/* LE SENS, ET LES MONNAIES. Les deux regles ajoutees apres qu'un test de la    */
+/* route HTTP a montre une proposition INVERSEE sur un couple reel du corpus.   */
+/* --------------------------------------------------------------------------- */
+
+describe("on compare le meme echange, dans le meme sens", () => {
+  const ETH = "0x0000000000000000000000000000000000000000";
+
+  /**
+   * Le couple qui a revele le defaut. Deux pools, memes monnaies (ETH natif / JETON), meme
+   * hook. Vendre le jeton coute 300 bps dans le premier ; l'ACHETER n'en coute que 0,03 dans
+   * le second. La version fautive proposait le second a qui voulait vendre — c'est-a-dire une
+   * transaction qui part dans l'autre sens, avec le montant lu comme si c'etait le meme.
+   */
+  const inverse = () =>
+    table({
+      "0xp1": pool({
+        currency0: ETH,
+        currency1: JETON,
+        dirs: { "1->0": [pt("1000", 300)], "0->1": [pt("1000", 300)] },
+      }),
+      "0xp2": pool({
+        hook: "0xbbbb000000000000000000000000000000000002",
+        currency0: ETH,
+        currency1: JETON,
+        // moins chere UNIQUEMENT dans le sens qui achete le jeton
+        dirs: { "0->1": [pt("1000", 0.03)] },
+      }),
+    });
+
+  it("vendre le jeton ne se compare pas a l'acheter ailleurs", () => {
+    const a = chercherAlternative(inverse(), "0xp1", "1->0", "1000")!;
+    // la soeur n'est mesuree que dans l'autre sens : rien de comparable
+    expect(a.etat).toBe("AUTRES_NON_MESUREES");
+    expect(a.proposee).toBeNull();
+    expect(a.calldata).toBeNull();
+    // et la porte examinee est bien evaluee dans le sens DEMANDE, pas dans l'autre
+    expect(a.examinees).toHaveLength(1);
+    expect(a.examinees[0]!.direction).toBe("1->0");
+  });
+
+  it("acheter le jeton se compare bien a l'acheter ailleurs", () => {
+    const a = chercherAlternative(inverse(), "0xp1", "0->1", "1000")!;
+    expect(a.etat).toBe("MEILLEURE_PORTE");
+    expect(a.proposee!.direction).toBe("0->1");
+    expect(a.economie_bps).toBeCloseTo(299.97, 2);
+  });
+
+  it("le sens de la porte proposee est deduit de SES monnaies, pas recopie", () => {
+    // ici la soeur porte les monnaies dans l'ordre INVERSE : le meme echange s'y fait
+    // dans l'autre sens de PoolKey. Recopier "0->1" enverrait le swap a l'envers.
+    const t = table({
+      "0xp1": pool({ currency0: ETH, currency1: JETON, dirs: { "0->1": [pt("1000", 300)] } }),
+      "0xp2": pool({
+        hook: "0xbbbb000000000000000000000000000000000002",
+        currency0: JETON,
+        currency1: ETH,
+        dirs: { "1->0": [pt("1000", 1)] },
+      }),
+    });
+    const a = chercherAlternative(t, "0xp1", "0->1", "1000")!;
+    expect(a.etat).toBe("MEILLEURE_PORTE");
+    // depenser ETH dans un pool ou ETH est currency1 = sens 1->0
+    expect(a.proposee!.direction).toBe("1->0");
+    expect(a.proposee!.zeroForOne).toBe(false);
+    // et le calldata construit porte bien ce sens
+    const j = decodeUniversalRouterCalldata(a.calldata!).legs[0]!;
+    expect(j.zeroForOne).toBe(false);
+    expect(j.poolKey.currency0.toLowerCase()).toBe(JETON);
+  });
+});
+
+describe("les deux monnaies doivent etre les memes, pas seulement le jeton", () => {
+  const WETH_ = "0x4200000000000000000000000000000000000006";
+  const USDC_ = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913";
+
+  it("un pool JETON/USDC n'est pas une alternative a un pool JETON/WETH", () => {
+    // 1e18 unites de WETH et 1e18 unites d'USDC ne sont pas le meme montant : l'un vaut
+    // un ether, l'autre mille milliards de dollars. « La meme taille » n'y veut rien dire.
+    const t = table({
+      "0xp1": pool({ currency0: WETH_, currency1: JETON, dirs: { "0->1": [pt("1000000000000000000", 300)] } }),
+      "0xp2": pool({
+        hook: "0xbbbb000000000000000000000000000000000002",
+        currency0: USDC_,
+        currency1: JETON,
+        dirs: { "0->1": [pt("1000000000000000000", 0.5)] },
+      }),
+    });
+    const a = chercherAlternative(t, "0xp1", "0->1", "1000000000000000000")!;
+    expect(a.etat).toBe("PORTE_UNIQUE");
+    expect(a.examinees).toHaveLength(0);
+    expect(a.raison).toMatch(/aucun autre pool du corpus n'echange/);
   });
 });

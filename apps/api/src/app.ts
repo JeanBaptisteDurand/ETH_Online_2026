@@ -22,6 +22,7 @@ import { configDepuisEnv } from "./compte/abonnement.js";
 import { createGraphRouter } from "./graph-routes.js";
 import { createRagRouter } from "./rag/index.js";
 import { createRouteRouter } from "./route.js";
+import { createAlternativeRouter } from "./alternative.js";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { createPaymentLayer, payerFromHeader, paymentHeaderOf, priceFor } from "./x402.js";
 import type { Label } from "./labels.js";
@@ -78,7 +79,25 @@ export function createApp(deps: AppDeps = {}) {
         "GET  /rag/search?q=..     les passages du corpus, avec fichier, ligne et distance",
         "GET  /rag/meta            l'etat de l'index vectoriel, lu en base",
         "GET  /route?currency0=..&currency1=..  par quel pool passer, et ce que ca coute",
+        "POST /alternative        cette porte contre les autres, et — s'il y a mieux — la transaction de remplacement a signer",
+        "GET  /agent              l'identite HCS-14 de l'agent, et son UAID",
+        "GET  /agent/hcs          le message du registre Hedera qui la publie",
       ],
+      // Le parcours du compte, dans l'ordre ou il se vit. Il etait documente uniquement dans
+      // l'en-tete de src/compte/router.ts : personne d'exterieur ne pouvait le decouvrir.
+      compte: [
+        "POST   /compte/nonce         {adresse} -> un nonce et le TEXTE exact a signer",
+        "POST   /compte/session       {adresse, nonce, signature} -> un jeton de session",
+        "GET    /compte               le compte, son abonnement lu sur la chaine, ses cles, ses compteurs",
+        "POST   /compte/abonnement    relit l'abonnement sur le contrat et rafraichit le cache",
+        "POST   /compte/cle           {nom, portee} -> une cle d'API. Le secret est rendu UNE SEULE FOIS",
+        "DELETE /compte/cle/:id       revoque une cle",
+        "GET    /compte/journal       l'historique : analyses, verdicts, substitutions",
+        "POST   /compte/journal       l'extension et le MCP y deposent (en-tete x-tare-cle)",
+        "DELETE /compte/session       deconnexion",
+      ],
+      deux_authentifications:
+        "le jeton de session (authorization: Bearer) appartient a un humain devant un navigateur et ouvre la lecture du compte et la gestion des cles ; la cle d'API (x-tare-cle) appartient a une machine et n'ouvre que l'ecriture au journal. Une cle ne peut jamais en creer une autre.",
     }),
   );
 
@@ -602,6 +621,12 @@ export function createApp(deps: AppDeps = {}) {
   // ou l'aveu qu'il n'y en a qu'une. Voir la note de tete de route.ts : la route ne
   // classe que ce qui a un cout mesure, et liste le reste sans lui preter un zero.
   app.route("/", createRouteRouter());
+
+  // POST /alternative — la substitution, atteignable en HTTP. Deux etages : la comparaison
+  // est locale et gratuite (et repond « une seule porte » dans 99,8 % des cas), les trois
+  // lectures on-chain n'ont lieu QUE si une porte mesuree moins chere existe. Le compte des
+  // appels RPC est rendu dans la reponse.
+  app.route("/", createAlternativeRouter());
 
   /* ------------------------------------------------------------ utilitaire */
 

@@ -3,29 +3,51 @@
  *
  * La garde repond « ce que cette porte prend ». La question suivante est evidemment « et
  * ailleurs ? ». Ce module y repond — et, la plupart du temps, il repond NON, parce que c'est
- * la verite : sur les 8 583 jetons du corpus, **97,2 % n'existent que dans un seul pool**.
- * Il n'y a nulle part ou aller.
+ * la verite.
  *
- * Sur les 237 jetons qui ont deux portes MESUREES, l'ecart median entre la meilleure et la
- * pire vaut **0,0 bps** : les deux coutent pareil. Le choix ne vaut plus de 100 bps que pour
- * **8 jetons**. Ces huit-la sont spectaculaires — sur l'un, changer de porte fait passer de
- * 0,00 a 1 798 bps — et c'est exactement pour eux que ce module existe.
+ * TOUS LES NOMBRES CI-DESSOUS SONT PRODUITS PAR scripts/chiffres-alternative.mjs, qui rejoue
+ * cette logique sur les 125 072 lignes de data/table.json et ecrit data/chiffres-alternative.json.
+ * Ils etaient auparavant comptes a la main, et ils etaient faux — voir sensEquivalent().
+ *
+ * Sur les 125 072 lignes de mesure, chacune etant une question qu'un utilisateur peut poser :
+ *
+ *   PORTE_UNIQUE           124 704   99,71 %   aucun autre pool ne fait cet echange
+ *   ACTUELLE_NON_MESUREE       237    0,19 %
+ *   DEJA_LA_MEILLEURE          112    0,09 %
+ *   MEILLEURE_PORTE             15    0,01 %
+ *   AUTRES_NON_MESUREES          4    0,00 %
+ *
+ * Quinze propositions dans tout le corpus. Elles se ramenent a QUATRE couples de pools, et la
+ * meilleure fait passer de 295,59 a 216,92 bps — **78,67 bps** d'ecart, sur un jeton echange
+ * contre lui-meme dans deux pools de meme frais et meme tickSpacing, qui ne different que par
+ * leur hook. Aucune ne depasse 100 bps.
+ *
+ * 15 sur 125 072, c'est le fait qui compte, et il est plus interessant que son contraire : le
+ * choix de la porte n'est presque jamais la variable. La variable, c'est la TAILLE — le
+ * prelevement varie avec le montant dans 49,1 % des couples (pool, sens), de 75 bps en
+ * mediane. Un produit qui vend « on te trouve un meilleur pool » vendrait le mauvais chiffre.
  *
  * D'ou la forme de la reponse : un ETAT nomme, pas un booleen. « Il n'y a qu'une porte » est
  * une reponse utile ; « je n'ai pas trouve mieux » n'en est pas une, parce qu'on ne sait pas
  * si c'est parce qu'il n'y a rien ou parce qu'on n'a pas cherche.
  *
- * TROIS REGLES, et elles sont dures :
+ * QUATRE REGLES, et elles sont dures :
  *
  *   1. On ne propose JAMAIS une porte dont le cout n'est pas MESURE. Une porte non mesuree
  *      n'est pas une porte moins chere : elle est inconnue, et l'envoyer serait pire que de
  *      ne rien proposer.
- *   2. On compare a la MEME TAILLE. Le prelevement varie avec le montant dans 49,1 % des
- *      couples (pool, sens), de 75 bps en mediane : comparer 1e15 chez l'un a 1e18 chez
- *      l'autre fabriquerait une economie qui n'existe pas.
- *   3. On ne reecrit rien. Le calldata de remplacement est CONSTRUIT et RENDU ; c'est
+ *   2. On compare a la MEME TAILLE **et dans les memes MONNAIES**. Comparer 1e15 chez l'un a
+ *      1e18 chez l'autre fabriquerait une economie qui n'existe pas ; comparer 1e18 unites de
+ *      WETH a 1e18 unites d'USDC serait pire encore.
+ *   3. On compare le MEME ECHANGE, dans le MEME SENS. C'est la regle qui manquait, et son
+ *      absence produisait des propositions inversees : voir sensEquivalent().
+ *   4. On ne reecrit rien. Le calldata de remplacement est CONSTRUIT et RENDU ; c'est
  *      l'utilisateur qui signe, ou pas. Des qu'on substitue une transaction en silence, on
  *      devient responsable de son resultat.
+ *
+ * La transaction envoyable, elle, est construite par envoi.ts : ce module s'arrete au
+ * calldata, parce qu'un `{to, data, value}` exige un plancher de sortie et une echeance que
+ * le corpus, epingle a un bloc, ne peut pas fournir.
  */
 import type { Label, PoolKey } from "./types.js";
 import type { GuardTable, TablePool } from "./table.js";
@@ -147,10 +169,41 @@ function porteA(
   };
 }
 
-/** Le sens qui achete le meme jeton dans un autre pool que celui d'origine. */
-function memeSens(pool: TablePool, jeton: string): "0->1" | "1->0" {
-  // Acheter le jeton = aller VERS le cote de la PoolKey qui le porte.
-  return pool.currency1.toLowerCase() === jeton ? "0->1" : "1->0";
+/** Ce que ce swap DEPENSE et ce qu'il RECOIT, dans ce sens. */
+export function cotes(
+  pool: TablePool,
+  direction: "0->1" | "1->0",
+): { entree: string; sortie: string } {
+  const c0 = pool.currency0.toLowerCase();
+  const c1 = pool.currency1.toLowerCase();
+  return direction === "0->1" ? { entree: c0, sortie: c1 } : { entree: c1, sortie: c0 };
+}
+
+/**
+ * Le sens de CE pool qui fait EXACTEMENT le meme echange, ou null s'il ne le peut pas.
+ *
+ * C'est la correction d'un defaut qui aurait pu couter tres cher. La version precedente
+ * repondait « le sens qui ACHETE le jeton », en dur, sans regarder le sens demande. Sur le
+ * couple le plus spectaculaire du corpus — le pool 0x997673… a 300,00 bps et son frere
+ * 0xe11e1e… a 0,0316 bps, memes monnaies, meme hook — quelqu'un qui VEND son jeton contre de
+ * l'ETH recevait une transaction qui DEPENSE de l'ETH pour acheter le jeton. Le sens inverse,
+ * avec un montant lu comme si c'etait le meme.
+ *
+ * Et la comparaison exige les DEUX monnaies, pas seulement le jeton : un pool JETON/WETH et
+ * un pool JETON/USDC portent le meme jeton, mais 1e18 unites de l'un ne valent pas 1e18
+ * unites de l'autre. Comparer a « la meme taille » n'y voudrait rien dire — c'est la regle
+ * dure n.2, appliquee a la monnaie et plus seulement au nombre.
+ */
+export function sensEquivalent(
+  pool: TablePool,
+  entree: string,
+  sortie: string,
+): "0->1" | "1->0" | null {
+  const c0 = pool.currency0.toLowerCase();
+  const c1 = pool.currency1.toLowerCase();
+  if (c0 === entree && c1 === sortie) return "0->1";
+  if (c1 === entree && c0 === sortie) return "1->0";
+  return null;
 }
 
 /**
@@ -208,21 +261,16 @@ export function chercherAlternative(
     chain_id: table.chain_id,
   };
 
-  const jeton = jetonDuPool(pool);
-  if (jeton === null) {
-    return {
-      ...socle,
-      etat: "PORTE_UNIQUE",
-      raison:
-        "les deux cotes de ce pool sont des monnaies de cotation : il n'y a pas de jeton dont chercher les autres portes",
-    };
-  }
+  // L'echange demande, en monnaies : c'est LUI qu'une autre porte doit savoir refaire.
+  const { entree, sortie } = cotes(pool, direction);
 
-  // Toutes les portes du meme jeton, celle-ci exceptee.
-  const soeurs: [string, TablePool][] = [];
+  // Toutes les portes qui font le MEME echange — memes deux monnaies, dans le meme sens —
+  // celle-ci exceptee. Le sens de chacune est deduit de ses monnaies, jamais suppose.
+  const soeurs: [string, TablePool, "0->1" | "1->0"][] = [];
   for (const [pid, p] of Object.entries(table.pools)) {
     if (pid === id) continue;
-    if (jetonDuPool(p) === jeton) soeurs.push([pid, p]);
+    const sens = sensEquivalent(p, entree, sortie);
+    if (sens !== null) soeurs.push([pid, p, sens]);
   }
 
   if (soeurs.length === 0) {
@@ -230,12 +278,13 @@ export function chercherAlternative(
       ...socle,
       etat: "PORTE_UNIQUE",
       raison:
-        `ce jeton n'existe que dans ce pool, dans tout le corpus. Il n'y a nulle part ou aller — ` +
-        `c'est le cas de 97,2 % des jetons mesures, et la seule decision qui reste est la taille`,
+        `aucun autre pool du corpus n'echange ${entree.slice(0, 10)}… contre ${sortie.slice(0, 10)}… : ` +
+        `il n'y a nulle part ou aller. C'est le cas de 99,71 % des 125 072 lignes du corpus, et la ` +
+        `seule decision qui reste est la taille`,
     };
   }
 
-  const examinees = soeurs.map(([pid, p]) => porteA(table, pid, p, memeSens(p, jeton), amountIn));
+  const examinees = soeurs.map(([pid, p, sens]) => porteA(table, pid, p, sens, amountIn));
   const avecSocle = { ...socle, examinees };
 
   if (actuelle.bps === null) {

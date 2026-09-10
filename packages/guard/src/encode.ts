@@ -93,6 +93,17 @@ export function encodeExactInSingleParams(p: ExactInSingle): Uint8Array {
 }
 
 export interface EncodeSwapOptions {
+  /**
+   * L'echeance de l'`execute` lui-meme, horodatage Unix en secondes.
+   *
+   * Le defaut valait `0xffffffff` — le 7 fevrier 2106. Une transaction sans echeance reelle
+   * peut etre retenue par un mineur et rejouee des heures plus tard, a un prix qui n'a plus
+   * rien a voir avec celui qu'on a montre. C'est la meme faute que le plancher a zero, sous
+   * une autre forme : une protection ecrite mais desactivee.
+   *
+   * On garde un defaut pour ne pas casser les tests d'encodage qui ne parlent que d'octets,
+   * mais `transactionDeRemplacement` (envoi.ts) en exige un vrai et refuse sans lui.
+   */
   deadline?: bigint;
   /**
    * Un permit a presenter AVANT le swap, dans la meme transaction.
@@ -105,6 +116,16 @@ export interface EncodeSwapOptions {
   /** actions ajoutees apres le swap ; par defaut SETTLE_ALL (0x0c) et TAKE_ALL (0x0f) */
   settleTake?: boolean;
 }
+
+/**
+ * Le plancher de sortie, en unites du jeton recu.
+ *
+ * Il est porte DEUX fois par la transaction, et les deux comptent :
+ *   - `amountOutMinimum` dans ExactInputSingleParams, verifie par le V4Router au swap ;
+ *   - `minAmount` de TAKE_ALL (0x0f), verifie au moment de retirer les fonds.
+ * Les laisser tous les deux a zero — ce que faisait cet encodeur — rend la transaction
+ * signable a n'importe quel prix : c'est l'invitation ecrite au sandwich.
+ */
 
 /**
  * Un `execute(bytes,bytes[],uint256)` complet portant un V4_SWAP / SWAP_EXACT_IN_SINGLE.
@@ -125,7 +146,9 @@ export function encodeUniversalRouterExactInSingle(
     actions.push(0x0c); // SETTLE_ALL(currency, maxAmount)
     params.push(concat([addrWord(inCur), word(first.amountIn)]));
     actions.push(0x0f); // TAKE_ALL(currency, minAmount)
-    params.push(concat([addrWord(outCur), word(0)]));
+    // Le meme plancher que celui du swap. Un TAKE_ALL a zero derriere un amountOutMinimum
+    // renseigne laisserait passer un retrait partiel : les deux doivent dire la meme chose.
+    params.push(concat([addrWord(outCur), word(first.amountOutMinimum ?? 0n)]));
   }
 
   const v4Input = concat([

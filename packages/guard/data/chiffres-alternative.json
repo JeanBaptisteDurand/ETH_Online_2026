@@ -1,0 +1,194 @@
+{
+  "schema": "tare-chiffres-alternative/1",
+  "source": "packages/guard/data/table.json",
+  "block_number": 50614000,
+  "chain_id": 8453,
+  "n_measurements_table": 125072,
+  "seuil_bps": 1,
+  "note": "chaque ligne de la table (pool, sens, taille) est une question posee a chercherAlternative() et l'etat rendu est compte. Les soeurs sont les pools qui font le MEME echange (memes deux monnaies, meme sens), et jamais ceux qui partagent seulement le jeton.",
+  "mesures_lues": 125072,
+  "etats": {
+    "PORTE_UNIQUE": 124704,
+    "DEJA_LA_MEILLEURE": 112,
+    "AUTRES_NON_MESUREES": 4,
+    "ACTUELLE_NON_MESUREE": 237,
+    "MEILLEURE_PORTE": 15
+  },
+  "part_porte_unique": 99.71,
+  "paires_a_une_porte": 15588,
+  "paires_a_plusieurs_portes": 16,
+  "propositions_au_dessus_du_seuil": 15,
+  "economie_bps": {
+    "min": 1,
+    "mediane": 4.0933,
+    "max": 78.6684
+  },
+  "propositions_au_dessus_de_100_bps": 0,
+  "propositions": [
+    {
+      "de": "0x30af3420023c254aa62170c4fa153e87f140540f2756e3ed6a0e897b422e0b00",
+      "vers": "0x9492c969a3f748a57a63975273b0837894042a22c21e858f9d7673ba80162c26",
+      "sens": "1->0",
+      "taille": "1000000000000000000",
+      "bps_actuel": 295.5924,
+      "bps_propose": 216.924,
+      "economie_bps": 78.6684,
+      "entree": "0xb7ebae7b9135b6454a6ba0b5e483317f72ca3356",
+      "sortie": "0xb2000000000000000000007d9640993d01f94199"
+    },
+    {
+      "de": "0x30af3420023c254aa62170c4fa153e87f140540f2756e3ed6a0e897b422e0b00",
+      "vers": "0x9492c969a3f748a57a63975273b0837894042a22c21e858f9d7673ba80162c26",
+      "sens": "1->0",
+      "taille": "100000000000000000",
+      "bps_actuel": 267.9533,
+      "bps_propose": 209.9926,
+      "economie_bps": 57.9607,
+      "entree": "0xb7ebae7b9135b6454a6ba0b5e483317f72ca3356",
+      "sortie": "0xb2000000000000000000007d9640993d01f94199"
+    },
+    {
+      "de": "0x30af3420023c254aa62170c4fa153e87f140540f2756e3ed6a0e897b422e0b00",
+      "vers": "0x9492c969a3f748a57a63975273b0837894042a22c21e858f9d7673ba80162c26",
+      "sens": "1->0",
+      "taille": "1000000000000",
+      "bps_actuel": 264,
+      "bps_propose": 210,
+      "economie_bps": 54,
+      "entree": "0xb7ebae7b9135b6454a6ba0b5e483317f72ca3356",
+      "sortie": "0xb2000000000000000000007d9640993d01f94199"
+    },
+    {
+      "de": "0x30af3420023c254aa62170c4fa153e87f140540f2756e3ed6a0e897b422e0b00",
+      "vers": "0x9492c969a3f748a57a63975273b0837894042a22c21e858f9d7673ba80162c26",
+      "sens": "1->0",
+      "taille": "10000000000000",
+      "bps_actuel": 264,
+      "bps_propose": 210,
+      "economie_bps": 54,
+      "entree": "0xb7ebae7b9135b6454a6ba0b5e483317f72ca3356",
+      "sortie": "0xb2000000000000000000007d9640993d01f94199"
+    },
+    {
+      "de": "0x30af3420023c254aa62170c4fa153e87f140540f2756e3ed6a0e897b422e0b00",
+      "vers": "0x9492c969a3f748a57a63975273b0837894042a22c21e858f9d7673ba80162c26",
+      "sens": "1->0",
+      "taille": "100000000000000",
+      "bps_actuel": 264,
+      "bps_propose": 210,
+      "economie_bps": 54,
+      "entree": "0xb7ebae7b9135b6454a6ba0b5e483317f72ca3356",
+      "sortie": "0xb2000000000000000000007d9640993d01f94199"
+    },
+    {
+      "de": "0x30af3420023c254aa62170c4fa153e87f140540f2756e3ed6a0e897b422e0b00",
+      "vers": "0x9492c969a3f748a57a63975273b0837894042a22c21e858f9d7673ba80162c26",
+      "sens": "1->0",
+      "taille": "1000000000000000",
+      "bps_actuel": 263.9995,
+      "bps_propose": 209.9999,
+      "economie_bps": 53.9996,
+      "entree": "0xb7ebae7b9135b6454a6ba0b5e483317f72ca3356",
+      "sortie": "0xb2000000000000000000007d9640993d01f94199"
+    },
+    {
+      "de": "0x30af3420023c254aa62170c4fa153e87f140540f2756e3ed6a0e897b422e0b00",
+      "vers": "0x9492c969a3f748a57a63975273b0837894042a22c21e858f9d7673ba80162c26",
+      "sens": "1->0",
+      "taille": "10000000000000000",
+      "bps_actuel": 263.9954,
+      "bps_propose": 209.9993,
+      "economie_bps": 53.9961,
+      "entree": "0xb7ebae7b9135b6454a6ba0b5e483317f72ca3356",
+      "sortie": "0xb2000000000000000000007d9640993d01f94199"
+    },
+    {
+      "de": "0x2fcc6c5ff68b185fee2521a889a0a4e3c17dc7c981349b9ec68614a844ea9aff",
+      "vers": "0x0640a8b46f4a47061bb9e742de5551e1c52bcbfd8f662a5da57c6ebe664a5ff5",
+      "sens": "0->1",
+      "taille": "1000000000000",
+      "bps_actuel": 4.0933,
+      "bps_propose": 0,
+      "economie_bps": 4.0933,
+      "entree": "0x0000000000000000000000000000000000000000",
+      "sortie": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+    },
+    {
+      "de": "0xd02f5afae442b978d0ecf298b8df6b607501461e0c8f5ca3db2bde9cb9a97aba",
+      "vers": "0x07020d7e7aa9cbf7d1111c60c20a3ee1fdc69b9b767dad4f3ff362143851b31f",
+      "sens": "1->0",
+      "taille": "1000000000000",
+      "bps_actuel": 99.438,
+      "bps_propose": 95.7592,
+      "economie_bps": 3.6788,
+      "entree": "0xb2000000000000000000003b6d6e5386bc032d4d",
+      "sortie": "0x4200000000000000000000000000000000000006"
+    },
+    {
+      "de": "0x997673a6e66b4d4b3875e7dd42482b5947fd9c00882a1c5f70425605b89932da",
+      "vers": "0xe11e1e56d18cedbdc9ab46a3158b051e86ab93e1fa20196d0b2b78c29066f7f1",
+      "sens": "0->1",
+      "taille": "1000000000000000",
+      "bps_actuel": 155.1274,
+      "bps_propose": 153.8653,
+      "economie_bps": 1.2621,
+      "entree": "0x0000000000000000000000000000000000000000",
+      "sortie": "0x07a6a0a4cf7ebc79bdd537b5b681fd00a9cb1b67"
+    },
+    {
+      "de": "0x2fcc6c5ff68b185fee2521a889a0a4e3c17dc7c981349b9ec68614a844ea9aff",
+      "vers": "0x0640a8b46f4a47061bb9e742de5551e1c52bcbfd8f662a5da57c6ebe664a5ff5",
+      "sens": "0->1",
+      "taille": "10000000000000",
+      "bps_actuel": 1.2277,
+      "bps_propose": 0,
+      "economie_bps": 1.2277,
+      "entree": "0x0000000000000000000000000000000000000000",
+      "sortie": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+    },
+    {
+      "de": "0x2fcc6c5ff68b185fee2521a889a0a4e3c17dc7c981349b9ec68614a844ea9aff",
+      "vers": "0x0640a8b46f4a47061bb9e742de5551e1c52bcbfd8f662a5da57c6ebe664a5ff5",
+      "sens": "0->1",
+      "taille": "100000000000000",
+      "bps_actuel": 1.0231,
+      "bps_propose": 0,
+      "economie_bps": 1.0231,
+      "entree": "0x0000000000000000000000000000000000000000",
+      "sortie": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+    },
+    {
+      "de": "0x2fcc6c5ff68b185fee2521a889a0a4e3c17dc7c981349b9ec68614a844ea9aff",
+      "vers": "0x0640a8b46f4a47061bb9e742de5551e1c52bcbfd8f662a5da57c6ebe664a5ff5",
+      "sens": "0->1",
+      "taille": "1000000000000000",
+      "bps_actuel": 1.0027,
+      "bps_propose": 0,
+      "economie_bps": 1.0027,
+      "entree": "0x0000000000000000000000000000000000000000",
+      "sortie": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+    },
+    {
+      "de": "0x2fcc6c5ff68b185fee2521a889a0a4e3c17dc7c981349b9ec68614a844ea9aff",
+      "vers": "0x0640a8b46f4a47061bb9e742de5551e1c52bcbfd8f662a5da57c6ebe664a5ff5",
+      "sens": "0->1",
+      "taille": "10000000000000000",
+      "bps_actuel": 1.0002,
+      "bps_propose": 0,
+      "economie_bps": 1.0002,
+      "entree": "0x0000000000000000000000000000000000000000",
+      "sortie": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+    },
+    {
+      "de": "0x2fcc6c5ff68b185fee2521a889a0a4e3c17dc7c981349b9ec68614a844ea9aff",
+      "vers": "0x0640a8b46f4a47061bb9e742de5551e1c52bcbfd8f662a5da57c6ebe664a5ff5",
+      "sens": "0->1",
+      "taille": "100000000000000000",
+      "bps_actuel": 1,
+      "bps_propose": 0,
+      "economie_bps": 1,
+      "entree": "0x0000000000000000000000000000000000000000",
+      "sortie": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+    }
+  ]
+}

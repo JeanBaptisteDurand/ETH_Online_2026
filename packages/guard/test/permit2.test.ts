@@ -191,12 +191,30 @@ describe("ce qui reste a faire a l'utilisateur — la regle qui evite une promes
     expect(b.raison).toMatch(/n'a pas pu etre lue/);
   });
 
-  it("approuve mais sans autorisation du routeur : une signature suffit", () => {
+  it("approuve, mais l'autorisation du routeur NON LUE : on ne fabrique pas le nonce", () => {
+    // C'etait le defaut le plus couteux du module : un `null` non lu devenait un nonce a 0,
+    // Permit2 exige le nonce exact, et il refuse par un revert. L'utilisateur signait un
+    // message valide en apparence et perdait le gaz de l'envoi.
     const b = besoin({ ...commun, allowanceVersPermit2: MONTANT_MAX_PERMIT2, autorisationDuRouteur: null });
+    expect(b.etat).toBe("NONCE_NON_LU");
+    expect(b.aSigner).toBeNull();
+    expect(b.approbation).toBeNull();
+    expect(b.raison).toMatch(/nonce/);
+  });
+
+  it("approuve et l'autorisation LUE a zero : une signature suffit, au nonce lu", () => {
+    // Permit2.allowance() rend TOUJOURS un triplet : un triplet a zero est une lecture
+    // valide qui dit « rien encore », pas une lecture ratee.
+    const b = besoin({
+      ...commun,
+      allowanceVersPermit2: MONTANT_MAX_PERMIT2,
+      autorisationDuRouteur: { montant: 0n, expiration: 0n, nonce: 11n },
+    });
     expect(b.etat).toBe("SIGNATURE_SUFFIT");
     expect(b.approbation).toBeNull();
     expect(b.aSigner).not.toBeNull();
     expect(b.aSigner!.message.spender).toBe(UNIVERSAL_ROUTER_BASE);
+    expect(b.aSigner!.message.details.nonce).toBe("11");
     // la signature perime vite, meme si l'autorisation dure
     expect(BigInt(b.aSigner!.message.sigDeadline)).toBe(commun.maintenant + 1800n);
     expect(BigInt(b.aSigner!.message.details.expiration)).toBe(commun.maintenant + 30n * 86400n);

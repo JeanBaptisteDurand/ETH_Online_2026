@@ -42,6 +42,35 @@ export {
 } from "./permit2.js";
 export type { PermitSingle, DetailsPermit, EtatPermit2, Besoin } from "./permit2.js";
 export type { Alternative, EtatAlternative, Porte } from "./alternative.js";
+/**
+ * De la proposition a la transaction envoyable. `transactionDeRemplacement` rend soit un
+ * `{to, data, value}` complet, soit un etat nomme qui dit ce qui manque — jamais une
+ * transaction a moitie construite.
+ */
+export {
+  transactionDeRemplacement,
+  permitAsigner,
+  plancher,
+  TOLERANCE_BPS,
+  ECHEANCE_SECONDES,
+} from "./envoi.js";
+export type { Envoi, EtatEnvoi, OptionsEnvoi, TransactionPrete } from "./envoi.js";
+/**
+ * Les lectures on-chain dont la substitution depend. Elles parlent a un noeud : elles ne sont
+ * PAS dans le chemin de `tareGuard()`, qui doit rester hors ligne et instantane.
+ */
+export {
+  ethCall,
+  lireAllowanceVersPermit2,
+  lireAutorisationDuRouteur,
+  coter,
+  encoderCotation,
+  selecteur as selecteurDe,
+  V4_QUOTER_BASE,
+  SIG_ALLOWANCE_ERC20,
+  SIG_ALLOWANCE_PERMIT2,
+} from "./lecture.js";
+export type { Noeud, LectureAllowance, LectureAutorisation, LectureCotation } from "./lecture.js";
 export type { Thresholds } from "./verdict.js";
 export {
   gate,

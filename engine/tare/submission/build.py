@@ -36,13 +36,37 @@ CONTRAT_TESTS = REPO / "contracts" / "test" / "AbonnementTARE.t.sol"
 ALTERNATIVE = REPO / "packages" / "guard" / "data" / "chiffres-alternative.json"
 
 
+def _booleens_registre(reg: list[dict]) -> int:
+    """Les booleens d'une fiche, ou qu'ils soient : flags, properties, et `verifiedSource`."""
+    n, vus = 0, set()
+    for e in reg:
+        for groupe, obj in (("h", e.get("hook") or {}), ("f", e.get("flags") or {}),
+                            ("p", e.get("properties") or {})):
+            for k, v in obj.items():
+                cle = f"{groupe}.{k}"
+                if cle in vus:
+                    continue
+                vus.add(cle)
+                if isinstance(v, bool):
+                    n += 1
+    return n
+
+
+def _booleens(f: dict) -> int:
+    """Combien de champs d'une fiche sont des booleens. Compte, jamais memorise."""
+    return f.get("registry_booleans") or 0
+
+
 def _champs_registre(reg: list[dict]) -> int:
     """Combien de champs decrivent un hook, comptes depuis les fiches elles-memes."""
     flags, props = set(), set()
     for e in reg:
         flags.update((e.get("flags") or {}).keys())
         props.update((e.get("properties") or {}).keys())
-    return len(flags) + len(props)
+    ident = set()
+    for e in reg:
+        ident.update((e.get("hook") or {}).keys())
+    return len(ident) + len(flags) + len(props)
 
 
 def rows() -> list[dict]:
@@ -122,6 +146,7 @@ def facts() -> dict:
         # permission, 4 de propriete, une enumeration. `chainId` est un nombre mais il nomme
         # un reseau, donc il n'en fait pas partie — et le compter dedans donnait 20.
         "registry_fields": _champs_registre(reg),
+        "registry_booleans": _booleens_registre(reg),
         "registry_total": len(reg),
         "not_in_registry": sorted(measured - addrs),
         "source_read": len(read), "source_total": len(hooks),
@@ -400,8 +425,9 @@ publishes one.
 **The wall.** A v4 pool's identity — its `PoolKey` — contains the hook's address. "The same pool
 without its hook" therefore does not exist: it would be a different pool, with different liquidity
 and a different price. That is why nobody publishes this number, and why the official registry
-describes {f['registry_total']} entries with {f['registry_fields']} describing fields of which
-**none is a quantity**. {absents.capitalize()}.
+describes {f['registry_total']} entries with {f['registry_fields']} fields each — {_booleens(f)} of
+them booleans — of which **none is a quantity**. The only number in the record is `chainId`, and it
+names a network. {absents.capitalize()}.
 
 **What TARE does.** It does not change the pool. It changes the **hook** — `anvil_setCode` rewrites
 the bytecode at the hook's address on a pinned fork, so `poolId`, liquidity and `slot0` stay

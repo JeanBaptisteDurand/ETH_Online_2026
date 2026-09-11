@@ -11,9 +11,9 @@ one past swap, not the rate you would pay at your size. Re-run it yourself:
 [`docs/dataset/declarations.json`](docs/dataset/declarations.json).
 
 The official registry describes 978 entries — 866 distinct addresses, the rest declared on more
-than one chain — with **19 describing fields**: 14 permission booleans, 4 property booleans and one
-`swapAccess` enum, plus a `chainId` that identifies a network rather than describing a hook.
-**Not one of the 19 is a quantity.**
+than one chain — with **27 fields each, 19 of them booleans**: 14 permission flags, 4 property
+booleans, `verifiedSource`, a `swapAccess` enum and eight identity fields. **Not one of the 27 is
+a quantity.** The only number in the whole record is `chainId`, and it names a network.
 
 And it does not see most of what takes something. Of the **112 hooks measured here, 78 are absent
 from that registry entirely — 69.64 %.** Only 34 are listed. The 78 addresses are enumerated in

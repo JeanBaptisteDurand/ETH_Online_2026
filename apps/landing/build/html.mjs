@@ -300,9 +300,9 @@ make measure HOOK=${esc(f.hero.hook)} BLOCK=${f.hero.block}</code>
         <div class="stat">
           <span class="label">OFFICIAL REGISTRY</span>
           <p class="metric">${grp(u.registry_entries)} <span class="over">entries</span></p>
-          <p class="data-sm">${u.registry_fields} describing fields per entry.
-          <strong class="ink">${u.registry_numeric_fields} of them numeric.</strong>
-          <code>chainId</code> is a number, but it names a network.</p>
+          <p class="data-sm">${u.registry_fields} fields per entry, ${u.registry_booleans} of them
+          booleans. <strong class="ink">${u.registry_numeric_fields} of them a quantity.</strong>
+          The only number is <code>chainId</code>, and it names a network.</p>
           <pre class="code-in hex">"additionalProperties": ${u.registry_additional_properties}</pre>
           <p class="data-sm">The schema does not merely omit a number. It forbids adding one.</p>
         </div>

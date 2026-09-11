@@ -85,9 +85,14 @@ test("le registre est compte depuis le fichier, et le fichier est NOMME a l'ecra
   // instantane chacun vient est comment un lecteur conclut que l'un des deux est faux.
   assert.match(facts, /registry_file: reg\.file/);
   assert.match(html, /u\.registry_file/);
-  // les champs sont comptes, pas memorises
-  assert.match(facts, /flags\.size \+ props\.size/);
-  assert.match(facts, /t === "number"/);
+  // LES TROIS COMPTES sont derives, pas memorises : 27 champs, 19 booleens, 0 quantite.
+  // La page annoncait « 19 describing fields » et le dossier « 27 champs, 19 booleens » —
+  // deux enonces vrais que rien ne reconciliait, donc un lecteur qui compare conclut que
+  // l'un des deux se trompe.
+  assert.match(facts, /cles\.identite\.size \+ cles\.flags\.size \+ cles\.props\.size/);
+  assert.match(facts, /typeof v === "boolean"/);
+  assert.match(facts, /k !== "chainId"/);
+  assert.match(html, /u\.registry_booleans/);
 });
 
 test("la grille rend UNE case par hook, et les neuf positions viennent de la liste complete", () => {

@@ -209,12 +209,17 @@ anyone interprets it.
 
 ## 7. The registry is a description, not a ground truth
 
-The official hook registry has **19 describing fields** — 14 permission booleans, 4 property
-booleans and one `swapAccess` enum — plus a `chainId` that names a network rather than describing a
-hook. Counting `chainId` among the 19 made the decomposition add up to 20; it does not belong
-there. **Not one of the 19 is a quantity** ([`FEEDBACK.md`](../FEEDBACK.md)) — verifiable by
-reading the file, and `apps/landing/build/facts.mjs` now counts the fields rather than
-remembering them. The registry can tell you a hook *can* run `beforeSwap`; it cannot tell you
+The official hook registry carries **27 fields per entry, 19 of them booleans**: eight identity
+fields (one of which, `verifiedSource`, is a boolean), 14 permission flags, four property booleans
+and a `swapAccess` enum. **Not one of the 27 is a quantity** ([`FEEDBACK.md`](../FEEDBACK.md)).
+The only number in the whole record is `chainId`, and it names a network rather than measuring
+anything.
+
+This section previously said "19 describing fields", counting only flags and properties. That is
+also true, and it is a *different* statement — the dossier says 27, and two surfaces publishing 19
+and 27 without reconciling them is how a reader concludes one of them is wrong. All three counts
+are now derived from the file by `apps/landing/build/facts.mjs`, and every surface says the same
+thing. The registry can tell you a hook *can* run `beforeSwap`; it cannot tell you
 what that costs.
 
 It is also incomplete — far more than this document used to say — and it is keyed in a way that

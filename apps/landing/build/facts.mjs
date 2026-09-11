@@ -542,17 +542,45 @@ function upstream() {
   if (existsSync(REGISTRY)) {
     const raw = JSON.parse(readFileSync(REGISTRY, "utf8"));
     const rows = Array.isArray(raw) ? raw : (raw.hooks ?? []);
-    const flags = new Set();
-    const props = new Map();
+    /* TROIS COMPTES, et ils ne disent pas la meme chose.
+     *
+     * La page annoncait « 19 describing fields » — flags + properties. Le dossier annonce
+     * « 27 champs, 19 booleens ». Les deux sont vrais et ce n'est pas le meme enonce : un
+     * lecteur qui compare les deux surfaces voit 27 d'un cote, 19 de l'autre, et conclut que
+     * l'une des deux se trompe. On publie donc les trois nombres, comptes depuis les fiches :
+     *
+     *   fields   TOUT ce qu'une fiche porte : identite + flags + properties
+     *   booleans combien sont des booleens, ou qu'ils soient
+     *   numeric  combien sont des quantites — et `chainId` n'en est pas une, il nomme un
+     *            reseau. C'est le seul nombre du fichier, et il identifie au lieu de mesurer.
+     */
+    const cles = { identite: new Set(), flags: new Set(), props: new Set() };
+    let booleens = 0;
+    const numeriques = new Set();
+    const vus = new Set();
     for (const r of rows) {
-      for (const k of Object.keys(r.flags ?? {})) flags.add(k);
-      for (const [k, v] of Object.entries(r.properties ?? {})) props.set(k, typeof v);
+      for (const [groupe, obj] of [
+        ["identite", r.hook ?? {}],
+        ["flags", r.flags ?? {}],
+        ["props", r.properties ?? {}],
+      ]) {
+        for (const [k, v] of Object.entries(obj)) {
+          cles[groupe].add(k);
+          const id = `${groupe}.${k}`;
+          if (vus.has(id)) continue;
+          vus.add(id);
+          if (typeof v === "boolean") booleens += 1;
+          else if (typeof v === "number") numeriques.add(k);
+        }
+      }
     }
-    const numeric = [...props.values()].filter((t) => t === "number").length;
     reg = {
       entries: rows.length,
-      fields: flags.size + props.size,
-      numeric,
+      fields: cles.identite.size + cles.flags.size + cles.props.size,
+      booleans: booleens,
+      /* `chainId` mis a part : il identifie un reseau, il ne mesure rien. */
+      numeric: [...numeriques].filter((k) => k !== "chainId").length,
+      numeric_identifiers: [...numeriques],
       file: "docs/hooklist-live-20260905.json",
     };
   }
@@ -571,7 +599,9 @@ function upstream() {
     emitting_any_contract: d.scan?.n_emetteurs_tous_contrats ?? null,
     registry_entries: reg.entries,
     registry_fields: reg.fields,
+    registry_booleans: reg.booleans,
     registry_numeric_fields: reg.numeric,
+    registry_numeric_identifiers: reg.numeric_identifiers,
     registry_file: reg.file,
     registry_additional_properties: false,
     provenance: d.rejeu ?? "python3 -m tare.declare --scan --write",

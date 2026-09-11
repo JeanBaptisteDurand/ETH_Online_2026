@@ -24,8 +24,9 @@ publishes one.
 **The wall.** A v4 pool's identity — its `PoolKey` — contains the hook's address. "The same pool
 without its hook" therefore does not exist: it would be a different pool, with different liquidity
 and a different price. That is why nobody publishes this number, and why the official registry
-describes 978 entries with 19 describing fields of which
-**none is a quantity**. 78 of the 112 hooks it measured are absent from that registry entirely — 69.64 %.
+describes 978 entries with 27 fields each — 19 of
+them booleans — of which **none is a quantity**. The only number in the record is `chainId`, and it
+names a network. 78 of the 112 hooks it measured are absent from that registry entirely — 69.64 %.
 
 **What TARE does.** It does not change the pool. It changes the **hook** — `anvil_setCode` rewrites
 the bytecode at the hook's address on a pinned fork, so `poolId`, liquidity and `slot0` stay

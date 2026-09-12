@@ -66,3 +66,13 @@ Locks ajoutés :
 - « la map, la stat, et le compute doivent etre visible tous les 3 dans le hero » (composition : le premier écran porte le schéma entier, l'écart et le champ)
 - « tu peux reduire le contenu de la stat et du compute, mais pas le schema » (la carte ne se réduit pas ; la mesure et le champ se compactent)
 - « je n'aime pas trop l'animation propose, trop AI generated dans le style » (le champ de pistes qui poussent au hasard est refusé : chercher une autre référence)
+
+## Corrections sur la hero, 3 (2026-09-12, 22:40)
+
+> « Je veux voir mes trois elements en entier dans mon hero. Je ne vois pas ton animation dans le fond, elle est cache par mes composants. Tu peux reduire la taille du contenu des composants ou revoir leur layout pour que tout passes. Aussi, supprime la section "compute" apres le scroll. Ma barre "compute" la remplace (mais du coup, permet de mettre une adresse demo directement dans le hero). »
+
+Locks ajoutés :
+- « mes trois elements en entier dans mon hero » (aucun des trois n'est coupé par le pli)
+- « je ne vois pas ton animation dans le fond, elle est cache par mes composants » (le fond doit se voir : réduire les composants ou revoir leur layout)
+- « supprime la section compute apres le scroll. Ma barre compute la remplace » (l'accueil n'a plus de section d'opération : le hero calcule et répond)
+- « permet de mettre une adresse demo directement dans le hero » (des jetons du corpus proposés sous le champ)

@@ -375,8 +375,8 @@ summary::-webkit-details-marker {
 }
 @media (min-width: 900px) {
   .carte-grille {
-    grid-template-columns: 190px 240px minmax(0, 1fr);
-    gap: 36px;
+    grid-template-columns: 176px 226px minmax(0, 1fr);
+    gap: 32px;
   }
 }
 
@@ -397,7 +397,7 @@ summary::-webkit-details-marker {
    écran), headline (titre de section), title (nom d'un outil sur sa plaque), body. */
 .t-display {
   font-family: var(--titre);
-  font-size: clamp(2.25rem, 3.6vw, 3.25rem);
+  font-size: clamp(2rem, 3.1vw, 2.75rem);
   line-height: 1;
   letter-spacing: -0.035em;
   font-weight: 700;
@@ -405,7 +405,7 @@ summary::-webkit-details-marker {
 }
 .t-number {
   font-family: var(--mono);
-  font-size: clamp(2.75rem, 5vw, 4.5rem);
+  font-size: clamp(2.5rem, 4.4vw, 4rem);
   line-height: 1;
   letter-spacing: -0.02em;
   font-weight: 500;
@@ -437,7 +437,7 @@ summary::-webkit-details-marker {
 .enceinte {
   background: var(--surface-1);
   border: 1px solid var(--line);
-  padding: 20px 24px 24px;
+  padding: 14px 20px 16px;
 }
 @media (max-width: 639px) {
   .enceinte {
@@ -504,7 +504,7 @@ summary::-webkit-details-marker {
 
 .plaque-titre {
   font-family: var(--titre);
-  font-size: 1.0625rem;
+  font-size: 0.9375rem;
   line-height: 1.25;
   letter-spacing: -0.015em;
   font-weight: 600;
@@ -522,9 +522,9 @@ summary::-webkit-details-marker {
 /* LA BANDE DU CORPUS : la zone que le nuage occupe, au-dessus de la carte. Elle deborde de
    24 px en bas pour que le semis respire sous le champ, et sa legende se pose a droite. */
 .hero-haut {
-  /* Le semis a besoin d'une bande a lui : les trois blocs de texte occupent presque toute la
-     zone, et sans ce pas en bas le nuage ne serait qu'un liseré entre deux paragraphes. */
-  padding-bottom: 54px;
+  /* Le semis a besoin d'une bande a lui : les blocs de texte occupent presque toute la zone,
+     et sans ce pas en bas il ne serait qu'un liseré entre deux paragraphes. */
+  padding-bottom: 32px;
 }
 @media (max-width: 899px) {
   .hero-haut {
@@ -561,7 +561,7 @@ summary::-webkit-details-marker {
     flex-direction: column;
   }
   .hero-cadre > div {
-    gap: 24px !important;
+    gap: 16px !important;
   }
 }
 
@@ -582,6 +582,27 @@ summary::-webkit-details-marker {
 }
 .champ::placeholder {
   color: var(--ink-3);
+}
+
+/* UN JETON DE DEMONSTRATION : la barre du hero remplace la section d'operation, il faut donc
+   pouvoir essayer sans aller chercher une adresse ailleurs. */
+.jeton-demo {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  padding: 3px 8px;
+  min-height: 24px;
+  cursor: pointer;
+  transition:
+    color var(--t-feedback) var(--e-out),
+    border-color var(--t-feedback) var(--e-out);
+}
+.jeton-demo:hover {
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+.jeton-demo:active {
+  transform: translateY(1px);
 }
 
 /* LE SEUL BOUTON ORANGE DE LA PAGE. L'orange est la couleur de la famille action : il est

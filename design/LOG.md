@@ -25,3 +25,5 @@
 - 22:30 DESIGN.md mis à jour (Archivo, champ de câblage, ports, pistes colorées, flux, scroll-cue, hero avec le chiffre et le champ), lint 0/0
 - 22:10 corrections hero 2 : les trois blocs dans le premier écran, le fond de pistes refusé (trop AI). locks : 24
 - 22:35 hero révision 2 : les trois blocs dans le premier écran, fond remplacé par la bande du corpus (3 400 mesures relues), ports et câbles colorés, Archivo. audits repassés dans design/audit-hero.md
+- 22:40 corrections hero 3 : les trois entiers, le fond visible, la section compute supprimée au profit de la barre du hero, jetons de démo. locks : 28
+- 22:50 hero révision 3 : trois éléments entiers (enceinte à 740, cue à 800), section compute supprimée au profit de la barre du hero avec jetons de démo, fond visible (ordonnée en rang)

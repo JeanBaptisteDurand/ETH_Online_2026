@@ -11,9 +11,9 @@ import { GraphPanels } from './components/Graph'
 import { MachinePanels } from './components/Machine'
 import { ComptePanel } from './components/Compte'
 import { SubstituerPanel } from './components/Substituer'
-import { AccueilPanel, AccesPanel, DonneesPanel } from './components/Accueil'
+import { AccesPanel, DonneesPanel } from './components/Accueil'
 import { IndexPanneaux } from './components/Index'
-import { Carte, doux } from './components/Carte'
+import { Carte } from './components/Carte'
 import { OutilPanel } from './components/Outil'
 import { OUTILS } from './lib/outils'
 import FA from './data/facts.json'
@@ -319,17 +319,7 @@ export default function App() {
         <Head theme={theme} setTheme={setTheme} vue={vue} />
         <main id="contenu" className="flex flex-col px-[24px] pt-[40px] pb-[24px] mx-auto w-full" style={{ maxWidth: 1360, gap: 'clamp(4rem, 8vw, 7rem)' }}>
           {/* LA CARTE D'ABORD. Le système en une image, et chaque nœud est une porte. */}
-          <Carte
-            surOutil={versOutil}
-            saisie={saisie}
-            setSaisie={setSaisie}
-            versOperation={() =>
-              document.getElementById('operation')?.scrollIntoView({ block: 'start', behavior: doux() })
-            }
-          />
-          <div id="operation">
-            <AccueilPanel saisie={saisie} setSaisie={setSaisie} />
-          </div>
+          <Carte surOutil={versOutil} saisie={saisie} setSaisie={setSaisie} />
           <AccesPanel surOutil={versOutil} />
           {/* La cible des liens du rail de la carte : « le detail d'un jeu de donnees ». */}
           <div id="donnees">

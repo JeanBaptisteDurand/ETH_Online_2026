@@ -88,3 +88,48 @@ les plaques (repos, survol, focus, actif, en attente, hors ligne).
 3. Les pages outil et l'instrument : onglets avec repère de famille, tables `table-header` / `table-cell`, index collant.
 4. Preload des deux polices dans `index.html`.
 5. Vérifier la bande du corpus en thème clair : les trois valeurs qu'elle lit changent, la densité perçue aussi.
+
+
+---
+
+## Révision 3 — les trois entiers, le fond visible, la section compute supprimée
+
+**Ce qui a changé.** Le premier écran est maintenant mesuré et non espéré : à 1440 × 900,
+l'enceinte se ferme à 740 px et le repère de défilement à 800 px, ce qui laisse les trois
+éléments entiers même sur un portable dont la fenêtre utile descend à 800 px. C'est cette
+contrainte qui a fixé l'échelle : plaques de 44 px, noms d'outils à 15 px, rail tronqué à six
+entrées avec son reste affiché, en-tête d'enceinte sur une ligne, titre à 2,75 rem au plus.
+
+La section d'opération sous la carte est supprimée. La barre du hero la remplace : on colle une
+adresse ou on clique l'un des trois jetons du corpus proposés, et le bloc de droite répond à la
+place de l'écart de référence. Trois états au même endroit — référence, succès, refus motivé.
+`AccueilPanel` et son code mort ont été retirés ; `AccesPanel` et `DonneesPanel` restent.
+
+Le fond était invisible pour une raison mesurable, pas esthétique : l'ordonnée portait le
+prélèvement en log sur une échelle fixe, et la médiane du corpus valant 100 bps, tout le semis
+se tassait dans le tiers haut de la bande. En portant le **rang** de prélèvement, le semis
+couvre toute la bande. Les creux suivent les rectangles de ligne, pas les boîtes, ce qui laisse
+la bande visible partout où il n'y a pas de glyphe.
+
+**web-design-guidelines, troisième passe.** Corrigé :
+- `Carte.tsx` : le repère de défilement annonçait « l'opération sur ton jeton », une section qui n'existe plus. Libellé refait.
+- `Carte.tsx` : le texte d'aide invitait à essayer un jeton alors que les jetons disparaissent dès qu'une adresse est saisie. Trois textes distincts selon l'état.
+- `Carte.tsx` : le bloc de réponse porte `aria-live="polite"` — son contenu change sans que la page bouge.
+
+Vérifié : les jetons de démonstration sont des `<button type="button">` de 24 px au moins, avec
+leur écart en `title` ; le bouton primaire change de libellé selon l'état ; aucune erreur console
+sur les trois largeurs ; `tsc -b` vert.
+
+### Fix Priority (ce qui reste, pour `/da-kit:build`)
+1. Le rail des 27 jeux garde la grammaire d'une liste alors que tout le reste est en plaques : lui donner un port et un filet de famille, ou le réduire à une plaque dépliable.
+2. Les cinq accès et la matrice sont encore dans l'ancien `Panel` : les passer au système.
+3. Les pages outil et l'instrument : onglets avec repère de famille, tables `table-header` / `table-cell`, index collant.
+4. Preload des deux polices dans `index.html`.
+5. Vérifier la bande du corpus et les plaques en thème clair.
+6. Les tests de `lib/` référencent-ils encore l'opération d'accueil ? À vérifier au build (`node --test src/lib/*.test.ts`).
+
+**Une alerte qui ne vient pas du front.** `node --test src/lib/*.test.ts` : une seule
+assertion tombe, « toutes les sources ont été lues », parce que
+`packages/guard/data/table.json` n'existe pas dans le dépôt. Le générateur de faits le
+signalait déjà au premier `npm run data`, avant toute modification de design. `packages/` est
+hors du périmètre du front : à signaler à l'équipier, pas à corriger ici.

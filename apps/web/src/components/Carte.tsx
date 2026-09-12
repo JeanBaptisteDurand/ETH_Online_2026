@@ -22,6 +22,8 @@ import { OUTILS, type Famille, type Outil } from '../lib/outils'
 import { FondCorpus } from './Fond'
 import { DONNEES, luPar } from '../lib/donnees'
 import { dataset } from '../lib/dataset'
+import { MONNAIES_DE_COTATION } from '../lib/exit'
+import { ouAcheter, aMontrer, lpFeeBps } from '../lib/portes'
 import { groupDigits } from '../lib/format'
 import facts from '../data/facts.json'
 
@@ -73,6 +75,45 @@ interface Trace {
 
 const DELAI: Record<Famille, number> = { collecte: 0, analyse: 150, action: 300 }
 
+const court = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`
+
+/**
+ * LES JETONS QU'ON PROPOSE — ceux sur lesquels la question SE POSE.
+ *
+ * Proposer le jeton le plus present du corpus ne sert a rien : 97,2 % des jetons n'ont qu'une
+ * porte, et la reponse est alors « il n'y a qu'une porte ». On ne propose donc que des jetons
+ * pour lesquels DEUX portes au moins sont mesurees dans la meme monnaie et a la meme taille —
+ * les seuls ou la comparaison existe. Le tri se fait en UNE passe sur le corpus.
+ */
+function jetonsProposes(max = 3): { adresse: string; ecart: number }[] {
+  const groupes = new Map<string, Map<string, number>>()
+  for (const r of dataset.rows) {
+    if (r.label !== 'MESURE' || r.bps === null || r.stored_lp_fee === null) continue
+    for (const [t, autre] of [
+      [r.currency0, r.currency1],
+      [r.currency1, r.currency0],
+    ] as [string, string][]) {
+      const jeton = t.toLowerCase()
+      if (jeton in MONNAIES_DE_COTATION) continue
+      const cle = `${jeton}|${autre.toLowerCase()}|${r.amount_in}`
+      const m = groupes.get(cle) ?? new Map<string, number>()
+      m.set(r.pool_id, lpFeeBps(r.stored_lp_fee) + r.bps)
+      groupes.set(cle, m)
+    }
+  }
+  const ecarts = new Map<string, number>()
+  for (const [cle, pools] of groupes) {
+    if (pools.size < 2) continue
+    const v = [...pools.values()]
+    const jeton = cle.slice(0, cle.indexOf('|'))
+    ecarts.set(jeton, Math.max(ecarts.get(jeton) ?? 0, Math.max(...v) - Math.min(...v)))
+  }
+  return [...ecarts.entries()]
+    .sort((x, y) => y[1] - x[1])
+    .slice(0, max)
+    .map(([adresse, ecart]) => ({ adresse, ecart }))
+}
+
 /** « smooth », sauf si la personne a demande moins de mouvement — alors on saute. */
 export function doux(): ScrollBehavior {
   return typeof window !== 'undefined' &&
@@ -86,14 +127,13 @@ export function Carte({
   surOutil,
   saisie,
   setSaisie,
-  versOperation,
 }: {
   surOutil: (n: number) => void
   saisie: string
   setSaisie: (v: string) => void
-  versOperation: () => void
 }) {
   const boite = useRef<HTMLDivElement | null>(null)
+  const champ = useRef<HTMLInputElement | null>(null)
   const chaine = useRef<HTMLDivElement | null>(null)
   const rail = useRef<HTMLDivElement | null>(null)
   const noeuds = useRef(new Map<number, HTMLAnchorElement>())
@@ -230,8 +270,36 @@ export function Carte({
   const ch = facts.chaine
   const nJeux = DONNEES.length
 
-  /** L'adresse est-elle lisible ? Le meme test que la section qui repond. */
-  const valide = /^0x[0-9a-fA-F]{40}$/.test(saisie.trim())
+  /** L'adresse est-elle lisible ? */
+  const jeton = saisie.trim().toLowerCase()
+  const valide = /^0x[0-9a-fA-F]{40}$/.test(jeton)
+  const demos = useMemo(() => jetonsProposes(), [])
+
+  /**
+   * LA REPONSE, calculee ici et affichee ici.
+   *
+   * La section d'operation qui vivait sous la carte a disparu : la barre du hero la remplace,
+   * et c'est le bloc de droite qui repond — le meme endroit ou se lit, par defaut, l'ecart de
+   * la porte A4. Un refus motive (« il n'y a qu'une porte ») prend la meme place que le
+   * succes : c'est une reponse, pas un trou.
+   */
+  const reponse = useMemo(() => {
+    if (!valide) return null
+    const r = ouAcheter(dataset.rows, jeton)
+    const vue = aMontrer(r)
+    const g = vue.montres.find((x) => x.classees.length >= 2 && x.ecart_bps !== null)
+    if (g) {
+      return {
+        quoi: 'ecart' as const,
+        ecart: g.ecart_bps!.toLocaleString('fr', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        bas: g.classees[0]!.totalBps!.toFixed(2),
+        haut: g.classees[g.classees.length - 1]!.totalBps!.toFixed(2),
+        portes: g.classees.length,
+        monnaie: g.paieAvecNom ?? court(g.paieAvec),
+      }
+    }
+    return { quoi: 'refus' as const, etat: r.etat.replace(/_/g, ' ').toLowerCase(), raison: r.raison }
+  }, [jeton, valide])
 
   /** La carte est dans le premier écran : le repère de défilement mène donc à ce qui vient
       après elle, l'opération. Le defilement doux est un mouvement : sous
@@ -302,9 +370,12 @@ export function Carte({
                 style={{ gap: 12, rowGap: 6 }}
                 onSubmit={(e) => {
                   e.preventDefault()
-                  // Une adresse incomplete ne fait pas defiler : la reponse est ici, sous le
-                  // champ, pas trois ecrans plus bas.
-                  if (valide) versOperation()
+                  // La reponse s'ecrit a droite, dans le meme ecran : il n'y a nulle part ou
+                  // aller. Le bouton sert donc a revenir a la mesure de reference.
+                  if (saisie) {
+                    setSaisie('')
+                    champ.current?.focus()
+                  }
                 }}
               >
                 <div className="flex flex-col grow" style={{ gap: 6, minWidth: 0, flexBasis: 320 }}>
@@ -322,23 +393,37 @@ export function Carte({
                     inputMode="text"
                     aria-describedby="jeton-hero-aide"
                     aria-invalid={saisie.length > 0 && !valide}
+                    ref={champ}
                     placeholder="0x2eb2… 40 caractères après 0x"
                     className="t-data hex champ"
                   />
                 </div>
                 <button type="submit" className="bouton-primaire">
-                  voir ce qu’elle coûte
+                  {saisie ? 'recommencer' : 'voir ce qu’elle coûte'}
                 </button>
-                {/* L'aide occupe sa ligne meme vide : sans cela le bloc saute quand l'erreur
-                    apparait. L'erreur s'ecrit sous le champ, jamais en alerte. */}
-                <span
-                  id="jeton-hero-aide"
-                  className="t-data-sm"
-                  style={{ color: 'var(--ink-2)', minHeight: 16, flexBasis: '100%' }}
-                >
-                  {saisie.length > 0 && !valide
-                    ? 'une adresse de contrat : 0x suivi de 40 caractères hexadécimaux'
-                    : 'rien n’est envoyé : la recherche se fait sur le corpus embarqué'}
+                {/* L'aide et les jetons de demonstration partagent la ligne du dessous : la
+                    barre remplace la section d'operation, il faut donc pouvoir essayer sans
+                    aller chercher une adresse ailleurs. */}
+                <span className="hero-aide flex flex-wrap items-center" style={{ gap: 10, flexBasis: '100%' }}>
+                  <span id="jeton-hero-aide" className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
+                    {saisie.length > 0 && !valide
+                      ? 'une adresse de contrat : 0x suivi de 40 caractères hexadécimaux'
+                      : valide
+                        ? 'calculé ici, sur le corpus embarqué — aucune requête'
+                        : 'rien n’est envoyé, le corpus est dans la page — ou essaie'}
+                  </span>
+                  {!saisie &&
+                    demos.map((d) => (
+                      <button
+                        key={d.adresse}
+                        type="button"
+                        className="jeton-demo t-data-sm hex"
+                        onClick={() => setSaisie(d.adresse)}
+                        title={`${d.ecart.toFixed(2)} bps entre ses portes`}
+                      >
+                        {court(d.adresse)}
+                      </button>
+                    ))}
                 </span>
               </form>
             </div>
@@ -346,23 +431,47 @@ export function Carte({
             {/* L'ÉCART, dans le premier écran : c'est ce que le produit mesure, et il se lit
                 avant tout le reste. Les deux cotations viennent de `facts.execution`, la porte
                 A4 — un swap réellement exécuté sur Base, coté deux fois sur le fork. */}
-            {paire && (
-              <div className="hero-mesure flex flex-col" style={{ gap: 6 }}>
-                <output className="t-number m-0" style={{ color: 'var(--ink)' }}>
-                  {paire.bps}
-                </output>
-                <p className="t-body m-0 t-body-muted" style={{ maxWidth: '34ch' }}>
-                  bps pris sur un swap réellement exécuté&nbsp;: il en reste{' '}
-                  <span className="t-data" style={{ color: 'var(--ink)' }}>{paire.avec}</span> au lieu
-                  de <span className="t-data">{paire.sans}</span>, à 89 octets inertes près.
-                </p>
-              </div>
-            )}
+            <div className="hero-mesure flex flex-col" style={{ gap: 6 }} aria-live="polite">
+              {reponse?.quoi === 'refus' ? (
+                <>
+                  <p className="t-title m-0" style={{ color: 'var(--ink)' }}>
+                    {reponse.etat}
+                  </p>
+                  <p className="t-body m-0 t-body-muted" style={{ maxWidth: '34ch' }}>
+                    {reponse.raison}
+                  </p>
+                </>
+              ) : reponse?.quoi === 'ecart' ? (
+                <>
+                  <output className="t-number m-0" style={{ color: 'var(--ink)' }}>
+                    {reponse.ecart}
+                  </output>
+                  <p className="t-body m-0 t-body-muted" style={{ maxWidth: '34ch' }}>
+                    bps entre ses {reponse.portes} portes, payé en {reponse.monnaie}&nbsp;: de{' '}
+                    <span className="t-data" style={{ color: 'var(--ink)' }}>{reponse.bas}</span> à{' '}
+                    <span className="t-data">{reponse.haut}</span> bps selon celle qu’on prend.
+                  </p>
+                </>
+              ) : (
+                paire && (
+                  <>
+                    <output className="t-number m-0" style={{ color: 'var(--ink)' }}>
+                      {paire.bps}
+                    </output>
+                    <p className="t-body m-0 t-body-muted" style={{ maxWidth: '34ch' }}>
+                      bps pris sur un swap réellement exécuté&nbsp;: il en reste{' '}
+                      <span className="t-data" style={{ color: 'var(--ink)' }}>{paire.avec}</span> au
+                      lieu de <span className="t-data">{paire.sans}</span>, à 89 octets inertes près.
+                    </p>
+                  </>
+                )
+              )}
+            </div>
             </div>
             {/* Ce que le fond montre, dit en une ligne : sans elle, un semis de points n'est
                 qu'une texture. Avec elle, c'est le corpus. */}
             <span className="hero-fond-legende t-data-sm" aria-hidden="true">
-              {dataset.totals.rows.toLocaleString('fr')} mesures du corpus, relues en continu
+              {dataset.totals.rows.toLocaleString('fr')} mesures du corpus, rangées par prélèvement, relues en continu
             </span>
           </div>
 
@@ -370,13 +479,13 @@ export function Carte({
           Elle est DANS le premier écran, avec le titre, la mesure et le champ : le schéma ne se
           réduit pas, c'est la mesure et le champ qui se compactent autour de lui. */}
           <div className="enceinte">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-[28px] gap-y-[8px] pb-[16px]">
-          <div className="flex flex-wrap items-baseline" style={{ gap: 14 }}>
-            <h2 className="t-headline m-0" style={{ fontSize: '1.3125rem' }}>
+        <div className="flex flex-wrap items-baseline justify-between gap-x-[24px] gap-y-[6px] pb-[14px]">
+          <div className="flex flex-wrap items-baseline" style={{ gap: 12 }}>
+            <h2 className="t-headline m-0" style={{ fontSize: '1.25rem' }}>
               La chaîne et ses {OUTILS.length} outils
             </h2>
             {/* DEUXIÈME INTERACTION, écrite : un nœud s'ouvre. */}
-            <span className="t-body t-body-muted" style={{ fontSize: 13.5 }}>
+            <span className="t-body t-body-muted" style={{ fontSize: 13 }}>
               cliquer un outil ouvre sa page, le survoler allume son chemin
             </span>
           </div>
@@ -456,11 +565,11 @@ export function Carte({
                 {nJeux} jeux de données
               </p>
               <ul className="m-0 p-0 flex flex-col" style={{ listStyle: 'none', borderTop: '1px solid var(--line)' }}>
-                {DONNEES.slice(0, empile ? 3 : 9).map((j) => (
+                {DONNEES.slice(0, empile ? 3 : 6).map((j) => (
                   <li key={j.cle} style={{ borderBottom: '1px solid var(--line)' }}>
                     <a
                       href={`#donnees-${j.cle}`}
-                      className="noeud-donnee t-data-sm py-[7px] hex no-underline block"
+                      className="noeud-donnee t-data-sm py-[6px] hex no-underline block"
                       style={{ color: 'var(--ink-2)' }}
                     >
                       {j.nom}
@@ -468,7 +577,7 @@ export function Carte({
                   </li>
                 ))}
                 <li className="t-data-sm py-[6px]" style={{ color: 'var(--ink-2)' }}>
-                  et {nJeux - (empile ? 3 : 9)} autres, plus bas
+                  et {nJeux - (empile ? 3 : 6)} autres, plus bas
                 </li>
               </ul>
             </div>
@@ -477,7 +586,7 @@ export function Carte({
             <div
               ref={chaine}
               className="plaque plaque-orch flex flex-col justify-between self-center carte-chaine relative"
-              style={{ minHeight: 146 }}
+              style={{ minHeight: 134 }}
             >
               {ORDRE.map((f, i) => (
                 <span
@@ -488,7 +597,7 @@ export function Carte({
                 />
               ))}
               <div className="px-[16px] pt-[14px]">
-                <p className="t-headline m-0" style={{ fontSize: '1.375rem' }}>
+                <p className="t-headline m-0" style={{ fontSize: '1.25rem' }}>
                   La chaîne
                 </p>
                 <p className="t-data m-0 pt-[6px]" style={{ color: 'var(--ink)' }}>
@@ -523,9 +632,9 @@ export function Carte({
             </a>
 
             {/* LES QUATORZE PLAQUES, trois colonnes de famille. */}
-            <div className="grid gap-[14px] carte-outils" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(186px, 1fr))' }}>
+            <div className="grid gap-[12px] carte-outils" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(174px, 1fr))' }}>
               {ORDRE.map((f) => (
-                <div key={f} className="flex flex-col gap-[6px]">
+                <div key={f} className="flex flex-col gap-[4px]">
                   {OUTILS.filter((o) => o.famille === f).map((o) => (
                     <a
                       key={o.n}
@@ -546,14 +655,14 @@ export function Carte({
                       className="plaque noeud flex items-stretch no-underline"
                       style={{
                         borderLeft: `3px solid ${COULEUR[f]}`,
-                        minHeight: 52,
+                        minHeight: 44,
                         color: 'inherit',
                       }}
                     >
                       {/* LE PORT : le carré de 7 px où le câble se branche. Il dit qu'une
                           plaque est un nœud connecté, et pas une case dans une liste. */}
                       <span className="plaque-port" aria-hidden="true" style={{ background: COULEUR[f] }} />
-                      <span className="flex flex-col justify-center px-[12px] py-[7px] grow" style={{ gap: 1, minWidth: 0 }}>
+                      <span className="flex flex-col justify-center px-[11px] py-[6px] grow" style={{ gap: 0, minWidth: 0 }}>
                         <span className="flex items-baseline" style={{ gap: 10 }}>
                           <span className="t-data-sm" style={{ color: 'var(--ink-2)', minWidth: 16 }}>{o.n}</span>
                           <span className="plaque-titre">{o.nom}</span>
@@ -582,8 +691,7 @@ export function Carte({
               <span className="scroll-cue-pion" />
             </span>
             <span className="t-data-sm">
-              plus bas&nbsp;: l’opération sur ton jeton, les cinq accès, les vingt-sept jeux de
-              données
+              plus bas&nbsp;: les cinq accès au produit, et quelle donnée sert quel outil
             </span>
           </button>
         </div>

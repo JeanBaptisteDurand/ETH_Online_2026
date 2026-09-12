@@ -2,10 +2,10 @@
  * LE FOND DU HERO — et ce n'est pas une décoration : c'est le corpus.
  *
  * Ce qu'on peint : un échantillon des 125 072 mesures embarquées, une par point. En abscisse
- * la taille du swap, en ordonnée le prélèvement en points de base, l'une et l'autre en échelle
- * logarithmique parce que les deux grandeurs courent sur huit décades. Une ligne verticale
- * balaie le nuage sans fin, comme la tête d'un enregistreur qui relit sa bande : les points
- * qu'elle traverse s'allument une seconde, puis retombent au gris.
+ * le rang de la mesure dans le corpus, en ordonnée son rang de prélèvement — la moins chère en
+ * bas, la plus chère en haut. Une ligne verticale balaie la bande sans fin, comme la tête d'un
+ * enregistreur qui relit son papier : les points qu'elle traverse s'allument une seconde, puis
+ * retombent au gris.
  *
  * POURQUOI PAS UN CHAMP DE PISTES QUI POUSSENT. C'était la première version, refusée : « trop
  * AI generated dans le style ». Des traits qui se tracent tout seuls sur un fond sombre, c'est
@@ -50,9 +50,6 @@ function echantillon(): Point[] {
   const rows = dataset.rows
   const pts: Point[] = []
   const pas = Math.max(1, Math.floor(rows.length / MAX_POINTS))
-  // bps de 0,1 a 10 000 : quatre decades, bornees pour que la pire ligne n'ecrase pas le reste
-  const minB = Math.log10(0.1)
-  const maxB = Math.log10(10000)
   const gardees: number[] = []
   for (let i = 0; i < rows.length; i += pas) {
     const r = rows[i]
@@ -62,9 +59,21 @@ function echantillon(): Point[] {
     gardees.push(r.bps)
   }
   if (gardees.length === 0) return pts
+  /**
+   * L'ORDONNEE EST UN RANG, et c'est un choix, pas une facilite.
+   *
+   * Porter le prelevement en log sur une echelle de valeurs tassait tout le semis dans le
+   * tiers haut de la bande : la mediane du corpus vaut 100 bps, et une distribution aussi
+   * asymetrique ne remplit pas une hauteur, elle s'y empile. En ordonnee, chaque mesure est
+   * donc placee a son RANG parmi les autres — la mesure la moins chere en bas, la plus chere
+   * en haut. Le semis couvre alors toute la bande, et l'axe reste vrai : plus haut veut dire
+   * plus cher. La legende le dit en toutes lettres, « rangees par prelevement ».
+   */
+  const ordre = gardees.map((b, i) => ({ b, i })).sort((x, y) => x.b - y.b)
+  const rang = new Array<number>(gardees.length)
+  for (let k = 0; k < ordre.length; k++) rang[ordre[k].i] = k / (ordre.length - 1 || 1)
   for (let i = 0; i < gardees.length; i++) {
-    const lb = Math.min(maxB, Math.max(minB, Math.log10(gardees[i])))
-    pts.push({ x: i / (gardees.length - 1 || 1), y: (lb - minB) / (maxB - minB) })
+    pts.push({ x: i / (gardees.length - 1 || 1), y: rang[i] })
   }
   return pts
 }
@@ -170,7 +179,7 @@ export function FondCorpus() {
           ctx.fillRect(x - 1, y - 1, 2, 2)
         } else {
           ctx.fillStyle = couleurs.repos
-          ctx.globalAlpha = 0.7
+          ctx.globalAlpha = 0.85
           ctx.fillRect(x, y, 1, 1)
         }
       }

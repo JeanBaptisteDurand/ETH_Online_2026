@@ -83,7 +83,7 @@ export function LedWidget() {
             onChange={(e) => setInput(e.target.value)}
             placeholder="0x…"
             aria-label="adresse du hook"
-            className="hex t-data px-[10px] py-[6px] flex-1 min-w-[380px]"
+            className="hex t-data px-[10px] py-[6px] flex-1 min-w-0 basis-[320px]"
             style={{
               background: 'var(--bg-2)',
               border: `1px solid ${valid || value === '' ? 'var(--line-strong)' : 'var(--m-4)'}`,

@@ -6,7 +6,7 @@
 
 Tu reprends le front d'un projet **fini et figé**. Ne cherche pas ce qu'il manque au produit :
 il ne manque rien. Le moteur, les données, les contrats et les quatorze outils sont écrits,
-mesurés et testés — **1 215 tests verts**. Ce qui manque est le **design**, et c'est tout ce
+mesurés et testés — **1 218 tests verts**. Ce qui manque est le **design**, et c'est tout ce
 qu'on te demande.
 
 **Le cadre, pour que tu ne te poses pas la question :** c'est une soumission à ETHOnline 2026.
@@ -76,7 +76,7 @@ Une animation **par famille**, pas une par page : quatorze animations différent
 
 Vérifie à 400 px de large. Les tableaux ont déjà `overflow-x: auto` sur leur conteneur.
 
-Avant de rendre : `cd apps/web && node --test src/lib/*.test.ts` doit rester à 111/111, et
+Avant de rendre : `cd apps/web && node --test src/lib/*.test.ts` doit rester à 114/114, et
 `npm run build` doit passer.
 
 L'instrument est en **français** — c'est une décision, pas un oubli.

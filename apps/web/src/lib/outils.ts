@@ -552,7 +552,7 @@ export const ACCES: AccesDesc[] = [
       "pas une seule requête réseau. C'est la porte que 37 % des projets primés en asynchrone " +
       "ont, et celle qu'on pousse en cinq secondes.",
     prerequis: 'rien',
-    outils: [2, 3, 5, 6, 7, 9, 13, 14],
+    outils: [2, 3, 4, 5, 6, 7, 9, 13, 14],
   },
   {
     cle: 'extension',

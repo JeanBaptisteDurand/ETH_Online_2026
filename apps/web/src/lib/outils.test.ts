@@ -29,7 +29,7 @@ import { existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 
-import { OUTILS, outil } from './outils.ts'
+import { OUTILS, outil, ACCES } from './outils.ts'
 import { DONNEES } from './donnees.ts'
 import facts from '../data/facts.json' with { type: 'json' }
 
@@ -142,5 +142,42 @@ test('chaque outil d\'analyse lit au moins un jeu de donnees nomme', () => {
   for (const o of OUTILS.filter((x) => x.famille === 'analyse')) {
     const lus = DONNEES.filter((j) => j.lu_par.includes(o.n))
     assert.ok(lus.length >= 1, `outil ${o.n} (${o.nom}) est d'analyse et ne lit aucun jeu declare`)
+  }
+})
+
+test('les cinq acces et les quatorze outils disent la meme chose, dans les deux sens', () => {
+  // La table se lit dans les deux sens : un acces liste ses outils, un outil liste ses acces.
+  // Rien ne garantissait qu'elles coincident — et elles ne coincidaient pas : l'acces « site »
+  // ne listait pas l'outil 4, qui se disait pourtant accessible par le site.
+  const ecarts: string[] = []
+  for (const a of ACCES) {
+    for (const n of a.outils) {
+      const o = outil(n)
+      if (!o) { ecarts.push(`acces ${a.cle} renvoie a l'outil ${n}, qui n'existe pas`); continue }
+      if (!o.acces.includes(a.cle)) ecarts.push(`acces ${a.cle} revendique l'outil ${n} (${o.nom}), qui ne le liste pas`)
+    }
+  }
+  for (const o of OUTILS) {
+    for (const c of o.acces) {
+      const a = ACCES.find((x) => x.cle === c)
+      if (!a) { ecarts.push(`outil ${o.n} cite l'acces ${c}, qui n'existe pas`); continue }
+      if (!a.outils.includes(o.n)) ecarts.push(`outil ${o.n} (${o.nom}) dit passer par ${c}, qui ne le liste pas`)
+    }
+  }
+  assert.deepEqual(ecarts, [], ecarts.join(' | '))
+})
+
+test('chaque acces dit a qui il s\'adresse, pourquoi lui, et ce qu\'il faut', () => {
+  for (const a of ACCES) {
+    assert.ok(a.pour.length > 15, `acces ${a.cle} : on ne dit pas a qui il s'adresse`)
+    assert.ok(a.pourquoi.length > 150, `acces ${a.cle} : « pourquoi celui-la et pas un autre » n'est pas repondu`)
+    assert.ok(a.prerequis.length > 3, `acces ${a.cle} : on ne dit pas ce qu'il faut pour s'en servir`)
+    assert.ok(a.outils.length >= 1, `acces ${a.cle} : il n'ouvre aucun outil`)
+  }
+})
+
+test('chaque outil est atteignable par au moins un acces', () => {
+  for (const o of OUTILS) {
+    assert.ok(o.acces.length >= 1, `outil ${o.n} (${o.nom}) n'est atteignable par rien`)
   }
 })

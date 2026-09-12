@@ -90,9 +90,12 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Toute donnee hexadecimale porte le zero barre : une adresse sans zero barre est un piege. */
+/* Toute donnee hexadecimale porte le zero barre : une adresse sans zero barre est un piege.
+   Et elle doit pouvoir se COUPER : un hash de 64 caracteres est un mot insecable, et un mot
+   insecable plus large que l'ecran fait defiler la PAGE entiere de cote. */
 .hex {
   font-feature-settings: 'zero' 1;
+  overflow-wrap: anywhere;
 }
 
 .prose {

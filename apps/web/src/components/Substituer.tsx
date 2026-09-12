@@ -324,7 +324,11 @@ export function SubstituerPanel() {
               spellCheck={false}
               className="t-data-xs"
               style={{
-                width: 230,
+                // `width: 230` fixe debordait a 400 px : une largeur fixe dans une ligne qui
+                // se replie n'est pas une largeur, c'est un plancher.
+                flex: '1 1 200px',
+                minWidth: 0,
+                maxWidth: 230,
                 padding: '5px 8px',
                 border: '1px solid var(--line)',
                 background: 'var(--bg-2)',

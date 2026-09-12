@@ -144,7 +144,11 @@ function Selector({
           background: 'var(--bg-2)',
           border: `1px solid ${ok ? 'var(--line-strong)' : 'var(--m-4)'}`,
           color: 'var(--ink)',
-          minWidth: 340,
+          // idem : `minWidth: 340` faisait deborder la page a 400 px. Le champ doit pouvoir
+          // se retrecir ; c'est `flex-basis` qui porte la largeur souhaitee, pas un plancher.
+          flex: '1 1 300px',
+          minWidth: 0,
+          maxWidth: 340,
         }}
         list={listId}
         value={value}

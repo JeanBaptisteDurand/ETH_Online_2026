@@ -263,10 +263,18 @@ function SortieComprendre() {
   )
 }
 
+/**
+ * UNE LIGNE « clé : valeur ».
+ *
+ * `flex-wrap` et `minWidth: 0` ne sont pas de la décoration : sans eux, une valeur qui
+ * contient un mot insécable — un chemin de fichier, une URL, un identifiant de subgraph —
+ * pousse la LIGNE au-delà de la page, et c'est la PAGE ENTIÈRE qui défile de côté. Onze des
+ * quatorze pages outil débordaient à 400 px pour cette seule raison.
+ */
 const L = ({ k, v }: { k: string; v: React.ReactNode }) => (
-  <div className="flex items-baseline gap-[10px] px-[16px] py-[6px]" style={{ borderTop: '1px solid var(--line)' }}>
-    <span className="t-label" style={{ color: 'var(--ink-4)', minWidth: 150 }}>{k}</span>
-    <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>{v}</span>
+  <div className="flex flex-wrap items-baseline gap-x-[10px] gap-y-[3px] px-[16px] py-[6px]" style={{ borderTop: '1px solid var(--line)' }}>
+    <span className="t-label" style={{ color: 'var(--ink-4)', minWidth: 120, flexShrink: 0 }}>{k}</span>
+    <span className="t-data-xs" style={{ color: 'var(--ink-2)', flex: '1 1 200px', minWidth: 0, overflowWrap: 'anywhere' }}>{v}</span>
   </div>
 )
 
@@ -444,8 +452,8 @@ function Rend({ n }: { n: number }) {
       </div>
       {o.sortie.map((c) => (
         <div key={c.champ} className="px-[16px] py-[6px] flex flex-wrap items-baseline gap-[10px]" style={{ borderTop: '1px solid var(--line)' }}>
-          <code style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--ink)', minWidth: 150 }}>{c.champ}</code>
-          <span className="t-data-xs" style={{ color: 'var(--ink-2)', lineHeight: 1.5, maxWidth: '78ch' }}>{c.quoi}</span>
+          <code style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--ink)', minWidth: 120, wordBreak: 'break-all' }}>{c.champ}</code>
+          <span className="t-data-xs" style={{ color: 'var(--ink-2)', lineHeight: 1.5, maxWidth: '78ch', flex: '1 1 200px', minWidth: 0 }}>{c.quoi}</span>
         </div>
       ))}
       {ecrits.map((j) => <Jeu key={j.cle} j={j} sens="écrit" />)}
@@ -491,11 +499,11 @@ export function OutilPanel({ n, surOutil }: { n: number; surOutil?: (n: number) 
 
       {o.routes.length > 0 && (
         <L k="routes" v={<span className="flex flex-wrap gap-[8px]">{o.routes.map((r) => (
-          <code key={r} style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--ink-2)' }}>{r}</code>
+          <code key={r} style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--ink-2)', wordBreak: 'break-all' }}>{r}</code>
         ))}</span>} />
       )}
       <L k="le code" v={<span className="flex flex-wrap gap-[6px]">{o.code.map((d) => (
-        <code key={d} style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--ink-3)' }}>{d}</code>
+        <code key={d} style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--ink-3)', wordBreak: 'break-all' }}>{d}</code>
       ))}</span>} />
       <L k="accès" v={o.acces.join(' · ')} />
       {o.panneaux.length > 0 && <L k="déjà affiché en" v={`panneau ${o.panneaux.join(', ')}`} />}

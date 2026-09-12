@@ -15,7 +15,7 @@ de données, les cinq accès et les mots employés : c'est décidé, écrit, tes
 « et si on ajoutait… » n'est plus ouverte. Il reste **le design**, et rien d'autre.
 
 **Le cadre.** Soumission à ETHOnline 2026. Le dépôt est public :
-`https://github.com/JeanBaptisteDurand/ETH_Online_2026`. La suite complète est verte — **1 215 tests**
+`https://github.com/JeanBaptisteDurand/ETH_Online_2026`. La suite complète est verte — **1 218 tests**
 (`bash scripts/test-all.sh`). Le site se déploie par GitHub Pages depuis `main`.
 
 **Ce qui est à toi :** `apps/web/src/components/`, `apps/web/src/styles/`, `apps/landing/`.

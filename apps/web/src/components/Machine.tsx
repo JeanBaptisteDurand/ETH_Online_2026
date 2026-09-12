@@ -12,7 +12,7 @@
 // chaque fait porte le lien qui permet de le verifier ailleurs qu'ici : c'est le minimum
 // pour un instrument dont l'argument est « verifie plutot que de me croire ».
 import facts from '../data/facts.json'
-import { Panel, Copy, Lien, NonLu, Chip } from './Prim'
+import { Panel, Copy, Lien, NonLu, Chip, Absence } from './Prim'
 import { dataset } from '../lib/dataset'
 
 type Facts = typeof facts
@@ -32,7 +32,7 @@ function Ligne({
   const vide = valeur === null || valeur === undefined
   return (
     <div className="flex flex-wrap items-baseline gap-[10px]">
-      <span className="t-label" style={{ color: 'var(--ink-4)', minWidth: 138 }}>
+      <span className="t-label" style={{ color: 'var(--ink-2)', minWidth: 138 }}>
         {quoi}
       </span>
       <span className="t-data-sm" style={{ color: 'var(--ink-2)', wordBreak: 'break-all' }}>
@@ -57,19 +57,16 @@ function Peage() {
   return (
     <Panel
       index="09"
-      title="le peage · une mesure neuve se paie, et le paiement est relu"
-      right={
-        <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
-          x402 v2 · Hedera testnet · Blocky402
-        </span>
-      }
+      title="Le péage, relu sur le mirror node"
+      meta={['x402 v2', 'Hedera testnet', 'Blocky402']}
     >
       <div className="flex flex-col gap-[14px] p-[16px]">
         {!x ? (
-          <p className="t-data-sm" style={{ color: 'var(--ink-3)' }}>
-            Journal des reglements non lu : <code>docs/x402-settlements.jsonl</code> est absent
-            du build. Aucun chiffre n'est affiche a la place.
-          </p>
+          <Absence
+            quoi="docs/x402-settlements.jsonl"
+            raison="le journal des règlements n’a pas été lu au build. Aucun chiffre n’est affiché à la place : un péage non relu n’est pas un péage à zéro."
+            cmd="npm run data"
+          />
         ) : (
           <>
             <p className="t-data-sm" style={{ color: 'var(--ink-2)', maxWidth: '78ch' }}>
@@ -84,7 +81,7 @@ function Peage() {
                 <div className="t-metric" style={{ color: 'var(--ink)' }}>
                   {x.regles}
                 </div>
-                <div className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+                <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                   paiements <strong>regles</strong> et relus sur le mirror node
                 </div>
               </div>
@@ -92,7 +89,7 @@ function Peage() {
                 <div className="t-metric" style={{ color: 'var(--ink)' }}>
                   {x.par_keyring}
                 </div>
-                <div className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+                <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                   signes par une cle servie par le <strong>Ledger Key Ring</strong>, pas par un
                   fichier
                 </div>
@@ -101,7 +98,7 @@ function Peage() {
                 <div className="t-metric" style={{ color: 'var(--ink)' }}>
                   {x.prix_unite_usd ?? '—'}
                 </div>
-                <div className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+                <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                   USDC par <strong>mesure</strong> — les montants regles vont de{' '}
                   {x.montants.length
                     ? `${Number(x.montants[0]) / 1e6} a ${Number(x.montants[x.montants.length - 1]) / 1e6}`
@@ -111,20 +108,20 @@ function Peage() {
               </div>
             </div>
 
-            <p className="t-data-xs" style={{ color: 'var(--ink-3)', maxWidth: '78ch' }}>
+            <p className="t-data-xs" style={{ color: 'var(--ink-2)', maxWidth: '78ch' }}>
               « Regle » veut dire relu sur le mirror node : un paiement envoye n'est pas un
               paiement regle, et les compter ensemble serait la meme faute que compter un
               silence pour un zero. {x.vus !== x.regles ? `${x.vus} lignes au journal, ${x.regles} confirmees.` : ''}
             </p>
 
-            <div className="scroll" style={{ overflowX: 'auto' }}>
+            <div className="scroll" tabIndex={0} role="region" aria-label="journal des règlements" style={{ overflowX: 'auto' }}>
               <table className="w-full border-collapse" style={{ minWidth: 720 }}>
                 <thead>
                   <tr style={{ background: 'var(--bg-2)' }}>
-                    {['QUAND', 'TRANSACTION HEDERA', 'STATUT', 'MONTANT', 'LATENCE', 'CLE', ''].map((h) => (
+                    {['quand', 'transaction Hedera', 'statut', 'montant', 'latence', 'clé', 'lien'].map((h) => (
                       <th
                         key={h}
-                        className="t-label px-[10px] py-[6px] text-left"
+                        className="t-data-sm px-[10px] py-[6px] text-left"
                         style={{
                           color: 'var(--ink-2)',
                           borderBottom: '1px solid var(--line-strong)',
@@ -139,7 +136,7 @@ function Peage() {
                 <tbody>
                   {x.lignes.map((l, i) => (
                     <tr key={l.transaction ?? i} style={{ borderBottom: '1px solid var(--line)' }}>
-                      <td className="t-data-xs px-[10px] py-[5px]" style={{ color: 'var(--ink-3)', whiteSpace: 'nowrap' }}>
+                      <td className="t-data-xs px-[10px] py-[5px]" style={{ color: 'var(--ink-2)', whiteSpace: 'nowrap' }}>
                         {l.ts?.slice(0, 16).replace('T', ' ')}
                       </td>
                       <td className="t-data-xs hex px-[10px] py-[5px]" style={{ color: 'var(--ink-2)' }}>
@@ -151,10 +148,10 @@ function Peage() {
                       <td className="t-data-xs px-[10px] py-[5px] text-right" style={{ color: 'var(--ink-2)' }}>
                         {l.montant ? `${Number(l.montant) / 1e6} USDC` : '—'}
                       </td>
-                      <td className="t-data-xs px-[10px] py-[5px] text-right" style={{ color: 'var(--ink-3)' }}>
+                      <td className="t-data-xs px-[10px] py-[5px] text-right" style={{ color: 'var(--ink-2)' }}>
                         {l.latence_ms ? `${(l.latence_ms / 1000).toFixed(1)} s` : '—'}
                       </td>
-                      <td className="t-data-xs px-[10px] py-[5px]" style={{ color: 'var(--ink-3)' }}>
+                      <td className="t-data-xs px-[10px] py-[5px]" style={{ color: 'var(--ink-2)' }}>
                         {l.cle === 'ledger-keyring' ? 'anneau Ledger' : 'fichier .env'}
                       </td>
                       <td className="px-[10px] py-[5px]">
@@ -166,7 +163,7 @@ function Peage() {
               </table>
             </div>
 
-            <div className="flex flex-wrap gap-[16px] t-data-xs" style={{ color: 'var(--ink-3)' }}>
+            <div className="flex flex-wrap gap-[16px] t-data-xs" style={{ color: 'var(--ink-2)' }}>
               <span>facilitateur {x.facilitateur ?? '—'}</span>
               <span>jeton {x.jeton ?? '—'}</span>
               <span>payeur {x.payeur ?? '—'}</span>
@@ -186,17 +183,16 @@ function Identite() {
   return (
     <Panel
       index="10"
-      title="qui mesure · l'identite d'agent, recalculable"
-      right={
-        <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
-          HCS-14 · {a?.etat ?? 'non lu'}
-          {a?.sequence ? ` · message #${a.sequence}` : ''}
-        </span>
-      }
+      title="Qui mesure : l’identité d’agent"
+      meta={[
+        'HCS-14',
+        a?.etat ?? 'non lu',
+        ...(a?.sequence ? [`message #${a.sequence}`] : []),
+      ]}
     >
       <div className="flex flex-col gap-[14px] p-[16px]">
         {!a ? (
-          <p className="t-data-sm" style={{ color: 'var(--ink-3)' }}>
+          <p className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
             Identite non lue : <code>docs/dataset/agent-identity.json</code> est absent du build.
           </p>
         ) : (
@@ -241,7 +237,7 @@ function Identite() {
             </div>
 
             <div className="flex flex-col gap-[6px]">
-              <span className="t-label" style={{ color: 'var(--ink-4)' }}>
+              <span className="t-label" style={{ color: 'var(--ink-2)' }}>
                 les six champs qui produisent l'empreinte — recalcule-la
               </span>
               <div
@@ -256,14 +252,14 @@ function Identite() {
               >
                 {a.canonical_json}
               </div>
-              <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+              <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                 sha384 de ce texte, encode en base58, prefixe <code>uaid:aid:</code>. Les
                 parametres apres le « ; » sont du routage et n'entrent pas dans l'empreinte.
               </span>
             </div>
 
             <div className="flex flex-col gap-[8px]">
-              <span className="t-label" style={{ color: 'var(--ink-4)' }}>
+              <span className="t-label" style={{ color: 'var(--ink-2)' }}>
                 ce qui est revendique — chaque code a du code en face
               </span>
               <div className="flex flex-wrap gap-[6px]">
@@ -273,12 +269,12 @@ function Identite() {
                   </Chip>
                 ))}
               </div>
-              <span className="t-label" style={{ color: 'var(--ink-4)', marginTop: 4 }}>
+              <span className="t-label" style={{ color: 'var(--ink-2)', marginTop: 4 }}>
                 et ce qui a ete ecarte, alors que c'etait tentant
               </span>
               <ul
                 className="t-data-xs"
-                style={{ color: 'var(--ink-3)', margin: 0, paddingLeft: 18, maxWidth: '78ch' }}
+                style={{ color: 'var(--ink-2)', margin: 0, paddingLeft: 18, maxWidth: '78ch' }}
               >
                 {a.ecartees.map((e) => (
                   <li key={e.code}>
@@ -289,7 +285,7 @@ function Identite() {
                   </li>
                 ))}
               </ul>
-              <p className="t-data-xs" style={{ color: 'var(--ink-4)', maxWidth: '78ch', margin: 0 }}>
+              <p className="t-data-xs" style={{ color: 'var(--ink-2)', maxWidth: '78ch', margin: 0 }}>
                 La norme publie deux vecteurs de test avec leurs entrees mais <strong>sans leurs
                 empreintes</strong> : il n'existe aucun resultat de reference contre lequel se
                 comparer. L'encodage est valide contre les vecteurs standard de Bitcoin et contre
@@ -311,16 +307,12 @@ function Attestations() {
   return (
     <Panel
       index="11"
-      title="ce qui est ecrit on-chain · lisible par un autre contrat"
-      right={
-        <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
-          Hedera testnet · contrat deploye
-        </span>
-      }
+      title="Ce qui est écrit on-chain"
+      meta={['lisible par un autre contrat', 'Hedera testnet', 'contrat deploye']}
     >
       <div className="flex flex-col gap-[14px] p-[16px]">
         {!a ? (
-          <p className="t-data-sm" style={{ color: 'var(--ink-3)' }}>
+          <p className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
             Attestations non lues : <code>docs/dataset/attestations.json</code> est absent du build.
           </p>
         ) : (
@@ -337,15 +329,15 @@ function Attestations() {
                 <div className="t-metric" style={{ color: 'var(--ink)' }}>
                   {nb(a.ecrits) ?? '—'}
                 </div>
-                <div className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+                <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                   hooks attestes, avec leur mediane et leur maximum
                 </div>
               </div>
               <div>
-                <div className="t-metric" style={{ color: 'var(--ink-3)' }}>
+                <div className="t-metric" style={{ color: 'var(--ink-2)' }}>
                   {nb(a.ecartes) ?? '—'}
                 </div>
-                <div className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+                <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                   <strong>ecartes faute de mesure</strong> — pas ecrits a zero
                 </div>
               </div>
@@ -367,21 +359,21 @@ function Attestations() {
 
             {a.pire.length > 0 && (
               <div className="flex flex-col gap-[6px]">
-                <span className="t-label" style={{ color: 'var(--ink-4)' }}>
+                <span className="t-label" style={{ color: 'var(--ink-2)' }}>
                   les trois plus gros prelevements attestes
                 </span>
                 {a.pire.map((h) => (
                   <div key={h.hook} className="flex flex-wrap gap-[14px] t-data-xs" style={{ color: 'var(--ink-2)' }}>
                     <span className="hex">{h.hook}</span>
                     <span>max {h.max_bps?.toFixed(2)} bps</span>
-                    <span style={{ color: 'var(--ink-3)' }}>mediane {h.median_bps?.toFixed(2)} bps</span>
-                    <span style={{ color: 'var(--ink-3)' }}>{nb(h.pools)} pools</span>
+                    <span style={{ color: 'var(--ink-2)' }}>mediane {h.median_bps?.toFixed(2)} bps</span>
+                    <span style={{ color: 'var(--ink-2)' }}>{nb(h.pools)} pools</span>
                   </div>
                 ))}
               </div>
             )}
 
-            <p className="t-data-xs" style={{ color: 'var(--ink-4)', maxWidth: '78ch', margin: 0 }}>
+            <p className="t-data-xs" style={{ color: 'var(--ink-2)', maxWidth: '78ch', margin: 0 }}>
               Un hook ecarte n'est pas un hook a zero : il n'a simplement aucune mesure a
               attester. Ecrire zero pour lui serait exactement la faute que tout cet instrument
               refuse.
@@ -400,16 +392,12 @@ function Independante() {
   return (
     <Panel
       index="12"
-      title="une source independante · notre recensement, confronte"
-      right={
-        <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
-          The Graph · subgraph officiel Uniswap V4 Base
-        </span>
-      }
+      title="Une source indépendante, confrontée"
+      meta={['The Graph', 'subgraph officiel Uniswap V4 Base']}
     >
       <div className="flex flex-col gap-[14px] p-[16px]">
         {!g ? (
-          <p className="t-data-sm" style={{ color: 'var(--ink-3)' }}>
+          <p className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
             Volume non lu : <code>docs/dataset/volume-base.json</code> est absent du build.
           </p>
         ) : (
@@ -425,7 +413,7 @@ function Independante() {
                 <div className="t-metric" style={{ color: 'var(--ink)' }}>
                   {nb(g.retrouves)} / {nb(g.pools_du_recensement)}
                 </div>
-                <div className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+                <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                   de nos pools <strong>existent</strong> dans le subgraph officiel
                 </div>
               </div>
@@ -433,7 +421,7 @@ function Independante() {
                 <div className="t-metric" style={{ color: 'var(--ink)' }}>
                   {usd(g.volume_usd) ?? '—'}
                 </div>
-                <div className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+                <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                   de volume cumule · {nb(g.transactions)} transactions
                 </div>
               </div>
@@ -441,7 +429,7 @@ function Independante() {
                 <div className="t-metric" style={{ color: 'var(--ink)' }}>
                   {usd(g.au_taux_median_usd) ?? '—'}
                 </div>
-                <div className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+                <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                   retenus par les hooks, <strong>au taux median mesure</strong>
                 </div>
               </div>
@@ -454,13 +442,13 @@ function Independante() {
                 padding: '12px 14px',
               }}
             >
-              <div className="t-label" style={{ color: 'var(--ink-4)', marginBottom: 6 }}>
+              <div className="t-label" style={{ color: 'var(--ink-2)', marginBottom: 6 }}>
                 pourquoi « estimation » et pas « constate »
               </div>
               <p className="t-data-xs" style={{ color: 'var(--ink-2)', margin: 0, maxWidth: '78ch' }}>
                 {g.hypothese ?? <NonLu quoi="hypothese" />}
               </p>
-              <p className="t-data-xs" style={{ color: 'var(--ink-3)', margin: '8px 0 0' }}>
+              <p className="t-data-xs" style={{ color: 'var(--ink-2)', margin: '8px 0 0' }}>
                 Le chiffre est donc <strong>borne</strong> : de {usd(g.au_taux_median_usd)} au taux
                 median a {usd(g.au_taux_maximum_usd)} au taux maximum mesure. L'hypothese est
                 ecrite dans le fichier lui-meme, pas en note de bas de page.
@@ -469,21 +457,21 @@ function Independante() {
 
             {g.top_hooks.length > 0 && (
               <div className="flex flex-col gap-[6px]">
-                <span className="t-label" style={{ color: 'var(--ink-4)' }}>
+                <span className="t-label" style={{ color: 'var(--ink-2)' }}>
                   les cinq hooks par montant estime retenu
                 </span>
                 {g.top_hooks.map((h) => (
                   <div key={h.hook} className="flex flex-wrap gap-[14px] t-data-xs" style={{ color: 'var(--ink-2)' }}>
                     <span className="hex">{h.hook}</span>
                     <span>{usd(h.estime_usd)}</span>
-                    <span style={{ color: 'var(--ink-3)' }}>sur {usd(h.volume_usd)} de volume</span>
-                    <span style={{ color: 'var(--ink-3)' }}>{nb(h.pools)} pools</span>
+                    <span style={{ color: 'var(--ink-2)' }}>sur {usd(h.volume_usd)} de volume</span>
+                    <span style={{ color: 'var(--ink-2)' }}>{nb(h.pools)} pools</span>
                   </div>
                 ))}
               </div>
             )}
 
-            <p className="t-data-xs" style={{ color: 'var(--ink-4)', maxWidth: '78ch', margin: 0 }}>
+            <p className="t-data-xs" style={{ color: 'var(--ink-2)', maxWidth: '78ch', margin: 0 }}>
               Un pool non retrouve serait <strong>absent</strong> de ce fichier, jamais present a
               volume zero. Aucun ne l'est : la couverture est de{' '}
               {g.part === null ? '—' : `${(g.part * 100).toFixed(1)} %`}.
@@ -503,12 +491,8 @@ function Surfaces() {
   return (
     <Panel
       index="14"
-      title="les autres surfaces · ce qui tourne ailleurs que sur cette page"
-      right={
-        <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
-          extension · serveur MCP · depot
-        </span>
-      }
+      title="Les autres surfaces"
+      meta={['extension', 'serveur MCP', 'depot']}
     >
       <div className="flex flex-col gap-[16px] p-[16px]">
         <div className="flex flex-col gap-[6px]">
@@ -524,7 +508,7 @@ function Surfaces() {
           </p>
           {gd ? (
             <>
-              <div className="flex flex-wrap gap-[16px] t-data-xs" style={{ color: 'var(--ink-3)' }}>
+              <div className="flex flex-wrap gap-[16px] t-data-xs" style={{ color: 'var(--ink-2)' }}>
                 <span>
                   decodage verifie sur <strong style={{ color: 'var(--ink-2)' }}>{gd.transactions_reelles}</strong>{' '}
                   transactions reelles capturees sur Base
@@ -541,11 +525,11 @@ function Surfaces() {
               </div>
             </>
           ) : (
-            <span className="t-data-xs" style={{ color: 'var(--ink-4)' }}>
+            <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
               fixtures de calldata non lues
             </span>
           )}
-          <span className="t-data-xs" style={{ color: 'var(--ink-4)' }}>
+          <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
             Installable en local ; elle n'est pas publiee sur un store, et elle ne voit que le
             portefeuille d'un navigateur de bureau.
           </span>
@@ -584,7 +568,7 @@ function Surfaces() {
         </div>
 
         {F.manquants.length > 0 && (
-          <p className="t-data-xs" style={{ color: 'var(--ink-4)', margin: 0 }}>
+          <p className="t-data-xs" style={{ color: 'var(--ink-2)', margin: 0 }}>
             Sources absentes de ce build, dont les chiffres ne sont pas affiches :{' '}
             {F.manquants.join(', ')}.
           </p>
@@ -603,12 +587,8 @@ function Execution() {
   return (
     <Panel
       index="13"
-      title="la preuve d'execution · et le rapport rendu sur un appareil"
-      right={
-        <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
-          porte A4 · EIP-712 sur Speculos
-        </span>
-      }
+      title="La preuve d’exécution sur l’appareil"
+      meta={['porte A4', 'EIP-712 sur Speculos']}
     >
       <div className="flex flex-col gap-[16px] p-[16px]">
         <div className="flex flex-col gap-[8px]">
@@ -630,20 +610,20 @@ function Execution() {
           </p>
 
           {!e ? (
-            <p className="t-data-sm" style={{ color: 'var(--ink-3)' }}>
+            <p className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
               Resultat de la porte A4 <NonLu quoi="engine/tare/gates/a4.py" /> — aucun chiffre
               n'est affiche a la place.
             </p>
           ) : (
             <>
-              <div className="scroll" style={{ overflowX: 'auto', marginTop: 4 }}>
+              <div className="scroll" tabIndex={0} role="region" aria-label="exécuté contre coté" style={{ overflowX: 'auto', marginTop: 4 }}>
                 <table className="w-full border-collapse" style={{ minWidth: 620 }}>
                   <thead>
                     <tr style={{ background: 'var(--bg-2)' }}>
-                      {['', 'EXECUTE (wei recus)', 'COTE (eth_call)', ''].map((h) => (
+                      {['mesure', 'exécuté (wei reçus)', 'coté (eth_call)', 'écart'].map((h, i) => (
                         <th
-                          key={h}
-                          className="t-label px-[10px] py-[6px] text-left"
+                          key={h + i}
+                          className="t-data-sm px-[10px] py-[6px] text-left"
                           style={{ color: 'var(--ink-2)', borderBottom: '1px solid var(--line-strong)' }}
                         >
                           {h}
@@ -659,7 +639,7 @@ function Execution() {
                       const j = v as { execute: string; cote: string; egal: boolean }
                       return (
                         <tr key={nom as string} style={{ borderBottom: '1px solid var(--line)' }}>
-                          <td className="t-data-xs px-[10px] py-[5px]" style={{ color: 'var(--ink-3)', whiteSpace: 'nowrap' }}>
+                          <td className="t-data-xs px-[10px] py-[5px]" style={{ color: 'var(--ink-2)', whiteSpace: 'nowrap' }}>
                             {nom as string}
                           </td>
                           <td className="t-data-xs hex px-[10px] py-[5px]" style={{ color: 'var(--ink)' }}>
@@ -693,7 +673,7 @@ function Execution() {
             et le verdict lu sur un appareil, ecran par ecran, avant la signature
           </span>
           {!l ? (
-            <p className="t-data-sm" style={{ color: 'var(--ink-3)' }}>
+            <p className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
               Preuve <NonLu quoi="docs/ledger/guard-speculos.json" />.
             </p>
           ) : (
@@ -714,7 +694,7 @@ function Execution() {
                 </Ligne>
                 <Ligne quoi="appareil" valeur={l.appareil} />
               </div>
-              <p className="t-data-xs" style={{ color: 'var(--ink-4)', margin: 0, maxWidth: '78ch' }}>
+              <p className="t-data-xs" style={{ color: 'var(--ink-2)', margin: 0, maxWidth: '78ch' }}>
                 {l.physique
                   ? "Appareil physique."
                   : "Ce n'est pas un Nano branche : c'est Speculos, l'emulateur officiel, servant l'application Ethereum de Ledger. On le dit plutot que de laisser croire au materiel."}

@@ -55,12 +55,8 @@ export function LedWidget() {
   return (
     <Panel
       index="04"
-      title="14 permissions, zero appel reseau"
-      right={
-        <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
-          BigInt(adresse) &amp; 0x3FFF
-        </span>
-      }
+      title="Les permissions, lues sur la chaîne"
+      meta={['14 bits', 'BigInt(adresse) & 0x3FFF', 'aucun appel réseau']}
     >
       <div className="p-[16px] flex flex-col gap-[16px]">
         <p className="prose t-data-sm" style={{ fontFamily: 'var(--prose)', fontSize: 14 }}>
@@ -81,8 +77,11 @@ export function LedWidget() {
             value={input}
             spellCheck={false}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="0x…"
+            placeholder="0x0469… l'adresse d'un hook"
             aria-label="adresse du hook"
+            name="hook"
+            autoComplete="off"
+            translate="no"
             className="hex t-data px-[10px] py-[6px] flex-1 min-w-0 basis-[320px]"
             style={{
               background: 'var(--bg-2)',
@@ -91,7 +90,7 @@ export function LedWidget() {
               fontFamily: 'var(--mono)',
             }}
           />
-          <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+          <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
             {value === ''
               ? 'en attente'
               : valid
@@ -110,24 +109,32 @@ export function LedWidget() {
               style={{
                 border: '1px solid var(--line)',
                 background: value.toLowerCase() === e.addr ? 'var(--bg-3)' : 'transparent',
-                color: 'var(--ink-3)',
+                color: 'var(--ink-2)',
               }}
             >
-              {e.addr.slice(0, 10)}… <span style={{ color: 'var(--ink-4)' }}>{e.note}</span>
+              {e.addr.slice(0, 10)}… <span style={{ color: 'var(--ink-2)' }}>{e.note}</span>
             </button>
           ))}
         </div>
 
         {/* Les 14 LED. Allume = --m-6 plein. Eteint = --bg-2. Rien d'autre n'est colore. */}
-        <div className="flex flex-wrap gap-[4px]" role="group" aria-label="permissions du hook">
+        {/* Une liste, pas quatorze div muettes : `aria-label` sur une balise sans role est
+            ignore, et les permissions on-chain sont la seule lecture de cet ecran. */}
+        <ul
+          className="flex flex-wrap gap-[4px] m-0 p-0"
+          style={{ listStyle: 'none' }}
+          aria-label="permissions du hook, quatorze bits"
+        >
           {FLAGS.map((f, i) => {
             const on = bits ? bits[i] : false
             return (
-              <div key={f.key} className="flex flex-col items-center gap-[4px] w-[46px]">
-                <div
-                  aria-label={`${f.key} ${on ? 'active' : 'inactive'}`}
-                  title={`bit ${f.bit} · ${f.key} · ${f.fr} · ${on ? 'ACTIVE' : 'inactive'}`}
+              <li key={f.key} className="flex flex-col items-center gap-[4px] w-[46px]">
+                <span
+                  role="img"
+                  aria-label={`bit ${f.bit}, ${f.key} — ${on ? 'active' : 'inactive'}`}
+                  title={`bit ${f.bit} — ${f.key} — ${f.fr} — ${on ? 'ACTIVE' : 'inactive'}`}
                   style={{
+                    display: 'block',
                     width: 10,
                     height: 10,
                     border: '1px solid var(--line-strong)',
@@ -135,19 +142,21 @@ export function LedWidget() {
                     transition: 'background var(--t-feedback) linear',
                   }}
                 />
+                {/* Eteint ne se dit pas en gris pale : la pastille porte l'etat, le mot
+                    reste lisible. */}
                 <span
-                  className="t-data-xs text-center"
-                  style={{ color: on ? 'var(--ink-2)' : 'var(--ink-4)' }}
+                  className="t-data-sm text-center"
+                  style={{ color: 'var(--ink-2)', opacity: on ? 1 : 0.75 }}
                 >
                   {f.short}
                 </span>
-                <span className="t-data-xs" style={{ color: 'var(--ink-4)' }}>
+                <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
                   {f.bit}
                 </span>
-              </div>
+              </li>
             )
           })}
-        </div>
+        </ul>
 
         {bits && (
           <div className="flex flex-col gap-[6px]">
@@ -156,7 +165,7 @@ export function LedWidget() {
                 ? 'Ce hook s’execute sur le chemin du swap. Il peut prendre.'
                 : 'Aucun bit de swap : ce hook ne s’execute pas sur le chemin du swap.'}
             </div>
-            <div className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+            <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
               Ce que la permission dit, c’est ce que le hook <em>a le droit</em> de faire.
               Elle ne dit rien de ce qu’il prend. Le tableau 02 dit ce qu’il prend.
             </div>
@@ -181,12 +190,12 @@ export function LedWidget() {
                   </Chip>
                 ))}
               {state === 'loading' && (
-                <span className="t-data-xs" style={{ color: 'var(--ink-4)' }}>
+                <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                   registre en cours de chargement — les LED n'en dependent pas
                 </span>
               )}
               {state === 'error' && (
-                <span className="t-data-xs" style={{ color: 'var(--ink-4)' }}>
+                <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                   instantane du registre indisponible — LED inchangees
                 </span>
               )}

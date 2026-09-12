@@ -52,7 +52,7 @@ let nextId = 1
 
 function Ligne({ k, v }: { k: string; v: string }) {
   return (
-    <div className="flex gap-[8px] t-data-xs" style={{ color: 'var(--ink-3)' }}>
+    <div className="flex gap-[8px] t-data-xs" style={{ color: 'var(--ink-2)' }}>
       <span style={{ minWidth: 96, flexShrink: 0 }}>{k}</span>
       <span className="hex" style={{ color: 'var(--ink-2)', wordBreak: 'break-all' }}>
         {v}
@@ -64,7 +64,7 @@ function Ligne({ k, v }: { k: string; v: string }) {
 function Bloc({ titre, children }: { titre: string; children: React.ReactNode }) {
   return (
     <div style={{ border: '1px solid var(--line)', background: 'var(--bg-2)' }}>
-      <div className="t-label px-[8px] py-[4px]" style={{ color: 'var(--ink-3)', borderBottom: '1px solid var(--line)' }}>
+      <div className="t-label px-[8px] py-[4px]" style={{ color: 'var(--ink-2)', borderBottom: '1px solid var(--line)' }}>
         {titre}
       </div>
       <div className="px-[8px] py-[6px] flex flex-col gap-[4px]">{children}</div>
@@ -86,7 +86,7 @@ function Cite({ c }: { c: Citation }) {
         <span className="t-data" style={{ color: 'var(--ink)' }}>
           {c.token}
         </span>
-        <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+        <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
           {c.what}
         </span>
         {c.label && (
@@ -116,7 +116,7 @@ function Cite({ c }: { c: Citation }) {
             {ouvert && <Replay cmd={c.replay} note="Le fork doit etre en marche : docker compose up -d anvil." />}
           </>
         ) : (
-          <div className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+          <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
             denombrement : il se rejoue par sa recette, pas par une commande de mesure.
           </div>
         )}
@@ -133,13 +133,13 @@ function Reponse({ t }: { t: Extract<Turn, { kind: 'reponse' }> }) {
       <div className="flex flex-wrap items-baseline gap-[8px]">
         <Chip title="l'intention lue dans la question">{a.intent || 'sans intention'}</Chip>
         {a.label && <Chip title="etiquette de la reponse">{a.label}</Chip>}
-        <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+        <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
           {a.reading}
         </span>
       </div>
 
       {a.why.length > 0 && (
-        <ul className="m-0 pl-[14px] t-data-xs" style={{ color: 'var(--ink-3)' }}>
+        <ul className="m-0 pl-[14px] t-data-xs" style={{ color: 'var(--ink-2)' }}>
           {a.why.map((w) => (
             <li key={w}>{w}</li>
           ))}
@@ -162,7 +162,7 @@ function Reponse({ t }: { t: Extract<Turn, { kind: 'reponse' }> }) {
               <span className="t-label" style={{ color: r.ok ? 'var(--ink-2)' : 'var(--ink-4)' }}>
                 {r.action.type}
               </span>
-              <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+              <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                 {r.note}
               </span>
             </div>
@@ -170,7 +170,7 @@ function Reponse({ t }: { t: Extract<Turn, { kind: 'reponse' }> }) {
               <Ligne key={j} k={l.k} v={l.v} />
             ))}
             {r.lines.length > 8 && (
-              <div className="t-data-xs" style={{ color: 'var(--ink-4)' }}>
+              <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                 … {r.lines.length - 8} de plus, dans le tableau
               </div>
             )}
@@ -210,7 +210,7 @@ function Reponse({ t }: { t: Extract<Turn, { kind: 'reponse' }> }) {
                 </span>
                 <Chip>{w.label}</Chip>
               </div>
-              <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+              <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                 {w.reason}
               </span>
             </div>
@@ -258,7 +258,7 @@ function Reponse({ t }: { t: Extract<Turn, { kind: 'reponse' }> }) {
         </Bloc>
       )}
 
-      <div className="flex flex-wrap gap-x-[12px] t-data-xs" style={{ color: 'var(--ink-4)' }}>
+      <div className="flex flex-wrap gap-x-[12px] t-data-xs" style={{ color: 'var(--ink-2)' }}>
         <span>
           serveur : {a.dataset?.measurements ?? '—'} mesures · registre {a.registry?.entries ?? '—'} fiches
         </span>
@@ -388,20 +388,33 @@ export function Chat({
 
   if (!ouvert)
     return (
+      // Le pave flottant recouvrait un rang de la table a 390 et cumulait deux tells :
+      // capitales chassees et point median. A cette largeur il se reduit a une cible de
+      // 44 px qui porte son nom accessible ; au-dessus, il s'ecrit en toutes lettres.
       <button
         type="button"
         onClick={() => setOuvert(true)}
-        className="fixed t-label px-[10px] py-[8px] cursor-pointer"
+        aria-expanded={false}
+        aria-label="ouvrir l’assistant, qui pilote le tableau"
+        className="fixed t-data cursor-pointer chat-pave"
         style={{
           right: 16,
           bottom: 16,
           zIndex: 20,
+          minWidth: 44,
+          minHeight: 44,
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+          padding: '0 12px',
           border: '1px solid var(--line-strong)',
           background: 'var(--bg-2)',
           color: 'var(--ink-2)',
         }}
       >
-        assistant · pilote le tableau
+        <span aria-hidden="true">?</span>
+        <span className="chat-pave-mot">l’assistant pilote le tableau</span>
       </button>
     )
 
@@ -422,13 +435,13 @@ export function Chat({
         className="flex items-baseline gap-[10px] px-[12px] py-[8px]"
         style={{ background: 'var(--bg-2)', borderBottom: '1px solid var(--line-strong)' }}
       >
-        <span className="t-label" style={{ color: 'var(--ink-4)' }}>
+        <span className="t-label" style={{ color: 'var(--ink-2)' }}>
           07
         </span>
         <span className="t-label" style={{ color: 'var(--ink-2)' }}>
           assistant
         </span>
-        <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+        <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
           {sante
             ? `${sante.dataset.measurements} mesures · ${sante.registry.entries} fiches${sante.complete ? '' : ' · LECTURE PARTIELLE'}`
             : santeErreur
@@ -474,7 +487,7 @@ export function Chat({
         {tours.map((t) =>
           t.kind === 'question' ? (
             <div key={t.id} className="t-data" style={{ color: 'var(--ink)' }}>
-              <span style={{ color: 'var(--ink-4)' }}>&gt; </span>
+              <span style={{ color: 'var(--ink-2)' }}>&gt; </span>
               {t.text}
             </div>
           ) : t.kind === 'systeme' ? (
@@ -484,7 +497,7 @@ export function Chat({
               </div>
               <div className="px-[8px] py-[6px] flex flex-col gap-[6px]">
                 {t.detail && (
-                  <div className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+                  <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                     {t.detail}
                   </div>
                 )}
@@ -500,7 +513,7 @@ export function Chat({
         )}
 
         {enCours !== null && (
-          <div className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+          <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
             lecture en cours · rien ne s'affiche avant que la reponse soit entiere
           </div>
         )}
@@ -534,7 +547,7 @@ export function Chat({
             ])
           }}
           className="t-data-xs px-[6px] py-[3px] cursor-pointer"
-          style={{ border: '1px solid var(--line)', background: 'var(--bg-2)', color: 'var(--ink-3)' }}
+          style={{ border: '1px solid var(--line)', background: 'var(--bg-2)', color: 'var(--ink-2)' }}
         >
           reset
         </button>
@@ -546,7 +559,7 @@ export function Chat({
             navigator.clipboard?.writeText(window.location.href).catch(() => {})
           }}
           className="t-data-xs px-[6px] py-[3px] cursor-pointer"
-          style={{ border: '1px solid var(--line)', background: 'var(--bg-2)', color: 'var(--ink-3)' }}
+          style={{ border: '1px solid var(--line)', background: 'var(--bg-2)', color: 'var(--ink-2)' }}
         >
           permalien
         </button>
@@ -564,7 +577,10 @@ export function Chat({
           value={texte}
           onChange={(e) => setTexte(e.target.value)}
           maxLength={600}
-          placeholder="une question sur les hooks mesures"
+          aria-label="une question sur les hooks mesurés"
+          name="question"
+          autoComplete="off"
+          placeholder="quels hooks prennent plus de 100 bps ?…"
           className="flex-1 t-data px-[8px] py-[6px]"
           style={{ border: '1px solid var(--line-strong)', background: 'var(--bg-1)', color: 'var(--ink)' }}
         />

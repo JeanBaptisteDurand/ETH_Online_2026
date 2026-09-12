@@ -97,7 +97,8 @@ export function Detail({
     <div className="flex flex-col gap-[16px]">
       <Panel
         index="05"
-        title={`fiche hook · ${shortAddr(hook.address, 12, 8)}`}
+        title="La fiche du hook choisi"
+        meta={[<span className="hex" key="a">{shortAddr(hook.address, 12, 8)}</span>]}
         right={
           <div className="flex gap-[6px]">
             <Chip>{hook.label}</Chip>
@@ -115,15 +116,15 @@ export function Detail({
               <div className="t-metric" style={{ color: 'var(--ink)' }}>
                 {hook.bpsMax === null ? '—' : hook.bpsMax.toFixed(2)}
               </div>
-              <div className="t-data-sm" style={{ color: 'var(--ink-3)' }}>
+              <div className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
                 bps maximum observes
               </div>
-              <div className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+              <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                 sur {hook.measuredCount} observations · bloc {fmtBlock(hook.blocks[0])}
               </div>
             </div>
             <div className="flex flex-col justify-center gap-[2px]">
-              <div className="t-data-sm" style={{ color: 'var(--ink-3)' }}>
+              <div className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
                 {hook.registry ? hook.registry.name : 'aucune fiche au registre'}
               </div>
               <p
@@ -146,12 +147,12 @@ export function Detail({
 
       <Panel
         index="06"
-        title="profil taille → bps"
+        title="Le profil taille vers bps"
         right={
-          <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+          <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
             {focus && series.length < toutes.length
-              ? `assistant : ${series.length}/${toutes.length} serie(s) · pool ${shortAddr(focus.pool, 8, 6)}${focus.direction ? ` · ${focus.direction}` : ''}`
-              : 'canvas nu · aucune spline · aucune valeur animee'}
+              ? `assistant : ${series.length}/${toutes.length} serie(s), pool ${shortAddr(focus.pool, 8, 6)}${focus.direction ? `, ${focus.direction}` : ''}`
+              : 'canvas nu, aucune spline, aucune valeur animee'}
           </span>
         }
       >
@@ -160,22 +161,28 @@ export function Detail({
 
       <Panel
         index="07"
-        title={`les ${rows.length} lignes brutes de ce hook`}
-        right={
-          <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
-            {dataset.provenance.measurements.path} · {dataset.provenance.measurements.engine_ver}
-          </span>
-        }
+        title="Les lignes brutes de ce hook"
+        meta={[
+          `${rows.length} lignes`,
+          dataset.provenance.measurements.path,
+          dataset.provenance.measurements.engine_ver,
+        ]}
       >
-        <div className="overflow-auto" style={{ maxHeight: 420 }}>
+        <div
+          className="overflow-auto"
+          tabIndex={0}
+          role="region"
+          aria-label="les lignes brutes de ce hook, tableau defilant"
+          style={{ maxHeight: 420 }}
+        >
           <table className="w-full border-collapse" style={{ minWidth: 980 }}>
             <thead>
               <tr style={{ background: 'var(--bg-2)' }}>
-                {['POOL', 'SENS', 'TAILLE (unites du jeton entrant)', 'BPS', 'ETIQUETTE', 'RAISON', 'BLOC'].map(
+                {['pool', 'sens', 'taille (unités du jeton entrant)', 'bps', 'étiquette', 'raison', 'bloc'].map(
                   (h) => (
                     <th
                       key={h}
-                      className="t-label px-[10px] py-[6px] text-left sticky top-0"
+                      className="t-data-sm px-[10px] py-[6px] text-left sticky top-0"
                       style={{
                         color: 'var(--ink-2)',
                         background: 'var(--bg-2)',
@@ -220,12 +227,12 @@ export function Detail({
                     </td>
                     <td
                       className="t-data-xs hex px-[10px] py-[4px]"
-                      style={{ color: 'var(--ink-3)' }}
+                      style={{ color: 'var(--ink-2)' }}
                       title={explainReason(r.reason) ?? undefined}
                     >
                       {r.reason ? (explainReason(r.reason) ? `${r.reason} · ${explainReason(r.reason)!.split(' — ')[0]}` : r.reason) : '—'}
                     </td>
-                    <td className="t-data-xs px-[10px] py-[4px]" style={{ color: 'var(--ink-3)' }}>
+                    <td className="t-data-xs px-[10px] py-[4px]" style={{ color: 'var(--ink-2)' }}>
                       {fmtBlock(r.block_number)}
                     </td>
                   </tr>
@@ -238,7 +245,7 @@ export function Detail({
         {nbPages > 1 && (
           <div
             className="flex flex-wrap items-center gap-[10px] px-[16px] py-[8px] t-data-xs"
-            style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-3)' }}
+            style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-2)' }}
           >
             <button
               onClick={() => setPage((p) => Math.max(0, p - 1))}
@@ -293,7 +300,7 @@ export function Detail({
 
         {current && (
           <div className="p-[16px] flex flex-col gap-[10px]" style={{ borderTop: '1px solid var(--line-strong)' }}>
-            <div className="flex flex-wrap gap-x-[24px] gap-y-[4px] t-data-sm" style={{ color: 'var(--ink-3)' }}>
+            <div className="flex flex-wrap gap-x-[24px] gap-y-[4px] t-data-sm" style={{ color: 'var(--ink-2)' }}>
               <span>
                 valeur <span style={{ color: 'var(--ink)' }}>{current.bps === null ? '—' : `${current.bps.toFixed(4)} bps`}</span>
               </span>
@@ -310,7 +317,7 @@ export function Detail({
                 lp fee on-chain <span style={{ color: 'var(--ink)' }}>{String(current.stored_lp_fee)}</span>
               </span>
             </div>
-            <div className="flex flex-wrap gap-x-[24px] gap-y-[4px] t-data-xs hex" style={{ color: 'var(--ink-3)' }}>
+            <div className="flex flex-wrap gap-x-[24px] gap-y-[4px] t-data-xs hex" style={{ color: 'var(--ink-2)' }}>
               <span>avec le hook : {current.out_with ?? '—'}</span>
               <span>sans le hook : {current.out_without ?? '—'}</span>
               <span>empreinte du stub : {shortAddr(current.stub_hash, 10, 8)}</span>

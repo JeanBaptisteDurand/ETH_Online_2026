@@ -23,7 +23,7 @@ import {
   type Probe,
   type RouteAnswer,
 } from '../lib/route'
-import { Chip, Copy, Panel, Replay } from './Prim'
+import { Chip, Copy, Panel, Replay, Absence } from './Prim'
 import { API_BASE, getJson, type Fetched } from './GraphApi'
 
 /**
@@ -86,7 +86,7 @@ function TokenName({ address }: { address: string }) {
     <span className="hex" style={{ color: 'var(--ink)' }} title={address}>
       {shortAddr(address, 10, 6)}
       {isNativeCurrency(address) && (
-        <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+        <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
           {' '}
           natif
         </span>
@@ -99,7 +99,7 @@ function Note({ children }: { children: React.ReactNode }) {
   return (
     <p
       className="t-data-xs m-0"
-      style={{ color: 'var(--ink-3)', maxWidth: '110ch', fontFamily: 'var(--mono)' }}
+      style={{ color: 'var(--ink-2)', maxWidth: '110ch', fontFamily: 'var(--mono)' }}
     >
       {children}
     </p>
@@ -135,7 +135,7 @@ function Selector({
   const ok = ADDRESS_RE.test(value.trim())
   return (
     <label className="flex flex-col gap-[3px]">
-      <span className="t-label" style={{ color: 'var(--ink-3)' }}>
+      <span className="t-label" style={{ color: 'var(--ink-2)' }}>
         {label}
       </span>
       <input
@@ -185,7 +185,7 @@ function GateRow({ gate, rank }: { gate: PresentedGate; rank: string | null }) {
     <div style={{ borderTop: '1px solid var(--line)' }}>
       <div className="flex flex-wrap items-stretch gap-[12px] p-[12px]">
         <div className="flex flex-col justify-center" style={{ minWidth: 54 }}>
-          <span className="t-label" style={{ color: 'var(--ink-3)' }}>
+          <span className="t-label" style={{ color: 'var(--ink-2)' }}>
             {rank === null ? 'porte' : 'rang'}
           </span>
           <span className="t-title" style={{ color: rank === null ? 'var(--ink-3)' : 'var(--ink)' }}>
@@ -197,7 +197,7 @@ function GateRow({ gate, rank }: { gate: PresentedGate; rank: string | null }) {
           <div className="t-title-lg" style={{ color: 'var(--ink)' }}>
             {fmtBps(gate.total_bps)} <span className="t-data-sm">bps</span>
           </div>
-          <div className="t-data-sm" style={{ color: 'var(--ink-3)' }}>
+          <div className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
             cout total mesure = frais LP {fmtBps(gate.lp_fee_bps)} + hook {fmtBps(gate.hook_bps)}
           </div>
           <SizeWarning gate={gate} />
@@ -209,11 +209,11 @@ function GateRow({ gate, rank }: { gate: PresentedGate; rank: string | null }) {
             <span className="t-data-sm hex" style={{ color: 'var(--ink-2)' }}>
               hook {gate.hook ? shortAddr(gate.hook, 12, 6) : '—'}
             </span>
-            <span className="t-data-xs hex" style={{ color: 'var(--ink-3)' }}>
+            <span className="t-data-xs hex" style={{ color: 'var(--ink-2)' }}>
               pool {gate.pool_id ? shortAddr(gate.pool_id, 10, 6) : '—'}
             </span>
             {gate.block_number !== null && (
-              <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+              <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                 bloc {groupDigits(String(gate.block_number))}
               </span>
             )}
@@ -228,7 +228,7 @@ function GateRow({ gate, rank }: { gate: PresentedGate; rank: string | null }) {
               {gate.lp_divergent}
             </div>
           )}
-          <div className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+          <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
             {Object.entries(gate.labels_in_direction)
               .map(([k, v]) => `${k}=${v}`)
               .join(' · ') || 'aucune etiquette rendue'}
@@ -266,10 +266,10 @@ function AsideRow({ gate }: { gate: PresentedAside }) {
         <span className="t-data-sm hex" style={{ color: 'var(--ink-2)' }}>
           hook {gate.hook ? shortAddr(gate.hook, 12, 6) : '—'}
         </span>
-        <span className="t-data-xs hex" style={{ color: 'var(--ink-3)' }}>
+        <span className="t-data-xs hex" style={{ color: 'var(--ink-2)' }}>
           pool {gate.pool_id ? shortAddr(gate.pool_id, 10, 6) : '—'}
         </span>
-        <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+        <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
           {labels.length ? labels.map(([k, v]) => `${k}=${v}`).join(' · ') : 'aucune etiquette'}
         </span>
       </div>
@@ -284,7 +284,7 @@ function AsideRow({ gate }: { gate: PresentedAside }) {
         </div>
       )}
       {gate.nearest && (
-        <div className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+        <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
           a une AUTRE taille ({sizeText(gate.nearest.amount_in)})&nbsp;: total{' '}
           <span style={{ color: 'var(--ink-2)' }}>{fmtBps(gate.nearest.total_bps)} bps</span> ·{' '}
           {gate.nearest.label ?? '—'} · {gate.nearest.measurement_id ?? '—'}. {gate.nearest.note}
@@ -294,7 +294,7 @@ function AsideRow({ gate }: { gate: PresentedAside }) {
         <div className="flex items-center gap-[8px] flex-wrap">
           <code
             className="t-data-xs hex overflow-x-auto"
-            style={{ color: 'var(--ink-3)', maxWidth: '90ch', whiteSpace: 'nowrap' }}
+            style={{ color: 'var(--ink-2)', maxWidth: '90ch', whiteSpace: 'nowrap' }}
           >
             {gate.replay_at_requested_size ?? gate.replay ?? gate.nearest?.replay}
           </code>
@@ -327,7 +327,7 @@ function Verdict({
         <span className="t-title" style={{ color: 'var(--ink)' }}>
           {pres.title}
         </span>
-        <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+        <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
           {pres.doors === null
             ? 'nombre de portes inconnu'
             : `${pres.doors} porte${pres.doors > 1 ? 's' : ''} · source : ${pres.doorsSource}`}
@@ -399,7 +399,7 @@ function StructureBar({ answer }: { answer: RouteAnswer }) {
       style={{ borderTop: '1px solid var(--line)', background: 'var(--bg-1)' }}
     >
       <div className="flex flex-wrap items-baseline gap-x-[24px] gap-y-[4px]">
-        <span className="t-label" style={{ color: 'var(--ink-3)' }}>
+        <span className="t-label" style={{ color: 'var(--ink-2)' }}>
           structure du marche, derivee du recensement
         </span>
         <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
@@ -410,7 +410,7 @@ function StructureBar({ answer }: { answer: RouteAnswer }) {
           qu'une porte
         </span>
         {s.block_number !== null && (
-          <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+          <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
             bloc {groupDigits(String(s.block_number))}
           </span>
         )}
@@ -559,12 +559,11 @@ export function RoutePanel() {
   return (
     <Panel
       index="03"
-      title="par quelle porte passer · le cout total mesure"
-      right={
-        <span className="t-data-xs hex" style={{ color: 'var(--ink-3)' }}>
-          {API_BASE}/route · aucun cout n'est recalcule ici
-        </span>
-      }
+      title="Par quelle porte passer"
+      meta={[
+        <span className="hex" key="api">{API_BASE}/route</span>,
+        'aucun coût n’est recalculé ici',
+      ]}
     >
       {/* ------------------------------------------------------------ le formulaire */}
       <div
@@ -597,7 +596,7 @@ export function RoutePanel() {
           }}
         />
         <label className="flex flex-col gap-[3px]">
-          <span className="t-label" style={{ color: 'var(--ink-3)' }}>
+          <span className="t-label" style={{ color: 'var(--ink-2)' }}>
             taille (wei)
           </span>
           <select
@@ -618,7 +617,7 @@ export function RoutePanel() {
           </select>
         </label>
         <label className="flex flex-col gap-[3px]">
-          <span className="t-label" style={{ color: 'var(--ink-3)' }}>
+          <span className="t-label" style={{ color: 'var(--ink-2)' }}>
             sens
           </span>
           <select
@@ -654,10 +653,10 @@ export function RoutePanel() {
       {/* ---------------------------------------------------------- le bandeau sonde */}
       <div className="px-[16px] py-[10px] flex flex-col gap-[6px]" style={{ borderBottom: '1px solid var(--line)' }}>
         <div className="flex flex-wrap items-baseline gap-[12px]">
-          <span className="t-label" style={{ color: 'var(--ink-3)' }}>
+          <span className="t-label" style={{ color: 'var(--ink-2)' }}>
             paires derivees du corpus, portes comptees par /route
           </span>
-          <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+          <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
             {probed}/{candidates.length} paires interrogees · {multi.length} a plusieurs portes ·{' '}
             {single.length} a porte unique{single.length > SINGLE_SHOWN
               ? ` (${SINGLE_SHOWN} montrees)`
@@ -687,7 +686,7 @@ export function RoutePanel() {
               le sondage s'est arrete : {probeError}
             </span>
             <div className="flex items-center gap-[8px]">
-              <code className="t-data-xs hex" style={{ color: 'var(--ink-3)' }}>
+              <code className="t-data-xs hex" style={{ color: 'var(--ink-2)' }}>
                 {API_CMD}
               </code>
               <Copy text={API_CMD} />
@@ -728,7 +727,7 @@ export function RoutePanel() {
               </button>
             ))}
             {probes.length === 0 && (
-              <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+              <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                 sondage en cours — aucune paire n'est affichee avant que /route ait repondu.
               </span>
             )}
@@ -743,30 +742,20 @@ export function RoutePanel() {
         </div>
       )}
       {answer?.state === 'loading' && (
-        <div className="px-[16px] py-[12px] t-data-sm" style={{ color: 'var(--ink-3)' }}>
+        <div className="px-[16px] py-[12px] t-data-sm" style={{ color: 'var(--ink-2)' }}>
           interrogation de /route…
         </div>
       )}
       {answer?.state === 'error' && (
-        <div className="px-[16px] py-[12px] flex flex-col gap-[6px]">
-          <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
-            {API_BASE} n'a pas repondu : {answer.detail}
-          </span>
-          <div className="flex items-center gap-[8px]">
-            <code className="t-data-xs hex" style={{ color: 'var(--ink-3)' }}>
-              {API_CMD}
-            </code>
-            <Copy text={API_CMD} />
-          </div>
-          <Note>
-            aucun cout n'est affiche de memoire. Une porte sans reponse n'est pas une porte a zero.
-          </Note>
-        </div>
+        <Absence
+          quoi={`${API_BASE}/route`}
+          panne
+          raison={`${answer.detail}. Aucun cout n'est affiche de memoire : une porte sans reponse n'est pas une porte a zero.`}
+          cmd={API_CMD}
+        />
       )}
       {answer?.state === 'absent' && (
-        <div className="px-[16px] py-[12px] t-data-sm" style={{ color: 'var(--ink-2)' }}>
-          {answer.detail}
-        </div>
+        <Absence quoi={`${API_BASE}/route`} raison={answer.detail} cmd={API_CMD} />
       )}
 
       {parsed && part && pres && (
@@ -775,7 +764,7 @@ export function RoutePanel() {
 
           <div
             className="px-[16px] py-[8px] flex flex-wrap gap-x-[24px] gap-y-[4px] t-data-xs"
-            style={{ color: 'var(--ink-3)', borderBottom: '1px solid var(--line)' }}
+            style={{ color: 'var(--ink-2)', borderBottom: '1px solid var(--line)' }}
           >
             <span className="hex">
               paire {parsed.pair.currency0 ? <TokenName address={parsed.pair.currency0} /> : '—'} /{' '}
@@ -844,7 +833,7 @@ export function RoutePanel() {
                     ? `classement · ${part.gates.length} couts mesures, croissants`
                     : 'la seule porte chiffree — aucun classement'}
                 </span>
-                <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+                <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                   {parsed.cost_model.formula ?? ''}
                 </span>
               </div>
@@ -871,7 +860,7 @@ export function RoutePanel() {
                 <span className="t-label" style={{ color: 'var(--ink-2)' }}>
                   hors classement · {part.aside.length} porte(s) sans cout comparable
                 </span>
-                <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+                <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                   aucune n'est a zero, aucune n'est derniere
                 </span>
               </div>
@@ -910,7 +899,7 @@ export function RoutePanel() {
                       <span className="t-data-sm hex" style={{ color: 'var(--ink-2)' }}>
                         hook {str(g['hook']) ? shortAddr(str(g['hook'])!, 12, 6) : '—'}
                       </span>
-                      <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+                      <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                         fee {num(g['key_fee']) ?? '—'} · tickSpacing {num(g['tick_spacing']) ?? '—'}
                       </span>
                     </div>
@@ -919,7 +908,7 @@ export function RoutePanel() {
                       <div className="flex items-center gap-[8px] flex-wrap">
                         <code
                           className="t-data-xs hex"
-                          style={{ color: 'var(--ink-3)', maxWidth: '90ch', whiteSpace: 'nowrap', overflowX: 'auto' }}
+                          style={{ color: 'var(--ink-2)', maxWidth: '90ch', whiteSpace: 'nowrap', overflowX: 'auto' }}
                         >
                           {cmd}
                         </code>

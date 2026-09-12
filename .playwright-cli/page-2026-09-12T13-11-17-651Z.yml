@@ -1,0 +1,417 @@
+- generic [ref=f3e3]:
+  - banner [ref=f3e4]:
+    - generic [ref=f3e5]:
+      - generic [ref=f3e6]: TARE
+      - group [ref=f3e7]:
+        - generic "provenance" [ref=f3e8] [cursor=pointer]
+      - button "clair" [ref=f3e9] [cursor=pointer]
+  - navigation [ref=f3e767]:
+    - link "la carte" [ref=f3e768] [cursor=pointer]:
+      - /url: "#/"
+    - link "l'instrument" [ref=f3e769] [cursor=pointer]:
+      - /url: "#/instrument"
+  - main [ref=f3e13]:
+    - generic [ref=f3e770]:
+      - generic [ref=f3e771]:
+        - generic [ref=f3e772]: collecte
+        - generic [ref=f3e774]: prêt
+        - generic [ref=f3e775]: 0,001 USDC par mesure, réglé en x402 sur Hedera
+      - heading "1Mesurer" [level=1] [ref=f3e776]
+      - paragraph [ref=f3e777]: « ce hook, sur ce pool, à cette taille — combien prend-il vraiment ? »
+      - paragraph [ref=f3e778]: "deux cotations du même swap et leur écart, avec le bloc, le hash du stub et la commande de rejeu collecte : il il va chercher une donnée qui n'existait pas encore."
+    - tablist "les quatorze outils" [ref=f3e779]:
+      - tab "1 Mesurer" [selected] [ref=f3e780] [cursor=pointer]:
+        - generic [ref=f3e781]: "1"
+        - text: Mesurer
+      - tab "2 Consulter" [ref=f3e782] [cursor=pointer]:
+        - generic [ref=f3e783]: "2"
+        - text: Consulter
+      - tab "3 Situer" [ref=f3e784] [cursor=pointer]:
+        - generic [ref=f3e785]: "3"
+        - text: Situer
+      - tab "4 Comprendre" [ref=f3e786] [cursor=pointer]:
+        - generic [ref=f3e787]: "4"
+        - text: Comprendre
+      - tab "5 Décider" [ref=f3e788] [cursor=pointer]:
+        - generic [ref=f3e789]: "5"
+        - text: Décider
+      - tab "6 Proposer une autre porte" [ref=f3e790] [cursor=pointer]:
+        - generic [ref=f3e791]: "6"
+        - text: Proposer une autre porte
+      - tab "7 Substituer la transaction" [ref=f3e792] [cursor=pointer]:
+        - generic [ref=f3e793]: "7"
+        - text: Substituer la transaction
+      - tab "8 Intercepter" [ref=f3e794] [cursor=pointer]:
+        - generic [ref=f3e795]: "8"
+        - text: Intercepter
+      - tab "9 Approuver" [ref=f3e796] [cursor=pointer]:
+        - generic [ref=f3e797]: "9"
+        - text: Approuver
+      - tab "10 Payer à l'unité" [ref=f3e798] [cursor=pointer]:
+        - generic [ref=f3e799]: "10"
+        - text: Payer à l'unité
+      - tab "11 S'abonner" [ref=f3e800] [cursor=pointer]:
+        - generic [ref=f3e801]: "11"
+        - text: S'abonner
+      - tab "12 Authentifier" [ref=f3e802] [cursor=pointer]:
+        - generic [ref=f3e803]: "12"
+        - text: Authentifier
+      - tab "13 Prouver" [ref=f3e804] [cursor=pointer]:
+        - generic [ref=f3e805]: "13"
+        - text: Prouver
+      - tab "14 Attester" [ref=f3e806] [cursor=pointer]:
+        - generic [ref=f3e807]: "14"
+        - text: Attester
+    - generic [ref=f3e808]:
+      - generic [ref=f3e809]:
+        - paragraph [ref=f3e810]: sur 100 reçus sans le hook, ce que le même swap rend avec lui — pool 0xdc3539d6…, taille 1000000000000, bloc 50 614 000
+        - generic [ref=f3e811]:
+          - generic [ref=f3e812]:
+            - term [ref=f3e813]: coté avec le hook en place
+            - definition [ref=f3e815]:
+              - generic [ref=f3e816]: 0,00
+            - definition [ref=f3e819]:
+              - generic [ref=f3e820]: out_with 76
+          - generic [ref=f3e821]:
+            - term [ref=f3e822]: coté contre un talon inerte de 89 octets
+            - definition [ref=f3e824]:
+              - generic [ref=f3e825]: 100,00
+            - definition [ref=f3e828]:
+              - generic [ref=f3e829]: out_without 1609989
+      - generic [ref=f3e830]:
+        - status [ref=f3e831]: "9999.53"
+        - paragraph [ref=f3e832]: bps, ce que le hook a pris
+        - paragraph [ref=f3e833]:
+          - text: "La PoolKey contient l’adresse du hook : le même pool sans son hook n’existe pas. On ne change donc pas le pool, on remplace le bytecode du hook par un talon inerte, et on cote deux fois. L’écart"
+          - emphasis [ref=f3e834]: est
+          - text: le prélèvement.
+    - generic [ref=f3e836]:
+      - generic [ref=f3e837]:
+        - generic [ref=f3e838]: rejouer cette valeur
+        - button "copier" [ref=f3e839] [cursor=pointer]
+      - generic [ref=f3e840]: python3 apps/api/scripts/measure_one.py --rpc $RPC --block 50614000 --hooks 0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc --currency0 0x4200000000000000000000000000000000000006 --currency1 0xdc4f058c103f3879fea72d0fc86eded309f43b07 --fee 8388608 --tick-spacing 200 --zero-for-one false --amount-in 1000000000000
+      - generic [ref=f3e841]: la mesure ci-dessus, rejouable telle quelle
+    - region [ref=f3e842]:
+      - heading "Ce qu'il va chercher" [level=2] [ref=f3e844]
+      - generic [ref=f3e845]:
+        - generic [ref=f3e846]: →
+        - generic [ref=f3e847]: "une PoolKey complète : les deux monnaies, les frais, le tickSpacing, l'adresse du hook"
+      - generic [ref=f3e848]:
+        - generic [ref=f3e849]: →
+        - generic [ref=f3e850]: une taille et un sens
+      - generic [ref=f3e851]:
+        - generic [ref=f3e852]: →
+        - generic [ref=f3e853]: un bloc, pour épingler le fork — sans lui, deux cotations prises à dix minutes d'écart ne se comparent pas
+      - generic [ref=f3e854]:
+        - generic [ref=f3e855]:
+          - generic [ref=f3e856]: lit
+          - generic [ref=f3e857]: la porte A4 — le swap réellement exécuté
+          - generic [ref=f3e858]: 3 ko · 3 swaps executes
+          - code [ref=f3e859]: docs/dataset/porte-a4.json
+        - generic [ref=f3e860]: "des swaps vraiment passés sur un fork, confrontés à ce que la cotation annonçait : la seule preuve que le contrefactuel ne ment pas, divergence comprise"
+        - generic [ref=f3e861]:
+          - text: produit par
+          - code [ref=f3e862]: python3 -m tare.gates.a4 --write
+      - generic [ref=f3e863]:
+        - generic [ref=f3e864]:
+          - generic [ref=f3e865]: lit
+          - generic [ref=f3e866]: le journal de la porte A4
+          - generic [ref=f3e867]: 3 ko · 1 sondes
+          - code [ref=f3e868]: docs/dataset/porte-a4.jsonl
+        - generic [ref=f3e869]: la trace brute de chaque sonde, avec sa commande de rejeu
+        - generic [ref=f3e870]:
+          - text: produit par
+          - code [ref=f3e871]: python3 -m tare.gates.a4 --write
+      - generic [ref=f3e872]:
+        - generic [ref=f3e873]:
+          - generic [ref=f3e874]: lit
+          - generic [ref=f3e875]: les pools liquides
+          - generic [ref=f3e876]: 1,8 Mo · 7 817 pools
+          - code [ref=f3e877]: docs/dataset/pools-liquides-full.json
+        - generic [ref=f3e878]: les pools du recensement qui ont vraiment de la liquidité, avec leur PoolKey complète — mesurer un pool vide rendrait un chiffre propre et faux
+        - generic [ref=f3e879]:
+          - text: produit par
+          - code [ref=f3e880]: python3 -m tare.rescan
+      - generic [ref=f3e881]:
+        - table [ref=f3e882]:
+          - rowgroup [ref=f3e883]:
+            - row [ref=f3e884]:
+              - columnheader "hook" [ref=f3e885]
+              - columnheader "pool" [ref=f3e886]
+              - columnheader "taille" [ref=f3e887]
+              - columnheader "sens" [ref=f3e888]
+              - columnheader "frais LP" [ref=f3e889]
+              - columnheader "bps" [ref=f3e890]
+              - columnheader "étiquette" [ref=f3e891]
+          - rowgroup [ref=f3e892]:
+            - row [ref=f3e893]:
+              - cell "0x0469a4bd…" [ref=f3e894]
+              - cell "0x010d0023…" [ref=f3e895]
+              - cell "100000000000000" [ref=f3e896]
+              - cell "0→1" [ref=f3e897]
+              - cell "0.00" [ref=f3e898]
+              - cell "99.9942" [ref=f3e899]
+              - cell "MESURE" [ref=f3e900]
+            - row [ref=f3e901]:
+              - cell "0x0469a4bd…" [ref=f3e902]
+              - cell "0x010d0023…" [ref=f3e903]
+              - cell "1000000000000000" [ref=f3e904]
+              - cell "0→1" [ref=f3e905]
+              - cell "0.00" [ref=f3e906]
+              - cell "99.9418" [ref=f3e907]
+              - cell "MESURE" [ref=f3e908]
+            - row [ref=f3e909]:
+              - cell "0x0469a4bd…" [ref=f3e910]
+              - cell "0x010d0023…" [ref=f3e911]
+              - cell "10000000000000000" [ref=f3e912]
+              - cell "0→1" [ref=f3e913]
+              - cell "0.00" [ref=f3e914]
+              - cell "99.4210" [ref=f3e915]
+              - cell "MESURE" [ref=f3e916]
+            - row [ref=f3e917]:
+              - cell "0x0469a4bd…" [ref=f3e918]
+              - cell "0x010d0023…" [ref=f3e919]
+              - cell "100000000000000000" [ref=f3e920]
+              - cell "0→1" [ref=f3e921]
+              - cell "0.00" [ref=f3e922]
+              - cell "94.4965" [ref=f3e923]
+              - cell "MESURE" [ref=f3e924]
+            - row [ref=f3e925]:
+              - cell "0x0469a4bd…" [ref=f3e926]
+              - cell "0x010d0023…" [ref=f3e927]
+              - cell "1000000000000000000" [ref=f3e928]
+              - cell "0→1" [ref=f3e929]
+              - cell "0.00" [ref=f3e930]
+              - cell "69.1703" [ref=f3e931]
+              - cell "MESURE" [ref=f3e932]
+        - generic [ref=f3e933]: cinq lignes sur 125 072 — un échantillon, et le compte est dit pour que la troncature se voie
+    - region [ref=f3e934]:
+      - generic [ref=f3e935]:
+        - heading "Il s'exécute" [level=2] [ref=f3e936]
+        - generic [ref=f3e937]: 0,001 USDC par mesure, réglé en x402 sur Hedera
+      - generic [ref=f3e939]:
+        - generic [ref=f3e940]: "1"
+        - generic [ref=f3e941]: épingle un fork anvil au bloc demandé
+      - generic [ref=f3e942]:
+        - generic [ref=f3e943]: "2"
+        - generic [ref=f3e944]: cote le swap tel quel, hook en place
+      - generic [ref=f3e945]:
+        - generic [ref=f3e946]: "3"
+        - generic [ref=f3e947]:
+          - text: réécrit le bytecode DU
+          - strong [ref=f3e948]: HOOK
+          - text: par un talon inerte de 89 octets — même adresse, donc même poolId, même liquidité, même slot0
+      - generic [ref=f3e949]:
+        - generic [ref=f3e950]: "4"
+        - generic [ref=f3e951]: cote le même swap une seconde fois, contre le talon
+      - generic [ref=f3e952]:
+        - generic [ref=f3e953]: "5"
+        - generic [ref=f3e954]: restaure le bytecode, et rend l'écart entre les deux cotations
+    - region [ref=f3e955]:
+      - heading "Ce qu'il ramène" [level=2] [ref=f3e957]
+      - generic [ref=f3e958]:
+        - code [ref=f3e959]: out_with
+        - generic [ref=f3e960]: ce que le swap rend avec le hook en place
+      - generic [ref=f3e961]:
+        - code [ref=f3e962]: out_without
+        - generic [ref=f3e963]: ce que le même swap rend contre le talon inerte
+      - generic [ref=f3e964]:
+        - code [ref=f3e965]: bps
+        - generic [ref=f3e966]: l'écart entre les deux, en points de base — le prélèvement
+      - generic [ref=f3e967]:
+        - code [ref=f3e968]: label
+        - generic [ref=f3e969]: MESURE, INTERPOLE, NON_MESURABLE ou NON_COTABLE — un silence n'est jamais un zéro
+      - generic [ref=f3e970]:
+        - code [ref=f3e971]: block_number
+        - generic [ref=f3e972]: le bloc épinglé, sans lequel le chiffre n'est pas rejouable
+      - generic [ref=f3e973]:
+        - code [ref=f3e974]: stub_hash
+        - generic [ref=f3e975]: l'empreinte du talon, pour vérifier que c'est le même inerte
+      - generic [ref=f3e976]:
+        - code [ref=f3e977]: replay
+        - generic [ref=f3e978]: la commande exacte qui refait la mesure chez vous
+      - generic [ref=f3e979]:
+        - generic [ref=f3e980]:
+          - generic [ref=f3e981]: écrit
+          - generic [ref=f3e982]: le corpus de mesures
+          - generic [ref=f3e983]: 90,4 Mo · 125 072 mesures
+          - code [ref=f3e984]: docs/dataset/measurements.jsonl
+        - generic [ref=f3e985]: "une ligne par swap contrefactuel : le pool, le hook, la taille, le sens, les deux cotations, l'écart en points de base, et l'étiquette qui dit si c'est mesuré, interpolé ou non mesurable"
+        - generic [ref=f3e986]:
+          - text: produit par
+          - code [ref=f3e987]: python3 -m tare.sweep (engine/tare/measure.py), sur un fork anvil épinglé
+      - generic [ref=f3e988]:
+        - generic [ref=f3e989]:
+          - generic [ref=f3e990]: écrit
+          - generic [ref=f3e991]: le résumé du corpus
+          - generic [ref=f3e992]: 3,5 Mo · 125 072 mesures resumees
+          - code [ref=f3e993]: docs/dataset/summary.json
+        - generic [ref=f3e994]: les seuils, les tailles, les sens, le hash du talon, le bloc, et le décompte par étiquette — de quoi vérifier qu'un chiffre publié vient bien de ce corpus-là
+        - generic [ref=f3e995]:
+          - text: produit par
+          - code [ref=f3e996]: python3 -m tare.cli summary
+      - generic [ref=f3e997]:
+        - generic [ref=f3e998]:
+          - generic [ref=f3e999]: écrit
+          - generic [ref=f3e1000]: les pools à sens unique
+          - generic [ref=f3e1001]: 12 ko · 6 pools a sens unique
+          - code [ref=f3e1002]: docs/dataset/one-way.json
+        - generic [ref=f3e1003]: "les pools qui laissent entrer gratuitement et ne laissent pas ressortir : zéro point de base à l'aller, jusqu'à 9 999 au retour — le cas que seul un aller-retour révèle"
+        - generic [ref=f3e1004]:
+          - text: produit par
+          - code [ref=f3e1005]: python3 -m tare.oneway, à partir du corpus
+      - generic [ref=f3e1006]:
+        - generic [ref=f3e1007]:
+          - generic [ref=f3e1008]: écrit
+          - generic [ref=f3e1009]: la porte A4 — le swap réellement exécuté
+          - generic [ref=f3e1010]: 3 ko · 3 swaps executes
+          - code [ref=f3e1011]: docs/dataset/porte-a4.json
+        - generic [ref=f3e1012]: "des swaps vraiment passés sur un fork, confrontés à ce que la cotation annonçait : la seule preuve que le contrefactuel ne ment pas, divergence comprise"
+        - generic [ref=f3e1013]:
+          - text: produit par
+          - code [ref=f3e1014]: python3 -m tare.gates.a4 --write
+      - generic [ref=f3e1015]:
+        - generic [ref=f3e1016]:
+          - generic [ref=f3e1017]: écrit
+          - generic [ref=f3e1018]: le journal de la porte A4
+          - generic [ref=f3e1019]: 3 ko · 1 sondes
+          - code [ref=f3e1020]: docs/dataset/porte-a4.jsonl
+        - generic [ref=f3e1021]: la trace brute de chaque sonde, avec sa commande de rejeu
+        - generic [ref=f3e1022]:
+          - text: produit par
+          - code [ref=f3e1023]: python3 -m tare.gates.a4 --write
+      - generic [ref=f3e1024]:
+        - generic [ref=f3e1025]:
+          - generic [ref=f3e1026]: écrit
+          - generic [ref=f3e1027]: les mesures contestées
+          - generic [ref=f3e1028]: 267 ko · 368 mesures
+          - code [ref=f3e1029]: docs/dataset/measurements-contestes.jsonl
+        - generic [ref=f3e1030]: les pools où notre mesure et la source externe ne disent pas la même chose, remesurés un par un au lieu d'être écartés
+        - generic [ref=f3e1031]:
+          - text: produit par
+          - code [ref=f3e1032]: python3 -m tare.sweep sur la liste des divergences
+      - generic [ref=f3e1033]:
+        - generic [ref=f3e1034]:
+          - generic [ref=f3e1035]: écrit
+          - generic [ref=f3e1036]: le résumé des contestées
+          - generic [ref=f3e1037]: 5 ko · 368 mesures resumees
+          - code [ref=f3e1038]: docs/dataset/summary-contestes.json
+        - generic [ref=f3e1039]: le même résumé que pour le corpus, restreint aux pools contestés
+        - generic [ref=f3e1040]:
+          - text: produit par
+          - code [ref=f3e1041]: python3 -m tare.cli summary
+      - generic [ref=f3e1042]:
+        - text: "Six exécutions du contrefactuel, les plus fortes du corpus. À chaque ligne : le même swap coté"
+        - strong [ref=f3e1043]: avec
+        - text: le hook, puis avec un talon inerte de 89 octets à son adresse. L'écart
+        - strong [ref=f3e1044]: est
+        - text: le prélèvement.
+      - generic [ref=f3e1045]:
+        - generic [ref=f3e1046]:
+          - generic [ref=f3e1047]: hook 0xb429d62f…
+          - generic [ref=f3e1048]: 1→0 · 1000000000000 · bloc 50 614 000
+          - generic [ref=f3e1049]: 9999.5279 bps
+        - generic [ref=f3e1050]:
+          - generic [ref=f3e1051]: avec le hook
+          - generic [ref=f3e1052]: "76"
+          - generic [ref=f3e1053]: avec le talon
+          - generic [ref=f3e1054]: "1609989"
+        - generic [ref=f3e1055]:
+          - generic [ref=f3e1056]:
+            - generic [ref=f3e1057]: rejouer cette valeur
+            - button "copier" [ref=f3e1058] [cursor=pointer]
+          - generic [ref=f3e1059]: python3 apps/api/scripts/measure_one.py --rpc $RPC --block 50614000 --hooks 0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc --currency0 0x4200000000000000000000000000000000000006 --currency1 0xdc4f058c103f3879fea72d0fc86eded309f43b07 --fee 8388608 --tick-spacing 200 --zero-for-one false --amount-in 1000000000000
+      - generic [ref=f3e1060]:
+        - generic [ref=f3e1061]:
+          - generic [ref=f3e1062]: hook 0xb429d62f…
+          - generic [ref=f3e1063]: 1→0 · 10000000000000 · bloc 50 614 000
+          - generic [ref=f3e1064]: 9999.5248 bps
+        - generic [ref=f3e1065]:
+          - generic [ref=f3e1066]: avec le hook
+          - generic [ref=f3e1067]: "765"
+          - generic [ref=f3e1068]: avec le talon
+          - generic [ref=f3e1069]: "16099890"
+        - generic [ref=f3e1070]:
+          - generic [ref=f3e1071]:
+            - generic [ref=f3e1072]: rejouer cette valeur
+            - button "copier" [ref=f3e1073] [cursor=pointer]
+          - generic [ref=f3e1074]: python3 apps/api/scripts/measure_one.py --rpc $RPC --block 50614000 --hooks 0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc --currency0 0x4200000000000000000000000000000000000006 --currency1 0xdc4f058c103f3879fea72d0fc86eded309f43b07 --fee 8388608 --tick-spacing 200 --zero-for-one false --amount-in 10000000000000
+      - generic [ref=f3e1075]:
+        - generic [ref=f3e1076]:
+          - generic [ref=f3e1077]: hook 0xb429d62f…
+          - generic [ref=f3e1078]: 1→0 · 100000000000000 · bloc 50 614 000
+          - generic [ref=f3e1079]: 9999.5248 bps
+        - generic [ref=f3e1080]:
+          - generic [ref=f3e1081]: avec le hook
+          - generic [ref=f3e1082]: "7651"
+          - generic [ref=f3e1083]: avec le talon
+          - generic [ref=f3e1084]: "160998318"
+        - generic [ref=f3e1085]:
+          - generic [ref=f3e1086]:
+            - generic [ref=f3e1087]: rejouer cette valeur
+            - button "copier" [ref=f3e1088] [cursor=pointer]
+          - generic [ref=f3e1089]: python3 apps/api/scripts/measure_one.py --rpc $RPC --block 50614000 --hooks 0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc --currency0 0x4200000000000000000000000000000000000006 --currency1 0xdc4f058c103f3879fea72d0fc86eded309f43b07 --fee 8388608 --tick-spacing 200 --zero-for-one false --amount-in 100000000000000
+      - generic [ref=f3e1090]:
+        - generic [ref=f3e1091]:
+          - generic [ref=f3e1092]: hook 0xb429d62f…
+          - generic [ref=f3e1093]: 1→0 · 1000000000000000 · bloc 50 614 000
+          - generic [ref=f3e1094]: 9999.5247 bps
+        - generic [ref=f3e1095]:
+          - generic [ref=f3e1096]: avec le hook
+          - generic [ref=f3e1097]: "76513"
+          - generic [ref=f3e1098]: avec le talon
+          - generic [ref=f3e1099]: "1609924975"
+        - generic [ref=f3e1100]:
+          - generic [ref=f3e1101]:
+            - generic [ref=f3e1102]: rejouer cette valeur
+            - button "copier" [ref=f3e1103] [cursor=pointer]
+          - generic [ref=f3e1104]: python3 apps/api/scripts/measure_one.py --rpc $RPC --block 50614000 --hooks 0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc --currency0 0x4200000000000000000000000000000000000006 --currency1 0xdc4f058c103f3879fea72d0fc86eded309f43b07 --fee 8388608 --tick-spacing 200 --zero-for-one false --amount-in 1000000000000000
+      - generic [ref=f3e1105]:
+        - generic [ref=f3e1106]:
+          - generic [ref=f3e1107]: hook 0xb429d62f…
+          - generic [ref=f3e1108]: 1→0 · 10000000000000000 · bloc 50 614 000
+          - generic [ref=f3e1109]: 9999.5246 bps
+        - generic [ref=f3e1110]:
+          - generic [ref=f3e1111]: avec le hook
+          - generic [ref=f3e1112]: "765128"
+          - generic [ref=f3e1113]: avec le talon
+          - generic [ref=f3e1114]: "16093431193"
+        - generic [ref=f3e1115]:
+          - generic [ref=f3e1116]:
+            - generic [ref=f3e1117]: rejouer cette valeur
+            - button "copier" [ref=f3e1118] [cursor=pointer]
+          - generic [ref=f3e1119]: python3 apps/api/scripts/measure_one.py --rpc $RPC --block 50614000 --hooks 0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc --currency0 0x4200000000000000000000000000000000000006 --currency1 0xdc4f058c103f3879fea72d0fc86eded309f43b07 --fee 8388608 --tick-spacing 200 --zero-for-one false --amount-in 10000000000000000
+      - generic [ref=f3e1120]:
+        - generic [ref=f3e1121]:
+          - generic [ref=f3e1122]: hook 0xb429d62f…
+          - generic [ref=f3e1123]: 1→0 · 100000000000000000 · bloc 50 614 000
+          - generic [ref=f3e1124]: 9999.5229 bps
+        - generic [ref=f3e1125]:
+          - generic [ref=f3e1126]: avec le hook
+          - generic [ref=f3e1127]: "7651088"
+          - generic [ref=f3e1128]: avec le talon
+          - generic [ref=f3e1129]: "160354760377"
+        - generic [ref=f3e1130]:
+          - generic [ref=f3e1131]:
+            - generic [ref=f3e1132]: rejouer cette valeur
+            - button "copier" [ref=f3e1133] [cursor=pointer]
+          - generic [ref=f3e1134]: python3 apps/api/scripts/measure_one.py --rpc $RPC --block 50614000 --hooks 0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc --currency0 0x4200000000000000000000000000000000000006 --currency1 0xdc4f058c103f3879fea72d0fc86eded309f43b07 --fee 8388608 --tick-spacing 200 --zero-for-one false --amount-in 100000000000000000
+    - region [ref=f3e1135]:
+      - heading "Où ça vit, dans le dépôt" [level=2] [ref=f3e1137]
+      - generic [ref=f3e1138]:
+        - generic [ref=f3e1139]: routes
+        - code [ref=f3e1142]: POST /measure
+      - generic [ref=f3e1143]:
+        - generic [ref=f3e1144]: le code
+        - generic [ref=f3e1146]:
+          - code [ref=f3e1147]: engine/tare/measure.py
+          - code [ref=f3e1148]: engine/tare/stub.py
+          - code [ref=f3e1149]: apps/api/scripts/measure_one.py
+      - generic [ref=f3e1150]:
+        - generic [ref=f3e1151]: accès
+        - generic [ref=f3e1153]:
+          - generic [ref=f3e1154]: x402
+          - generic [ref=f3e1155]: mcp
+      - generic [ref=f3e1156]:
+        - generic [ref=f3e1157]: déjà affiché en
+        - generic [ref=f3e1158]: panneau 09

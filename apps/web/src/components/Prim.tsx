@@ -39,12 +39,12 @@ export function Cell({
         {value}
       </div>
       {second !== undefined && (
-        <div className="t-data-sm" style={{ color: 'var(--ink-3)' }}>
+        <div className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
           {second}
         </div>
       )}
       {third !== undefined && (
-        <div className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+        <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
           {third}
         </div>
       )}
@@ -58,12 +58,16 @@ export function Copy({ text, label = 'copier' }: { text: string; label?: string 
   return (
     <button
       type="button"
-      className="t-label px-[6px] py-[2px] cursor-pointer"
+      // 18 px de haut : sous le minimum de 24, et ce bouton-la porte l'action principale
+      // du refus motive. Une seule declaration le corrige partout ou il sert.
+      className="t-data-sm px-[8px] cursor-pointer inline-flex items-center"
       style={{
+        minHeight: 24,
         border: '1px solid var(--line-strong)',
         background: 'var(--bg-2)',
         color: 'var(--ink-2)',
         transition: `color var(--t-feedback) linear`,
+        touchAction: 'manipulation',
       }}
       onClick={() => {
         navigator.clipboard?.writeText(text).then(
@@ -75,7 +79,9 @@ export function Copy({ text, label = 'copier' }: { text: string; label?: string 
         )
       }}
     >
-      {done ? 'copie' : label}
+      {/* La confirmation est annoncee : sans ca, l'action que l'instrument met en avant
+          reussit en silence pour un lecteur d'ecran. */}
+      <span aria-live="polite">{done ? 'copié' : label}</span>
     </button>
   )
 }
@@ -93,12 +99,17 @@ export function Replay({ cmd, note }: { cmd: string; note?: string }) {
     <div style={{ border: '1px solid var(--line)', background: 'var(--bg-2)', minWidth: 0, maxWidth: '100%' }}>
       <div
         className="t-label flex items-center justify-between px-[10px] py-[6px]"
-        style={{ borderBottom: '1px solid var(--line)', color: 'var(--ink-3)' }}
+        style={{ borderBottom: '1px solid var(--line)', color: 'var(--ink-2)' }}
       >
         <span>rejouer cette valeur</span>
         <Copy text={cmd} />
       </div>
+      {/* Une region qui defile doit etre atteignable au clavier : la commande de rejeu est
+          justement celle que l'instrument demande de lire avant de le croire. */}
       <pre
+        tabIndex={0}
+        role="region"
+        aria-label="commande de rejeu, defilement horizontal"
         className="t-data-sm hex px-[10px] py-[8px] m-0 overflow-x-auto whitespace-pre"
         style={{ color: 'var(--ink-2)' }}
       >
@@ -107,7 +118,7 @@ export function Replay({ cmd, note }: { cmd: string; note?: string }) {
       {note && (
         <div
           className="t-data-xs px-[10px] pb-[8px]"
-          style={{ color: 'var(--ink-3)' }}
+          style={{ color: 'var(--ink-2)' }}
         >
           {note}
         </div>
@@ -116,33 +127,120 @@ export function Replay({ cmd, note }: { cmd: string; note?: string }) {
   )
 }
 
+/**
+ * UNE SECTION, et non une boite.
+ *
+ * Elle portait trois tells d'un coup : un ordinal en eyebrow sur ce qui n'est pas une
+ * sequence, un titre en capitales espacees, et une chaine de metadonnees jointe par des
+ * points medians. Les trois partent.
+ *
+ *   — l'ordinal devient l'ANCRE de la section (`#p-07`), ce qui le rend utile : l'index de
+ *     panneaux s'y branche, et l'adresse d'un panneau se copie ;
+ *   — le titre passe en Instrument Sans, casse phrase, taille `title` ;
+ *   — les metadonnees deviennent des elements separes par un filet, jamais par un « · ».
+ *
+ * Et le cadre disparait : a densite 8, le groupement se fait par filet et par espace. Une
+ * seule feuille du haut en bas, comme la rubrique 6 du design l'ecrit.
+ */
 export function Panel({
   index,
   title,
   right,
+  meta,
   children,
 }: {
   index: string
   title: string
   right?: ReactNode
+  /** des faits separes, chacun autonome — jamais une phrase a points medians */
+  meta?: ReactNode[]
   children: ReactNode
 }) {
+  const id = `p-${index}`
   return (
-    <section style={{ border: '1px solid var(--line)', background: 'var(--bg-1)' }}>
-      <header
-        className="flex items-baseline gap-[12px] px-[16px] py-[10px]"
-        style={{ borderBottom: '1px solid var(--line-strong)', background: 'var(--bg-2)' }}
-      >
-        <span className="t-label" style={{ color: 'var(--ink-4)' }}>
-          {index}
-        </span>
-        <h2 className="t-label m-0" style={{ color: 'var(--ink-2)' }}>
+    <section id={id} aria-labelledby={`${id}-t`} style={{ borderTop: '1px solid var(--line-strong)' }}>
+      <header className="flex flex-wrap items-baseline gap-x-[20px] gap-y-[6px] pt-[18px] pb-[12px] px-[16px]">
+        <h2
+          id={`${id}-t`}
+          className="t-title m-0"
+          style={{ fontFamily: 'var(--prose)', color: 'var(--ink)', textWrap: 'balance' }}
+        >
           {title}
         </h2>
-        <div className="ml-auto">{right}</div>
+        <div className="ml-auto flex flex-wrap items-baseline gap-x-[14px] gap-y-[4px]">
+          {meta?.map((m, i) => (
+            <span
+              key={i}
+              // Le filet separe deux faits SUR LA MEME LIGNE. Replie, il pendait tout seul a
+              // gauche d'un fait passe a la ligne : sous 700 px, l'espace suffit.
+              className={i === 0 ? 't-data-sm' : 't-data-sm meta-filet'}
+              style={{ color: 'var(--ink-2)' }}
+            >
+              {m}
+            </span>
+          ))}
+          {right}
+        </div>
       </header>
       {children}
     </section>
+  )
+}
+
+/**
+ * LA FORME COMMUNE D'UN REFUS — cinq surfaces l'ecrivaient chacune a sa maniere.
+ *
+ * Un refus motive est une fonctionnalite : il dit CE QUI MANQUE, POURQUOI, et LA COMMANDE qui
+ * le ferait tourner en local. Il ne dit jamais zero, et il ne se deguise pas en panne quand
+ * il n'en est pas une.
+ */
+export function Absence({
+  quoi,
+  raison,
+  cmd,
+  panne = false,
+  etat,
+}: {
+  /** le nom de ce qui manque, tel qu'il s'appelle dans le depot */
+  quoi: string
+  raison: ReactNode
+  /** la commande qui le ferait tourner ici, s'il y en a une */
+  cmd?: string
+  /** vrai quand c'est vraiment une panne, faux quand la piece n'existe simplement pas ici */
+  panne?: boolean
+  /** l'etat en deux mots, quand « absent » ou « ne repond pas » ne convient pas */
+  etat?: ReactNode
+}) {
+  return (
+    <div
+      className="px-[16px] py-[12px] flex flex-col gap-[7px]"
+      style={{ borderTop: '1px solid var(--line)' }}
+      role={panne ? 'status' : undefined}
+      aria-live={panne ? 'polite' : undefined}
+    >
+      <div className="flex flex-wrap items-baseline gap-[10px]">
+        <span className="t-data hex" style={{ color: 'var(--ink)' }}>
+          {quoi}
+        </span>
+        <span className="t-data-sm" style={{ color: panne ? 'var(--ink)' : 'var(--ink-2)' }}>
+          {etat ?? (panne ? 'ne répond pas' : 'absent de ce build')}
+        </span>
+      </div>
+      <p
+        className="m-0 t-data-sm"
+        style={{ color: 'var(--ink-2)', maxWidth: '76ch', lineHeight: 1.55, overflowWrap: 'anywhere' }}
+      >
+        {raison}
+      </p>
+      {cmd && (
+        <div className="flex flex-wrap items-center gap-[8px]">
+          <code className="t-data-sm hex" style={{ color: 'var(--ink-2)', overflowWrap: 'anywhere', minWidth: 0 }}>
+            {cmd}
+          </code>
+          <Copy text={cmd} label="copier la commande" />
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -171,7 +269,7 @@ export function Lien({ href, children }: { href: string; children: ReactNode }) 
  */
 export function NonLu({ quoi }: { quoi: string }) {
   return (
-    <span className="t-data-xs" style={{ color: 'var(--ink-4)' }} title={`source absente : ${quoi}`}>
+    <span className="t-data-xs" style={{ color: 'var(--ink-2)' }} title={`source absente : ${quoi}`}>
       non lu
     </span>
   )

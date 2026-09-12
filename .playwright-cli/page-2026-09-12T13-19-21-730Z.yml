@@ -1,0 +1,306 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: TARE
+      - group [ref=e7]:
+        - generic "provenance" [ref=e8] [cursor=pointer]
+      - button "clair" [ref=e9] [cursor=pointer]
+  - navigation [ref=e404]:
+    - link "la carte" [ref=e405] [cursor=pointer]:
+      - /url: "#/"
+    - link "l'instrument" [ref=e406] [cursor=pointer]:
+      - /url: "#/instrument"
+  - main [ref=e13]:
+    - generic [ref=e14]:
+      - generic [ref=e15]:
+        - generic [ref=e16]: action
+        - generic [ref=e18]: prêt
+        - generic [ref=e19]: jusqu'à trois eth_call, et seulement si une porte moins chère existe
+      - heading "7Substituer la transaction" [level=1] [ref=e407]
+      - paragraph [ref=e21]: « construis-moi la transaction qui passe par la porte la moins chère »
+      - paragraph [ref=e22]: "un {to, data, value} signable, ou l'un de neuf états nommés qui dit ce qui manque"
+      - paragraph [ref=e23]: famille action — il change quelque chose — une transaction, une session, une écriture on-chain.
+    - tablist "les quatorze outils" [ref=e24]:
+      - tab "1 Mesurer" [ref=e25] [cursor=pointer]:
+        - generic [ref=e26]: "1"
+        - text: Mesurer
+      - tab "2 Consulter" [ref=e27] [cursor=pointer]:
+        - generic [ref=e28]: "2"
+        - text: Consulter
+      - tab "3 Situer" [ref=e29] [cursor=pointer]:
+        - generic [ref=e30]: "3"
+        - text: Situer
+      - tab "4 Comprendre" [ref=e31] [cursor=pointer]:
+        - generic [ref=e32]: "4"
+        - text: Comprendre
+      - tab "5 Décider" [ref=e33] [cursor=pointer]:
+        - generic [ref=e34]: "5"
+        - text: Décider
+      - tab "6 Proposer une autre porte" [ref=e35] [cursor=pointer]:
+        - generic [ref=e36]: "6"
+        - text: Proposer une autre porte
+      - tab "7 Substituer la transaction" [selected] [ref=e37] [cursor=pointer]:
+        - generic [ref=e38]: "7"
+        - text: Substituer la transaction
+      - tab "8 Intercepter" [ref=e39] [cursor=pointer]:
+        - generic [ref=e40]: "8"
+        - text: Intercepter
+      - tab "9 Approuver" [ref=e41] [cursor=pointer]:
+        - generic [ref=e42]: "9"
+        - text: Approuver
+      - tab "10 Payer à l'unité" [ref=e43] [cursor=pointer]:
+        - generic [ref=e44]: "10"
+        - text: Payer à l'unité
+      - tab "11 S'abonner" [ref=e45] [cursor=pointer]:
+        - generic [ref=e46]: "11"
+        - text: S'abonner
+      - tab "12 Authentifier" [ref=e47] [cursor=pointer]:
+        - generic [ref=e48]: "12"
+        - text: Authentifier
+      - tab "13 Prouver" [ref=e49] [cursor=pointer]:
+        - generic [ref=e50]: "13"
+        - text: Prouver
+      - tab "14 Attester" [ref=e51] [cursor=pointer]:
+        - generic [ref=e52]: "14"
+        - text: Attester
+    - region [ref=e408]:
+      - heading "Ce qu'il lit avant d'agir" [level=2] [ref=e409]
+      - generic [ref=e410]:
+        - generic [ref=e411]: →
+        - generic [ref=e412]: l'alternative retenue à l'étape précédente
+      - generic [ref=e413]:
+        - generic [ref=e414]: →
+        - generic [ref=e415]: l'adresse de l'utilisateur
+      - generic [ref=e416]:
+        - generic [ref=e417]: →
+        - generic [ref=e418]: "l'état Permit2 LU sur la chaîne : allowance du jeton vers Permit2, autorisation vers le routeur, et le nonce"
+      - generic [ref=e419]:
+        - generic [ref=e420]: →
+        - generic [ref=e421]: une cotation vivante, pour le plancher de sortie
+      - generic [ref=e422]:
+        - generic [ref=e423]:
+          - generic [ref=e424]: lit
+          - generic [ref=e425]: le corpus de mesures
+          - generic [ref=e426]: 90,4 Mo · 125 072 mesures
+          - code [ref=e427]: docs/dataset/measurements.jsonl
+        - generic [ref=e428]: "une ligne par swap contrefactuel : le pool, le hook, la taille, le sens, les deux cotations, l'écart en points de base, et l'étiquette qui dit si c'est mesuré, interpolé ou non mesurable"
+        - generic [ref=e429]:
+          - text: produit par
+          - code [ref=e430]: python3 -m tare.sweep (engine/tare/measure.py), sur un fork anvil épinglé
+      - generic [ref=e431]:
+        - generic [ref=e432]:
+          - generic [ref=e433]: lit
+          - generic [ref=e434]: la table de la garde
+          - generic [ref=e435]: 21,7 Mo · 125 072 mesures embarquees
+          - code [ref=e436]: packages/guard/data/table.json
+        - generic [ref=e437]: le corpus remis à plat pour être interrogé par clé de pool, embarqué tel quel dans l'extension et dans le serveur MCP — c'est ce qui leur permet de répondre hors ligne
+        - generic [ref=e438]:
+          - text: produit par
+          - code [ref=e439]: node packages/guard/scripts/build-table.mjs
+      - generic [ref=e440]:
+        - generic [ref=e441]:
+          - generic [ref=e442]: lit
+          - generic [ref=e443]: les chiffres de la porte de remplacement
+          - generic [ref=e444]: 8 ko · 125 072 mesures confrontees
+          - code [ref=e445]: packages/guard/data/chiffres-alternative.json
+        - generic [ref=e446]: le poids réel de chaque état de la recherche d'alternative, dont la part de cas où la réponse est « il n'y a qu'une porte » — le chiffre qu'on ne voulait pas écrire à la main
+        - generic [ref=e447]:
+          - text: produit par
+          - code [ref=e448]: node packages/guard/scripts/chiffres-alternative.mjs
+      - generic [ref=e126]:
+        - table [ref=e127]:
+          - rowgroup [ref=e128]:
+            - row [ref=e129]:
+              - columnheader "hook" [ref=e130]
+              - columnheader "pool" [ref=e131]
+              - columnheader "taille" [ref=e132]
+              - columnheader "sens" [ref=e133]
+              - columnheader "frais LP" [ref=e134]
+              - columnheader "bps" [ref=e135]
+              - columnheader "étiquette" [ref=e136]
+          - rowgroup [ref=e137]:
+            - row [ref=e138]:
+              - cell "0x0469a4bd…" [ref=e139]
+              - cell "0x010d0023…" [ref=e140]
+              - cell "100000000000000" [ref=e141]
+              - cell "0→1" [ref=e142]
+              - cell "0.00" [ref=e143]
+              - cell "99.9942" [ref=e144]
+              - cell "MESURE" [ref=e145]
+            - row [ref=e146]:
+              - cell "0x0469a4bd…" [ref=e147]
+              - cell "0x010d0023…" [ref=e148]
+              - cell "1000000000000000" [ref=e149]
+              - cell "0→1" [ref=e150]
+              - cell "0.00" [ref=e151]
+              - cell "99.9418" [ref=e152]
+              - cell "MESURE" [ref=e153]
+            - row [ref=e154]:
+              - cell "0x0469a4bd…" [ref=e155]
+              - cell "0x010d0023…" [ref=e156]
+              - cell "10000000000000000" [ref=e157]
+              - cell "0→1" [ref=e158]
+              - cell "0.00" [ref=e159]
+              - cell "99.4210" [ref=e160]
+              - cell "MESURE" [ref=e161]
+            - row [ref=e162]:
+              - cell "0x0469a4bd…" [ref=e163]
+              - cell "0x010d0023…" [ref=e164]
+              - cell "100000000000000000" [ref=e165]
+              - cell "0→1" [ref=e166]
+              - cell "0.00" [ref=e167]
+              - cell "94.4965" [ref=e168]
+              - cell "MESURE" [ref=e169]
+            - row [ref=e170]:
+              - cell "0x0469a4bd…" [ref=e171]
+              - cell "0x010d0023…" [ref=e172]
+              - cell "1000000000000000000" [ref=e173]
+              - cell "0→1" [ref=e174]
+              - cell "0.00" [ref=e175]
+              - cell "69.1703" [ref=e176]
+              - cell "MESURE" [ref=e177]
+        - generic [ref=e178]: cinq lignes sur 125 072 — un échantillon, et le compte est dit pour que la troncature se voie
+    - region [ref=e449]:
+      - generic [ref=e180]:
+        - heading "L'action" [level=2] [ref=e450]
+        - generic [ref=e182]: jusqu'à trois eth_call, et seulement si une porte moins chère existe
+      - generic [ref=e451]:
+        - generic [ref=e452]: "1"
+        - generic [ref=e453]: lit l'autorisation du jeton vers le contrat Permit2, puis celle vers le routeur — deux eth_call, et seulement si une porte moins chère existe
+      - generic [ref=e454]:
+        - generic [ref=e455]: "2"
+        - generic [ref=e456]: "lit le nonce Permit2 au lieu de le deviner : un nonce deviné fait échouer la transaction au moment de la signer"
+      - generic [ref=e457]:
+        - generic [ref=e458]: "3"
+        - generic [ref=e459]: cote la porte visée en direct pour fixer le plancher de sortie, moins 50 bps de tolérance — jamais depuis le corpus, qui est épinglé à un bloc
+      - generic [ref=e460]:
+        - generic [ref=e461]: "4"
+        - generic [ref=e462]: "encode la liste de commandes 0x0a10 : PERMIT2_PERMIT puis V4_SWAP, dans cet ordre"
+      - generic [ref=e463]:
+        - generic [ref=e464]: "5"
+        - generic [ref=e465]:
+          - strong [ref=e466]: RELIT
+          - text: son propre calldata avant de le rendre, et refuse si la relecture ne redonne pas les mêmes valeurs
+    - region [ref=e467]:
+      - heading "Ce qui change" [level=2] [ref=e468]
+      - generic [ref=e469]:
+        - code [ref=e470]: to / data / value
+        - generic [ref=e471]: la transaction signable — elle n'est jamais envoyée par nous
+      - generic [ref=e472]:
+        - code [ref=e473]: etat
+        - generic [ref=e474]: PRET, ou l'un des huit états qui disent ce qui manque
+      - generic [ref=e475]:
+        - code [ref=e476]: plancher
+        - generic [ref=e477]: le minimum à recevoir, tiré d'une cotation vivante
+      - generic [ref=e478]:
+        - code [ref=e479]: echeance
+        - generic [ref=e480]: maintenant + 20 minutes — le défaut du routeur valait l'an 2106
+      - generic [ref=e481]:
+        - code [ref=e482]: appels_rpc
+        - generic [ref=e483]: combien d'appels ont été faits, pour que le coût se voie
+      - generic [ref=e485]:
+        - text: C'est la pièce qui transforme un verdict en
+        - strong [ref=e486]: décision
+        - text: ". Le site a déjà tout : l'adresse du jeton, le montant, la porte visée. Il construit la transaction de remplacement et la fait signer —"
+        - strong [ref=e487]: il ne l'envoie jamais
+        - text: .
+      - generic [ref=e488]:
+        - generic [ref=e489]: ce qu'il rend
+        - code [ref=e491]: "{ to, data, value }"
+      - generic [ref=e492]:
+        - generic [ref=e493]: plancher de sortie
+        - generic [ref=e494]:
+          - text: tiré d'une
+          - strong [ref=e495]: cotation vivante
+          - text: ", moins 50 bps de tolérance — jamais du corpus, qui est épinglé à un bloc"
+      - generic [ref=e496]:
+        - generic [ref=e497]: échéance
+        - generic [ref=e498]: maintenant + 20 minutes — le défaut valait 0xffffffff, soit le 7 février 2106
+      - generic [ref=e499]:
+        - generic [ref=e500]: Permit2 — une signature au lieu de deux transactions
+        - generic [ref=e501]:
+          - text: Sans lui, remplacer une transaction en demande
+          - strong [ref=e502]: deux
+          - text: ": un"
+          - code [ref=e503]: approve
+          - text: du jeton vers le routeur, puis le swap. Avec, on
+          - strong [ref=e504]: signe hors chaîne
+          - text: — gratuit, et une signature ne peut pas échouer — et le routeur présente cette signature lui-même, dans la même transaction que le swap. Un envoi, une signature.
+      - generic [ref=e505]:
+        - generic [ref=e506]: liste de commandes
+        - generic [ref=e507]:
+          - code [ref=e508]: "0x0a10"
+          - text: "— PERMIT2_PERMIT puis V4_SWAP. L'ordre compte : un swap présenté avant son permit échouerait faute d'autorisation."
+      - generic [ref=e509]:
+        - generic [ref=e510]: domaine EIP-712
+        - code [ref=e512]: EIP712Domain(string name,uint256 chainId,address verifyingContract)
+      - generic [ref=e513]:
+        - generic [ref=e514]: ce que Permit2 ne dispense PAS de faire
+        - generic [ref=e515]:
+          - text: Le jeton doit avoir été approuvé
+          - strong [ref=e516]: vers le contrat Permit2
+          - text: ", une fois pour toutes. Celle-là est une vraie transaction, et l'utilisateur peut ne l'avoir jamais faite. On ne la devine pas : les deux lectures on-chain la nomment, et l'écran la demande AVANT de proposer une signature qui échouerait. Promettre « une seule signature » à quelqu'un qui n'a pas approuvé Permit2 serait faux."
+      - generic [ref=e517]:
+        - paragraph [ref=e518]: "10 états d’envoi, et un seul autorise à signer. Les autres restent visibles avec ce qu’il leur manque : un état caché ferait croire à une étape ratée."
+        - list [ref=e519]:
+          - listitem [ref=e520]:
+            - generic [ref=e521]: PRET
+            - generic [ref=e522]: signer et envoyer
+            - button "signer et envoyer" [disabled] [ref=e523]
+          - listitem [ref=e524]:
+            - generic [ref=e525]: PAS_DE_PROPOSITION
+            - generic [ref=e526]: rien à cliquer — une lecture manque, et l’état la nomme
+            - button "inactif" [disabled] [ref=e527]
+          - listitem [ref=e528]:
+            - generic [ref=e529]: NON_DEMANDE
+            - generic [ref=e530]: lire la chaine et construire
+            - button "inactif" [disabled] [ref=e531]
+          - listitem [ref=e532]:
+            - generic [ref=e533]: SANS_PLANCHER
+            - generic [ref=e534]: rien à cliquer — une lecture manque, et l’état la nomme
+            - button "inactif" [disabled] [ref=e535]
+          - listitem [ref=e536]:
+            - generic [ref=e537]: APPROBATION_REQUISE
+            - generic [ref=e538]: approuver le jeton vers Permit2 (une vraie transaction, une fois)
+            - button "inactif" [disabled] [ref=e539]
+          - listitem [ref=e540]:
+            - generic [ref=e541]: SIGNATURE_REQUISE
+            - generic [ref=e542]: signer le permit (hors chaine, gratuit)
+            - button "inactif" [disabled] [ref=e543]
+          - listitem [ref=e544]:
+            - generic [ref=e545]: NONCE_NON_LU
+            - generic [ref=e546]: rien à cliquer — une lecture manque, et l’état la nomme
+            - button "inactif" [disabled] [ref=e547]
+          - listitem [ref=e548]:
+            - generic [ref=e549]: ETAT_PERMIT2_INCONNU
+            - generic [ref=e550]: rien à cliquer — une lecture manque, et l’état la nomme
+            - button "inactif" [disabled] [ref=e551]
+          - listitem [ref=e552]:
+            - generic [ref=e553]: PERMIT_SUR_MONNAIE_NATIVE
+            - generic [ref=e554]: rien à cliquer — une lecture manque, et l’état la nomme
+            - button "inactif" [disabled] [ref=e555]
+          - listitem [ref=e556]:
+            - generic [ref=e557]: RELECTURE_DIVERGENTE
+            - generic [ref=e558]: rien à cliquer — une lecture manque, et l’état la nomme
+            - button "inactif" [disabled] [ref=e559]
+        - paragraph [ref=e560]:
+          - text: "Sur cette page les dix boutons sont inactifs, et la raison est la même pour tous : aucune proposition n’a été construite ici. La commande réelle vit dans le panneau 16 de l’instrument, où un portefeuille est branché — et là encore, la transaction est construite et signée,"
+          - strong [ref=e561]: jamais envoyée
+          - text: par nous.
+    - region [ref=e380]:
+      - heading "Où ça vit, dans le dépôt" [level=2] [ref=e382]
+      - generic [ref=e383]:
+        - generic [ref=e384]: routes
+        - code [ref=e562]: "POST /alternative (construire: true)"
+      - generic [ref=e388]:
+        - generic [ref=e389]: le code
+        - generic [ref=e391]:
+          - code [ref=e563]: packages/guard/src/envoi.ts
+          - code [ref=e564]: packages/guard/src/lecture.ts
+          - code [ref=e565]: packages/guard/src/permit2.ts
+      - generic [ref=e395]:
+        - generic [ref=e396]: accès
+        - generic [ref=e397]: site
+      - generic [ref=e401]:
+        - generic [ref=e402]: déjà affiché en
+        - generic [ref=e403]: panneau 16

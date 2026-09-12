@@ -29,7 +29,7 @@
  *     n'est pas une transaction incluse, et seule la relecture du contrat tranche.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Panel, Copy, NonLu, Replay } from './Prim'
+import { Panel, Copy, NonLu, Replay, Absence } from './Prim'
 import {
   API,
   CONTRAT_ABONNEMENT,
@@ -61,7 +61,7 @@ import {
 
 const L = ({ k, v, titre }: { k: string; v: React.ReactNode; titre?: string }) => (
   <div className="flex items-baseline gap-[10px] px-[16px] py-[6px]" style={{ borderTop: '1px solid var(--line)' }}>
-    <span className="t-label" style={{ color: 'var(--ink-4)', minWidth: 132 }} title={titre}>
+    <span className="t-label" style={{ color: 'var(--ink-2)', minWidth: 132 }} title={titre}>
       {k}
     </span>
     <span className="t-data-xs" style={{ color: 'var(--ink-2)', wordBreak: 'break-all' }}>
@@ -110,6 +110,14 @@ function Bouton({
  */
 function Dire({ r }: { r: Refus }) {
   const panne = r.genre !== 'api_absente'
+  if (!panne)
+    return (
+      <Absence
+        quoi="l’API du compte"
+        raison={r.message}
+        cmd="cd apps/api && npm start"
+      />
+    )
   return (
     <div className="px-[16px] py-[11px]" style={{ borderTop: '1px solid var(--line)' }}>
       <div className="t-label" style={{ color: panne ? 'var(--m-3)' : 'var(--ink-3)' }}>
@@ -118,9 +126,6 @@ function Dire({ r }: { r: Refus }) {
       <div className="t-data-xs mt-[5px]" style={{ color: 'var(--ink-2)', maxWidth: '76ch', lineHeight: 1.55 }}>
         {r.message}
       </div>
-      {r.genre === 'api_absente' && (
-        <Replay cmd="cd apps/api && npm start" note="puis rechargez avec l'API en marche" />
-      )}
     </div>
   )
 }
@@ -140,10 +145,10 @@ function LigneJournal({ e }: { e: Evenement }) {
   const verdict = typeof d['verdict'] === 'string' ? (d['verdict'] as string) : null
   return (
     <tr style={{ borderTop: '1px solid var(--line)' }}>
-      <td className="t-data-xs px-[10px] py-[6px]" style={{ color: 'var(--ink-3)', whiteSpace: 'nowrap' }}>
+      <td className="t-data-xs px-[10px] py-[6px]" style={{ color: 'var(--ink-2)', whiteSpace: 'nowrap' }}>
         {e.cree_le.slice(0, 19).replace('T', ' ')}
       </td>
-      <td className="t-label px-[10px] py-[6px]" style={{ color: 'var(--ink-3)' }}>
+      <td className="t-label px-[10px] py-[6px]" style={{ color: 'var(--ink-2)' }}>
         {e.source}
       </td>
       <td className="t-label px-[10px] py-[6px]" style={{ color: 'var(--ink-2)' }}>
@@ -155,7 +160,7 @@ function LigneJournal({ e }: { e: Evenement }) {
       <td className="t-data-xs px-[10px] py-[6px] text-right" style={{ color: 'var(--ink)', whiteSpace: 'nowrap' }}>
         {/* Un bps absent n'est pas un zero : c'est une ligne qui n'en portait pas. */}
         {bps === null ? <NonLu quoi="prelevement" /> : `${bps.toFixed(2)} bps`}
-        {verdict && <span className="t-label ml-[8px]" style={{ color: 'var(--ink-4)' }}>{verdict}</span>}
+        {verdict && <span className="t-label ml-[8px]" style={{ color: 'var(--ink-2)' }}>{verdict}</span>}
       </td>
     </tr>
   )
@@ -330,14 +335,14 @@ export function ComptePanel() {
   return (
     <Panel
       index="15"
-      title="le compte"
+      title="Le compte"
       right={
-        <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+        <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
           {absente
             ? 'aucune API publiee'
             : session
               ? `${session.adresse.slice(0, 6)}…${session.adresse.slice(-4)}`
-              : 'un portefeuille · une signature · aucun mot de passe'}
+              : 'un portefeuille, une signature, aucun mot de passe'}
         </span>
       }
     >
@@ -368,7 +373,7 @@ export function ComptePanel() {
         <>
           <L k="api" v={API} />
           {portefeuilles.length === 0 ? (
-            <div className="px-[16px] py-[11px] t-data-xs" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-3)' }}>
+            <div className="px-[16px] py-[11px] t-data-xs" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-2)' }}>
               aucun portefeuille annonce. Installe MetaMask ou Rainbow, puis recharge — la
               detection passe par EIP-6963, parce qu'avec deux portefeuilles installes{' '}
               <code style={{ fontFamily: 'var(--mono)' }}>window.ethereum</code> n'en montre qu'un et
@@ -404,7 +409,7 @@ export function ComptePanel() {
                 <Bouton onClick={seConnecter} actif={Boolean(choisi) && !occupe} fort>
                   signer pour entrer
                 </Bouton>
-                <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+                <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                   {occupe ?? 'le texte signe est celui que le serveur rend — le client ne le reconstruit pas'}
                 </span>
               </div>
@@ -421,7 +426,7 @@ export function ComptePanel() {
           <L k="vu le" v={compte.compte.vu_le.slice(0, 19).replace('T', ' ')} />
 
           {/* ------------------------------------------------------- l'abonnement */}
-          <div className="px-[16px] pt-[13px] pb-[6px] t-label" style={{ borderTop: '1px solid var(--line-strong)', color: 'var(--ink-3)' }}>
+          <div className="px-[16px] pt-[13px] pb-[6px] t-label" style={{ borderTop: '1px solid var(--line-strong)', color: 'var(--ink-2)' }}>
             l'abonnement, lu sur la chaine
           </div>
           <L
@@ -429,7 +434,7 @@ export function ComptePanel() {
             v={
               <span style={{ color: ab?.actif ? 'var(--ink)' : 'var(--m-3)' }}>
                 {ab?.actif ? 'actif' : 'inactif'}
-                {ab?.raison && <span style={{ color: 'var(--ink-3)' }}> — {ab.raison}</span>}
+                {ab?.raison && <span style={{ color: 'var(--ink-2)' }}> — {ab.raison}</span>}
               </span>
             }
           />
@@ -468,13 +473,13 @@ export function ComptePanel() {
                 )}
               </>
             )}
-            <span className="t-data-xs" style={{ color: 'var(--ink-4)' }}>
+            <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
               {occupe ?? "le site ne dit « abonne » que quand le contrat le dit"}
             </span>
           </div>
 
           {/* ------------------------------------------------------------ les cles */}
-          <div className="px-[16px] pt-[13px] pb-[6px] t-label" style={{ borderTop: '1px solid var(--line-strong)', color: 'var(--ink-3)' }}>
+          <div className="px-[16px] pt-[13px] pb-[6px] t-label" style={{ borderTop: '1px solid var(--line-strong)', color: 'var(--ink-2)' }}>
             les cles d'API — une par surface
           </div>
           {cleNeuve && (
@@ -487,7 +492,7 @@ export function ComptePanel() {
               </div>
               <div className="mt-[8px] flex items-center gap-[10px]">
                 <Copy text={cleNeuve.cle} label="copier la cle" />
-                <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+                <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                   elle n'est rendue qu'une fois : la base n'en detient que le sha256, et aucune route
                   ne la relit. Perdue, elle se revoque et se recree.
                 </span>
@@ -495,22 +500,22 @@ export function ComptePanel() {
             </div>
           )}
           {compte.cles.length === 0 ? (
-            <div className="px-[16px] py-[9px] t-data-xs" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-3)' }}>
+            <div className="px-[16px] py-[9px] t-data-xs" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-2)' }}>
               aucune cle. L'extension et le MCP fonctionnent sans — ils analysent hors ligne ; une
               cle ne sert qu'a deposer leurs actions dans l'historique ci-dessous.
             </div>
           ) : (
             compte.cles.map((c) => (
               <div key={c.id} className="px-[16px] py-[7px] flex items-baseline gap-[10px]" style={{ borderTop: '1px solid var(--line)' }}>
-                <span className="t-label" style={{ color: 'var(--ink-3)', minWidth: 78 }}>{c.portee}</span>
+                <span className="t-label" style={{ color: 'var(--ink-2)', minWidth: 78 }}>{c.portee}</span>
                 <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>{c.prefixe}…</span>
-                <span className="t-data-xs" style={{ color: 'var(--ink-4)' }}>
+                <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                   {c.nom || '—'} · creee {c.cree_le.slice(0, 10)}
                   {c.vue_le ? ` · vue ${c.vue_le.slice(0, 10)}` : ' · jamais utilisee'}
                 </span>
                 <span className="ml-auto">
                   {c.revoquee_le ? (
-                    <span className="t-label" style={{ color: 'var(--ink-4)' }}>revoquee</span>
+                    <span className="t-label" style={{ color: 'var(--ink-2)' }}>revoquee</span>
                   ) : (
                     <Bouton onClick={() => revoquer(c.id)} actif={!occupe}>revoquer</Bouton>
                   )}
@@ -526,7 +531,7 @@ export function ComptePanel() {
               une cle pour le MCP
             </Bouton>
             {!ab?.actif && (
-              <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+              <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                 une cle ne sert a rien sans abonnement : le serveur refuse de la delivrer plutot que
                 de la faire echouer plus tard
               </span>
@@ -534,14 +539,14 @@ export function ComptePanel() {
           </div>
 
           {/* --------------------------------------------------- les telechargements */}
-          <div className="px-[16px] pt-[13px] pb-[6px] t-label" style={{ borderTop: '1px solid var(--line-strong)', color: 'var(--ink-3)' }}>
+          <div className="px-[16px] pt-[13px] pb-[6px] t-label" style={{ borderTop: '1px solid var(--line-strong)', color: 'var(--ink-2)' }}>
             les deux surfaces, a telecharger
           </div>
           {(['extension', 'mcp'] as const).map((quoi) => {
             const p = paquets?.[quoi]
             return (
               <div key={quoi} className="px-[16px] py-[8px] flex flex-wrap items-baseline gap-[10px]" style={{ borderTop: '1px solid var(--line)' }}>
-                <span className="t-label" style={{ color: 'var(--ink-3)', minWidth: 78 }}>{quoi}</span>
+                <span className="t-label" style={{ color: 'var(--ink-2)', minWidth: 78 }}>{quoi}</span>
                 {!p ? (
                   <NonLu quoi="/compte/paquets" />
                 ) : p.disponible ? (
@@ -549,7 +554,7 @@ export function ComptePanel() {
                     <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                       {p.nom} · {((p.octets ?? 0) / 1024).toFixed(0)} Ko · v{p.version ?? '?'}
                     </span>
-                    <span className="t-data-xs" style={{ color: 'var(--ink-4)' }} title={p.sha256}>
+                    <span className="t-data-xs" style={{ color: 'var(--ink-2)' }} title={p.sha256}>
                       sha256 {p.sha256?.slice(0, 12)}…
                     </span>
                     <span className="ml-auto flex items-center gap-[8px]">
@@ -593,13 +598,13 @@ export function ComptePanel() {
                           telecharger
                         </a>
                       ) : (
-                        <span className="t-label" style={{ color: 'var(--ink-4)' }}>ferme</span>
+                        <span className="t-label" style={{ color: 'var(--ink-2)' }}>ferme</span>
                       )}
                     </span>
                   </>
                 ) : (
                   <>
-                    <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>{p.raison}</span>
+                    <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>{p.raison}</span>
                     {p.commande && <Replay cmd={p.commande} />}
                   </>
                 )}
@@ -608,7 +613,7 @@ export function ComptePanel() {
           })}
 
           {/* -------------------------------------------------------- l'historique */}
-          <div className="px-[16px] pt-[13px] pb-[6px] t-label" style={{ borderTop: '1px solid var(--line-strong)', color: 'var(--ink-3)' }}>
+          <div className="px-[16px] pt-[13px] pb-[6px] t-label" style={{ borderTop: '1px solid var(--line-strong)', color: 'var(--ink-2)' }}>
             l'historique — ce que l'extension, le MCP et ce site ont fait
           </div>
           {journal === null ? (
@@ -616,20 +621,20 @@ export function ComptePanel() {
               <NonLu quoi="/compte/journal" />
             </div>
           ) : journal.length === 0 ? (
-            <div className="px-[16px] py-[9px] t-data-xs" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-3)' }}>
+            <div className="px-[16px] py-[9px] t-data-xs" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-2)' }}>
               rien encore. L'extension y depose ses verdicts si tu lui donnes une cle ; sans cle elle
               fonctionne pareil et n'envoie rien.
             </div>
           ) : (
-            <div style={{ overflowX: 'auto', borderTop: '1px solid var(--line)' }}>
+            <div tabIndex={0} role="region" aria-label="historique du compte" style={{ overflowX: 'auto', borderTop: '1px solid var(--line)' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr>
                     {['quand', 'ou', 'quoi', 'sujet', 'prelevement'].map((h, i) => (
                       <th
                         key={h}
-                        className="t-label px-[10px] py-[6px]"
-                        style={{ color: 'var(--ink-4)', textAlign: i === 4 ? 'right' : 'left', background: 'var(--bg-2)' }}
+                        className="t-data-sm px-[10px] py-[6px]"
+                        style={{ color: 'var(--ink-2)', textAlign: i === 4 ? 'right' : 'left', background: 'var(--bg-2)' }}
                       >
                         {h}
                       </th>
@@ -652,7 +657,7 @@ export function ComptePanel() {
             <Bouton onClick={seDeconnecter} actif={!occupe}>
               se deconnecter
             </Bouton>
-            <span className="t-data-xs" style={{ color: 'var(--ink-4)' }}>
+            <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
               {occupe ?? "le jeton vit dans sessionStorage : il s'efface a la fermeture de l'onglet"}
             </span>
           </div>

@@ -12,8 +12,10 @@ import { MachinePanels } from './components/Machine'
 import { ComptePanel } from './components/Compte'
 import { SubstituerPanel } from './components/Substituer'
 import { AccueilPanel, AccesPanel, DonneesPanel } from './components/Accueil'
+import { IndexPanneaux } from './components/Index'
+import { Carte } from './components/Carte'
 import { OutilPanel } from './components/Outil'
-import { OUTILS, FAMILLES } from './lib/outils'
+import { OUTILS } from './lib/outils'
 import FA from './data/facts.json'
 import { Panel } from './components/Prim'
 import { Chat } from './chat/Chat'
@@ -28,38 +30,105 @@ import { EMPTY_VIEW, type ChatView } from './chat/types'
 const P = dataset.provenance
 const T = dataset.totals
 
+/**
+ * LA BARRE HAUTE.
+ *
+ * Elle portait la provenance entière en chaîne de points médians — `base · chainid 8453 ·
+ * bloc 50 614 000 · tare-engine/0.3.0 · stub 0x8e… · registre ccab541 · 757 fiches`. C'est le
+ * tell le plus net d'une page générée, et cette même provenance est déjà écrite cinq autres
+ * fois plus bas. Elle passe dans un dépliant, en paires libellé/valeur, et la barre ne garde
+ * que ce qui sert à naviguer.
+ */
+/**
+ * LE LIEN D'EVITEMENT. Il ne se voit qu'au clavier, et il fait gagner dix-sept tabulations
+ * sur `#/instrument`, ou le sommaire vient avant le premier panneau.
+ */
+function Evitement() {
+  return (
+    <a
+      href="#contenu"
+      className="t-data-sm"
+      style={{
+        position: 'absolute',
+        left: 8,
+        top: -60,
+        zIndex: 30,
+        padding: '10px 12px',
+        minHeight: 44,
+        display: 'inline-flex',
+        alignItems: 'center',
+        background: 'var(--bg-1)',
+        border: '1px solid var(--line-strong)',
+        color: 'var(--ink)',
+        textDecoration: 'none',
+      }}
+      onClick={(e) => {
+        // Le fragment porte la ROUTE : poser `#contenu` sortirait de la page qu'on evite de
+        // traverser. On amene donc le focus a la main, sans toucher a l'adresse.
+        e.preventDefault()
+        const m = document.getElementById('contenu')
+        if (!m) return
+        m.setAttribute('tabindex', '-1')
+        m.focus()
+        m.scrollIntoView({ block: 'start' })
+      }}
+      onFocus={(e) => {
+        e.currentTarget.style.top = '8px'
+      }}
+      onBlur={(e) => {
+        e.currentTarget.style.top = '-60px'
+      }}
+    >
+      aller au contenu
+    </a>
+  )
+}
+
 function Head({ theme, setTheme }: { theme: string; setTheme: (t: string) => void }) {
+  const paires: [string, string][] = [
+    ['chaîne', `base · chainid ${P.measurements.chain_ids.join(', ')}`],
+    ['bloc épinglé', P.measurements.blocks.map(fmtBlock).join(', ')],
+    ['moteur', P.measurements.engine_ver],
+    ['talon', P.measurements.stub_hash],
+    ['registre', `${P.registry.commit.slice(0, 7)} — ${P.registry.entries} fiches`],
+  ]
   return (
     <header
-      className="sticky top-0 z-10 flex flex-wrap items-center gap-x-[24px] gap-y-[4px] px-[16px] py-[8px]"
+      className="sticky top-0 z-10"
       style={{ background: 'var(--bg-2)', borderBottom: '1px solid var(--line-strong)' }}
     >
-      <span className="t-label" style={{ color: 'var(--ink)', letterSpacing: '0.18em', fontWeight: 700 }}>
-        TARE
-      </span>
-      <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
-        instrument
-      </span>
-      <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
-        base · chainid {P.measurements.chain_ids.join(', ')} · bloc {P.measurements.blocks.map(fmtBlock).join(', ')}
-      </span>
-      <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
-        {P.measurements.engine_ver}
-      </span>
-      <span className="t-data-xs hex" style={{ color: 'var(--ink-3)' }}>
-        stub {P.measurements.stub_hash.slice(0, 10)}…
-      </span>
-      <span className="t-data-xs hex" style={{ color: 'var(--ink-3)' }}>
-        registre {P.registry.commit.slice(0, 7)} · {P.registry.entries} fiches
-      </span>
-      <button
-        type="button"
-        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-        className="ml-auto t-label px-[6px] py-[2px] cursor-pointer"
-        style={{ border: '1px solid var(--line-strong)', background: 'var(--bg-1)', color: 'var(--ink-2)' }}
-      >
-        {theme === 'dark' ? 'clair' : 'sombre'}
-      </button>
+      <div className="flex items-center gap-[16px] px-[16px] mx-auto w-full" style={{ maxWidth: 1560, minHeight: 44 }}>
+        <span className="t-data" style={{ color: 'var(--ink)', fontWeight: 700, letterSpacing: '0.14em' }}>
+          TARE
+        </span>
+        <details className="ml-auto">
+          <summary
+            className="t-data-sm cursor-pointer list-none"
+            style={{ color: 'var(--ink-2)', padding: '6px 8px', border: '1px solid var(--line)' }}
+          >
+            provenance
+          </summary>
+          <div
+            className="absolute right-[16px] mt-[6px] p-[12px] grid gap-[6px]"
+            style={{ background: 'var(--bg-1)', border: '1px solid var(--line-strong)', zIndex: 20, maxWidth: 'calc(100vw - 32px)' }}
+          >
+            {paires.map(([k, v]) => (
+              <div key={k} className="grid gap-[10px]" style={{ gridTemplateColumns: 'auto minmax(0,1fr)' }}>
+                <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>{k}</span>
+                <span className="t-data-sm hex" style={{ color: 'var(--ink)' }}>{v}</span>
+              </div>
+            ))}
+          </div>
+        </details>
+        <button
+          type="button"
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          className="t-data-sm cursor-pointer"
+          style={{ border: '1px solid var(--line)', background: 'transparent', color: 'var(--ink-2)', padding: '6px 8px' }}
+        >
+          {theme === 'dark' ? 'clair' : 'sombre'}
+        </button>
+      </div>
     </header>
   )
 }
@@ -101,7 +170,7 @@ function Verdict() {
           <div className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
             {l}
           </div>
-          <div className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+          <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
             {s}
           </div>
         </div>
@@ -116,11 +185,11 @@ function Legend() {
       className="flex flex-wrap items-center gap-x-[16px] gap-y-[6px] px-[16px] py-[8px]"
       style={{ borderTop: '1px solid var(--line)' }}
     >
-      <span className="t-label" style={{ color: 'var(--ink-3)' }}>
+      <span className="t-label" style={{ color: 'var(--ink-2)' }}>
         rampe · inferno [0,18 ; 0,90] · 7 paliers · encode bps et rien d'autre
       </span>
       {PALIERS.map((p) => (
-        <span key={p.palier} className="t-data-xs inline-flex items-center gap-[5px]" style={{ color: 'var(--ink-3)' }}>
+        <span key={p.palier} className="t-data-xs inline-flex items-center gap-[5px]" style={{ color: 'var(--ink-2)' }}>
           <span
             style={{
               width: 22,
@@ -133,7 +202,7 @@ function Legend() {
           {p.domain}
         </span>
       ))}
-      <span className="t-data-xs w-full" style={{ color: 'var(--ink-3)' }}>
+      <span className="t-data-xs w-full" style={{ color: 'var(--ink-2)' }}>
         ≠ — le registre est qualitatif&nbsp;: {P.registry.field_census.leaf_fields} champs,{' '}
         {P.registry.field_census.boolean_fields} booleens, un seul numerique (chainId). Aucun champ
         ne peut contredire la colonne de droite, parce qu'aucun champ ne chiffre quoi que ce soit.
@@ -220,62 +289,55 @@ export default function App() {
   const Nav = () => (
     <nav className="flex flex-wrap items-center gap-[6px] px-[16px] pt-[16px] mx-auto w-full" style={{ maxWidth: 1560 }}>
       {[
-        { h: '/', t: "l'opération", actif: vue.quoi === 'accueil' },
-        { h: '/instrument', t: "l'instrument · 17 panneaux", actif: vue.quoi === 'instrument' },
+        // Sentence case, et pas de point median : deux tells de page generee, et la barre
+        // n'a pas a chiffrer ce que la page qui suit compte deja.
+        { h: '/', t: 'la carte', actif: vue.quoi === 'accueil' },
+        { h: '/instrument', t: "l'instrument", actif: vue.quoi === 'instrument' },
       ].map((x) => (
-        <button
+        // Une navigation est un lien, pas un bouton : Cmd-clic et clic molette doivent
+        // ouvrir un onglet, et l'adresse doit se copier.
+        <a
           key={x.h}
-          type="button"
-          onClick={() => aller(x.h)}
-          className="t-label"
+          href={`#${x.h}`}
+          aria-current={x.actif ? 'page' : undefined}
+          onClick={(e) => {
+            if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
+            e.preventDefault()
+            aller(x.h)
+          }}
+          className="t-data-sm no-underline"
           style={{
-            padding: '6px 12px',
+            padding: '8px 12px',
             border: `1px solid ${x.actif ? 'var(--line-strong)' : 'var(--line)'}`,
             background: x.actif ? 'var(--bg-3)' : 'transparent',
-            color: x.actif ? 'var(--ink)' : 'var(--ink-3)',
+            color: x.actif ? 'var(--ink)' : 'var(--ink-2)',
             cursor: 'pointer',
           }}
         >
           {x.t}
-        </button>
-      ))}
-      <span className="t-label ml-[6px]" style={{ color: 'var(--ink-4)' }}>outils</span>
-      {(['collecte', 'analyse', 'action'] as const).map((f) => (
-        <span key={f} className="t-label flex items-center gap-[4px]" style={{ color: 'var(--ink-4)' }}>
-          <i style={{ width: 8, height: 8, background: FAMILLES[f].couleur, display: 'inline-block' }} />
-          {f}
-        </span>
-      ))}
-      {OUTILS.map((o) => (
-        <button
-          key={o.n}
-          type="button"
-          onClick={() => versOutil(o.n)}
-          className="t-label"
-          style={{
-            padding: '6px 9px',
-            border: `1px solid ${vue.quoi === 'outil' && vue.n === o.n ? FAMILLES[o.famille].couleur : 'var(--line)'}`,
-            background: vue.quoi === 'outil' && vue.n === o.n ? 'var(--bg-3)' : 'transparent',
-            color: FAMILLES[o.famille].couleur,
-            cursor: 'pointer',
-          }}
-          title={`${o.nom} — ${o.question}`}
-        >
-          {o.n}
-        </button>
+        </a>
       ))}
     </nav>
   )
+  // Les quatorze pastilles numérotées et la légende des familles vivaient ici, en doublon de
+  // ce que la carte montre maintenant en entier. Sur la page outil, le bandeau d'onglets les
+  // remplace ; sur l'accueil, c'est la carte elle-même qui sert de navigation.
 
   if (vue.quoi === 'accueil') {
     return (
       <div className="min-h-full">
+        <Evitement />
         <Head theme={theme} setTheme={setTheme} />
         <Nav />
-        <main className="flex flex-col gap-[16px] p-[16px] mx-auto" style={{ maxWidth: 1560 }}>
+        <main id="contenu" className="flex flex-col gap-[48px] px-[16px] pt-[24px] pb-[16px] mx-auto" style={{ maxWidth: 1560 }}>
+          {/* LA CARTE D'ABORD. Le système en une image, et chaque nœud est une porte. */}
+          <Carte surOutil={versOutil} />
           <AccueilPanel />
           <AccesPanel surOutil={versOutil} />
-          <DonneesPanel surOutil={versOutil} />
+          {/* La cible des liens du rail de la carte : « le detail d'un jeu de donnees ». */}
+          <div id="donnees">
+            <DonneesPanel surOutil={versOutil} />
+          </div>
         </main>
       </div>
     )
@@ -284,9 +346,10 @@ export default function App() {
   if (vue.quoi === 'outil') {
     return (
       <div className="min-h-full">
+        <Evitement />
         <Head theme={theme} setTheme={setTheme} />
         <Nav />
-        <main className="flex flex-col gap-[16px] p-[16px] mx-auto" style={{ maxWidth: 1560 }}>
+        <main id="contenu" className="flex flex-col gap-[16px] p-[16px] mx-auto" style={{ maxWidth: 1560 }}>
           <OutilPanel n={vue.n} surOutil={versOutil} />
         </main>
       </div>
@@ -295,10 +358,24 @@ export default function App() {
 
   return (
     <div className="min-h-full">
+      <Evitement />
       <Head theme={theme} setTheme={setTheme} />
       <Nav />
 
-      <main className="flex flex-col gap-[16px] p-[16px] mx-auto" style={{ maxWidth: 1560 }}>
+      <main id="contenu" className="px-[16px] pt-[20px] pb-[16px] mx-auto w-full" style={{ maxWidth: 1560 }}>
+        <div className="pb-[16px]">
+        <h1 className="t-hero m-0">L’instrument</h1>
+        <p
+          className="m-0 pt-[10px]"
+          style={{ fontFamily: 'var(--prose)', fontSize: 16, lineHeight: 1.6, color: 'var(--ink-2)', maxWidth: '68ch' }}
+        >
+          Le corpus en entier, panneau par panneau&nbsp;: ce que le registre déclare, ce que la
+          mesure trouve, et tout ce qui sert à le vérifier. Le sommaire suit la lecture.
+        </p>
+        </div>
+      <div className="instrument">
+        <IndexPanneaux />
+        <div className="flex flex-col" style={{ minWidth: 0 }}>
         {/* Le test de sortie vient EN PREMIER : c'est la seule question qu'un visiteur se pose
             avant d'avoir appris quoi que ce soit du protocole. Tout le reste explique pourquoi
             ce nombre est ce qu'il est. */}
@@ -306,12 +383,8 @@ export default function App() {
 
         <Panel
           index="01"
-          title="le meme swap, cote deux fois"
-          right={
-            <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
-              lecture immediate · aucun wallet · aucune requete
-            </span>
-          }
+          title="Le même swap, coté deux fois"
+          meta={['lecture immédiate', 'aucun portefeuille', 'aucune requête']}
         >
           <Verdict />
           <p
@@ -329,7 +402,7 @@ export default function App() {
 
         <Panel
           index="02"
-          title="ce que le registre declare · ce que la mesure trouve"
+          title="Le registre contre la mesure"
           right={
             view.filter || view.columns || view.highlight.length ? (
               <span className="t-data-xs flex items-center gap-[8px]" style={{ color: 'var(--ink-2)' }}>
@@ -344,7 +417,7 @@ export default function App() {
                 </button>
               </span>
             ) : (
-              <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+              <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                 cliquer une ligne pour ouvrir sa fiche
               </span>
             )
@@ -394,7 +467,7 @@ export default function App() {
 
         <footer
           className="t-data-xs px-[16px] py-[12px] flex flex-col gap-[3px]"
-          style={{ color: 'var(--ink-3)', borderTop: '1px solid var(--line)' }}
+          style={{ color: 'var(--ink-2)', borderTop: '1px solid var(--line)' }}
         >
           <span>
             mesures&nbsp;: {P.measurements.path} · {P.measurements.engine_ver} · relevees le{' '}
@@ -420,6 +493,8 @@ export default function App() {
           </span>
           <span>jeu de donnees compile le {P.built_at}</span>
         </footer>
+        </div>
+      </div>
       </main>
 
       <Chat model={model} view={view} onView={setView} />

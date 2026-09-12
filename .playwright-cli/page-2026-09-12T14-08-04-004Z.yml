@@ -1,0 +1,784 @@
+- generic [ref=e3]:
+  - link "aller au contenu" [ref=e4] [cursor=pointer]:
+    - /url: "#contenu"
+  - banner [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]: TARE
+      - group [ref=e8]:
+        - generic "provenance" [ref=e9] [cursor=pointer]
+      - button "clair" [ref=e10] [cursor=pointer]
+  - navigation [ref=e11]:
+    - link "la carte" [ref=e12] [cursor=pointer]:
+      - /url: "#/"
+    - link "l'instrument" [ref=e13] [cursor=pointer]:
+      - /url: "#/instrument"
+  - main [ref=e14]:
+    - region [ref=e15]:
+      - generic [ref=e16]:
+        - heading "La chaîne et ses 14 outils" [level=1] [ref=e17]
+        - generic [ref=e18]:
+          - generic [ref=e19]:
+            - term [ref=e21]: collecte
+            - definition [ref=e22]: va chercher une donnée
+          - generic [ref=e23]:
+            - term [ref=e25]: analyse
+            - definition [ref=e26]: interprète
+          - generic [ref=e27]:
+            - term [ref=e29]: action
+            - definition [ref=e30]: change quelque chose
+      - generic [ref=e33]:
+        - generic [ref=e34]:
+          - generic [aria-hidden] [ref=e35]:
+            - generic [ref=e36]: "#"
+            - generic [ref=e37]: "#"
+            - generic [ref=e38]: "#"
+            - generic [ref=e39]: "#"
+            - generic [ref=e40]: "#"
+            - generic [ref=e41]: "#"
+            - generic [ref=e42]: "#"
+            - generic [ref=e43]: "#"
+            - generic [ref=e44]: "#"
+          - generic [ref=e45]:
+            - paragraph [ref=e46]: 27 jeux de données, en amont
+            - list [ref=e47]:
+              - listitem [ref=e48]:
+                - link "le corpus de mesures" [ref=e49] [cursor=pointer]:
+                  - /url: "#donnees-corpus"
+              - listitem [ref=e50]:
+                - link "le résumé du corpus" [ref=e51] [cursor=pointer]:
+                  - /url: "#donnees-corpus_resume"
+              - listitem [ref=e52]:
+                - link "le corpus encodé par colonnes" [ref=e53] [cursor=pointer]:
+                  - /url: "#donnees-corpus_encode"
+              - listitem [ref=e54]:
+                - link "la table de la garde" [ref=e55] [cursor=pointer]:
+                  - /url: "#donnees-table_garde"
+              - listitem [ref=e56]:
+                - link "les chiffres de la porte de remplacement" [ref=e57] [cursor=pointer]:
+                  - /url: "#donnees-chiffres_alternative"
+              - listitem [ref=e58]:
+                - link "les pools à sens unique" [ref=e59] [cursor=pointer]:
+                  - /url: "#donnees-sens_unique"
+              - listitem [ref=e60]:
+                - link "la porte A4 — le swap réellement exécuté" [ref=e61] [cursor=pointer]:
+                  - /url: "#donnees-porte_a4"
+              - listitem [ref=e62]:
+                - link "le journal de la porte A4" [ref=e63] [cursor=pointer]:
+                  - /url: "#donnees-porte_a4_journal"
+              - listitem [ref=e64]:
+                - link "les mesures contestées" [ref=e65] [cursor=pointer]:
+                  - /url: "#donnees-contestes_mesures"
+              - listitem [ref=e66]: et 18 autres, plus bas
+        - generic [ref=e67]:
+          - generic [ref=e68]:
+            - paragraph [ref=e69]: La chaîne
+            - paragraph [ref=e70]: 6/6 étapes en 13 680 ms
+            - paragraph [ref=e71]: bout en bout, sous une seule horloge
+          - list [ref=e72]:
+            - listitem "1 · une vraie transaction Base, rejouable par son hash — 644 ms" [ref=e73]
+            - listitem "2 · la garde decode le calldata et rend un verdict — 72 ms" [ref=e74]
+            - listitem "3 · y a-t-il une autre porte ? — 0 ms" [ref=e75]
+            - listitem "4 · une mesure neuve, payee en x402 sur Hedera et relue sur le mirror node — 6 987 ms" [ref=e76]
+            - listitem "5 · le lot est ancre sur le topic HCS, et relu — 86 ms" [ref=e77]
+            - listitem "6 · le rapport encode en EIP-712, rendu ecran par ecran sur l'appareil, et signe — 5 891 ms" [ref=e78]
+        - generic [ref=e79]:
+          - generic [ref=e80]:
+            - link "1Mesurer 3 jeux lus" [ref=e81] [cursor=pointer]:
+              - /url: "#/outil/1"
+              - generic [ref=e82]:
+                - generic [ref=e83]: 1Mesurer
+                - generic [ref=e84]: 3 jeux lus
+            - link "8Intercepter 2 jeux lus, hors ligne" [ref=e85] [cursor=pointer]:
+              - /url: "#/outil/8"
+              - generic [ref=e86]:
+                - generic [ref=e87]: 8Intercepter
+                - generic [ref=e88]: 2 jeux lus, hors ligne
+            - link "10Payer à l'unité 1 jeu lu" [ref=e89] [cursor=pointer]:
+              - /url: "#/outil/10"
+              - generic [ref=e90]:
+                - generic [ref=e91]: 10Payer à l'unité
+                - generic [ref=e92]: 1 jeu lu
+          - generic [ref=e93]:
+            - link "2Consulter 6 jeux lus" [ref=e94] [cursor=pointer]:
+              - /url: "#/outil/2"
+              - generic [ref=e95]:
+                - generic [ref=e96]: 2Consulter
+                - generic [ref=e97]: 6 jeux lus
+            - link "3Situer 3 jeux lus" [ref=e98] [cursor=pointer]:
+              - /url: "#/outil/3"
+              - generic [ref=e99]:
+                - generic [ref=e100]: 3Situer
+                - generic [ref=e101]: 3 jeux lus
+            - link "4Comprendre 13 jeux lus, en attente" [ref=e102] [cursor=pointer]:
+              - /url: "#/outil/4"
+              - generic [ref=e103]:
+                - generic [ref=e104]: 4Comprendre
+                - generic [ref=e105]: 13 jeux lus, en attente
+            - link "5Décider 6 jeux lus" [ref=e106] [cursor=pointer]:
+              - /url: "#/outil/5"
+              - generic [ref=e107]:
+                - generic [ref=e108]: 5Décider
+                - generic [ref=e109]: 6 jeux lus
+            - link "6Proposer une autre porte 5 jeux lus" [ref=e110] [cursor=pointer]:
+              - /url: "#/outil/6"
+              - generic [ref=e111]:
+                - generic [ref=e112]: 6Proposer une autre porte
+                - generic [ref=e113]: 5 jeux lus
+          - generic [ref=e114]:
+            - link "7Substituer la transaction 3 jeux lus" [ref=e115] [cursor=pointer]:
+              - /url: "#/outil/7"
+              - generic [ref=e116]:
+                - generic [ref=e117]: 7Substituer la transaction
+                - generic [ref=e118]: 3 jeux lus
+            - link "9Approuver 1 jeu lu" [ref=e119] [cursor=pointer]:
+              - /url: "#/outil/9"
+              - generic [ref=e120]:
+                - generic [ref=e121]: 9Approuver
+                - generic [ref=e122]: 1 jeu lu
+            - link "11S'abonner aucun jeu lu, en attente" [ref=e123] [cursor=pointer]:
+              - /url: "#/outil/11"
+              - generic [ref=e124]:
+                - generic [ref=e125]: 11S'abonner
+                - generic [ref=e126]: aucun jeu lu, en attente
+            - link "12Authentifier aucun jeu lu" [ref=e127] [cursor=pointer]:
+              - /url: "#/outil/12"
+              - generic [ref=e128]:
+                - generic [ref=e129]: 12Authentifier
+                - generic [ref=e130]: aucun jeu lu
+            - link "13Prouver 3 jeux lus" [ref=e131] [cursor=pointer]:
+              - /url: "#/outil/13"
+              - generic [ref=e132]:
+                - generic [ref=e133]: 13Prouver
+                - generic [ref=e134]: 3 jeux lus
+            - link "14Attester 1 jeu lu, en attente" [ref=e135] [cursor=pointer]:
+              - /url: "#/outil/14"
+              - generic [ref=e136]:
+                - generic [ref=e137]: 14Attester
+                - generic [ref=e138]: 1 jeu lu, en attente
+      - generic [ref=e139]:
+        - generic [ref=e140]:
+          - generic [ref=e141]:
+            - generic [ref=e142]:
+              - term [ref=e143]: reçu avec le hook en place
+              - definition [ref=e144]: 99,03
+            - generic [ref=e146]:
+              - term [ref=e147]: reçu contre 89 octets inertes
+              - definition [ref=e148]: 100,00
+          - status [ref=e150]: 96,74
+          - paragraph [ref=e151]: bps, l’écart entre les deux. C’est ce que le hook a pris, sur un swap réellement exécuté puis reconfronté à sa cotation.
+        - paragraph [ref=e152]: "en wei, tels que le fork les rend : 14 286 574 099 944 519 712 114 593 contre 14 426 130 614 674 326 401 083 186"
+    - region [ref=e153]:
+      - generic [ref=e154]:
+        - heading "Colle une adresse de jeton, vois ce qu'elle coûte" [level=2] [ref=e155]
+        - generic [ref=e156]:
+          - generic [ref=e157]: 125 072 mesures embarquées
+          - generic [ref=e158]: aucune requête réseau
+      - paragraph [ref=e159]:
+        - text: "Le même jeton n’a pas le même prix selon la porte par laquelle tu passes. Colle son adresse : on cote ses portes à la même taille — frais LP lus sur la chaîne"
+        - emphasis [ref=e160]: plus
+        - text: prélèvement du hook, mesuré par contrefactuel — et on écrit l’écart. Tout est calculé ici, dans la page.
+      - generic [ref=e162]:
+        - generic [ref=e163]: adresse du jeton que tu veux obtenir
+        - textbox "adresse du jeton que tu veux obtenir" [ref=e164]:
+          - /placeholder: 0x2eb2… 40 caractères après 0x
+        - generic [ref=e165]: "rien n’est envoyé : la recherche se fait sur le corpus embarqué"
+      - generic [ref=e166]:
+        - generic [ref=e167]: ou prends-en un du corpus — ceux-là ont plusieurs portes, donc un choix à faire
+        - generic [ref=e168]:
+          - button "0xb200…4199 78.67 bps entre ses portes" [ref=e169] [cursor=pointer]:
+            - text: 0xb200…4199
+            - generic [ref=e170]: 78.67 bps entre ses portes
+          - button "0xb7eb…3356 78.67 bps entre ses portes" [ref=e171] [cursor=pointer]:
+            - text: 0xb7eb…3356
+            - generic [ref=e172]: 78.67 bps entre ses portes
+          - button "0x07a6…1b67 30.01 bps entre ses portes" [ref=e173] [cursor=pointer]:
+            - text: 0x07a6…1b67
+            - generic [ref=e174]: 30.01 bps entre ses portes
+          - button "0xb200…2d4d 3.68 bps entre ses portes" [ref=e175] [cursor=pointer]:
+            - text: 0xb200…2d4d
+            - generic [ref=e176]: 3.68 bps entre ses portes
+          - button "0xb200…108c 1.00 bps entre ses portes" [ref=e177] [cursor=pointer]:
+            - text: 0xb200…108c
+            - generic [ref=e178]: 1.00 bps entre ses portes
+    - region [ref=e179]:
+      - generic [ref=e180]:
+        - heading "Par où on atteint ce produit, et pourquoi chaque porte existe" [level=2] [ref=e181]
+        - generic [ref=e182]:
+          - generic [ref=e183]: 5 accès
+          - generic [ref=e184]: 14 outils
+      - paragraph [ref=e185]: "Le même corpus, cinq façons de l'atteindre. Elles ne se remplacent pas : chacune existe parce qu'il y a un moment où les autres ne marchent pas."
+      - generic [ref=e186]:
+        - generic [ref=e187]:
+          - generic [ref=e188]: Le site
+          - generic [ref=e189]: pour quelqu'un qui veut une réponse maintenant, sans rien installer
+        - paragraph [ref=e190]: "parce que le corpus entier est dans la page : 125 072 mesures encodées par colonnes, 7,9 Mo. On colle une adresse et on lit le résultat — pas de portefeuille, pas de compte, pas une seule requête réseau. C'est la porte que 37 % des projets primés en asynchrone ont, et celle qu'on pousse en cinq secondes."
+        - generic [ref=e191]:
+          - generic [ref=e192]: il faut
+          - generic [ref=e193]: rien
+        - generic [ref=e194]:
+          - generic [ref=e195]: outils
+          - link "2. Consulter" [ref=e196] [cursor=pointer]:
+            - /url: "#/outil/2"
+          - link "3. Situer" [ref=e197] [cursor=pointer]:
+            - /url: "#/outil/3"
+          - link "4. Comprendre" [ref=e198] [cursor=pointer]:
+            - /url: "#/outil/4"
+          - link "5. Décider" [ref=e199] [cursor=pointer]:
+            - /url: "#/outil/5"
+          - link "6. Proposer une autre porte" [ref=e200] [cursor=pointer]:
+            - /url: "#/outil/6"
+          - link "7. Substituer la transaction" [ref=e201] [cursor=pointer]:
+            - /url: "#/outil/7"
+          - link "9. Approuver" [ref=e202] [cursor=pointer]:
+            - /url: "#/outil/9"
+          - link "13. Prouver" [ref=e203] [cursor=pointer]:
+            - /url: "#/outil/13"
+          - link "14. Attester" [ref=e204] [cursor=pointer]:
+            - /url: "#/outil/14"
+      - generic [ref=e205]:
+        - generic [ref=e206]:
+          - generic [ref=e207]: L'extension
+          - generic [ref=e208]: pour quelqu'un qui échange déjà, ailleurs, et ne viendra pas sur notre site
+        - paragraph [ref=e209]:
+          - text: "parce que le bon moment pour savoir ce qu'un hook prend n'est pas quand on cherche : c'est"
+          - strong [ref=e210]: trois secondes avant de signer
+          - text: ", sur le site où on échange. Elle se place entre la page et le portefeuille, lit le calldata de l'Universal Router, et rend son verdict avant la signature. Douze kilooctets de script de contenu ; la table des mesures vit dans son service worker et répond sans aucune requête — donc elle marche même si notre serveur est éteint."
+        - generic [ref=e211]:
+          - generic [ref=e212]: il faut
+          - generic [ref=e213]: l'installer ; une clé d'API seulement pour l'historique
+        - generic [ref=e214]:
+          - generic [ref=e215]: outils
+          - link "2. Consulter" [ref=e216] [cursor=pointer]:
+            - /url: "#/outil/2"
+          - link "6. Proposer une autre porte" [ref=e217] [cursor=pointer]:
+            - /url: "#/outil/6"
+          - link "8. Intercepter" [ref=e218] [cursor=pointer]:
+            - /url: "#/outil/8"
+          - link "9. Approuver" [ref=e219] [cursor=pointer]:
+            - /url: "#/outil/9"
+      - generic [ref=e220]:
+        - generic [ref=e221]:
+          - generic [ref=e222]: Le serveur MCP
+          - generic [ref=e223]: pour un agent, pas un humain
+        - paragraph [ref=e224]:
+          - text: parce qu'un modèle à qui on demande « ce hook prend combien ? »
+          - strong [ref=e225]: invente un nombre plausible
+          - text: ". Le MCP lui donne quatre outils dont les descriptions disent, en toutes lettres, de ne jamais énoncer un chiffre que l'outil n'a pas rendu — et chaque réponse porte son étiquette, son bloc, sa taille, son sens et sa commande de rejeu. Il lit les 125 072 mesures sur disque et répond hors ligne : la clé ne décide que de l'historique."
+        - generic [ref=e226]:
+          - generic [ref=e227]: il faut
+          - generic [ref=e228]: Claude Desktop ou tout client MCP ; la clé pour l'historique
+        - generic [ref=e229]:
+          - generic [ref=e230]: outils
+          - link "1. Mesurer" [ref=e231] [cursor=pointer]:
+            - /url: "#/outil/1"
+          - link "2. Consulter" [ref=e232] [cursor=pointer]:
+            - /url: "#/outil/2"
+          - link "3. Situer" [ref=e233] [cursor=pointer]:
+            - /url: "#/outil/3"
+          - link "5. Décider" [ref=e234] [cursor=pointer]:
+            - /url: "#/outil/5"
+          - link "6. Proposer une autre porte" [ref=e235] [cursor=pointer]:
+            - /url: "#/outil/6"
+          - link "13. Prouver" [ref=e236] [cursor=pointer]:
+            - /url: "#/outil/13"
+      - generic [ref=e237]:
+        - generic [ref=e238]:
+          - generic [ref=e239]: x402 en direct, sur Hedera
+          - generic [ref=e240]: pour un agent autonome qui n'a pas de compte et n'en veut pas
+        - paragraph [ref=e241]:
+          - text: parce qu'un agent ne remplit pas un formulaire d'inscription. Il fait une requête, reçoit un
+          - strong [ref=e242]: 402 qui annonce le prix
+          - text: ", paie, et reçoit la mesure — 0,001 USDC, réglé et relu sur le mirror node Hedera, pas sur notre parole. La clé qui signe est scellée dans un Ledger, et l'agent qui répond a une identité HCS-14 publiée sur un topic : l'appelant peut vérifier"
+          - strong [ref=e243]: qui
+          - text: il appelle avant de payer.
+        - generic [ref=e244]:
+          - generic [ref=e245]: il faut
+          - generic [ref=e246]: un compte Hedera et de l'USDC de test
+        - generic [ref=e247]:
+          - generic [ref=e248]: outils
+          - link "1. Mesurer" [ref=e249] [cursor=pointer]:
+            - /url: "#/outil/1"
+          - link "10. Payer à l'unité" [ref=e250] [cursor=pointer]:
+            - /url: "#/outil/10"
+          - link "13. Prouver" [ref=e251] [cursor=pointer]:
+            - /url: "#/outil/13"
+      - generic [ref=e252]:
+        - generic [ref=e253]:
+          - generic [ref=e254]: Le compte
+          - generic [ref=e255]: pour quelqu'un qui utilise le produit plus d'une fois
+        - paragraph [ref=e256]:
+          - text: il n'ajoute aucune mesure — il ouvre les
+          - strong [ref=e257]: surfaces
+          - text: ": une clé d'API par surface, les téléchargements de l'extension et du MCP, et l'historique de ce qu'ils ont fait. La connexion se fait par signature de portefeuille, sans mot de passe, et l'abonnement est lu"
+          - strong [ref=e258]: sur la chaîne
+          - text: plutôt que cru sur parole.
+        - generic [ref=e259]:
+          - generic [ref=e260]: il faut
+          - generic [ref=e261]: un portefeuille, et un abonnement actif pour les clés
+        - generic [ref=e262]:
+          - generic [ref=e263]: outils
+          - link "11. S'abonner" [ref=e264] [cursor=pointer]:
+            - /url: "#/outil/11"
+          - link "12. Authentifier" [ref=e265] [cursor=pointer]:
+            - /url: "#/outil/12"
+    - region [ref=e267]:
+      - generic [ref=e268]:
+        - heading "Quelle donnée sert quel outil" [level=2] [ref=e269]
+        - generic [ref=e270]:
+          - generic [ref=e271]: 27 jeux de données
+          - generic [ref=e272]: 159,3 Mo
+      - paragraph [ref=e273]: "Chaque fichier de données du dépôt est ici, avec ce qu'il contient, la commande qui l'a produit, et les outils qui le lisent ou l'écrivent. Un test refuse qu'un fichier suivi par git manque à cette liste : une donnée qu'aucun outil ne réclame ferait tomber la suite, au lieu de dormir dans un coin du dépôt."
+      - region "tableau des jeux de données, défilement horizontal" [ref=e274]:
+        - table [ref=e275]:
+          - rowgroup [ref=e276]:
+            - row [ref=e277]:
+              - columnheader "jeu de données" [ref=e278]
+              - columnheader "volume" [ref=e279]
+              - columnheader "lu par" [ref=e280]
+              - columnheader "écrit par" [ref=e281]
+              - columnheader "fichier" [ref=e282]
+          - rowgroup [ref=e283]:
+            - row [ref=e284]:
+              - 'cell "le corpus de mesures une ligne par swap contrefactuel : le pool, le hook, la taille, le sens, les deux cotations, l''écart en points de base, et l''étiquette qui dit si c''est mesuré, interpolé ou non mesurable" [ref=e285]':
+                - generic [ref=e286]: le corpus de mesures
+                - generic [ref=e287]: "une ligne par swap contrefactuel : le pool, le hook, la taille, le sens, les deux cotations, l'écart en points de base, et l'étiquette qui dit si c'est mesuré, interpolé ou non mesurable"
+              - cell "90,4 Mo 125 072 mesures" [ref=e288]:
+                - text: 90,4 Mo
+                - generic [ref=e289]: 125 072 mesures
+              - cell [ref=e290]:
+                - generic [ref=e291]:
+                  - link "2. Consulter" [ref=e292] [cursor=pointer]:
+                    - /url: "#/outil/2"
+                  - link "3. Situer" [ref=e293] [cursor=pointer]:
+                    - /url: "#/outil/3"
+                  - link "5. Décider" [ref=e294] [cursor=pointer]:
+                    - /url: "#/outil/5"
+                  - link "6. Proposer une autre porte" [ref=e295] [cursor=pointer]:
+                    - /url: "#/outil/6"
+                  - link "7. Substituer la transaction" [ref=e296] [cursor=pointer]:
+                    - /url: "#/outil/7"
+                  - link "14. Attester" [ref=e297] [cursor=pointer]:
+                    - /url: "#/outil/14"
+              - cell [ref=e298]:
+                - link "1. Mesurer" [ref=e300] [cursor=pointer]:
+                  - /url: "#/outil/1"
+              - cell "docs/dataset/measurements.jsonl python3 -m tare.sweep (engine/tare/measure.py), sur un fork anvil épinglé" [ref=e301]:
+                - code [ref=e302]: docs/dataset/measurements.jsonl
+                - generic [ref=e303]: python3 -m tare.sweep (engine/tare/measure.py), sur un fork anvil épinglé
+            - row [ref=e304]:
+              - cell "le résumé du corpus les seuils, les tailles, les sens, le hash du talon, le bloc, et le décompte par étiquette — de quoi vérifier qu'un chiffre publié vient bien de ce corpus-là" [ref=e305]:
+                - generic [ref=e306]: le résumé du corpus
+                - generic [ref=e307]: les seuils, les tailles, les sens, le hash du talon, le bloc, et le décompte par étiquette — de quoi vérifier qu'un chiffre publié vient bien de ce corpus-là
+              - cell "3,5 Mo 125 072 mesures resumees" [ref=e308]:
+                - text: 3,5 Mo
+                - generic [ref=e309]: 125 072 mesures resumees
+              - cell [ref=e310]:
+                - generic [ref=e311]:
+                  - link "2. Consulter" [ref=e312] [cursor=pointer]:
+                    - /url: "#/outil/2"
+                  - link "4. Comprendre" [ref=e313] [cursor=pointer]:
+                    - /url: "#/outil/4"
+              - cell [ref=e314]:
+                - link "1. Mesurer" [ref=e316] [cursor=pointer]:
+                  - /url: "#/outil/1"
+              - cell "docs/dataset/summary.json python3 -m tare.cli summary" [ref=e317]:
+                - code [ref=e318]: docs/dataset/summary.json
+                - generic [ref=e319]: python3 -m tare.cli summary
+            - row [ref=e320]:
+              - 'cell "le corpus encodé par colonnes le même corpus, colonne par colonne, pour tenir dans une page web : c''est LUI que le site charge, et c''est pour ça que le site répond sans une seule requête réseau" [ref=e321]':
+                - generic [ref=e322]: le corpus encodé par colonnes
+                - generic [ref=e323]: "le même corpus, colonne par colonne, pour tenir dans une page web : c'est LUI que le site charge, et c'est pour ça que le site répond sans une seule requête réseau"
+              - cell "8,3 Mo" [ref=e324]
+              - cell [ref=e325]:
+                - generic [ref=e326]:
+                  - link "2. Consulter" [ref=e327] [cursor=pointer]:
+                    - /url: "#/outil/2"
+                  - link "3. Situer" [ref=e328] [cursor=pointer]:
+                    - /url: "#/outil/3"
+                  - link "5. Décider" [ref=e329] [cursor=pointer]:
+                    - /url: "#/outil/5"
+                  - link "6. Proposer une autre porte" [ref=e330] [cursor=pointer]:
+                    - /url: "#/outil/6"
+              - cell "—" [ref=e331]
+              - cell "apps/web/src/data/dataset.json node apps/web/scripts/build-dataset.mjs" [ref=e332]:
+                - code [ref=e333]: apps/web/src/data/dataset.json
+                - generic [ref=e334]: node apps/web/scripts/build-dataset.mjs
+            - row [ref=e335]:
+              - cell "la table de la garde le corpus remis à plat pour être interrogé par clé de pool, embarqué tel quel dans l'extension et dans le serveur MCP — c'est ce qui leur permet de répondre hors ligne" [ref=e336]:
+                - generic [ref=e337]: la table de la garde
+                - generic [ref=e338]: le corpus remis à plat pour être interrogé par clé de pool, embarqué tel quel dans l'extension et dans le serveur MCP — c'est ce qui leur permet de répondre hors ligne
+              - cell "21,7 Mo 125 072 mesures embarquees" [ref=e339]:
+                - text: 21,7 Mo
+                - generic [ref=e340]: 125 072 mesures embarquees
+              - cell [ref=e341]:
+                - generic [ref=e342]:
+                  - link "2. Consulter" [ref=e343] [cursor=pointer]:
+                    - /url: "#/outil/2"
+                  - link "6. Proposer une autre porte" [ref=e344] [cursor=pointer]:
+                    - /url: "#/outil/6"
+                  - link "7. Substituer la transaction" [ref=e345] [cursor=pointer]:
+                    - /url: "#/outil/7"
+                  - link "8. Intercepter" [ref=e346] [cursor=pointer]:
+                    - /url: "#/outil/8"
+              - cell "—" [ref=e347]
+              - cell "packages/guard/data/table.json node packages/guard/scripts/build-table.mjs" [ref=e348]:
+                - code [ref=e349]: packages/guard/data/table.json
+                - generic [ref=e350]: node packages/guard/scripts/build-table.mjs
+            - row [ref=e351]:
+              - cell "les chiffres de la porte de remplacement le poids réel de chaque état de la recherche d'alternative, dont la part de cas où la réponse est « il n'y a qu'une porte » — le chiffre qu'on ne voulait pas écrire à la main" [ref=e352]:
+                - generic [ref=e353]: les chiffres de la porte de remplacement
+                - generic [ref=e354]: le poids réel de chaque état de la recherche d'alternative, dont la part de cas où la réponse est « il n'y a qu'une porte » — le chiffre qu'on ne voulait pas écrire à la main
+              - cell "8 ko 125 072 mesures confrontees" [ref=e355]:
+                - text: 8 ko
+                - generic [ref=e356]: 125 072 mesures confrontees
+              - cell [ref=e357]:
+                - generic [ref=e358]:
+                  - link "6. Proposer une autre porte" [ref=e359] [cursor=pointer]:
+                    - /url: "#/outil/6"
+                  - link "7. Substituer la transaction" [ref=e360] [cursor=pointer]:
+                    - /url: "#/outil/7"
+              - cell "—" [ref=e361]
+              - cell "packages/guard/data/chiffres-alternative.json node packages/guard/scripts/chiffres-alternative.mjs" [ref=e362]:
+                - code [ref=e363]: packages/guard/data/chiffres-alternative.json
+                - generic [ref=e364]: node packages/guard/scripts/chiffres-alternative.mjs
+            - row [ref=e365]:
+              - 'cell "les pools à sens unique les pools qui laissent entrer gratuitement et ne laissent pas ressortir : zéro point de base à l''aller, jusqu''à 9 999 au retour — le cas que seul un aller-retour révèle" [ref=e366]':
+                - generic [ref=e367]: les pools à sens unique
+                - generic [ref=e368]: "les pools qui laissent entrer gratuitement et ne laissent pas ressortir : zéro point de base à l'aller, jusqu'à 9 999 au retour — le cas que seul un aller-retour révèle"
+              - cell "12 ko 6 pools a sens unique" [ref=e369]:
+                - text: 12 ko
+                - generic [ref=e370]: 6 pools a sens unique
+              - cell [ref=e371]:
+                - generic [ref=e372]:
+                  - link "3. Situer" [ref=e373] [cursor=pointer]:
+                    - /url: "#/outil/3"
+                  - link "6. Proposer une autre porte" [ref=e374] [cursor=pointer]:
+                    - /url: "#/outil/6"
+              - cell [ref=e375]:
+                - link "1. Mesurer" [ref=e377] [cursor=pointer]:
+                  - /url: "#/outil/1"
+              - cell "docs/dataset/one-way.json python3 -m tare.oneway, à partir du corpus" [ref=e378]:
+                - code [ref=e379]: docs/dataset/one-way.json
+                - generic [ref=e380]: python3 -m tare.oneway, à partir du corpus
+            - row [ref=e381]:
+              - 'cell "la porte A4 — le swap réellement exécuté des swaps vraiment passés sur un fork, confrontés à ce que la cotation annonçait : la seule preuve que le contrefactuel ne ment pas, divergence comprise" [ref=e382]':
+                - generic [ref=e383]: la porte A4 — le swap réellement exécuté
+                - generic [ref=e384]: "des swaps vraiment passés sur un fork, confrontés à ce que la cotation annonçait : la seule preuve que le contrefactuel ne ment pas, divergence comprise"
+              - cell "3 ko 3 swaps executes" [ref=e385]:
+                - text: 3 ko
+                - generic [ref=e386]: 3 swaps executes
+              - cell [ref=e387]:
+                - generic [ref=e388]:
+                  - link "1. Mesurer" [ref=e389] [cursor=pointer]:
+                    - /url: "#/outil/1"
+                  - link "5. Décider" [ref=e390] [cursor=pointer]:
+                    - /url: "#/outil/5"
+              - cell [ref=e391]:
+                - link "1. Mesurer" [ref=e393] [cursor=pointer]:
+                  - /url: "#/outil/1"
+              - cell "docs/dataset/porte-a4.json python3 -m tare.gates.a4 --write" [ref=e394]:
+                - code [ref=e395]: docs/dataset/porte-a4.json
+                - generic [ref=e396]: python3 -m tare.gates.a4 --write
+            - row [ref=e397]:
+              - cell "le journal de la porte A4 la trace brute de chaque sonde, avec sa commande de rejeu" [ref=e398]:
+                - generic [ref=e399]: le journal de la porte A4
+                - generic [ref=e400]: la trace brute de chaque sonde, avec sa commande de rejeu
+              - cell "3 ko 1 sondes" [ref=e401]:
+                - text: 3 ko
+                - generic [ref=e402]: 1 sondes
+              - cell [ref=e403]:
+                - link "1. Mesurer" [ref=e405] [cursor=pointer]:
+                  - /url: "#/outil/1"
+              - cell [ref=e406]:
+                - link "1. Mesurer" [ref=e408] [cursor=pointer]:
+                  - /url: "#/outil/1"
+              - cell "docs/dataset/porte-a4.jsonl python3 -m tare.gates.a4 --write" [ref=e409]:
+                - code [ref=e410]: docs/dataset/porte-a4.jsonl
+                - generic [ref=e411]: python3 -m tare.gates.a4 --write
+            - row [ref=e412]:
+              - cell "les mesures contestées les pools où notre mesure et la source externe ne disent pas la même chose, remesurés un par un au lieu d'être écartés" [ref=e413]:
+                - generic [ref=e414]: les mesures contestées
+                - generic [ref=e415]: les pools où notre mesure et la source externe ne disent pas la même chose, remesurés un par un au lieu d'être écartés
+              - cell "267 ko 368 mesures" [ref=e416]:
+                - text: 267 ko
+                - generic [ref=e417]: 368 mesures
+              - cell [ref=e418]:
+                - generic [ref=e419]:
+                  - link "2. Consulter" [ref=e420] [cursor=pointer]:
+                    - /url: "#/outil/2"
+                  - link "4. Comprendre" [ref=e421] [cursor=pointer]:
+                    - /url: "#/outil/4"
+              - cell [ref=e422]:
+                - link "1. Mesurer" [ref=e424] [cursor=pointer]:
+                  - /url: "#/outil/1"
+              - cell "docs/dataset/measurements-contestes.jsonl python3 -m tare.sweep sur la liste des divergences" [ref=e425]:
+                - code [ref=e426]: docs/dataset/measurements-contestes.jsonl
+                - generic [ref=e427]: python3 -m tare.sweep sur la liste des divergences
+            - row [ref=e428]:
+              - cell "le résumé des contestées le même résumé que pour le corpus, restreint aux pools contestés" [ref=e429]:
+                - generic [ref=e430]: le résumé des contestées
+                - generic [ref=e431]: le même résumé que pour le corpus, restreint aux pools contestés
+              - cell "5 ko 368 mesures resumees" [ref=e432]:
+                - text: 5 ko
+                - generic [ref=e433]: 368 mesures resumees
+              - cell [ref=e434]:
+                - link "4. Comprendre" [ref=e436] [cursor=pointer]:
+                  - /url: "#/outil/4"
+              - cell [ref=e437]:
+                - link "1. Mesurer" [ref=e439] [cursor=pointer]:
+                  - /url: "#/outil/1"
+              - cell "docs/dataset/summary-contestes.json python3 -m tare.cli summary" [ref=e440]:
+                - code [ref=e441]: docs/dataset/summary-contestes.json
+                - generic [ref=e442]: python3 -m tare.cli summary
+            - row [ref=e443]:
+              - cell "la liste des pools contestés les pools retenus pour la remesure, et pourquoi chacun l'a été" [ref=e444]:
+                - generic [ref=e445]: la liste des pools contestés
+                - generic [ref=e446]: les pools retenus pour la remesure, et pourquoi chacun l'a été
+              - cell "5 ko 23 pools" [ref=e447]:
+                - text: 5 ko
+                - generic [ref=e448]: 23 pools
+              - cell [ref=e449]:
+                - link "4. Comprendre" [ref=e451] [cursor=pointer]:
+                  - /url: "#/outil/4"
+              - cell "—" [ref=e452]
+              - cell "docs/dataset/pools-contestes.json engine/tare/source/, confronté au corpus" [ref=e453]:
+                - code [ref=e454]: docs/dataset/pools-contestes.json
+                - generic [ref=e455]: engine/tare/source/, confronté au corpus
+            - row [ref=e456]:
+              - 'cell "le recensement des pools tous les événements Initialize du PoolManager sur 200 000 blocs de Base : c''est l''univers de départ, celui dont tout le reste est un sous-ensemble" [ref=e457]':
+                - generic [ref=e458]: le recensement des pools
+                - generic [ref=e459]: "tous les événements Initialize du PoolManager sur 200 000 blocs de Base : c'est l'univers de départ, celui dont tout le reste est un sous-ensemble"
+              - cell "22,5 Mo 22 896 evenements Initialize" [ref=e460]:
+                - text: 22,5 Mo
+                - generic [ref=e461]: 22 896 evenements Initialize
+              - cell [ref=e462]:
+                - generic [ref=e463]:
+                  - link "4. Comprendre" [ref=e464] [cursor=pointer]:
+                    - /url: "#/outil/4"
+                  - link "5. Décider" [ref=e465] [cursor=pointer]:
+                    - /url: "#/outil/5"
+              - cell "—" [ref=e466]
+              - cell "docs/dataset/init-logs-200k.json python3 -m tare.collect 50614000 200000 docs/dataset/init-logs-200k.json, par tranches, avec ses échecs déclarés" [ref=e467]:
+                - code [ref=e468]: docs/dataset/init-logs-200k.json
+                - generic [ref=e469]: python3 -m tare.collect 50614000 200000 docs/dataset/init-logs-200k.json, par tranches, avec ses échecs déclarés
+            - row [ref=e470]:
+              - 'cell "le manifeste du recensement la couverture du balayage : les tranches demandées, celles qui ont échoué, et le nombre de hooks distincts trouvés — sans quoi « 1 559 hooks » ne serait pas vérifiable" [ref=e471]':
+                - generic [ref=e472]: le manifeste du recensement
+                - generic [ref=e473]: "la couverture du balayage : les tranches demandées, celles qui ont échoué, et le nombre de hooks distincts trouvés — sans quoi « 1 559 hooks » ne serait pas vérifiable"
+              - cell "646 o 1 559 hooks distincts" [ref=e474]:
+                - text: 646 o
+                - generic [ref=e475]: 1 559 hooks distincts
+              - cell [ref=e476]:
+                - link "4. Comprendre" [ref=e478] [cursor=pointer]:
+                  - /url: "#/outil/4"
+              - cell "—" [ref=e479]
+              - cell "docs/dataset/init-logs-200k.json.manifest.json python3 -m tare.collect — le manifeste est écrit avec le fichier" [ref=e480]:
+                - code [ref=e481]: docs/dataset/init-logs-200k.json.manifest.json
+                - generic [ref=e482]: python3 -m tare.collect — le manifeste est écrit avec le fichier
+            - row [ref=e483]:
+              - cell "les pools liquides les pools du recensement qui ont vraiment de la liquidité, avec leur PoolKey complète — mesurer un pool vide rendrait un chiffre propre et faux" [ref=e484]:
+                - generic [ref=e485]: les pools liquides
+                - generic [ref=e486]: les pools du recensement qui ont vraiment de la liquidité, avec leur PoolKey complète — mesurer un pool vide rendrait un chiffre propre et faux
+              - cell "1,8 Mo 7 817 pools" [ref=e487]:
+                - text: 1,8 Mo
+                - generic [ref=e488]: 7 817 pools
+              - cell [ref=e489]:
+                - generic [ref=e490]:
+                  - link "1. Mesurer" [ref=e491] [cursor=pointer]:
+                    - /url: "#/outil/1"
+                  - link "5. Décider" [ref=e492] [cursor=pointer]:
+                    - /url: "#/outil/5"
+              - cell "—" [ref=e493]
+              - cell "docs/dataset/pools-liquides-full.json python3 -m tare.rescan" [ref=e494]:
+                - code [ref=e495]: docs/dataset/pools-liquides-full.json
+                - generic [ref=e496]: python3 -m tare.rescan
+            - row [ref=e497]:
+              - 'cell "le scan de liquidité le décompte du tri : combien lisibles, combien liquides, combien à zéro, combien inconnus et pour quelle cause" [ref=e498]':
+                - generic [ref=e499]: le scan de liquidité
+                - generic [ref=e500]: "le décompte du tri : combien lisibles, combien liquides, combien à zéro, combien inconnus et pour quelle cause"
+              - cell "15 ko 7 817 pools liquides" [ref=e501]:
+                - text: 15 ko
+                - generic [ref=e502]: 7 817 pools liquides
+              - cell [ref=e503]:
+                - link "5. Décider" [ref=e505] [cursor=pointer]:
+                  - /url: "#/outil/5"
+              - cell "—" [ref=e506]
+              - cell "docs/dataset/pools-liquides-full.json.scan.json python3 -m tare.rescan" [ref=e507]:
+                - code [ref=e508]: docs/dataset/pools-liquides-full.json.scan.json
+                - generic [ref=e509]: python3 -m tare.rescan
+            - row [ref=e510]:
+              - 'cell "les déclarations des hooks le balayage des événements que les hooks émettent eux-mêmes : sur 1 559 hooks, 9 annoncent ce qu''ils prennent. C''est la mesure de ce que l''auto-déclaration vaut" [ref=e511]':
+                - generic [ref=e512]: les déclarations des hooks
+                - generic [ref=e513]: "le balayage des événements que les hooks émettent eux-mêmes : sur 1 559 hooks, 9 annoncent ce qu'ils prennent. C'est la mesure de ce que l'auto-déclaration vaut"
+              - cell "82 ko 9 hooks qui declarent" [ref=e514]:
+                - text: 82 ko
+                - generic [ref=e515]: 9 hooks qui declarent
+              - cell [ref=e516]:
+                - link "4. Comprendre" [ref=e518] [cursor=pointer]:
+                  - /url: "#/outil/4"
+              - cell "—" [ref=e519]
+              - cell "docs/dataset/declarations.json python3 -m tare.declare --scan --write" [ref=e520]:
+                - code [ref=e521]: docs/dataset/declarations.json
+                - generic [ref=e522]: python3 -m tare.declare --scan --write
+            - row [ref=e523]:
+              - 'cell "la couverture du registre ce que le registre officiel des hooks contient, confronté aux hooks qu''on a vus vraiment tourner : la part des absents est le chiffre du jour" [ref=e524]':
+                - generic [ref=e525]: la couverture du registre
+                - generic [ref=e526]: "ce que le registre officiel des hooks contient, confronté aux hooks qu'on a vus vraiment tourner : la part des absents est le chiffre du jour"
+              - cell "4 ko 78 hooks absents du registre" [ref=e527]:
+                - text: 4 ko
+                - generic [ref=e528]: 78 hooks absents du registre
+              - cell [ref=e529]:
+                - link "4. Comprendre" [ref=e531] [cursor=pointer]:
+                  - /url: "#/outil/4"
+              - cell "—" [ref=e532]
+              - cell "docs/dataset/registre-couverture.json python3 -m tare.registre" [ref=e533]:
+                - code [ref=e534]: docs/dataset/registre-couverture.json
+                - generic [ref=e535]: python3 -m tare.registre
+            - row [ref=e536]:
+              - cell "le registre épinglé la copie datée du registre officiel, figée dans le dépôt pour que le chiffre publié reste vérifiable même si la liste bouge demain" [ref=e537]:
+                - generic [ref=e538]: le registre épinglé
+                - generic [ref=e539]: la copie datée du registre officiel, figée dans le dépôt pour que le chiffre publié reste vérifiable même si la liste bouge demain
+              - cell "429 ko" [ref=e540]
+              - cell [ref=e541]:
+                - link "4. Comprendre" [ref=e543] [cursor=pointer]:
+                  - /url: "#/outil/4"
+              - cell "—" [ref=e544]
+              - cell "apps/web/public/data/hooklist.snapshot.json node apps/web/scripts/fetch-registry.mjs" [ref=e545]:
+                - code [ref=e546]: apps/web/public/data/hooklist.snapshot.json
+                - generic [ref=e547]: node apps/web/scripts/fetch-registry.mjs
+            - row [ref=e548]:
+              - 'cell "le registre du jour la même liste relue plus tard : l''écart avec la copie épinglée se voit" [ref=e549]':
+                - generic [ref=e550]: le registre du jour
+                - generic [ref=e551]: "la même liste relue plus tard : l'écart avec la copie épinglée se voit"
+              - cell "1,2 Mo" [ref=e552]
+              - cell [ref=e553]:
+                - link "4. Comprendre" [ref=e555] [cursor=pointer]:
+                  - /url: "#/outil/4"
+              - cell "—" [ref=e556]
+              - cell "docs/hooklist-live-20260905.json node apps/web/scripts/fetch-registry.mjs" [ref=e557]:
+                - code [ref=e558]: docs/hooklist-live-20260905.json
+                - generic [ref=e559]: node apps/web/scripts/fetch-registry.mjs
+            - row [ref=e560]:
+              - 'cell "le volume confronté à une source indépendante le volume et la TVL des pools du recensement, lus chez The Graph : une source qu''on ne contrôle pas, utilisée pour se contredire et non pour se confirmer" [ref=e561]':
+                - generic [ref=e562]: le volume confronté à une source indépendante
+                - generic [ref=e563]: "le volume et la TVL des pools du recensement, lus chez The Graph : une source qu'on ne contrôle pas, utilisée pour se contredire et non pour se confirmer"
+              - cell "1,1 Mo 7 817 pools confrontes" [ref=e564]:
+                - text: 1,1 Mo
+                - generic [ref=e565]: 7 817 pools confrontes
+              - cell [ref=e566]:
+                - link "4. Comprendre" [ref=e568] [cursor=pointer]:
+                  - /url: "#/outil/4"
+              - cell "—" [ref=e569]
+              - cell "docs/dataset/volume-base.json python3 -m tare.volume" [ref=e570]:
+                - code [ref=e571]: docs/dataset/volume-base.json
+                - generic [ref=e572]: python3 -m tare.volume
+            - row [ref=e573]:
+              - 'cell "les règlements x402 chaque paiement de mesure : le montant, le hash, et sa relecture sur le mirror node Hedera — un règlement n''est compté que si le mirror node le rend" [ref=e574]':
+                - generic [ref=e575]: les règlements x402
+                - generic [ref=e576]: "chaque paiement de mesure : le montant, le hash, et sa relecture sur le mirror node Hedera — un règlement n'est compté que si le mirror node le rend"
+              - cell "9 ko 5 reglements" [ref=e577]:
+                - text: 9 ko
+                - generic [ref=e578]: 5 reglements
+              - cell [ref=e579]:
+                - link "13. Prouver" [ref=e581] [cursor=pointer]:
+                  - /url: "#/outil/13"
+              - cell [ref=e582]:
+                - link "10. Payer à l'unité" [ref=e584] [cursor=pointer]:
+                  - /url: "#/outil/10"
+              - cell "docs/x402-settlements.jsonl apps/api/src/x402.ts, à chaque mesure payée" [ref=e585]:
+                - code [ref=e586]: docs/x402-settlements.jsonl
+                - generic [ref=e587]: apps/api/src/x402.ts, à chaque mesure payée
+            - row [ref=e588]:
+              - cell "l'identité de l'agent l'UAID HCS-14, les six champs canoniques dont il est le haché, et le message publié sur le topic Hedera — l'appelant peut recalculer l'identité avant de payer" [ref=e589]:
+                - generic [ref=e590]: l'identité de l'agent
+                - generic [ref=e591]: l'UAID HCS-14, les six champs canoniques dont il est le haché, et le message publié sur le topic Hedera — l'appelant peut recalculer l'identité avant de payer
+              - cell "957 o 5 competences declarees" [ref=e592]:
+                - text: 957 o
+                - generic [ref=e593]: 5 competences declarees
+              - cell [ref=e594]:
+                - generic [ref=e595]:
+                  - link "10. Payer à l'unité" [ref=e596] [cursor=pointer]:
+                    - /url: "#/outil/10"
+                  - link "13. Prouver" [ref=e597] [cursor=pointer]:
+                    - /url: "#/outil/13"
+              - cell [ref=e598]:
+                - link "13. Prouver" [ref=e600] [cursor=pointer]:
+                  - /url: "#/outil/13"
+              - cell "docs/dataset/agent-identity.json npx tsx apps/api/src/agent/cli.ts export, publié sur le topic HCS" [ref=e601]:
+                - code [ref=e602]: docs/dataset/agent-identity.json
+                - generic [ref=e603]: npx tsx apps/api/src/agent/cli.ts export, publié sur le topic HCS
+            - row [ref=e604]:
+              - 'cell "les attestations on-chain le prélèvement médian et maximum par hook, calculés sur le corpus, et l''état réel de leur écriture : calculées, écartées faute de mesure, ou vraiment écrites" [ref=e605]':
+                - generic [ref=e606]: les attestations on-chain
+                - generic [ref=e607]: "le prélèvement médian et maximum par hook, calculés sur le corpus, et l'état réel de leur écriture : calculées, écartées faute de mesure, ou vraiment écrites"
+              - cell "46 ko 16 attestations ecrites" [ref=e608]:
+                - text: 46 ko
+                - generic [ref=e609]: 16 attestations ecrites
+              - cell [ref=e610]:
+                - link "2. Consulter" [ref=e612] [cursor=pointer]:
+                  - /url: "#/outil/2"
+              - cell [ref=e613]:
+                - link "14. Attester" [ref=e615] [cursor=pointer]:
+                  - /url: "#/outil/14"
+              - cell "docs/dataset/attestations.json python3 -m tare.attest, à partir du corpus" [ref=e616]:
+                - code [ref=e617]: docs/dataset/attestations.json
+                - generic [ref=e618]: python3 -m tare.attest, à partir du corpus
+            - row [ref=e619]:
+              - cell "la chaîne complète les six étapes bout en bout — transaction réelle, verdict, recherche de porte, mesure payée, ancrage HCS, signature sur l'appareil — avec leur durée et leur état" [ref=e620]:
+                - generic [ref=e621]: la chaîne complète
+                - generic [ref=e622]: les six étapes bout en bout — transaction réelle, verdict, recherche de porte, mesure payée, ancrage HCS, signature sur l'appareil — avec leur durée et leur état
+              - cell "4 ko 6 etapes vertes" [ref=e623]:
+                - text: 4 ko
+                - generic [ref=e624]: 6 etapes vertes
+              - cell [ref=e625]:
+                - generic [ref=e626]:
+                  - link "8. Intercepter" [ref=e627] [cursor=pointer]:
+                    - /url: "#/outil/8"
+                  - link "13. Prouver" [ref=e628] [cursor=pointer]:
+                    - /url: "#/outil/13"
+              - cell "—" [ref=e629]
+              - cell "docs/dataset/chaine-complete.json apps/api/src/chaine/run.ts" [ref=e630]:
+                - code [ref=e631]: docs/dataset/chaine-complete.json
+                - generic [ref=e632]: apps/api/src/chaine/run.ts
+            - row [ref=e633]:
+              - 'cell "la concordance source ↔ mesure les 112 hooks confrontés à leur propre code source, quand il est public : là où le code annonce un taux, la mesure le confirme — et les 94 cas où elle ne le confirme pas sont publiés, jusqu''à 9 979 bps d''écart" [ref=e634]':
+                - generic [ref=e635]: la concordance source ↔ mesure
+                - generic [ref=e636]: "les 112 hooks confrontés à leur propre code source, quand il est public : là où le code annonce un taux, la mesure le confirme — et les 94 cas où elle ne le confirme pas sont publiés, jusqu'à 9 979 bps d'écart"
+              - cell "7,7 Mo 112 hooks confrontes a leur code source" [ref=e637]:
+                - text: 7,7 Mo
+                - generic [ref=e638]: 112 hooks confrontes a leur code source
+              - cell [ref=e639]:
+                - link "4. Comprendre" [ref=e641] [cursor=pointer]:
+                  - /url: "#/outil/4"
+              - cell "—" [ref=e642]
+              - cell "docs/hooks-source/analysis.json python3 -m tare.source.cli analyze" [ref=e643]:
+                - code [ref=e644]: docs/hooks-source/analysis.json
+                - generic [ref=e645]: python3 -m tare.source.cli analyze
+            - row [ref=e646]:
+              - 'cell "le cache du graphe de bytecode ce que la reconstruction du graphe garde de la chaîne : le graphe complet pèse 198 Mo et n''est pas livré, il se reconstruit — ce cache est ce qui permet de le refaire sans tout relire" [ref=e647]':
+                - generic [ref=e648]: le cache du graphe de bytecode
+                - generic [ref=e649]: "ce que la reconstruction du graphe garde de la chaîne : le graphe complet pèse 198 Mo et n'est pas livré, il se reconstruit — ce cache est ce qui permet de le refaire sans tout relire"
+              - cell "99 ko" [ref=e650]
+              - cell [ref=e651]:
+                - link "4. Comprendre" [ref=e653] [cursor=pointer]:
+                  - /url: "#/outil/4"
+              - cell "—" [ref=e654]
+              - cell "engine/tare/graph/data/chain-cache.json python3 -m tare.graph.cli build" [ref=e655]:
+                - code [ref=e656]: engine/tare/graph/data/chain-cache.json
+                - generic [ref=e657]: python3 -m tare.graph.cli build
+            - row [ref=e658]:
+              - cell "les écrans de l'appareil le rapport encodé en EIP-712 tel qu'il s'affiche, écran par écran, sur le Ledger — on ne signe pas un haché opaque, on lit ce qu'on signe" [ref=e659]:
+                - generic [ref=e660]: les écrans de l'appareil
+                - generic [ref=e661]: le rapport encodé en EIP-712 tel qu'il s'affiche, écran par écran, sur le Ledger — on ne signe pas un haché opaque, on lit ce qu'on signe
+              - cell "3 ko 9 ecrans rendus" [ref=e662]:
+                - text: 3 ko
+                - generic [ref=e663]: 9 ecrans rendus
+              - cell [ref=e664]:
+                - link "9. Approuver" [ref=e666] [cursor=pointer]:
+                  - /url: "#/outil/9"
+              - cell [ref=e667]:
+                - link "9. Approuver" [ref=e669] [cursor=pointer]:
+                  - /url: "#/outil/9"
+              - cell "docs/ledger/guard-speculos.json packages/keyring, contre un Speculos" [ref=e670]:
+                - code [ref=e671]: docs/ledger/guard-speculos.json
+                - generic [ref=e672]: packages/keyring, contre un Speculos

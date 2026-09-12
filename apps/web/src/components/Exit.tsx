@@ -72,7 +72,7 @@ function Barre({ test }: { test: TestSortie }) {
         )}
         <div style={{ flex: 1, background: teinte }} />
       </div>
-      <div className="flex justify-between t-data-xs" style={{ color: 'var(--ink-3)' }}>
+      <div className="flex justify-between t-data-xs" style={{ color: 'var(--ink-2)' }}>
         <span>ce qui te revient</span>
         {max > min && <span>zone incertaine</span>}
         <span>ce qui reste au pool · {coutBps.toFixed(0)} bps</span>
@@ -114,20 +114,19 @@ export function ExitPanel() {
   return (
     <Panel
       index="00"
-      title="tu mets 100 €, tu recuperes combien ?"
-      right={
-        <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
-          calcul dans le navigateur · aucune requete · bloc 50 614 000
-        </span>
-      }
+      title="Le test de sortie"
+      meta={['calcul dans le navigateur', 'aucune requête', 'bloc 50 614 000']}
     >
       <div className="flex flex-col gap-[14px] p-[16px]">
         <div className="flex flex-wrap items-center gap-[10px]">
           <input
             value={saisie}
             onChange={(e) => setSaisie(e.target.value)}
-            placeholder="colle l'adresse d'un jeton Base"
+            placeholder="0x4200… l'adresse d'un jeton Base"
             aria-label="adresse du jeton"
+            name="jeton-sortie"
+            autoComplete="off"
+            translate="no"
             spellCheck={false}
             className="t-data-sm"
             style={{
@@ -138,7 +137,7 @@ export function ExitPanel() {
               color: 'var(--ink)',
             }}
           />
-          <label className="t-data-xs flex items-center gap-[6px]" style={{ color: 'var(--ink-3)' }}>
+          <label className="t-data-xs flex items-center gap-[6px]" style={{ color: 'var(--ink-2)' }}>
             tu mets
             <input
               type="number"
@@ -189,7 +188,7 @@ export function ExitPanel() {
             <p className="t-data-sm" style={{ color: 'var(--ink)' }}>
               Pas de reponse pour ce jeton.
             </p>
-            <p className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+            <p className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
               {resultat.raison}
             </p>
           </div>
@@ -201,7 +200,7 @@ export function ExitPanel() {
               Tu mets {montant} €, {phraseSortie(resultat.test, montant)}.
             </p>
             <Barre test={resultat.test} />
-            <div className="flex flex-wrap gap-[16px] t-data-xs" style={{ color: 'var(--ink-3)' }}>
+            <div className="flex flex-wrap gap-[16px] t-data-xs" style={{ color: 'var(--ink-2)' }}>
               <span>
                 achat {resultat.test.pire.achat.totalBps.toFixed(2)} bps
               </span>
@@ -215,7 +214,7 @@ export function ExitPanel() {
               <Copy text={resultat.test.hook} label="copier le hook" />
             </div>
             {FA.sens_unique && (
-              <p className="t-data-xs" style={{ color: 'var(--ink-3)', margin: 0, maxWidth: '78ch' }}>
+              <p className="t-data-xs" style={{ color: 'var(--ink-2)', margin: 0, maxWidth: '78ch' }}>
                 Les <strong>deux premiers</strong> exemples ci-dessus sont des pools a sens unique : on y
                 entre pour presque rien et on n'en ressort pas. Sur les{' '}
                 <strong>{FA.sens_unique.pools_deux_sens.toLocaleString('fr-FR')}</strong> pools
@@ -227,7 +226,7 @@ export function ExitPanel() {
                 frontiere naturelle : le deplacer change la liste.
               </p>
             )}
-            <p className="t-data-xs" style={{ color: 'var(--ink-4)', margin: 0, maxWidth: '70ch' }}>
+            <p className="t-data-xs" style={{ color: 'var(--ink-2)', margin: 0, maxWidth: '70ch' }}>
               Ce n'est pas un aller-retour execute : on compose les deux prelevements mesures, et
               l'impact de prix du premier echange sur le second est ignore. La taille a laquelle tu
               revendrais est inconnue, donc le cout de revente est borne — c'est pourquoi la reponse

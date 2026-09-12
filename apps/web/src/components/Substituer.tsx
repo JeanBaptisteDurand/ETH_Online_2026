@@ -27,7 +27,7 @@
  * promesse verifiable au lieu d'etre a croire.
  */
 import { useMemo, useState } from 'react'
-import { Panel, Copy, NonLu, Replay, Chip } from './Prim'
+import { Panel, Copy, NonLu, Replay, Chip, Absence } from './Prim'
 import { dataset } from '../lib/dataset'
 import { Refus, ecouterPortefeuilles, type Fournisseur, type PortefeuilleAnnonce } from '../compte/api'
 import {
@@ -81,7 +81,7 @@ function couplesInteressants(limite = 8) {
 
 const L = ({ k, v }: { k: string; v: React.ReactNode }) => (
   <div className="flex items-baseline gap-[10px] px-[16px] py-[6px]" style={{ borderTop: '1px solid var(--line)' }}>
-    <span className="t-label" style={{ color: 'var(--ink-4)', minWidth: 138 }}>{k}</span>
+    <span className="t-label" style={{ color: 'var(--ink-2)', minWidth: 138 }}>{k}</span>
     <span className="t-data-xs" style={{ color: 'var(--ink-2)', wordBreak: 'break-all' }}>{v}</span>
   </div>
 )
@@ -222,9 +222,9 @@ export function SubstituerPanel() {
   return (
     <Panel
       index="16"
-      title="et ailleurs ? — la porte de remplacement"
+      title="Et ailleurs ? La porte de remplacement"
       right={
-        <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+        <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
           {r ? `${r.appels_rpc} appel(s) RPC` : 'la comparaison ne coute aucune requete'}
         </span>
       }
@@ -283,7 +283,11 @@ export function SubstituerPanel() {
             value={pool}
             onChange={(ev) => setPool(ev.target.value.trim())}
             spellCheck={false}
-            className="t-data-xs"
+            aria-label="identifiant du pool actuel"
+            name="pool"
+            autoComplete="off"
+            translate="no"
+            className="t-data-sm"
             style={{
               width: '100%',
               maxWidth: 560,
@@ -322,7 +326,11 @@ export function SubstituerPanel() {
               value={taille}
               onChange={(ev) => setTaille(ev.target.value.replace(/[^0-9]/g, ''))}
               spellCheck={false}
-              className="t-data-xs"
+              aria-label="taille dépensée, en unités du jeton d'entrée"
+              name="taille"
+              autoComplete="off"
+              inputMode="numeric"
+              className="t-data-sm"
               style={{
                 // `width: 230` fixe debordait a 400 px : une largeur fixe dans une ligne qui
                 // se replie n'est pas une largeur, c'est un plancher.
@@ -335,7 +343,7 @@ export function SubstituerPanel() {
                 color: 'var(--ink)',
                 fontFamily: 'var(--mono)',
               }}
-              placeholder="taille en unites du jeton d'entree"
+              placeholder="1000000000000000000… en unités du jeton d'entrée"
             />
           </span>
         }
@@ -352,21 +360,19 @@ export function SubstituerPanel() {
         >
           comparer et construire
         </Bouton>
-        <span className="t-data-xs" style={{ color: 'var(--ink-4)' }}>
+        <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
           {occupe ?? "« comparer » ne touche a aucun noeud. « construire » en lit un, et le dit."}
         </span>
       </div>
 
       {refus && (
-        <div className="px-[16px] py-[11px]" style={{ borderTop: '1px solid var(--line)' }}>
-          <div className="t-label" style={{ color: refus.genre === 'api_absente' ? 'var(--ink-3)' : 'var(--m-3)' }}>
-            {refus.genre.replace(/_/g, ' ')}
-          </div>
-          <div className="t-data-xs mt-[5px]" style={{ color: 'var(--ink-2)', maxWidth: '76ch', lineHeight: 1.55 }}>
-            {refus.message}
-          </div>
-          {refus.genre === 'api_absente' && <Replay cmd="cd apps/api && npm start" />}
-        </div>
+        <Absence
+          quoi={refus.genre === 'api_absente' ? 'l’API de substitution' : refus.genre.replace(/_/g, ' ')}
+          etat={refus.genre === 'api_absente' ? undefined : 'refus'}
+          panne={refus.genre !== 'api_absente'}
+          raison={refus.message}
+          cmd={refus.genre === 'api_absente' ? 'cd apps/api && npm start' : undefined}
+        />
       )}
 
       {alt && aff && (
@@ -406,7 +412,7 @@ export function SubstituerPanel() {
                 v={
                   <>
                     {alt.economie_bps === null ? <NonLu quoi="ecart" /> : `${alt.economie_bps.toFixed(4)} bps`}
-                    <span style={{ color: 'var(--ink-4)' }}> · seuil de publication {alt.seuil_bps} bps</span>
+                    <span style={{ color: 'var(--ink-2)' }}> · seuil de publication {alt.seuil_bps} bps</span>
                   </>
                 }
               />
@@ -434,9 +440,9 @@ export function SubstituerPanel() {
           {env && (
             <>
               <div className="px-[16px] pt-[13px] pb-[8px]" style={{ borderTop: '1px solid var(--line-strong)' }}>
-                <div className="t-label" style={{ color: env.etat === 'PRET' ? 'var(--ink)' : 'var(--m-5)' }}>
+                <div className="t-valeur" style={{ color: env.etat === 'PRET' ? 'var(--ink)' : 'var(--ink)' }}>
                   {env.etat}
-                  {suite && <span style={{ color: 'var(--ink-3)' }}> — {suite}</span>}
+                  {suite && <span style={{ color: 'var(--ink-2)' }}> — {suite}</span>}
                 </div>
                 <div className="t-data-xs mt-[6px]" style={{ color: 'var(--ink-2)', maxWidth: '78ch', lineHeight: 1.55 }}>
                   {env.raison}
@@ -449,7 +455,7 @@ export function SubstituerPanel() {
                   v={
                     <>
                       {env.monnaieEntree}
-                      <span style={{ color: 'var(--ink-4)' }}>
+                      <span style={{ color: 'var(--ink-2)' }}>
                         {env.native
                           ? " · ETH natif : rien a autoriser, le montant part dans `value`"
                           : ' · ERC-20 : Permit2 est necessaire'}
@@ -464,7 +470,7 @@ export function SubstituerPanel() {
                   v={
                     <>
                       {env.amountOutMinimum}
-                      <span style={{ color: 'var(--ink-4)' }}>
+                      <span style={{ color: 'var(--ink-2)' }}>
                         {' '}· cotation vivante {env.cotation} moins {env.toleranceBps} bps
                       </span>
                     </>
@@ -477,7 +483,7 @@ export function SubstituerPanel() {
                   v={
                     <>
                       {new Date(Number(env.deadline) * 1000).toISOString().slice(0, 19).replace('T', ' ')} UTC
-                      <span style={{ color: 'var(--ink-4)' }}> · pas l'an 2106</span>
+                      <span style={{ color: 'var(--ink-2)' }}> · pas l'an 2106</span>
                     </>
                   }
                 />
@@ -488,7 +494,7 @@ export function SubstituerPanel() {
                   v={
                     <>
                       {env.commandes}
-                      <span style={{ color: 'var(--ink-4)' }}>
+                      <span style={{ color: 'var(--ink-2)' }}>
                         {env.commandes === '0x0a10' ? ' · le permit AVANT le swap' : ' · swap seul'}
                       </span>
                     </>
@@ -498,7 +504,7 @@ export function SubstituerPanel() {
 
               {r.lectures.length > 0 && (
                 <div className="px-[16px] py-[9px]" style={{ borderTop: '1px solid var(--line)' }}>
-                  <div className="t-label mb-[6px]" style={{ color: 'var(--ink-4)' }}>
+                  <div className="t-label mb-[6px]" style={{ color: 'var(--ink-2)' }}>
                     les {r.appels_rpc} lecture(s) on-chain, chacune rejouable
                   </div>
                   {r.lectures.map((l) => (
@@ -539,13 +545,13 @@ export function SubstituerPanel() {
                 {env.transaction && (
                   <>
                     <Copy text={env.transaction.data} label="copier le calldata" />
-                    <span className="t-data-xs" style={{ color: 'var(--ink-4)' }}>
+                    <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                       vers {env.transaction.to.slice(0, 12)}… · value {env.transaction.value}
                     </span>
                   </>
                 )}
                 {!fournisseur && (
-                  <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+                  <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                     aucun portefeuille annonce : le calldata reste copiable, et verifiable
                   </span>
                 )}
@@ -557,7 +563,7 @@ export function SubstituerPanel() {
                   <div className="t-data-xs mt-[5px]" style={{ color: 'var(--ink-2)', wordBreak: 'break-all' }}>
                     {envoye}
                   </div>
-                  <div className="t-data-xs mt-[6px]" style={{ color: 'var(--ink-3)', maxWidth: '76ch' }}>
+                  <div className="t-data-xs mt-[6px]" style={{ color: 'var(--ink-2)', maxWidth: '76ch' }}>
                     Envoyee n'est pas incluse. Ce panneau ne suivra pas son sort : il n'a pas de
                     quoi le faire honnetement sans lire la chaine en boucle, et une roue qui
                     tourne indefiniment serait un silence deguise.
@@ -568,7 +574,7 @@ export function SubstituerPanel() {
           )}
 
           {r.note && (
-            <div className="px-[16px] py-[9px] t-data-xs" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-4)' }}>
+            <div className="px-[16px] py-[9px] t-data-xs" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-2)' }}>
               {r.note}
             </div>
           )}

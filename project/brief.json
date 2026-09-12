@@ -1,0 +1,934 @@
+{
+  "version": 1,
+  "slug": "eth-online-2026",
+  "name": "TARE",
+  "mode": "existing",
+  "createdAt": "2026-09-12T10:25:37.651Z",
+  "project": {
+    "oneLiner": "TARE mesure ce qu'un hook Uniswap v4 prélève vraiment sur un swap, en remplaçant son bytecode par 89 octets inertes sur un fork épinglé et en cotant le même swap deux fois.",
+    "problem": "Personne ne publie combien un hook Uniswap v4 prend. Le registre officiel porte 27 champs dont 19 booléens, et son schéma interdit d'ajouter une quantité. Sur 1 559 hooks vus en 200 000 blocs Base, 9 déclarent quoi que ce soit. Comparer est impossible par construction : la clé d'un pool v4 contient l'adresse du hook, donc « le même pool sans son hook » n'existe pas.",
+    "solution": "On ne change pas le pool, on change le code du hook. Sur un fork épinglé au bloc 50 614 000, anvil_setCode remplace le bytecode du hook par un talon inerte de 89 octets. Le poolId, la liquidité, slot0 et les réserves sont identiques à l'octet près. On cote le même swap deux fois, et l'écart est le péage. 125 072 mesures sur 7 817 pools et 112 hooks, chaque ligne rejouable en une commande.",
+    "angle": "Le front n'est pas une vitrine du produit, c'est la carte du système. La première chose qu'on voit est l'orchestrateur et les quatorze outils qu'il utilise, reliés aux vingt-sept jeux de données qui les alimentent. On clique un nœud pour entrer dans un outil. Juste sous la carte, une seule section fait à la fois l'usage et la preuve : on colle une adresse de jeton, et on lit les deux cotations du même swap avec l'écart entre elles.",
+    "goals": [
+      {
+        "goal": "Faire comprendre à un juge, en trente secondes et sans lire, l'ampleur du système et où se trouve la trouvaille",
+        "metric": "la carte tient dans le premier écran et l'outil 1 s'atteint en un clic depuis elle"
+      },
+      {
+        "goal": "Remonter la note de présentation du jury interne, aujourd'hui 5,5 sur 10, la plus basse des sept lentilles",
+        "metric": "la présentation cesse d'être le critère le plus bas du projet"
+      },
+      {
+        "goal": "Donner une forme à la page de l'outil 1 (Mesurer) qui montre l'idée du projet en une image",
+        "metric": "les deux cotations appariées et leur écart sont lisibles sans légende"
+      },
+      {
+        "goal": "Rendre la famille action repérable sans lire, parce que c'est la seule qui touche à l'argent de quelqu'un",
+        "metric": "l'orange se distingue du bleu et du jaune en vision périphérique, dans les deux thèmes"
+      },
+      {
+        "goal": "Tenir les six règles d'honnêteté dans chaque écran redessiné",
+        "metric": "aucun zéro ni aucun blanc là où la lecture a échoué, NonLu partout, et la suite de tests reste verte"
+      }
+    ],
+    "nonGoals": [
+      "Ajouter une fonctionnalité au produit : il est figé, mesuré et testé, et la question « et si on ajoutait » n'est plus ouverte",
+      "Toucher à engine/, contracts/, apps/api/, packages/, apps/web/src/lib/ et aux fichiers générés facts.json et dataset.json",
+      "Écrire un nombre à la main dans un composant : tout vient de facts.json, dataset.ts ou donnees.ts, et un test fait tomber la suite sinon",
+      "Rouvrir la charte graphique de l'équipier : la police, la rampe de couleur et le rayon zéro sont décidés",
+      "Traduire l'instrument en anglais : le français est une décision de JB, pas un oubli",
+      "Remplir les refus motivés : « aucune porte mesurée à cette taille » est la réponse, pas un trou",
+      "Produire la vidéo, le speech et le texte de soumission : l'équipier les tient"
+    ]
+  },
+  "audience": {
+    "primary": {
+      "who": "Le jury ETHOnline 2026, qui ouvre le dépôt public et la page de démonstration.",
+      "context": "Il regarde vite, il compare à vingt-six autres finalistes, et il vérifie ce qu'on avance en ouvrant le dépôt. La démonstration vivante est le seul marqueur unanime chez les finalistes.",
+      "painPoints": [
+        "Il voit passer des tableaux de bord qui décrivent au lieu de montrer",
+        "Il n'a pas trente minutes pour comprendre pourquoi une méthode est nouvelle",
+        "Il ouvre le dépôt et vérifie un chiffre du pitch : un seul chiffre faux coûte la crédibilité de tous les autres",
+        "Il ne peut pas juger l'ampleur d'un travail dont il ne voit qu'une page"
+      ]
+    },
+    "secondary": [
+      {
+        "who": "Celui qui s'apprête à échanger un jeton sur Base",
+        "context": "Il veut savoir ce qu'il récupère avant de signer, sans wallet et sans compte",
+        "painPoints": [
+          "Aucun agrégateur ne lui dit ce que le hook prend",
+          "Il découvre le prélèvement après coup, sur le montant reçu"
+        ]
+      },
+      {
+        "who": "Un agent logiciel, via le serveur MCP ou le paiement x402",
+        "context": "Il consomme les mesures sans compte, en payant à l'unité",
+        "painPoints": [
+          "Il ne peut pas s'inscrire, il ne peut que payer"
+        ]
+      }
+    ],
+    "evaluators": "Le jury ETHOnline 2026 et les tracks sponsors (Uniswap, Hedera, Ledger, The Graph). Un audit interne à sept lentilles a rendu 6,9 sur 10 de moyenne, avec la présentation à 5,5, la note la plus basse."
+  },
+  "demo": {
+    "context": "Soumission asynchrone ETHOnline 2026, dépôt public github.com/JeanBaptisteDurand/ETH_Online_2026, site déployé par GitHub Pages depuis main. L'équipier tourne la vidéo et écrit le texte de soumission.",
+    "date": "2026-09-13T12:00:00-04:00",
+    "mustSeeIn10s": [
+      "La carte : un orchestrateur au centre, quatorze outils rangés en trois familles colorées, vingt-sept jeux de données en amont",
+      "Que la couleur porte une information et non une décoration : bleu il va chercher, jaune il interprète, orange il change quelque chose",
+      "Que chaque nœud se clique et mène à un outil réel, avec sa sortie réelle",
+      "Les deux cotations du même swap et l'écart entre elles"
+    ],
+    "path": [
+      "Ouvrir #/ : la carte occupe le premier écran, l'orchestrateur au centre, les quatorze outils autour, les vingt-sept jeux de données en amont",
+      "Descendre d'une section : coller une adresse de jeton, lire par quel pool l'acheter, et voir les deux cotations du même swap avec l'écart — l'usage produit la preuve",
+      "Cliquer le nœud de l'outil 1 (Mesurer) : la page montre ce qui entre, les étapes de l'exécution, et les cotations appariées du fork avec leur commande de rejeu",
+      "Revenir à la carte et cliquer un nœud orange, l'outil 7 (Substituer) : les dix états de la substitution, le bouton actif seulement sur PRÊT, les neuf autres visibles et grisés avec leur raison",
+      "Cliquer un nœud d'une donnée : où elle est produite, par quelle commande, et quels outils la lisent",
+      "Finir sur #/instrument : les dix-sept panneaux d'analyse, le corpus brut derrière tout ce qui précède"
+    ]
+  },
+  "content": {
+    "pages": [
+      {
+        "id": "accueil",
+        "title": "#/ — la carte, puis l'opération",
+        "purpose": "Montrer le système en une image, puis laisser essayer tout de suite. La carte dit l'ampleur, la section suivante dit la vérité d'un cas réel.",
+        "sections": [
+          {
+            "id": "carte",
+            "purpose": "La première chose qu'on voit : l'orchestrateur et les quatorze outils qu'il utilise, en nœuds reliés, les vingt-sept jeux de données en amont. Chaque nœud se clique. La couleur de famille porte l'information.",
+            "data": [
+              "outils-14",
+              "familles-3",
+              "donnees-27",
+              "chaine-complete"
+            ]
+          },
+          {
+            "id": "operation-preuve",
+            "purpose": "Une seule section pour l'usage et la preuve : on colle une adresse de jeton, on lit par quel pool l'acheter, et on voit les deux cotations du même swap avec l'écart. Quand il n'y a qu'une porte, elle le dit — c'est le cas 97,2 % du temps.",
+            "data": [
+              "portes-du-jeton",
+              "cotations-appariees",
+              "ecart-bps",
+              "sur-100",
+              "porte-unique"
+            ]
+          },
+          {
+            "id": "acces",
+            "purpose": "Les cinq accès au produit et pourquoi chacun existe : le site, l'extension, le MCP, x402 en direct sur Hedera, le compte.",
+            "data": [
+              "acces-5"
+            ]
+          },
+          {
+            "id": "donnees",
+            "purpose": "Quelle donnée sert quel outil : les vingt-sept jeux du dépôt, leur volume statté au build, et les outils qui les lisent ou les écrivent.",
+            "data": [
+              "donnees-27",
+              "volumes-inventaire"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "outil",
+        "title": "#/outil/1 … #/outil/14 — une page par outil",
+        "purpose": "Montrer ce qu'un outil produit, pas ce qu'il est. Trois temps, dont les libellés changent selon la famille, et une sortie réelle à la fin.",
+        "sections": [
+          {
+            "id": "question",
+            "purpose": "La question dans les mots de quelqu'un qui l'a, pas la signature d'une fonction.",
+            "data": [
+              "outil-question",
+              "outil-famille",
+              "outil-etat"
+            ]
+          },
+          {
+            "id": "entree",
+            "purpose": "Ce qui entre : d'abord ce qui n'est pas un fichier (une adresse collée, un calldata intercepté, un état lu sur la chaîne), puis les fichiers avec leur volume et la commande qui les a produits, puis un échantillon réel de cinq lignes avec le compte total affiché.",
+            "data": [
+              "outil-entree",
+              "jeux-lus",
+              "echantillon-corpus"
+            ]
+          },
+          {
+            "id": "execution",
+            "purpose": "Les trois à cinq étapes numérotées dans l'ordre où elles arrivent, et ce que ça coûte. Pour la famille action, la dernière étape nomme ce qui change.",
+            "data": [
+              "outil-execute",
+              "outil-cout"
+            ]
+          },
+          {
+            "id": "sortie",
+            "purpose": "Les champs rendus par leur vrai nom, puis les jeux que l'outil écrit, puis la sortie réelle : cotations appariées, règlements relus, écrans du Ledger, dix états de Permit2.",
+            "data": [
+              "outil-sortie",
+              "jeux-ecrits",
+              "sortie-reelle"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "instrument",
+        "title": "#/instrument — les dix-sept panneaux d'analyse",
+        "purpose": "Le corpus brut et son analyse, déjà construits. Le fond de preuve derrière tout ce que la carte annonce.",
+        "sections": [
+          {
+            "id": "test-de-sortie",
+            "purpose": "Panneau 00 : tu mets 100 €, il te reste combien si tu ressors.",
+            "data": [
+              "sur-100"
+            ]
+          },
+          {
+            "id": "verdict",
+            "purpose": "Panneau 01 : les quatre chiffres du verdict et la méthode en un paragraphe.",
+            "data": [
+              "totaux-corpus",
+              "couverture-registre"
+            ]
+          },
+          {
+            "id": "table",
+            "purpose": "Panneau 02 : ce que le registre dit contre ce que la mesure dit, côte à côte, trié par mesure décroissante.",
+            "data": [
+              "registre-vs-mesure"
+            ]
+          },
+          {
+            "id": "fiche-hook",
+            "purpose": "Panneaux 05 à 07 : la fiche d'un hook, son profil taille vers bps, ses lignes brutes et leur commande de rejeu.",
+            "data": [
+              "bps-max",
+              "profil-taille",
+              "lignes-brutes",
+              "commande-rejeu"
+            ]
+          },
+          {
+            "id": "panneaux-machine",
+            "purpose": "Panneaux 09 à 14 : le péage x402, l'identité d'agent HCS-14, les attestations, The Graph, la porte A4, l'appareil.",
+            "data": [
+              "reglements-x402",
+              "identite-agent",
+              "attestations",
+              "porte-a4"
+            ]
+          }
+        ]
+      }
+    ],
+    "entities": [
+      {
+        "id": "outil",
+        "name": "Outil",
+        "fields": [
+          "n",
+          "nom",
+          "famille",
+          "question",
+          "rend",
+          "entree",
+          "execute",
+          "sortie",
+          "code",
+          "routes",
+          "panneaux",
+          "acces",
+          "cout",
+          "etat"
+        ]
+      },
+      {
+        "id": "jeu-de-donnees",
+        "name": "Jeu de données",
+        "fields": [
+          "id",
+          "nom",
+          "chemin",
+          "contient",
+          "commande",
+          "volume",
+          "lu_par",
+          "ecrit_par"
+        ]
+      },
+      {
+        "id": "mesure",
+        "name": "Mesure",
+        "fields": [
+          "pool_id",
+          "hook",
+          "currency0",
+          "currency1",
+          "direction",
+          "amount_in",
+          "out_with",
+          "out_without",
+          "bps",
+          "label",
+          "block",
+          "replay"
+        ]
+      },
+      {
+        "id": "hook",
+        "name": "Hook",
+        "fields": [
+          "address",
+          "nom_registre",
+          "permissions_14",
+          "vanillaSwap",
+          "swapAccess",
+          "auditUrl",
+          "bps_min",
+          "bps_median",
+          "bps_max",
+          "pools",
+          "presence_registre"
+        ]
+      },
+      {
+        "id": "porte",
+        "name": "Porte (pool candidat)",
+        "fields": [
+          "poolId",
+          "hook",
+          "totalBps",
+          "lpFee",
+          "taille",
+          "sens",
+          "label"
+        ]
+      },
+      {
+        "id": "famille",
+        "name": "Famille d'outils",
+        "fields": [
+          "nom",
+          "quoi",
+          "couleur"
+        ]
+      },
+      {
+        "id": "etape-chaine",
+        "name": "Étape de la chaîne",
+        "fields": [
+          "n",
+          "quoi",
+          "etat",
+          "detail",
+          "faits",
+          "a_ms",
+          "pour_la_faire_tourner"
+        ]
+      }
+    ],
+    "data": [
+      {
+        "id": "outils-14",
+        "label": "Les quatorze outils, leur famille, leur question et leur état",
+        "source": "apps/web/src/lib/outils.ts",
+        "type": "liste typée",
+        "importance": 1,
+        "freshness": "figée, testée par src/lib/outils.test.ts"
+      },
+      {
+        "id": "familles-3",
+        "label": "Les trois familles et leur couleur : collecte bleu --focus, analyse jaune --m-6, action orange --m-4",
+        "source": "apps/web/src/lib/outils.ts → FAMILLES",
+        "type": "table de correspondance",
+        "importance": 1,
+        "freshness": "figée"
+      },
+      {
+        "id": "donnees-27",
+        "label": "Les vingt-sept jeux de données, ce qu'ils contiennent, la commande qui les a produits, et les outils qui les lisent ou les écrivent",
+        "source": "apps/web/src/lib/donnees.ts",
+        "type": "recensement typé",
+        "importance": 1,
+        "freshness": "un test refuse qu'un fichier suivi par git sous docs/dataset/ ou packages/guard/data/ manque à la liste"
+      },
+      {
+        "id": "cotations-appariees",
+        "label": "Les deux cotations du même swap : out_with (avec le hook) et out_without (avec le talon de 89 octets)",
+        "source": "docs/dataset/measurements.jsonl → src/data/dataset.json, champs out_with et out_without",
+        "type": "paire de nombres en wei",
+        "importance": 1,
+        "freshness": "épinglées au bloc 50 614 000 sur Base"
+      },
+      {
+        "id": "ecart-bps",
+        "label": "L'écart entre les deux cotations, en points de base — le péage",
+        "source": "calcul du moteur, champ bps du corpus",
+        "type": "nombre décimal",
+        "importance": 1,
+        "freshness": "épinglé au bloc de la mesure"
+      },
+      {
+        "id": "chaine-complete",
+        "label": "La chaîne complète : six étapes sous une seule horloge, 6/6 en 13 680 ms",
+        "source": "apps/api/src/chaine/run.ts → docs/dataset/chaine-complete.json",
+        "type": "artefact d'exécution horodaté",
+        "importance": 1,
+        "freshness": "exécutée le 2026-09-10, chaque étape porte son a_ms et sa raison si elle n'a pas tourné"
+      },
+      {
+        "id": "sur-100",
+        "label": "Tu mets 100 €, il te reste X (entre X et Y) € — la barre revient / incertain / reste au pool",
+        "source": "calcul local apps/web/src/lib/exit.ts sur le corpus embarqué",
+        "type": "montant et fourchette",
+        "importance": 1,
+        "freshness": "calculée dans le navigateur, aucune requête"
+      },
+      {
+        "id": "portes-du-jeton",
+        "label": "Par quel pool acheter ce jeton, et ce que chaque porte coûte",
+        "source": "calcul local apps/web/src/lib/portes.ts sur le corpus embarqué",
+        "type": "classement de portes",
+        "importance": 1,
+        "freshness": "épinglé au bloc du corpus"
+      },
+      {
+        "id": "porte-unique",
+        "label": "Il n'y a qu'une porte — la réponse dans 97,2 % des cas, et 99,71 % des lignes",
+        "source": "packages/guard/data/chiffres-alternative.json et le calcul local de portes.ts",
+        "type": "état nommé PORTE_UNIQUE",
+        "importance": 1,
+        "freshness": "recalculé au build"
+      },
+      {
+        "id": "totaux-corpus",
+        "label": "125 072 mesures, 7 817 pools, 112 hooks, 8 tailles, les deux sens — et la répartition MESURE / NON_COTABLE / NON_MESURABLE",
+        "source": "src/data/dataset.json → totals, produit par npm run data",
+        "type": "compteurs",
+        "importance": 1,
+        "freshness": "régénérés à chaque build, jamais tapés à la main"
+      },
+      {
+        "id": "registre-vs-mesure",
+        "label": "Ce que le registre dit (ABSENT, SRC, DYN, UPG, VAN, CSD, swapAccess) contre ce que la mesure dit (bps max, min, obs, bloc, taille, sens)",
+        "source": "public/data/hooklist.snapshot.json pour le registre, le corpus pour la mesure",
+        "type": "deux colonnes confrontées",
+        "importance": 1,
+        "freshness": "registre épinglé à un commit daté, affiché à côté du tirage du jour"
+      },
+      {
+        "id": "pools-sens-unique",
+        "label": "Les six pools où l'on entre à 0,00 bps et d'où l'on ne sort pas, à 9 999 bps",
+        "source": "docs/dataset/one-way.json",
+        "type": "liste de six adresses",
+        "importance": 1,
+        "freshness": "aucun n'a de code source public : aucune lecture de code ne pouvait les trouver"
+      },
+      {
+        "id": "concordance-source",
+        "label": "4 801 concordances entre le code publié et la mesure, écart maximum 0,0005 bps — et 94 divergences jusqu'à 9 979 bps",
+        "source": "docs/hooks-source/analysis.json",
+        "type": "compteurs et écarts",
+        "importance": 1,
+        "freshness": "recalculée au build"
+      },
+      {
+        "id": "etats-permit2",
+        "label": "Les dix états de la substitution, dont un seul, PRÊT, active le bouton",
+        "source": "apps/web/src/compte/substitution.ts et packages/guard/src/alternative.ts",
+        "type": "machine à états nommés",
+        "importance": 1,
+        "freshness": "les neuf autres restent visibles et grisés avec leur raison"
+      },
+      {
+        "id": "commande-rejeu",
+        "label": "La commande qui rejoue une ligne et rend le même nombre au wei près",
+        "source": "champ replay de chaque ligne du corpus",
+        "type": "commande shell copiable",
+        "importance": 1,
+        "freshness": "portée par chaque ligne, jamais reconstruite à l'écran"
+      },
+      {
+        "id": "couverture-registre",
+        "label": "78 des 112 hooks mesurés sont absents du registre officiel, soit 69,64 %",
+        "source": "docs/dataset/registre-couverture.json",
+        "type": "compteur et pourcentage",
+        "importance": 2,
+        "freshness": "deux instantanés du registre affichés côte à côte, avec la date de chacun"
+      },
+      {
+        "id": "declarations",
+        "label": "Sur 1 559 hooks vus en 200 000 blocs, 9 déclarent quoi que ce soit — 0,58 %",
+        "source": "docs/dataset/declarations.json",
+        "type": "compteur et pourcentage",
+        "importance": 2,
+        "freshness": "les deux topic0 calculés depuis leur signature"
+      },
+      {
+        "id": "reglements-x402",
+        "label": "Cinq règlements x402 relus sur le mirror node Hedera, pas sur notre parole",
+        "source": "docs/x402-settlements.jsonl, relus via testnet.mirrornode.hedera.com",
+        "type": "journal de transactions",
+        "importance": 2,
+        "freshness": "relus à l'affichage, avec le lien hashscan de chacun"
+      },
+      {
+        "id": "bps-max",
+        "label": "Le bps maximum observé sur un hook, avec le bloc, la taille et le sens de la pire ligne",
+        "source": "le corpus, champ worstRowId",
+        "type": "nombre et ses coordonnées",
+        "importance": 2,
+        "freshness": "épinglé au bloc de la mesure"
+      },
+      {
+        "id": "profil-taille",
+        "label": "La courbe taille vers bps d'un hook, sur huit décades, sans lissage",
+        "source": "calcul local sur le corpus, apps/web/src/components/Curve.tsx",
+        "type": "courbe",
+        "importance": 2,
+        "freshness": "la courbe ne relie pas ce qui n'est pas mesuré"
+      },
+      {
+        "id": "acces-5",
+        "label": "Les cinq accès au produit et pourquoi chacun existe : le site, l'extension, le MCP, x402, le compte",
+        "source": "apps/web/src/lib/outils.ts → ACCES",
+        "type": "liste typée",
+        "importance": 2,
+        "freshness": "figée"
+      },
+      {
+        "id": "volumes-inventaire",
+        "label": "Le volume de chaque jeu de données, statté au build",
+        "source": "src/data/facts.json → facts.inventaire",
+        "type": "tailles de fichiers et comptes de lignes",
+        "importance": 2,
+        "freshness": "statté à chaque npm run data, écrit nulle part à la main"
+      },
+      {
+        "id": "attestations",
+        "label": "16 attestations écrites on-chain sur 99 calculées — et l'écart est publié",
+        "source": "docs/dataset/attestations.json",
+        "type": "compteurs",
+        "importance": 2,
+        "freshness": "lisibles par un autre contrat"
+      },
+      {
+        "id": "identite-agent",
+        "label": "L'identité d'agent HCS-14, recalculable depuis six champs, publiée au message 12 du topic 0.0.10371106",
+        "source": "docs/dataset/agent-identity.json, relue sur le mirror node",
+        "type": "identifiant et ses six champs",
+        "importance": 2,
+        "freshness": "relue octet pour octet sur le mirror node"
+      },
+      {
+        "id": "porte-a4",
+        "label": "La porte A4 : trois swaps réellement exécutés, dont un divergent, publié",
+        "source": "docs/dataset/porte-a4.json",
+        "type": "journal d'exécution",
+        "importance": 2,
+        "freshness": "le seul endroit où une cotation devient un swap exécuté"
+      },
+      {
+        "id": "recensement-pools",
+        "label": "Le recensement de 7 817 pools — le dénominateur sans lequel « 112 hooks » ne veut rien dire",
+        "source": "docs/dataset/pools-liquides-full.json",
+        "type": "recensement",
+        "importance": 2,
+        "freshness": "épinglé au bloc du corpus"
+      },
+      {
+        "id": "echantillon-corpus",
+        "label": "Un échantillon réel de cinq lignes du corpus, avec le compte total affiché pour que la troncature se voie",
+        "source": "src/data/dataset.json, tiré à l'affichage",
+        "type": "extrait de table",
+        "importance": 2,
+        "freshness": "une liste tronquée dit toujours ce qui manque"
+      },
+      {
+        "id": "outil-question",
+        "label": "La question d'un utilisateur à laquelle un outil répond",
+        "source": "apps/web/src/lib/outils.ts → question",
+        "type": "phrase",
+        "importance": 2,
+        "freshness": "figée"
+      },
+      {
+        "id": "outil-entree",
+        "label": "Ce qui entre dans un outil et qui n'est pas un fichier : une adresse collée, un calldata intercepté, un état lu sur la chaîne",
+        "source": "apps/web/src/lib/outils.ts → entree",
+        "type": "liste",
+        "importance": 2,
+        "freshness": "un test exige au moins une entrée par outil"
+      },
+      {
+        "id": "outil-execute",
+        "label": "Les trois à cinq étapes numérotées d'un outil, dans l'ordre où elles arrivent",
+        "source": "apps/web/src/lib/outils.ts → execute",
+        "type": "liste ordonnée",
+        "importance": 2,
+        "freshness": "un test exige au moins trois étapes par outil"
+      },
+      {
+        "id": "outil-sortie",
+        "label": "Les champs qu'un outil rend, par leur vrai nom : out_with, bps, label, to / data / value, abonneJusquA",
+        "source": "apps/web/src/lib/outils.ts → sortie",
+        "type": "liste de champs nommés",
+        "importance": 2,
+        "freshness": "un test exige au moins deux champs de sortie par outil"
+      },
+      {
+        "id": "outil-cout",
+        "label": "Ce qu'un outil coûte : rien, un appel RPC, un péage, une signature",
+        "source": "apps/web/src/lib/outils.ts → cout",
+        "type": "phrase",
+        "importance": 2,
+        "freshness": "figée"
+      },
+      {
+        "id": "outil-etat",
+        "label": "L'état réel d'un outil — prêt, en attente, hors ligne — et pourquoi, quand il n'est pas prêt",
+        "source": "apps/web/src/lib/outils.ts → etat",
+        "type": "état nommé",
+        "importance": 1,
+        "freshness": "« écrit, pas déployé » se vérifie ; « à construire » sans raison est interdit"
+      },
+      {
+        "id": "outil-famille",
+        "label": "La famille d'un outil, et donc son accent de couleur",
+        "source": "apps/web/src/lib/outils.ts → famille",
+        "type": "énumération",
+        "importance": 1,
+        "freshness": "figée"
+      },
+      {
+        "id": "jeux-lus",
+        "label": "Les jeux de données qu'un outil lit",
+        "source": "apps/web/src/lib/donnees.ts → luPar",
+        "type": "relation",
+        "importance": 2,
+        "freshness": "testée"
+      },
+      {
+        "id": "jeux-ecrits",
+        "label": "Les jeux de données qu'un outil écrit",
+        "source": "apps/web/src/lib/donnees.ts → ecritPar",
+        "type": "relation",
+        "importance": 2,
+        "freshness": "testée"
+      },
+      {
+        "id": "sortie-reelle",
+        "label": "La sortie réelle de huit outils : cotations appariées du fork, règlements relus, écrans du Ledger, dix états de Permit2",
+        "source": "le corpus et les artefacts de docs/dataset/ et docs/ledger/",
+        "type": "formes distinctes selon l'outil",
+        "importance": 1,
+        "freshness": "ce que l'outil a vraiment rendu, avec de quoi le rejouer"
+      },
+      {
+        "id": "lignes-brutes",
+        "label": "Les lignes brutes d'un hook : out_with, out_without, talon, et la commande de rejeu",
+        "source": "le corpus embarqué, paginé",
+        "type": "table",
+        "importance": 2,
+        "freshness": "la pagination dit combien de lignes restent"
+      },
+      {
+        "id": "provenance",
+        "label": "La provenance : chaîne, bloc, version du moteur, hash du talon, commit du registre et nombre de fiches",
+        "source": "src/data/dataset.json → provenance",
+        "type": "bandeau de métadonnées",
+        "importance": 3,
+        "freshness": "aujourd'hui répétée six fois dans la page, à rassembler"
+      },
+      {
+        "id": "etiquettes",
+        "label": "Les quatre étiquettes, jamais promues : MESURE, INTERPOLE, NON_MESURABLE, NON_COTABLE",
+        "source": "le corpus, champ label",
+        "type": "énumération",
+        "importance": 1,
+        "freshness": "une lecture qui échoue est NON_MESURABLE, jamais un zéro et jamais un blanc"
+      },
+      {
+        "id": "permissions-14",
+        "label": "Les quatorze permissions d'un hook, lues dans les quatorze derniers bits de son adresse, sans un appel réseau",
+        "source": "calcul local sur l'adresse, apps/web/src/components/Led.tsx",
+        "type": "quatorze témoins binaires",
+        "importance": 3,
+        "freshness": "zéro appel réseau, indépendant du registre"
+      },
+      {
+        "id": "graphe",
+        "label": "Le graphe : 143 788 nœuds, 149 904 arêtes, grappes de bytecode identique, orphelins, contradictions",
+        "source": "engine/tare/graph/data/graph.json via l'API, absent d'un clone et reconstruit",
+        "type": "graphe",
+        "importance": 3,
+        "freshness": "demande l'API ; sans elle, l'écran refuse en le disant"
+      }
+    ],
+    "actions": [
+      {
+        "id": "cliquer-noeud",
+        "label": "Cliquer un nœud de la carte pour entrer dans un outil ou un jeu de données",
+        "page": "accueil",
+        "criticality": "haute — c'est la navigation principale du site"
+      },
+      {
+        "id": "coller-adresse",
+        "label": "Coller une adresse de jeton et lire par où l'acheter et ce que ça coûte",
+        "page": "accueil",
+        "criticality": "haute — c'est l'usage en cinq secondes, sans wallet ni requête"
+      },
+      {
+        "id": "copier-rejeu",
+        "label": "Copier la commande qui rejoue une mesure",
+        "page": "outil",
+        "criticality": "haute — c'est ce qui rend un chiffre vérifiable par un tiers"
+      },
+      {
+        "id": "ouvrir-hook",
+        "label": "Ouvrir la fiche d'un hook depuis une ligne du tableau",
+        "page": "instrument",
+        "criticality": "moyenne"
+      },
+      {
+        "id": "substituer",
+        "label": "Construire la transaction de remplacement et la faire signer via Permit2 — sans jamais l'envoyer",
+        "page": "outil",
+        "criticality": "haute — le bouton n'est actif que sur PRÊT, les neuf autres états restent visibles et grisés avec leur raison"
+      },
+      {
+        "id": "connecter",
+        "label": "Se connecter par signature, sans mot de passe",
+        "page": "instrument",
+        "criticality": "moyenne"
+      },
+      {
+        "id": "basculer-theme",
+        "label": "Basculer entre le thème sombre et le thème clair",
+        "page": "accueil",
+        "criticality": "basse — mais la rampe de couleur s'inverse entre les deux, à vérifier sur les accents de famille"
+      },
+      {
+        "id": "lire-permissions",
+        "label": "Coller une adresse pour lire les quatorze permissions d'un hook, hors ligne",
+        "page": "instrument",
+        "criticality": "basse"
+      }
+    ]
+  },
+  "references": [
+    {
+      "type": "image",
+      "path": "project/refs/user/ref-01-carte-noeuds-n8n.png",
+      "note": "Graphe de nœuds façon n8n, fourni par Florent. Des nœuds à icône, titre et ligne de métadonnée, reliés par des courbes, sur un canevas sombre.",
+      "take": "L'idée de carte, et elle seule : un orchestrateur relié aux outils qu'il utilise, chaque nœud porteur de son titre et d'une ligne de métadonnée, cliquable. Pas le canevas pointillé, que Florent juge trop AI. Pas les icônes colorées en pastille. Le rendu doit être le plus designé possible et rester cohérent avec la charte de l'instrument.",
+      "by": "user",
+      "shots": "project/refs/found/design-generator/ref-01-carte-noeuds-n8n/NOTES.md"
+    },
+    {
+      "type": "doc",
+      "path": "docs/FRONT-BRIEF.md",
+      "note": "Le brief front écrit par l'équipier : ce qui est figé, les quatorze outils en trois familles colorées, deux tableaux de priorité pour un jury, l'anatomie d'une page outil, les six règles d'honnêteté.",
+      "take": "La source de vérité sur ce qui est à toucher et ce qui ne l'est pas, et sur l'ordre de présentation à un jury. Sa section 0 prime sur toute intuition de design.",
+      "by": "user"
+    },
+    {
+      "type": "doc",
+      "path": "docs/planning/02-design-charter.md",
+      "note": "La charte graphique de l'équipier, écrite après l'analyse de six sites primés Awwwards et CSS Design Awards. Elle mesure que les six sont à border-radius zéro et que leur rapport d'échelle typographique va de 17:1 à 22:1.",
+      "take": "Le rayon zéro partout et le contraste typographique extrême. Le rapport d'échelle est le levier le moins cher qui existe : il ne coûte pas un kilo-octet. La charte est décidée, on ne la rouvre pas.",
+      "by": "user"
+    },
+    {
+      "type": "url",
+      "path": "https://sstr.tech/en/",
+      "note": "SSTR, Site of the Day Awwwards du 16 août 2026, retenu comme référence numéro un par la charte de l'équipier.",
+      "take": "Sa figure centrale est littéralement celle de TARE : la même grandeur mesurée deux fois, la version traitée en couleur et la version de référence en gris, axes en monospace capitale, légende faite de deux barres de nuancier. À reprendre pour les deux cotations appariées. On ne prend pas son préchargeur.",
+      "by": "brief",
+      "shots": "project/refs/found/design-generator/sstr.tech/"
+    },
+    {
+      "type": "url",
+      "path": "https://dottxt.ai",
+      "note": "dottxt, nominé Awwwards du 24 août 2026, la meilleure note de l'échantillon de la charte.",
+      "take": "L'objet héros est la commande réelle et sa sortie réelle, pas une illustration de la promesse. Pour TARE : le héros contient les deux cotations et l'écart. On prend aussi l'eyebrow numéroté qui chiffre l'affirmation. On ne prend pas sa bannière de cookies ni sa police bitmap.",
+      "by": "brief",
+      "shots": "project/refs/found/design-generator/dottxt.ai/"
+    },
+    {
+      "type": "url",
+      "path": "https://oxide.computer",
+      "note": "Page produit Oxide Computer, trouvee par recherche. Noir #080a0a, monospace capitale espacee, rayon zero strict, filets 1 px, schemas de systeme en trait pointille fin, legendes FIG. n encadrees.",
+      "take": "La polyligne orthogonale de 1 px qui sort d un panneau pour aller en chercher un autre : une arete de graphe sans canevas, la reponse directe au refus des courbes molles de n8n.",
+      "by": "scout",
+      "shots": "project/refs/found/design-generator/family/"
+    },
+    {
+      "type": "url",
+      "path": "https://observablehq.com/framework/",
+      "note": "Observable Framework, trouve par recherche. H1 en monospace, rayon zero, commande copiable sous le chapo, grille de tableaux de bord sombres et denses donnes comme preuve.",
+      "take": "Le modele des dix-sept panneaux de #/instrument : des panneaux sombres a filets, chacun legende, qui tiennent cote a cote sans respirer, et ou la vignette est le produit.",
+      "by": "scout",
+      "shots": "project/refs/found/design-generator/family/"
+    },
+    {
+      "type": "url",
+      "path": "https://temporal.io",
+      "note": "Section d execution de temporal.io, trouvee par recherche. Deux panneaux noirs a rayon zero : le code reel avec onglets monospace, et une Console qui ecrit sa sortie ligne a ligne ; axe de temps monospace tourne a 90 degres.",
+      "take": "La paire code reel / console reelle comme preuve d execution, pour la section execution des pages outil et pour la chaine complete sous son horloge. Le hero a degrade violet est ecarte.",
+      "by": "scout",
+      "shots": "project/refs/found/design-generator/family/"
+    },
+    {
+      "type": "image",
+      "path": "project/refs/found/design-generator/family/_contre-exemple-grafana-node-graph.png",
+      "note": "Contre-exemple garde volontairement : le panneau node graph de Grafana, noeuds circulaires a anneau rouge/vert, aretes flechees.",
+      "take": "La forme par defaut du graphe de systeme, et exactement ce dont il faut s eloigner : le cercle interdit le rayon zero, l anneau colore double la couleur de famille, le libelle tombe hors du noeud.",
+      "by": "scout",
+      "shots": "project/refs/found/design-generator/family/NOTES.md"
+    },
+    {
+      "type": "image",
+      "path": "project/design/shots/references.png",
+      "note": "La planche de references montee par le scout : douze vignettes, 3 colonnes, 2400 px de large.",
+      "take": "Tout ce qu il faut avoir sous les yeux avant de dessiner la carte, contre-exemple compris.",
+      "by": "scout"
+    }
+  ],
+  "assets": [
+    {
+      "path": "apps/web/src/data/facts.json",
+      "kind": "données générées",
+      "use": "Onze groupes de faits assemblés depuis le dépôt par npm run data. Tout nombre affiché en vient. Ne jamais éditer à la main."
+    },
+    {
+      "path": "apps/web/src/data/dataset.json",
+      "kind": "données générées",
+      "use": "Les 125 072 mesures encodées par colonnes, 7,9 Mo, déjà dans le paquet. Aucune requête pour les lire."
+    },
+    {
+      "path": "apps/web/src/components/Prim.tsx",
+      "kind": "composants",
+      "use": "Les primitives de la charte : Panel, Copy, Replay, NonLu, Chip. NonLu est obligatoire partout où une lecture a échoué."
+    },
+    {
+      "path": "apps/web/src/index.css",
+      "kind": "jetons de charte",
+      "use": "Les couleurs, la rampe de mesure --m-0 à --m-6, --focus, les durées et les deux polices. JetBrains Mono pour tout ce qui est un chiffre ou un identifiant, Instrument Sans pour la prose."
+    },
+    {
+      "path": "project/refs/user/ref-01-carte-noeuds-n8n.png",
+      "kind": "référence visuelle",
+      "use": "La référence de forme pour la carte en héro."
+    }
+  ],
+  "brand": {
+    "name": "TARE",
+    "tagline": "Ce qu'un hook Uniswap v4 prend réellement sur un swap. Le même swap coté deux fois, avec le hook et avec un talon inerte. L'écart est la mesure.",
+    "voice": [
+      "mesuré",
+      "vérifiable",
+      "sans complaisance"
+    ],
+    "existingIdentity": true,
+    "colours": [
+      "fond sombre #08090a, encre #e8eaed (thème sombre, celui par défaut)",
+      "fond clair #f7f7f5, encre #14171a (thème clair, existant)",
+      "rampe de mesure --m-0 à --m-6 : la couleur encode les bps, elle ne décore pas",
+      "collecte = bleu --focus",
+      "analyse = jaune --m-6 en thème sombre",
+      "action = orange --m-4, la seule famille qui touche à l'argent de quelqu'un"
+    ],
+    "fonts": [
+      "JetBrains Mono Variable pour tout chiffre, identifiant, étiquette et adresse",
+      "Instrument Sans Variable pour la prose"
+    ],
+    "vibe": [
+      "un instrument, pas une brochure",
+      "une carte de système : on voit l'ampleur avant le détail",
+      "dense et anguleux, rayon zéro partout, filets de 1 px",
+      "le contraste typographique porte la hiérarchie, à l'échelle des sites primés",
+      "chaque nombre porte ses coordonnées et de quoi le rejouer"
+    ],
+    "avoid": [
+      "les dégradés, les ombres portées et les coins arrondis",
+      "les rendus qui sentent la génération automatique, dans le choix des couleurs comme dans les formes",
+      "les canevas pointillés, jugés trop AI",
+      "un préchargeur ou un écran d'attente avant le premier texte utile",
+      "les compteurs animés sur des nombres mesurés : ils sont écrits, pas calculés à l'écran",
+      "quatorze animations différentes : une par famille suffit",
+      "un blanc ou un zéro là où la lecture a échoué"
+    ]
+  },
+  "constraints": {
+    "stack": {
+      "existing": true,
+      "framework": "React 19 + Vite, routeur par fragment sans dépendance, trois routes : #/, #/outil/<n>, #/instrument",
+      "css": "Tailwind v4 plus des jetons CSS dans src/index.css, avec deux thèmes",
+      "charts": "canvas et SVG écrits à la main, uPlot sur la landing",
+      "state": "état local React, aucun gestionnaire d'état",
+      "backend": "Hono, non hébergé aujourd'hui — cinq surfaces affichent un refus motivé quand l'API manque",
+      "database": "Postgres pour le journal du compte",
+      "hosting": "GitHub Pages depuis main, activation à faire par JB",
+      "scope": "seuls apps/web/src/components/, apps/web/src/styles/ et apps/landing/ sont modifiables"
+    },
+    "deadline": "2026-09-13T12:00:00-04:00",
+    "budget": "0",
+    "team": [
+      {
+        "who": "Florent Belotti",
+        "role": "le front : la direction artistique, la mise en page, le mouvement, le responsive, et la cohérence du récit à l'écran"
+      },
+      {
+        "who": "Jean-Baptiste Durand",
+        "role": "le moteur Python, l'API Hono, les contrats, l'extension, le MCP, le corpus, la charte graphique, et la démonstration : la vidéo, le speech et le texte de soumission"
+      }
+    ],
+    "legal": [
+      "Le dépôt est public sous licence ouverte",
+      "Aucun chiffre affiché ne peut être tapé à la main dans un composant : un test fait tomber la suite",
+      "Les six règles d'honnêteté sont l'argument du projet et ne sont pas négociables"
+    ],
+    "languages": [
+      "français pour l'instrument (décision, pas un oubli)",
+      "anglais pour le README et la landing"
+    ]
+  },
+  "modules": {
+    "design": {
+      "expectations": "Écrire un système et l'appliquer aux trois routes. La carte en héro de #/ est la pièce neuve et la plus importante : l'orchestrateur au centre, les quatorze outils rangés en trois familles colorées, les vingt-sept jeux de données en amont, chaque nœud cliquable vers sa page. Sous elle, une seule section fond l'usage et la preuve. Les quatorze pages outil gardent leurs trois temps mais reçoivent une forme par famille : la collecte montre une exécution, l'analyse une distribution, l'action un état et un bouton. Une animation par famille, pas une par page. Vérifié à 400 px, où le site est aujourd'hui à zéro débordement sur les seize routes.",
+      "ambition": "marqué",
+      "priorities": [
+        "La carte est la première chose qu'on voit et elle tient dans le premier écran",
+        "La page de l'outil 1 (Mesurer) est la plus importante du site : les deux cotations côte à côte et l'écart, l'idée du projet en une image",
+        "L'orange de la famille action se repère sans lire, y compris en thème clair où la rampe s'inverse",
+        "Les dix-sept panneaux de #/instrument ont besoin d'une navigation : aujourd'hui c'est une page sans repère, et les ordinaux ne suivent pas l'ordre visuel",
+        "La provenance est répétée six fois dans la page : la rassembler en un seul endroit",
+        "Les cinq surfaces qui dépendent de l'API affichent chacune son propre texte de refus : leur donner une forme commune, parce qu'un refus motivé est une fonctionnalité et doit en avoir l'air",
+        "Les tableaux à sept colonnes et trois lignes par cellule demandent 1 080 px : les rendre lisibles à 400 px sans les tronquer en silence"
+      ]
+    },
+    "marketing": {
+      "deliverables": [
+        "captures cadrées",
+        "clip du parcours de démo",
+        "deck"
+      ],
+      "note": "Le speech, le brief de vente et le texte de soumission restent à l'équipier, qui fait la démonstration lui-même."
+    },
+    "backend": {},
+    "database": {}
+  },
+  "open": [
+    "Les couleurs de famille sont prises sur la rampe de mesure : --m-6 vaut un jaune #f6d746 en thème sombre mais un rouge foncé #d41020 en thème clair, et --m-4 passe d'un orange #eb6628 à un orange-rouge #fd7435. La famille analyse et la famille action se rapprochent donc en thème clair, alors que le brief demande que l'orange se repère sans lire. À trancher avec l'équipier, puisque la rampe est à lui : accents de famille indépendants de la rampe, ou thème clair assumé comme dégradé de lisibilité.",
+    "La carte doit montrer un orchestrateur. Le dépôt en porte trois candidats réels : la chaîne complète (six étapes sous une horloge, artefact 6/6 en 13 680 ms), l'assistant (un plan qui rend des actions typées, revalidées puis appliquées au tableau) et le serveur MCP (quatre outils exposés à un agent). La chaîne est la plus démontrable parce qu'elle a un artefact horodaté, mais elle ne traverse que six des quatorze outils. À décider au moment de la direction artistique : la carte montre le système entier avec la chaîne comme parcours mis en avant, ou la carte est la chaîne.",
+    "Le bug d'attribution connu dans le test de sortie : lignesDuJeton() mélange les pools d'un jeton et le résultat est attribué au pool de la première ligne. Il est dans apps/web/src/lib/, donc hors du périmètre du front. À signaler à l'équipier plutôt qu'à corriger.",
+    "L'état de GitHub Pages : le site se déploie depuis main mais l'activation reste dans les mains de JB. Si un écran dit « en attente », c'est ça qu'il attend.",
+    "Le compte des états de la substitution : `apps/web/src/lib/outils.ts` en décrit neuf, `apps/web/src/compte/substitution.ts` en déclare dix (NON_DEMANDE en plus) et son test refuse qu'un soit oublié. L'écran affiche les dix, conformément à d008 qui fait de l'implémentation la source. Le texte de `lib/outils.ts` appartient à l'auteur du produit et reste à aligner par lui."
+  ]
+}

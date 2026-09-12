@@ -31,6 +31,16 @@
   --focus: #3376f6;
   --baseline: #6b7178;
 
+  /* LES TROIS FAMILLES D'OUTILS, sorties de la rampe.
+     Elles empruntaient --m-6 et --m-4. En theme clair la rampe s'inverse : --m-6 passe d'un
+     jaune a un rouge fonce et --m-4 d'un orange a un orange-rouge, si bien qu'analyse et action
+     se rapprochent — alors que l'orange, la seule famille qui touche a l'argent de quelqu'un,
+     doit se reperer sans lire. Trois jetons propres tiennent l'ecart dans les deux themes.
+     La rampe, elle, n'est pas touchee : elle encode bps et rien d'autre. */
+  --fam-collecte: #3376f6;
+  --fam-analyse: #f6d746;
+  --fam-action: #eb6628;
+
   --mix: 22%;
 
   --t-feedback: 90ms;
@@ -66,6 +76,12 @@
   --focus: #1b4fc4;
   --baseline: #767c83;
   --mix: 30%;
+
+  /* Meme ecart entre les trois familles, sur un fond clair. */
+  --fam-collecte: #1b4fc4;
+  --fam-analyse: #9a7b00;
+  --fam-action: #c2410c;
+
   color-scheme: light;
 }
 
@@ -88,6 +104,19 @@ body {
   line-height: 18px;
   font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Une ancre ne doit jamais se poser sous la barre collante de 44 px. */
+:target,
+h1,
+h2,
+h3 {
+  scroll-margin-top: 60px;
+}
+
+/* Le triangle natif du depliant n'a rien a faire dans cette charte. */
+summary::-webkit-details-marker {
+  display: none;
 }
 
 /* Toute donnee hexadecimale porte le zero barre : une adresse sans zero barre est un piege.
@@ -138,9 +167,24 @@ body {
   line-height: 22px;
   letter-spacing: -0.01em;
 }
+/* UNE ETIQUETTE — un mot qui NOMME une valeur. Elle etait en capitales chassees, ce qui est
+   le tell que frontend-design decrit, et surtout ce qui rendait INJOUABLES les commandes
+   qu'elle habillait : `python3 -m tare.cli summary` s'affichait `PYTHON3 -M TARE.CLI SUMMARY`,
+   et une commande est sensible a la casse. L'etiquette reste petite et un peu chassee ; elle
+   ne transforme plus rien. */
 .t-label {
   font-size: 11px;
-  line-height: 12px;
+  line-height: 14px;
+  letter-spacing: 0.02em;
+}
+
+/* LA VALEUR ELLE-MEME, quand elle s'ecrit en capitales : les quatre etiquettes de mesure
+   (MESURE, INTERPOLE, NON_MESURABLE, NON_COTABLE), les etats d'envoi (PRET, SANS_PLANCHER),
+   les drapeaux du registre (SRC, DYN, UPG, VAN, CSD), ABSENT. La rubrique 3 autorise les
+   capitales LA — et seulement la, parce que la capitale y est la donnee. */
+.t-valeur {
+  font-size: 11px;
+  line-height: 14px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -161,16 +205,187 @@ body {
   font-weight: 700;
 }
 
+/* L'ECART, et lui seul, une fois par ecran.
+   L'echelle de l'instrument plafonnait a 44 px contre 13 px de base, soit 3,4:1. La charte
+   mesure elle-meme 17:1 a 22:1 sur six sites primes ; 10,5:1 est le palier qu'un instrument
+   dense supporte sans devenir une affiche. Interlettrage 0 : c'est une monospace. */
+.t-display {
+  font-family: var(--mono);
+  font-size: clamp(3.5rem, 8vw, 8.5rem);
+  line-height: 0.92;
+  letter-spacing: 0;
+  font-weight: 500;
+}
+
+/* LA PISTE — une arete de graphe sans canevas.
+   Orthogonale, 1 px, jamais une courbe : a quarante et un noeuds les Bezier font des
+   spaghettis. Trait plein = un flux d'outil a outil ; tirets = un jeu de donnees qui
+   alimente un outil. La difference se lit sans la couleur. */
+.piste {
+  fill: none;
+  stroke: var(--line-strong);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+  transition: stroke var(--t-feedback) linear;
+}
+.piste--alimente {
+  stroke-dasharray: 4 4;
+  stroke: var(--line);
+}
+.piste--allumee {
+  stroke: var(--ink);
+}
+.piste--eteinte {
+  stroke: var(--line);
+}
+
+/* Le trace unique du chargement : les blocs sont la des la premiere image, seul le cablage
+   se dessine. Rien n'apparait, rien ne monte depuis zero. */
+@keyframes piste-trace {
+  from {
+    stroke-dashoffset: var(--piste-len, 400);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.piste--trace {
+  stroke-dasharray: var(--piste-len, 400);
+  animation: piste-trace 600ms var(--e-enter) both;
+  animation-delay: var(--piste-delay, 0ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .piste--trace {
+    animation: none;
+    stroke-dasharray: none;
+  }
+}
+
+/* LA GRILLE DE LA CARTE — source, orchestrateur, outils.
+   Trois colonnes tant qu'elles tiennent ; une seule ensuite, et les pistes se retournent
+   verticalement (voir Carte.tsx, `empile`). Aucune largeur en pourcentage : la colonne des
+   outils prend ce qui reste. */
+.carte-grille {
+  grid-template-columns: minmax(0, 1fr);
+}
+/* En une colonne, l'orchestrateur et les outils passent devant : ce sont eux que le brief
+   veut voir sans defiler. Le rail des jeux de donnees descend et se reduit, en disant
+   combien il en reste. */
+.carte-grille > .carte-chaine {
+  order: 1;
+  /* Empile, l'orchestrateur ne s'etire pas sur toute la largeur : un bloc de 240 px etire a
+     760 px devient une boite vide. */
+  max-width: 320px;
+}
+.carte-grille > .carte-outils {
+  order: 2;
+}
+.carte-grille > .carte-source {
+  order: 3;
+}
+@media (min-width: 900px) {
+  .carte-grille > .carte-source,
+  .carte-grille > .carte-chaine,
+  .carte-grille > .carte-outils {
+    order: 0;
+  }
+  .carte-grille > .carte-chaine {
+    max-width: none;
+  }
+}
+@media (min-width: 900px) {
+  .carte-grille {
+    grid-template-columns: 200px 240px minmax(0, 1fr);
+    gap: 44px;
+  }
+}
+
+/* Le titre de la page. L'echelle de l'instrument plafonnait a 28 px pour un titre de section :
+   la carte est le premier ecran, elle a droit a une presence. Le role `display` (mono, 136 px)
+   reste reserve a l'ecart en bps, une fois par ecran. */
+.t-hero {
+  font-family: var(--prose);
+  font-size: clamp(2.25rem, 4.6vw, 3.5rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  font-weight: 600;
+  text-wrap: balance; /* pas de mot orphelin sur la derniere ligne */
+}
+
+/* La gouttiere de caracteres — une texture faite de signes, pas d'image, et jamais lue par
+   un lecteur d'ecran. Elle tient la colonne des jeux de donnees, comme chez oxide. */
+.gouttiere {
+  color: var(--ink-4);
+  font-size: 10px;
+  line-height: 14px;
+  user-select: none;
+}
+
+/* Sous 640 px, la hierarchie du premier ecran passe avant le detail :
+   - la glose de la legende tombe (importance 2), il reste la barre et le mot ;
+   - le compteur des jeux de donnees prend la place du rail, qui descend ;
+   - les outils passent en deux colonnes et perdent leur ligne de metadonnee, pour que les
+     quatorze rectangles et les trois couleurs tiennent dans le premier ecran.
+   Cible tactile : 44 px conservee partout. */
+@media (max-width: 639px) {
+  .legende-glose {
+    display: none;
+  }
+  .carte-compteur {
+    display: flex !important;
+    order: 1;
+  }
+  .carte-outils > * {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .noeud-meta {
+    display: none;
+  }
+  .carte-chaine {
+    min-height: 0 !important;
+  }
+}
+
+/* Une ligne du rail mene au recensement complet : c'est un lien, il se survole. */
+.noeud-donnee {
+  transition: background var(--t-feedback) linear;
+}
+.noeud-donnee:hover {
+  background: var(--bg-1);
+  color: var(--ink);
+}
+
+/* LE NOEUD. Le filet prend la couleur de sa famille au survol ; le fond monte d'un cran.
+   Aucune ombre, aucun rayon, aucune mise a l'echelle : le bloc est pose, pas souleve. */
+.noeud {
+  transition:
+    background var(--t-feedback) linear,
+    border-color var(--t-feedback) linear;
+  touch-action: manipulation; /* pas de latence de double-tap sur telephone */
+  -webkit-tap-highlight-color: transparent;
+  /* La barre haute est collante : sans marge de defilement, le focus clavier passe dessous. */
+  scroll-margin-top: 60px;
+}
+.noeud:hover {
+  background: var(--bg-3) !important;
+  border-color: var(--line-strong);
+}
+.noeud:active {
+  transform: translateY(1px);
+}
+
 /* §4.1.4 — une etiquette qualitative n'est JAMAIS coloree. Elle est typographique. */
 .chip {
   display: inline-block;
-  padding: 1px 5px;
+  padding: 2px 6px;
   border: 1px solid var(--line-strong);
   color: var(--ink-2);
-  font-size: 10px;
-  line-height: 14px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-size: 11px;
+  line-height: 16px;
+  letter-spacing: 0.02em;
   white-space: nowrap;
 }
 
@@ -197,5 +412,266 @@ body {
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* LA FAMILLE ANALYSE n'a qu'une animation, et c'est celle-ci : au premier affichage de la
+   figure, la serie de REFERENCE vient se superposer a la serie mesuree, en 180 ms. Rien
+   d'autre ne bouge, et surtout aucun nombre : il est ecrit, pas calcule a l'ecran. */
+@keyframes figure-pose {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.figure-serie:last-child {
+  animation: figure-pose var(--t-element) var(--e-enter) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .figure-serie:last-child {
+    animation: none;
+  }
+}
+
+/* LE BANDEAU D'ONGLETS d'une page outil — la « redirection » de d002 : l'orchestrateur passe
+   d'un outil a l'autre, et le bandeau reste sous la main. Il colle sous la barre haute. */
+.onglets {
+  position: sticky;
+  top: 44px;
+  z-index: 5;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line-strong);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.onglets::-webkit-scrollbar {
+  display: none;
+}
+.onglet {
+  border-bottom: 2px solid transparent;
+  transition: color var(--t-feedback) linear;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.onglet:hover {
+  color: var(--ink);
+}
+
+/* L'INDEX DES DIX-SEPT PANNEAUX — le sommaire d'un rapport technique, colle a gauche.
+   Sous 1100 px il passe au-dessus du corps et se deplie, plutot que de voler une colonne. */
+.instrument {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+}
+@media (min-width: 1100px) {
+  .instrument {
+    grid-template-columns: 232px minmax(0, 1fr);
+    gap: 32px;
+  }
+  .index-panneaux {
+    position: sticky;
+    top: 60px;
+    max-height: calc(100vh - 76px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+.index-ligne {
+  transition:
+    background var(--t-feedback) linear,
+    color var(--t-feedback) linear;
+}
+.index-ligne:hover {
+  background: var(--bg-1);
+  color: var(--ink);
+}
+
+/* A 390, on rapproche la figure du pli SANS amputer la carte.
+   La rubrique 9 assume que l'ecart demande un defilement court a cette largeur : quatorze
+   cibles de 44 px et un chiffre de 56 px ne tiennent pas ensemble dans 844 px de haut, et
+   couper des noeuds contredirait d001. Ce qu'on peut gagner sans rien retirer, on le gagne :
+   les gouttieres de la carte, l'interligne des noeuds et le pas avant la figure. */
+@media (max-width: 639px) {
+  .carte-grille {
+    gap: 14px !important;
+  }
+  .carte-outils > * {
+    gap: 6px !important;
+  }
+  .carte-outils > * > * {
+    gap: 6px !important;
+  }
+  .carte-chaine > div:first-child {
+    padding-top: 8px !important;
+  }
+  section[aria-labelledby='carte-titre'] > div:last-of-type {
+    padding-top: 16px !important;
+    margin-top: 16px !important;
+  }
+}
+
+/* CIBLE MINIMALE — 24 px de haut sur tout ce qui se clique, 44 px sur les noeuds de la carte
+   et les onglets (declares dans leurs propres regles). Le bouton de copie faisait 18 px, et
+   c'est lui qui porte l'action principale du refus motive ; les petits boutons de sondage et
+   les liens de fiche tombaient entre 13 et 22 px. Une regle plutot que trente. */
+button,
+select,
+input,
+a[href] {
+  min-height: 24px;
+}
+/* Un lien DANS une phrase ne prend pas 24 px de haut sans deranger l'interligne : on ne le
+   force que lorsqu'il est seul sur sa ligne, c'est-a-dire quand il se comporte en bloc. */
+a[href]:not(.lien-en-ligne) {
+  display: inline-flex;
+  align-items: center;
+}
+p a[href],
+li a[href],
+span a[href] {
+  display: inline;
+  min-height: 0;
+}
+
+/* LA MATRICE 27 × 14 — d009.
+   Les filets NAISSENT de la grille : `gap: 1px` sur un fond `--line`, cellules sur fond `bg`.
+   Aucune bordure declaree, aucune ligne de DOM en plus pour les 378 cases. */
+.matrice {
+  display: grid;
+  gap: 1px;
+  grid-template-columns: 260px repeat(14, minmax(26px, 40px));
+  width: max-content;
+  max-width: 100%;
+}
+.matrice-coin,
+.matrice-tete,
+.matrice-nom,
+.matrice-case {
+  display: flex;
+  align-items: center;
+  min-height: 26px;
+}
+.matrice-coin {
+  padding: 0 10px;
+}
+.matrice-tete {
+  justify-content: center;
+  transition: background var(--t-feedback) linear;
+}
+.matrice-nom {
+  /* Le nom du jeu se replie plutot que de se couper : un libelle tronque en silence est la
+     faute meme que cette matrice est censee reparer. */
+  padding: 5px 10px;
+  line-height: 1.3;
+  transition:
+    background var(--t-feedback) linear,
+    color var(--t-feedback) linear;
+}
+.matrice-case {
+  justify-content: center;
+  transition: background var(--t-feedback) linear;
+}
+
+/* Sous 700 px, 232 px de libelle plus quatorze colonnes ne tiennent pas : le nom du jeu prend
+   sa propre rangee, pleine largeur, et ses quatorze cases se rangent dessous. Rien n'est
+   tronque, rien ne sort de l'ecran. */
+@media (max-width: 700px) {
+  .matrice {
+    grid-template-columns: repeat(14, minmax(0, 1fr));
+    width: auto;
+  }
+  .matrice-coin {
+    grid-column: 1 / -1;
+  }
+  .matrice-nom {
+    grid-column: 1 / -1;
+    white-space: normal;
+    padding: 4px 8px;
+  }
+  .matrice-case {
+    min-height: 24px;
+  }
+  /* Une colonne fait 24 px de large a cette largeur d'ecran : l'en-tete gagne en hauteur ce
+     qu'elle ne peut pas prendre en largeur, pour rester une cible de 24 px au moins. Et elle
+     colle sous la barre haute : empilee, la matrice fait 1 400 px, et sans en-tete visible on
+     perd le numero de la colonne des le troisieme jeu. A 1440 la question ne se pose pas, les
+     quatorze colonnes tiennent dans un ecran avec leur en-tete. */
+  .matrice-tete {
+    min-height: 32px;
+    position: sticky;
+    top: 44px;
+    z-index: 2;
+  }
+  .matrice-cadre {
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
+}
+
+/* LA TABLE REGISTRE CONTRE MESURE, sous 700 px.
+   Sept colonnes dans 358 px, ce sont cinq colonnes invisibles et un rang coupe sur « ABSEN… ».
+   Un rang par hook, empile, chaque cellule nommee par sa colonne : rien n'est cache, rien
+   n'est coupe, et la priorite 7 du brief — « lisibles a 400 px sans les tronquer en silence »
+   — est tenue a la lettre. */
+@media (max-width: 700px) {
+  .tableau-registre table {
+    min-width: 0 !important;
+  }
+  .tableau-registre thead {
+    display: none;
+  }
+  .tableau-registre tr {
+    display: block;
+    border-top: 1px solid var(--line-strong);
+  }
+  .tableau-registre td {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
+    border-left: 0 !important;
+    border-top: 1px solid var(--line);
+  }
+  .tableau-registre td::before {
+    content: attr(data-col);
+    font-size: 11px;
+    line-height: 16px;
+    letter-spacing: 0.02em;
+    color: var(--ink-2);
+    padding: 6px 0 6px 10px;
+  }
+  /* la cellule garde son alignement a droite pour les nombres, mais plus sa demi-largeur */
+  .tableau-registre td > div {
+    text-align: left !important;
+  }
+}
+
+/* Le pave de l'assistant : en toutes lettres au-dessus de 700 px, une cible de 44 px en
+   dessous, ou il recouvrait un rang de la table. */
+@media (max-width: 700px) {
+  .chat-pave-mot {
+    display: none;
+  }
+  .chat-pave {
+    padding: 0 !important;
+  }
+}
+
+/* Deux faits d'en-tete se separent par un filet, jamais par un point median. Replies, ils se
+   separent par l'espace : un filet pendu a gauche d'une ligne seule ne separe rien. */
+.meta-filet {
+  border-left: 1px solid var(--line);
+  padding-left: 14px;
+}
+@media (max-width: 700px) {
+  .meta-filet {
+    border-left: 0;
+    padding-left: 0;
   }
 }

@@ -1,0 +1,306 @@
+- generic [ref=f1e3]:
+  - banner [ref=f1e4]:
+    - generic [ref=f1e5]:
+      - generic [ref=f1e6]: TARE
+      - group [ref=f1e7]:
+        - generic "provenance" [ref=f1e8] [cursor=pointer]
+      - button "clair" [ref=f1e9] [cursor=pointer]
+  - navigation [ref=f1e1040]:
+    - link "la carte" [ref=f1e1041] [cursor=pointer]:
+      - /url: "#/"
+    - link "l'instrument" [ref=f1e1042] [cursor=pointer]:
+      - /url: "#/instrument"
+  - main [ref=f1e13]:
+    - generic [ref=f1e650]:
+      - generic [ref=f1e651]:
+        - generic [ref=f1e652]: action
+        - generic [ref=f1e654]: prêt
+        - generic [ref=f1e655]: jusqu'à trois eth_call, et seulement si une porte moins chère existe
+      - heading "7Substituer la transaction" [level=1] [ref=f1e1043]
+      - paragraph [ref=f1e657]: « construis-moi la transaction qui passe par la porte la moins chère »
+      - paragraph [ref=f1e658]: "un {to, data, value} signable, ou l'un de neuf états nommés qui dit ce qui manque"
+      - paragraph [ref=f1e659]: famille action — il change quelque chose — une transaction, une session, une écriture on-chain.
+    - tablist "les quatorze outils" [ref=f1e660]:
+      - tab "1 Mesurer" [ref=f1e661] [cursor=pointer]:
+        - generic [ref=f1e662]: "1"
+        - text: Mesurer
+      - tab "2 Consulter" [ref=f1e663] [cursor=pointer]:
+        - generic [ref=f1e664]: "2"
+        - text: Consulter
+      - tab "3 Situer" [ref=f1e665] [cursor=pointer]:
+        - generic [ref=f1e666]: "3"
+        - text: Situer
+      - tab "4 Comprendre" [ref=f1e667] [cursor=pointer]:
+        - generic [ref=f1e668]: "4"
+        - text: Comprendre
+      - tab "5 Décider" [ref=f1e669] [cursor=pointer]:
+        - generic [ref=f1e670]: "5"
+        - text: Décider
+      - tab "6 Proposer une autre porte" [ref=f1e671] [cursor=pointer]:
+        - generic [ref=f1e672]: "6"
+        - text: Proposer une autre porte
+      - tab "7 Substituer la transaction" [selected] [ref=f1e673] [cursor=pointer]:
+        - generic [ref=f1e674]: "7"
+        - text: Substituer la transaction
+      - tab "8 Intercepter" [ref=f1e675] [cursor=pointer]:
+        - generic [ref=f1e676]: "8"
+        - text: Intercepter
+      - tab "9 Approuver" [ref=f1e677] [cursor=pointer]:
+        - generic [ref=f1e678]: "9"
+        - text: Approuver
+      - tab "10 Payer à l'unité" [ref=f1e679] [cursor=pointer]:
+        - generic [ref=f1e680]: "10"
+        - text: Payer à l'unité
+      - tab "11 S'abonner" [ref=f1e681] [cursor=pointer]:
+        - generic [ref=f1e682]: "11"
+        - text: S'abonner
+      - tab "12 Authentifier" [ref=f1e683] [cursor=pointer]:
+        - generic [ref=f1e684]: "12"
+        - text: Authentifier
+      - tab "13 Prouver" [ref=f1e685] [cursor=pointer]:
+        - generic [ref=f1e686]: "13"
+        - text: Prouver
+      - tab "14 Attester" [ref=f1e687] [cursor=pointer]:
+        - generic [ref=f1e688]: "14"
+        - text: Attester
+    - region [ref=f1e1044]:
+      - heading "Ce qu'il lit avant d'agir" [level=2] [ref=f1e1045]
+      - generic [ref=f1e1046]:
+        - generic [ref=f1e1047]: →
+        - generic [ref=f1e1048]: l'alternative retenue à l'étape précédente
+      - generic [ref=f1e1049]:
+        - generic [ref=f1e1050]: →
+        - generic [ref=f1e1051]: l'adresse de l'utilisateur
+      - generic [ref=f1e1052]:
+        - generic [ref=f1e1053]: →
+        - generic [ref=f1e1054]: "l'état Permit2 LU sur la chaîne : allowance du jeton vers Permit2, autorisation vers le routeur, et le nonce"
+      - generic [ref=f1e1055]:
+        - generic [ref=f1e1056]: →
+        - generic [ref=f1e1057]: une cotation vivante, pour le plancher de sortie
+      - generic [ref=f1e1058]:
+        - generic [ref=f1e1059]:
+          - generic [ref=f1e1060]: lit
+          - generic [ref=f1e1061]: le corpus de mesures
+          - generic [ref=f1e1062]: 90,4 Mo · 125 072 mesures
+          - code [ref=f1e1063]: docs/dataset/measurements.jsonl
+        - generic [ref=f1e1064]: "une ligne par swap contrefactuel : le pool, le hook, la taille, le sens, les deux cotations, l'écart en points de base, et l'étiquette qui dit si c'est mesuré, interpolé ou non mesurable"
+        - generic [ref=f1e1065]:
+          - text: produit par
+          - code [ref=f1e1066]: python3 -m tare.sweep (engine/tare/measure.py), sur un fork anvil épinglé
+      - generic [ref=f1e1067]:
+        - generic [ref=f1e1068]:
+          - generic [ref=f1e1069]: lit
+          - generic [ref=f1e1070]: la table de la garde
+          - generic [ref=f1e1071]: 21,7 Mo · 125 072 mesures embarquees
+          - code [ref=f1e1072]: packages/guard/data/table.json
+        - generic [ref=f1e1073]: le corpus remis à plat pour être interrogé par clé de pool, embarqué tel quel dans l'extension et dans le serveur MCP — c'est ce qui leur permet de répondre hors ligne
+        - generic [ref=f1e1074]:
+          - text: produit par
+          - code [ref=f1e1075]: node packages/guard/scripts/build-table.mjs
+      - generic [ref=f1e1076]:
+        - generic [ref=f1e1077]:
+          - generic [ref=f1e1078]: lit
+          - generic [ref=f1e1079]: les chiffres de la porte de remplacement
+          - generic [ref=f1e1080]: 8 ko · 125 072 mesures confrontees
+          - code [ref=f1e1081]: packages/guard/data/chiffres-alternative.json
+        - generic [ref=f1e1082]: le poids réel de chaque état de la recherche d'alternative, dont la part de cas où la réponse est « il n'y a qu'une porte » — le chiffre qu'on ne voulait pas écrire à la main
+        - generic [ref=f1e1083]:
+          - text: produit par
+          - code [ref=f1e1084]: node packages/guard/scripts/chiffres-alternative.mjs
+      - generic [ref=f1e762]:
+        - table [ref=f1e763]:
+          - rowgroup [ref=f1e764]:
+            - row [ref=f1e765]:
+              - columnheader "hook" [ref=f1e766]
+              - columnheader "pool" [ref=f1e767]
+              - columnheader "taille" [ref=f1e768]
+              - columnheader "sens" [ref=f1e769]
+              - columnheader "frais LP" [ref=f1e770]
+              - columnheader "bps" [ref=f1e771]
+              - columnheader "étiquette" [ref=f1e772]
+          - rowgroup [ref=f1e773]:
+            - row [ref=f1e774]:
+              - cell "0x0469a4bd…" [ref=f1e775]
+              - cell "0x010d0023…" [ref=f1e776]
+              - cell "100000000000000" [ref=f1e777]
+              - cell "0→1" [ref=f1e778]
+              - cell "0.00" [ref=f1e779]
+              - cell "99.9942" [ref=f1e780]
+              - cell "MESURE" [ref=f1e781]
+            - row [ref=f1e782]:
+              - cell "0x0469a4bd…" [ref=f1e783]
+              - cell "0x010d0023…" [ref=f1e784]
+              - cell "1000000000000000" [ref=f1e785]
+              - cell "0→1" [ref=f1e786]
+              - cell "0.00" [ref=f1e787]
+              - cell "99.9418" [ref=f1e788]
+              - cell "MESURE" [ref=f1e789]
+            - row [ref=f1e790]:
+              - cell "0x0469a4bd…" [ref=f1e791]
+              - cell "0x010d0023…" [ref=f1e792]
+              - cell "10000000000000000" [ref=f1e793]
+              - cell "0→1" [ref=f1e794]
+              - cell "0.00" [ref=f1e795]
+              - cell "99.4210" [ref=f1e796]
+              - cell "MESURE" [ref=f1e797]
+            - row [ref=f1e798]:
+              - cell "0x0469a4bd…" [ref=f1e799]
+              - cell "0x010d0023…" [ref=f1e800]
+              - cell "100000000000000000" [ref=f1e801]
+              - cell "0→1" [ref=f1e802]
+              - cell "0.00" [ref=f1e803]
+              - cell "94.4965" [ref=f1e804]
+              - cell "MESURE" [ref=f1e805]
+            - row [ref=f1e806]:
+              - cell "0x0469a4bd…" [ref=f1e807]
+              - cell "0x010d0023…" [ref=f1e808]
+              - cell "1000000000000000000" [ref=f1e809]
+              - cell "0→1" [ref=f1e810]
+              - cell "0.00" [ref=f1e811]
+              - cell "69.1703" [ref=f1e812]
+              - cell "MESURE" [ref=f1e813]
+        - generic [ref=f1e814]: cinq lignes sur 125 072 — un échantillon, et le compte est dit pour que la troncature se voie
+    - region [ref=f1e1085]:
+      - generic [ref=f1e816]:
+        - heading "L'action" [level=2] [ref=f1e1086]
+        - generic [ref=f1e818]: jusqu'à trois eth_call, et seulement si une porte moins chère existe
+      - generic [ref=f1e1087]:
+        - generic [ref=f1e1088]: "1"
+        - generic [ref=f1e1089]: lit l'autorisation du jeton vers le contrat Permit2, puis celle vers le routeur — deux eth_call, et seulement si une porte moins chère existe
+      - generic [ref=f1e1090]:
+        - generic [ref=f1e1091]: "2"
+        - generic [ref=f1e1092]: "lit le nonce Permit2 au lieu de le deviner : un nonce deviné fait échouer la transaction au moment de la signer"
+      - generic [ref=f1e1093]:
+        - generic [ref=f1e1094]: "3"
+        - generic [ref=f1e1095]: cote la porte visée en direct pour fixer le plancher de sortie, moins 50 bps de tolérance — jamais depuis le corpus, qui est épinglé à un bloc
+      - generic [ref=f1e1096]:
+        - generic [ref=f1e1097]: "4"
+        - generic [ref=f1e1098]: "encode la liste de commandes 0x0a10 : PERMIT2_PERMIT puis V4_SWAP, dans cet ordre"
+      - generic [ref=f1e1099]:
+        - generic [ref=f1e1100]: "5"
+        - generic [ref=f1e1101]:
+          - strong [ref=f1e1102]: RELIT
+          - text: son propre calldata avant de le rendre, et refuse si la relecture ne redonne pas les mêmes valeurs
+    - region [ref=f1e1103]:
+      - heading "Ce qui change" [level=2] [ref=f1e1104]
+      - generic [ref=f1e1105]:
+        - code [ref=f1e1106]: to / data / value
+        - generic [ref=f1e1107]: la transaction signable — elle n'est jamais envoyée par nous
+      - generic [ref=f1e1108]:
+        - code [ref=f1e1109]: etat
+        - generic [ref=f1e1110]: PRET, ou l'un des huit états qui disent ce qui manque
+      - generic [ref=f1e1111]:
+        - code [ref=f1e1112]: plancher
+        - generic [ref=f1e1113]: le minimum à recevoir, tiré d'une cotation vivante
+      - generic [ref=f1e1114]:
+        - code [ref=f1e1115]: echeance
+        - generic [ref=f1e1116]: maintenant + 20 minutes — le défaut du routeur valait l'an 2106
+      - generic [ref=f1e1117]:
+        - code [ref=f1e1118]: appels_rpc
+        - generic [ref=f1e1119]: combien d'appels ont été faits, pour que le coût se voie
+      - generic [ref=f1e1121]:
+        - text: C'est la pièce qui transforme un verdict en
+        - strong [ref=f1e1122]: décision
+        - text: ". Le site a déjà tout : l'adresse du jeton, le montant, la porte visée. Il construit la transaction de remplacement et la fait signer —"
+        - strong [ref=f1e1123]: il ne l'envoie jamais
+        - text: .
+      - generic [ref=f1e1124]:
+        - generic [ref=f1e1125]: ce qu'il rend
+        - code [ref=f1e1127]: "{ to, data, value }"
+      - generic [ref=f1e1128]:
+        - generic [ref=f1e1129]: plancher de sortie
+        - generic [ref=f1e1130]:
+          - text: tiré d'une
+          - strong [ref=f1e1131]: cotation vivante
+          - text: ", moins 50 bps de tolérance — jamais du corpus, qui est épinglé à un bloc"
+      - generic [ref=f1e1132]:
+        - generic [ref=f1e1133]: échéance
+        - generic [ref=f1e1134]: maintenant + 20 minutes — le défaut valait 0xffffffff, soit le 7 février 2106
+      - generic [ref=f1e1135]:
+        - generic [ref=f1e1136]: Permit2 — une signature au lieu de deux transactions
+        - generic [ref=f1e1137]:
+          - text: Sans lui, remplacer une transaction en demande
+          - strong [ref=f1e1138]: deux
+          - text: ": un"
+          - code [ref=f1e1139]: approve
+          - text: du jeton vers le routeur, puis le swap. Avec, on
+          - strong [ref=f1e1140]: signe hors chaîne
+          - text: — gratuit, et une signature ne peut pas échouer — et le routeur présente cette signature lui-même, dans la même transaction que le swap. Un envoi, une signature.
+      - generic [ref=f1e1141]:
+        - generic [ref=f1e1142]: liste de commandes
+        - generic [ref=f1e1143]:
+          - code [ref=f1e1144]: "0x0a10"
+          - text: "— PERMIT2_PERMIT puis V4_SWAP. L'ordre compte : un swap présenté avant son permit échouerait faute d'autorisation."
+      - generic [ref=f1e1145]:
+        - generic [ref=f1e1146]: domaine EIP-712
+        - code [ref=f1e1148]: EIP712Domain(string name,uint256 chainId,address verifyingContract)
+      - generic [ref=f1e1149]:
+        - generic [ref=f1e1150]: ce que Permit2 ne dispense PAS de faire
+        - generic [ref=f1e1151]:
+          - text: Le jeton doit avoir été approuvé
+          - strong [ref=f1e1152]: vers le contrat Permit2
+          - text: ", une fois pour toutes. Celle-là est une vraie transaction, et l'utilisateur peut ne l'avoir jamais faite. On ne la devine pas : les deux lectures on-chain la nomment, et l'écran la demande AVANT de proposer une signature qui échouerait. Promettre « une seule signature » à quelqu'un qui n'a pas approuvé Permit2 serait faux."
+      - generic [ref=f1e1153]:
+        - paragraph [ref=f1e1154]: "10 états d’envoi, et un seul autorise à signer. Les autres restent visibles avec ce qu’il leur manque : un état caché ferait croire à une étape ratée."
+        - list [ref=f1e1155]:
+          - listitem [ref=f1e1156]:
+            - generic [ref=f1e1157]: PRET
+            - generic [ref=f1e1158]: signer et envoyer
+            - button "signer et envoyer" [disabled] [ref=f1e1159]
+          - listitem [ref=f1e1160]:
+            - generic [ref=f1e1161]: PAS_DE_PROPOSITION
+            - generic [ref=f1e1162]: rien à cliquer — une lecture manque, et l’état la nomme
+            - button "inactif" [disabled] [ref=f1e1163]
+          - listitem [ref=f1e1164]:
+            - generic [ref=f1e1165]: NON_DEMANDE
+            - generic [ref=f1e1166]: lire la chaine et construire
+            - button "inactif" [disabled] [ref=f1e1167]
+          - listitem [ref=f1e1168]:
+            - generic [ref=f1e1169]: SANS_PLANCHER
+            - generic [ref=f1e1170]: rien à cliquer — une lecture manque, et l’état la nomme
+            - button "inactif" [disabled] [ref=f1e1171]
+          - listitem [ref=f1e1172]:
+            - generic [ref=f1e1173]: APPROBATION_REQUISE
+            - generic [ref=f1e1174]: approuver le jeton vers Permit2 (une vraie transaction, une fois)
+            - button "inactif" [disabled] [ref=f1e1175]
+          - listitem [ref=f1e1176]:
+            - generic [ref=f1e1177]: SIGNATURE_REQUISE
+            - generic [ref=f1e1178]: signer le permit (hors chaine, gratuit)
+            - button "inactif" [disabled] [ref=f1e1179]
+          - listitem [ref=f1e1180]:
+            - generic [ref=f1e1181]: NONCE_NON_LU
+            - generic [ref=f1e1182]: rien à cliquer — une lecture manque, et l’état la nomme
+            - button "inactif" [disabled] [ref=f1e1183]
+          - listitem [ref=f1e1184]:
+            - generic [ref=f1e1185]: ETAT_PERMIT2_INCONNU
+            - generic [ref=f1e1186]: rien à cliquer — une lecture manque, et l’état la nomme
+            - button "inactif" [disabled] [ref=f1e1187]
+          - listitem [ref=f1e1188]:
+            - generic [ref=f1e1189]: PERMIT_SUR_MONNAIE_NATIVE
+            - generic [ref=f1e1190]: rien à cliquer — une lecture manque, et l’état la nomme
+            - button "inactif" [disabled] [ref=f1e1191]
+          - listitem [ref=f1e1192]:
+            - generic [ref=f1e1193]: RELECTURE_DIVERGENTE
+            - generic [ref=f1e1194]: rien à cliquer — une lecture manque, et l’état la nomme
+            - button "inactif" [disabled] [ref=f1e1195]
+        - paragraph [ref=f1e1196]:
+          - text: "Sur cette page les dix boutons sont inactifs, et la raison est la même pour tous : aucune proposition n’a été construite ici. La commande réelle vit dans le panneau 16 de l’instrument, où un portefeuille est branché — et là encore, la transaction est construite et signée,"
+          - strong [ref=f1e1197]: jamais envoyée
+          - text: par nous.
+    - region [ref=f1e1016]:
+      - heading "Où ça vit, dans le dépôt" [level=2] [ref=f1e1018]
+      - generic [ref=f1e1019]:
+        - generic [ref=f1e1020]: routes
+        - code [ref=f1e1198]: "POST /alternative (construire: true)"
+      - generic [ref=f1e1024]:
+        - generic [ref=f1e1025]: le code
+        - generic [ref=f1e1027]:
+          - code [ref=f1e1199]: packages/guard/src/envoi.ts
+          - code [ref=f1e1200]: packages/guard/src/lecture.ts
+          - code [ref=f1e1201]: packages/guard/src/permit2.ts
+      - generic [ref=f1e1031]:
+        - generic [ref=f1e1032]: accès
+        - generic [ref=f1e1033]: site
+      - generic [ref=f1e1037]:
+        - generic [ref=f1e1038]: déjà affiché en
+        - generic [ref=f1e1039]: panneau 16

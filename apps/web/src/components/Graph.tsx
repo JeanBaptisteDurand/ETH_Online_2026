@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { fmtBps, groupDigits, shortAddr } from '../lib/format'
-import { Chip, Copy, Panel } from './Prim'
+import { Chip, Copy, Panel, Absence } from './Prim'
 import {
   API_BASE,
   CLI,
@@ -45,14 +45,14 @@ function Line({ k, v, note }: { k: ReactNode; v: ReactNode; note?: ReactNode }) 
       className="flex items-baseline gap-[10px] px-[12px] py-[5px]"
       style={{ borderTop: '1px solid var(--line)' }}
     >
-      <span className="t-data-sm" style={{ color: 'var(--ink-3)', minWidth: 140 }}>
+      <span className="t-data-sm" style={{ color: 'var(--ink-2)', minWidth: 140 }}>
         {k}
       </span>
       <span className="t-data" style={{ color: 'var(--ink)' }}>
         {v}
       </span>
       {note !== undefined && (
-        <span className="t-data-xs ml-auto text-right" style={{ color: 'var(--ink-3)' }}>
+        <span className="t-data-xs ml-auto text-right" style={{ color: 'var(--ink-2)' }}>
           {note}
         </span>
       )}
@@ -85,23 +85,23 @@ function Box({
   )
 }
 
-/** L'etat "pas de nombre a montrer", dit en toutes lettres et jamais en zero. */
+/**
+ * L'etat « pas de nombre a montrer », dit en toutes lettres et jamais en zero.
+ *
+ * Cinq surfaces du site dependent d'une API qui n'est pas hebergee, et elles ecrivaient
+ * chacune leur propre refus. Elles partagent desormais `Absence` : ce qui manque, la raison,
+ * et la commande qui le ferait tourner ici.
+ */
 function Missing({ head, detail, cmd }: { head: string; detail: string; cmd: string }) {
+  const enCours = head.endsWith('…')
   return (
-    <div className="px-[12px] py-[10px] flex flex-col gap-[6px]">
-      <div className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
-        {head}
-      </div>
-      <div className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
-        {detail}
-      </div>
-      <div className="flex items-center gap-[8px]">
-        <code className="t-data-xs hex" style={{ color: 'var(--ink-3)' }}>
-          {cmd}
-        </code>
-        <Copy text={cmd} />
-      </div>
-    </div>
+    <Absence
+      quoi={head}
+      etat={enCours ? 'en cours' : 'sans réponse'}
+      raison={detail}
+      cmd={cmd}
+      panne={!enCours}
+    />
   )
 }
 
@@ -119,7 +119,7 @@ function Profile({ p }: { p: BpsProfile }) {
         k="bps MESURES"
         v={
           p.n_measured === 0 ? (
-            <span style={{ color: 'var(--ink-3)' }}>aucune mesure cotable</span>
+            <span style={{ color: 'var(--ink-2)' }}>aucune mesure cotable</span>
           ) : (
             `${fmtBps(p.bps_min, 4)} … ${fmtBps(p.bps_max, 4)}`
           )
@@ -192,7 +192,7 @@ function TwinsBox({ hook }: { hook: string }) {
     <Box
       title="ses jumeaux"
       right={
-        <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+        <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
           meme keccak(eth_getCode)
         </span>
       }
@@ -220,7 +220,7 @@ function TwinsBox({ hook }: { hook: string }) {
         />
       ))}
       <div className="px-[12px] py-[7px] flex items-center gap-[8px]" style={{ borderTop: '1px solid var(--line)' }}>
-        <code className="t-data-xs hex" style={{ color: 'var(--ink-3)' }}>
+        <code className="t-data-xs hex" style={{ color: 'var(--ink-2)' }}>
           {cmd}
         </code>
         <Copy text={cmd} />
@@ -262,7 +262,7 @@ function ImpactBox({ hook }: { hook: string }) {
     <Box
       title="son rayon de souffle"
       right={
-        <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+        <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
           ce qu’il faudrait re-mesurer
         </span>
       }
@@ -294,13 +294,13 @@ function ImpactBox({ hook }: { hook: string }) {
         <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
           pools a re-mesurer si le defaut est dans le code
         </span>
-        <span className="t-data-xs ml-auto text-right" style={{ color: 'var(--ink-3)' }}>
+        <span className="t-data-xs ml-auto text-right" style={{ color: 'var(--ink-2)' }}>
           {i.n_pools} direct{i.n_pools > 1 ? 's' : ''}
           {extra > 0 ? ` + ${extra} par les clones` : ' · aucun clone connu'}
         </span>
       </div>
       <div className="px-[12px] py-[7px] flex items-center gap-[8px]" style={{ borderTop: '1px solid var(--line)' }}>
-        <code className="t-data-xs hex" style={{ color: 'var(--ink-3)' }}>
+        <code className="t-data-xs hex" style={{ color: 'var(--ink-2)' }}>
           {cmd}
         </code>
         <Copy text={cmd} />
@@ -352,7 +352,7 @@ function DisagreementBox({ hook }: { hook: string }) {
         </div>
         <p
           className="m-0 t-data-sm"
-          style={{ color: 'var(--ink-3)', maxWidth: '60ch', marginTop: 4 }}
+          style={{ color: 'var(--ink-2)', maxWidth: '60ch', marginTop: 4 }}
         >
           {d.note}
         </p>
@@ -369,7 +369,7 @@ function DisagreementBox({ hook }: { hook: string }) {
       <Line k="seuil de platitude" v={`${d.flat_bps} bps`} note="sous ce seuil, bruit d’arrondi du quoter" />
       <Profile p={d.profile} />
       <div className="px-[12px] py-[7px] flex items-center gap-[8px]" style={{ borderTop: '1px solid var(--line)' }}>
-        <code className="t-data-xs hex" style={{ color: 'var(--ink-3)' }}>
+        <code className="t-data-xs hex" style={{ color: 'var(--ink-2)' }}>
           {cmd}
         </code>
         <Copy text={cmd} />
@@ -385,14 +385,14 @@ function Findings() {
   const got = useFetched<GraphSummary>('/graph')
   if (got.state !== 'ready')
     return (
-      <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+      <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
         {got.state === 'loading' ? 'lecture du graphe…' : `graphe non joignable · ${API_BASE}`}
       </span>
     )
   const f = got.data.findings
   const g = got.data.graph
   return (
-    <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+    <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
       {f.clone_clusters} grappes de clones ({f.hooks_in_clone_clusters} hooks) · {f.orphans}/
       {f.listed_hooks_on_chain} orphelins · {f.contradictions}/
       {f.hooks_with_multiple_registry_entries} fiches doubles qui divergent ·{' '}
@@ -405,7 +405,7 @@ function Findings() {
 
 export function GraphPanels({ hook }: { hook: string }) {
   return (
-    <Panel index="08" title="le graphe · ce que le hook touche autour de lui" right={<Findings />}>
+    <Panel index="08" title="Le graphe autour du hook" right={<Findings />}>
       <div
         className="grid gap-px p-[16px]"
         style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 16 }}
@@ -416,7 +416,7 @@ export function GraphPanels({ hook }: { hook: string }) {
       </div>
       <p
         className="m-0 px-[16px] pb-[14px] t-data-xs"
-        style={{ color: 'var(--ink-3)', maxWidth: '96ch' }}
+        style={{ color: 'var(--ink-2)', maxWidth: '96ch' }}
       >
         Le graphe est bati depuis trois sources et rien d’autre : les mesures publiees, le registre
         officiel, et <code style={{ fontFamily: 'var(--mono)' }}>eth_getCode</code> au bloc epingle.

@@ -279,6 +279,30 @@ const execution =
     : null
 if (!execution) manquants.push('porte A4 (engine/tare/gates/a4.py)')
 
+/* ----------------- 6 bis. la chaine complete : six etapes sous une seule horloge.
+   Le compte d'etapes vivait deja dans `inventaire.chaine`, mais l'horloge — la duree totale
+   et le temps de chaque etape — n'etait exposee nulle part. Le front l'annonce : elle doit
+   venir d'ici, pas d'un nombre tape dans un composant. */
+
+const ch = lireJson(p('docs/dataset/chaine-complete.json'))
+const chaine = ch === null ? null : {
+  n_ok: ch.n_ok ?? null,
+  n_total: ch.n_total ?? null,
+  // `complete: false` des qu'une etape n'a pas tourne — on le dit, on ne l'arrondit pas.
+  complete: ch.complete === true,
+  duree_ms: ch.duree_ms ?? null,
+  debut: ch.debut ?? null,
+  etapes: Array.isArray(ch.etapes)
+    ? ch.etapes.map((e) => ({
+        n: e.n ?? null,
+        quoi: e.quoi ?? null,
+        etat: e.etat ?? null,
+        a_ms: e.a_ms ?? null,
+      }))
+    : [],
+}
+if (!chaine) manquants.push('docs/dataset/chaine-complete.json')
+
 /* ----------------- 7. la signature Ledger : le rapport rendu ecran par ecran */
 
 const led = lireJson(p('docs/ledger/guard-speculos.json'))
@@ -394,6 +418,7 @@ const facts = {
   garde,
   sens_unique: sensUnique,
   execution,
+  chaine,
   ledger,
   mcp,
   // chaque jeu de donnees du depot, state au build — voir apps/web/src/lib/donnees.ts

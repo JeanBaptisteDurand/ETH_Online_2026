@@ -103,7 +103,7 @@ export function Curve({
     // se lisent comme deux grandeurs differentes.
     const yDec = yTop - yBot >= 10 ? 0 : 2
     ctx.strokeStyle = c['--line']
-    ctx.fillStyle = c['--ink-3']
+    ctx.fillStyle = c['--ink-2']
     ctx.lineWidth = 1
     for (let i = 0; i <= yTicks; i++) {
       const v = yBot + ((yTop - yBot) * i) / yTicks
@@ -125,10 +125,12 @@ export function Curve({
       ctx.moveTo(x, PAD.t)
       ctx.lineTo(x, PAD.t + plotH)
       ctx.stroke()
-      ctx.fillStyle = c['--ink-4']
+      // Le trait de graduation reste discret, son ETIQUETTE non : elle porte l'echelle
+      // logarithmique, donc la lecture du graphe. `--ink-4` y donnait 2,2:1.
+      ctx.fillStyle = c['--ink-2']
       ctx.fillText(`1e${d}`, x, PAD.t + plotH + 14)
     }
-    ctx.fillStyle = c['--ink-3']
+    ctx.fillStyle = c['--ink-2']
     ctx.fillText('taille du swap, unites du jeton entrant — echelle LOGARITHMIQUE', PAD.l + plotW / 2, h - 10)
 
     // --- axes
@@ -149,9 +151,18 @@ export function Curve({
       ctx.lineTo(w - PAD.r, y0)
       ctx.stroke()
       ctx.setLineDash([])
-      ctx.fillStyle = c['--baseline']
+      // Le trait reste en `--baseline` : c'est lui qui DIT « serie de reference ». Son
+      // libelle, lui, doit se lire — 4,04:1 echouait en AA.
+      // Le libelle est pose sur le nuage le plus dense du graphe, qui le traverse : un fond
+      // plein le detache sans ajouter de couleur. Le contraste ne sert a rien si le texte
+      // est illisible pour une autre raison.
+      const legende = 'sans hook, talon inerte, 0 bps par construction'
       ctx.textAlign = 'left'
-      ctx.fillText('SANS HOOK · STUB INERTE · 0 bps par construction', PAD.l + 6, y0 - 9)
+      const lw = ctx.measureText(legende).width
+      ctx.fillStyle = c['--bg-1']
+      ctx.fillRect(PAD.l + 3, y0 - 20, lw + 6, 15)
+      ctx.fillStyle = c['--ink-2']
+      ctx.fillText(legende, PAD.l + 6, y0 - 9)
     }
 
     // --- les series mesurees : segments fins, aucun lissage
@@ -216,7 +227,7 @@ export function Curve({
     ctx.translate(13, PAD.t + plotH / 2)
     ctx.rotate(-Math.PI / 2)
     ctx.textAlign = 'center'
-    ctx.fillStyle = c['--ink-3']
+    ctx.fillStyle = c['--ink-2']
     ctx.fillText('bps preleves', 0, 0)
     ctx.restore()
 
@@ -225,7 +236,7 @@ export function Curve({
 
   if (!domain) {
     return (
-      <div className="p-[16px] t-data-sm" style={{ color: 'var(--ink-3)' }}>
+      <div className="p-[16px] t-data-sm" style={{ color: 'var(--ink-2)' }}>
         Aucun point cotable pour ce hook. Une lecture bornee est un NON_MESURABLE, jamais une valeur.
       </div>
     )
@@ -239,8 +250,8 @@ export function Curve({
         className="flex flex-wrap items-center gap-[12px] px-[16px] py-[8px]"
         style={{ borderBottom: '1px solid var(--line)' }}
       >
-        <span className="t-label" style={{ color: zoom ? 'var(--ink)' : 'var(--ink-3)' }}>
-          {zoom ? 'ZOOM · Y NON ANCRE' : 'Y ANCRE A 0'}
+        <span className="t-label" style={{ color: zoom ? 'var(--ink)' : 'var(--ink-2)' }}>
+          {zoom ? 'zoom — y non ancré' : 'y ancré à 0'}
         </span>
         <button
           type="button"
@@ -250,11 +261,11 @@ export function Curve({
         >
           {zoom ? 'ancrer Y a 0' : 'zoomer Y'}
         </button>
-        <span className="t-data-xs" style={{ color: 'var(--ink-3)' }}>
+        <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
           {series.length} series (pool × sens) · {flat.length} points · {nSizes} tailles distinctes
           {nSizes < 5 && ` · le profil vise 5 tailles, ce jeu de donnees en contient ${nSizes}`}
         </span>
-        <span className="ml-auto t-data-xs flex items-center gap-[6px]" style={{ color: 'var(--ink-3)' }}>
+        <span className="ml-auto t-data-xs flex items-center gap-[6px]" style={{ color: 'var(--ink-2)' }}>
           <span style={{ display: 'inline-block', width: 14, height: 2, background: 'var(--baseline)' }} />
           sans hook
           <span style={{ display: 'inline-block', width: 8, height: 8, background: 'var(--m-4)', marginLeft: 8 }} />
@@ -288,7 +299,7 @@ export function Curve({
 
       <div
         className="t-data-sm hex px-[16px] py-[8px] flex flex-wrap gap-x-[20px] gap-y-[2px]"
-        style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-3)', minHeight: 34 }}
+        style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-2)', minHeight: 34 }}
       >
         {hover ? (
           <>
@@ -298,7 +309,7 @@ export function Curve({
             </span>
             <span>sens {hover.zfo ? 'currency0 → currency1' : 'currency1 → currency0'}</span>
             <span>pool {hover.poolId.slice(0, 10)}…</span>
-            <span style={{ color: 'var(--ink-4)' }}>cliquer : ouvrir la ligne et sa commande de rejeu</span>
+            <span style={{ color: 'var(--ink-2)' }}>cliquer : ouvrir la ligne et sa commande de rejeu</span>
           </>
         ) : (
           <span>survoler un point pour lire sa valeur, sa taille, son sens et son pool</span>

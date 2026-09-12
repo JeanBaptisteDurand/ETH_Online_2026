@@ -60,6 +60,9 @@
 
   --mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
   --prose: 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;
+  /* LES TITRES. Archivo est plus large et plus affirmee qu'Instrument Sans : a 64 px elle
+     tient le premier ecran, la ou une grotesque neutre se contente de le remplir. */
+  --titre: 'Archivo Variable', 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;
 
   color-scheme: dark;
 }
@@ -257,20 +260,61 @@ summary::-webkit-details-marker {
    alimente un outil. La difference se lit sans la couleur. */
 .piste {
   fill: none;
-  stroke: var(--line-strong);
+  /* La piste porte la couleur de la famille qu'elle dessert, posee sur le fond : assez pour
+     la suivre du doigt, jamais assez pour concurrencer les plaques. */
+  stroke: color-mix(in srgb, var(--piste-couleur, var(--line-strong)) 45%, var(--bg));
   stroke-width: 1;
   shape-rendering: crispEdges;
-  transition: stroke var(--t-feedback) linear;
+  transition:
+    stroke var(--t-feedback) linear,
+    stroke-width var(--t-feedback) linear;
 }
 .piste--alimente {
   stroke-dasharray: 4 4;
   stroke: var(--line);
 }
 .piste--allumee {
-  stroke: var(--ink);
+  stroke: var(--piste-couleur, var(--ink));
+  stroke-width: 1.5;
 }
 .piste--eteinte {
   stroke: var(--line);
+}
+
+/* LE FLUX. Un tiret court qui descend de l'orchestrateur vers l'outil, en continu. C'est le
+   seul mouvement de la carte apres le trace initial, et il dit ce qu'un schema fixe ne dit
+   pas : ca circule. Un `stroke-dasharray` de 18 px de plein suivi de toute la longueur :
+   un seul segment parcourt la piste par cycle. */
+.flux {
+  fill: none;
+  stroke: var(--piste-couleur, var(--ink));
+  stroke-width: 1.5;
+  shape-rendering: crispEdges;
+  stroke-dasharray: 18 calc(var(--piste-len, 400) * 1px);
+  animation: flux-descend 4s linear infinite;
+  animation-delay: var(--piste-delay, 0ms);
+  opacity: 0.85;
+  transition: opacity var(--t-feedback) linear;
+}
+.flux--eteint {
+  opacity: 0.12;
+}
+.flux--allume {
+  opacity: 1;
+}
+@keyframes flux-descend {
+  from {
+    stroke-dashoffset: 18;
+  }
+  to {
+    stroke-dashoffset: calc((var(--piste-len, 400) + 18) * -1px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flux {
+    animation: none;
+    opacity: 0;
+  }
 }
 
 /* Le trace unique du chargement : les blocs sont la des la premiere image, seul le cablage
@@ -331,8 +375,8 @@ summary::-webkit-details-marker {
 }
 @media (min-width: 900px) {
   .carte-grille {
-    grid-template-columns: 200px 250px minmax(0, 1fr);
-    gap: 40px;
+    grid-template-columns: 190px 240px minmax(0, 1fr);
+    gap: 36px;
   }
 }
 
@@ -340,7 +384,8 @@ summary::-webkit-details-marker {
    la carte est le premier ecran, elle a droit a une presence. Le role `display` (mono, 136 px)
    reste reserve a l'ecart en bps, une fois par ecran. */
 .t-hero {
-  font-family: var(--prose);
+  font-family: var(--titre);
+  font-weight: 700;
   font-size: clamp(2.25rem, 4.6vw, 3.5rem);
   line-height: 1.02;
   letter-spacing: -0.03em;
@@ -351,31 +396,32 @@ summary::-webkit-details-marker {
 /* design/DESIGN.md → Typography : display (le titre de route), number (l'écart, une fois par
    écran), headline (titre de section), title (nom d'un outil sur sa plaque), body. */
 .t-display {
-  font-family: var(--prose);
-  font-size: clamp(2.75rem, 5vw, 4rem);
-  line-height: 1.02;
-  letter-spacing: -0.03em;
-  font-weight: 600;
+  font-family: var(--titre);
+  font-size: clamp(2.25rem, 3.6vw, 3.25rem);
+  line-height: 1;
+  letter-spacing: -0.035em;
+  font-weight: 700;
   text-wrap: balance;
 }
 .t-number {
   font-family: var(--mono);
-  font-size: clamp(3.5rem, 7vw, 7rem);
+  font-size: clamp(2.75rem, 5vw, 4.5rem);
   line-height: 1;
   letter-spacing: -0.02em;
   font-weight: 500;
 }
 .t-headline {
-  font-family: var(--prose);
+  font-family: var(--titre);
+  font-weight: 700;
   font-size: 2rem;
   line-height: 1.15;
   letter-spacing: -0.02em;
   font-weight: 600;
 }
 .t-title {
-  font-family: var(--prose);
-  font-weight: 500;
-  letter-spacing: -0.01em;
+  font-family: var(--titre);
+  font-weight: 600;
+  letter-spacing: -0.015em;
 }
 .t-body {
   font-family: var(--prose);
@@ -391,7 +437,7 @@ summary::-webkit-details-marker {
 .enceinte {
   background: var(--surface-1);
   border: 1px solid var(--line);
-  padding: 24px;
+  padding: 20px 24px 24px;
 }
 @media (max-width: 639px) {
   .enceinte {
@@ -402,6 +448,7 @@ summary::-webkit-details-marker {
 /* LA PLAQUE : surface-2, filet, liseré haut de 1 px (la seule lumière du site), barre de
    famille de 3 px. Le survol monte d'un cran et allume ses pistes. */
 .plaque {
+  position: relative;
   background: var(--surface-2);
   border: 1px solid var(--line);
   border-top-color: var(--highlight);
@@ -419,34 +466,239 @@ summary::-webkit-details-marker {
   border-color: var(--line-strong);
   border-top-color: var(--highlight);
 }
-.plaque-titre {
+/* LE PORT : le carre de 7 px ou le cable se branche, a cheval sur le bord de la plaque.
+   Il dit qu'une plaque est un nœud connecte, et pas une case dans une liste. */
+.plaque-port {
+  position: absolute;
+  left: -5px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  margin-top: -3.5px;
+  display: block;
+}
+.plaque-port--sortie {
+  left: auto;
+  right: -4px;
+  top: auto;
+}
+/* La deuxieme interaction, montree : au survol, le chevron dit que la plaque s'ouvre. */
+.plaque-chevron {
   font-family: var(--prose);
-  font-size: 1.125rem;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--ink-2);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition:
+    opacity var(--t-feedback) var(--e-out),
+    transform var(--t-feedback) var(--e-out);
+  margin-left: auto;
+  padding-left: 8px;
+}
+.plaque:hover .plaque-chevron,
+.plaque:focus-visible .plaque-chevron {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.plaque-titre {
+  font-family: var(--titre);
+  font-size: 1.0625rem;
   line-height: 1.25;
-  letter-spacing: -0.01em;
-  font-weight: 500;
+  letter-spacing: -0.015em;
+  font-weight: 600;
   color: var(--ink);
 }
 
 /* La légende des familles : barre de nuancier 24 × 8, le nom en sans, la glose en muted. */
 .legende-nom {
-  font-family: var(--prose);
+  font-family: var(--titre);
   font-size: 0.9375rem;
   font-weight: 500;
   color: var(--ink);
 }
 
-/* Le hero : 7 colonnes de titre, 5 de légende. */
+/* LA BANDE DU CORPUS : la zone que le nuage occupe, au-dessus de la carte. Elle deborde de
+   24 px en bas pour que le semis respire sous le champ, et sa legende se pose a droite. */
+.hero-haut {
+  /* Le semis a besoin d'une bande a lui : les trois blocs de texte occupent presque toute la
+     zone, et sans ce pas en bas le nuage ne serait qu'un liseré entre deux paragraphes. */
+  padding-bottom: 54px;
+}
+@media (max-width: 899px) {
+  .hero-haut {
+    padding-bottom: 28px;
+  }
+}
+.hero-fond-legende {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  color: var(--ink-3);
+  pointer-events: none;
+}
+@media (max-width: 639px) {
+  .hero-fond-legende {
+    display: none;
+  }
+}
+
+/* LE CADRE DU HERO. Il tient le premier ecran a partir de 900 px, pour que le repere de
+   defilement tombe en bas de l'ecran et pas au milieu d'une page. En dessous, il prend la
+   hauteur de son contenu : forcer 100dvh sur un telephone pousse la carte hors de vue. */
+.hero-cadre {
+  padding-bottom: 24px;
+}
+@media (min-width: 900px) {
+  /* LE PREMIER ECRAN porte les trois : le titre et le champ, la mesure, et la carte entiere.
+     C'est un verrou — « la map, la stat, et le compute doivent etre visible tous les 3 dans
+     le hero » — et c'est la carte qui ne se reduit pas : la mesure et le champ se compactent
+     autour d'elle. Le cadre ne force donc aucune hauteur, il est cale sur son contenu, et
+     tout le travail se fait sur les tailles. */
+  .hero-cadre {
+    display: flex;
+    flex-direction: column;
+  }
+  .hero-cadre > div {
+    gap: 24px !important;
+  }
+}
+
+/* LE CHAMP DU HERO — la premiere interaction. */
+.champ {
+  background: var(--surface-1);
+  border: 1px solid var(--line-strong);
+  color: var(--ink);
+  font-family: var(--mono);
+  min-height: 44px;
+  padding: 0 12px;
+  min-width: 0;
+  width: 100%;
+  transition: border-color var(--t-feedback) var(--e-out);
+}
+.champ:hover {
+  border-color: var(--ink-3);
+}
+.champ::placeholder {
+  color: var(--ink-3);
+}
+
+/* LE SEUL BOUTON ORANGE DE LA PAGE. L'orange est la couleur de la famille action : il est
+   ici parce que c'est l'action primaire, et il n'est nulle part ailleurs. */
+.bouton-primaire {
+  font-family: var(--prose);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  background: var(--fam-action);
+  color: var(--bg);
+  border: 1px solid var(--fam-action);
+  min-height: 44px;
+  padding: 0 18px;
+  cursor: pointer;
+  transition:
+    background var(--t-feedback) var(--e-out),
+    border-color var(--t-feedback) var(--e-out);
+}
+.bouton-primaire:hover {
+  background: #f27d45;
+  border-color: #f27d45;
+}
+.bouton-primaire:active {
+  transform: translateY(1px);
+}
+
+.nuancier {
+  width: 24px;
+  height: 8px;
+  display: inline-block;
+  flex: none;
+}
+
+/* L'ECART, dans le premier ecran, cale a droite du titre. */
+.hero-mesure {
+  justify-content: flex-start;
+  padding-left: 28px;
+  border-left: 1px solid var(--line);
+}
+@media (max-width: 899px) {
+  .hero-mesure {
+    padding-left: 0;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    padding-top: 20px;
+  }
+}
+
+/* LA TROISIEME INTERACTION : descendre. Le pion tombe dans son trait, en boucle, et le
+   bouton defile jusqu'a la carte. Immobile sous mouvement reduit. */
+.scroll-cue {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: transparent;
+  border: 0;
+  padding: 10px 0;
+  min-height: 44px;
+  color: var(--ink-2);
+  cursor: pointer;
+  text-align: left;
+  transition: color var(--t-feedback) var(--e-out);
+}
+.scroll-cue:hover {
+  color: var(--ink);
+}
+.scroll-cue-trait {
+  position: relative;
+  display: block;
+  width: 1px;
+  height: 24px;
+  background: var(--line-strong);
+  flex: none;
+}
+.scroll-cue-pion {
+  position: absolute;
+  left: -1px;
+  top: 0;
+  width: 3px;
+  height: 8px;
+  background: var(--ink);
+  animation: cue-descend 1.8s var(--e-out) infinite;
+}
+@keyframes cue-descend {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scroll-cue-pion {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* Le hero : 7 colonnes de titre, 5 de mesure. */
 .hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 24px;
-  align-items: end;
+  align-items: start;
 }
 @media (min-width: 900px) {
   .hero {
     grid-template-columns: 7fr 5fr;
-    gap: 48px;
+    gap: 56px;
   }
 }
 

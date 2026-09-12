@@ -1,4 +1,4 @@
-# Audit de la hero — `#/`, direction A « la plaque », 2026-09-12
+# Audit de la hero — `#/`, direction A « la plaque », 2026-09-12 (révision 2)
 
 ## web-design-guidelines
 
@@ -40,3 +40,51 @@ Reste, et pourquoi :
 3. La section usage et preuve, les accès et la matrice sont encore dans l'ancien `Panel` : les passer au système (titres `t-headline`, champs `field`, boutons `button-*`).
 4. Les pages outil et l'instrument : onglets avec repère de famille, tables `table-header` / `table-cell`, index collant.
 5. Preload des deux polices dans `index.html`.
+
+
+---
+
+## Révision 2 — les six corrections, puis les deux suivantes
+
+Ce qui a changé depuis la première présentation, et ce que chaque audit a trouvé dessus.
+
+**Les corrections appliquées.** L'écart de 96,74 bps et le champ d'adresse sont montés dans le
+premier écran, avec le schéma entier : les trois tiennent ensemble à 1440 × 900, le schéma
+intact, la mesure et le champ compactés autour de lui. Les trois interactions sont signalées
+sans lire : le seul bouton orange de la page sous le champ, un port coloré et un chevron sur
+chaque plaque au survol, un repère de défilement animé sous la carte. Le graphe a gagné ce que
+la référence SEDA Kit apporte : des ports au bord des plaques, des câbles qui portent la
+couleur de la famille qu'ils desservent au lieu d'un gris uniforme, et un flux qui descend les
+pistes en continu. Archivo porte les titres, Instrument Sans la prose, JetBrains Mono les
+données. Le fond est la bande du corpus.
+
+**web-design-guidelines, deuxième passe.** Violations trouvées et corrigées :
+- `Carte.tsx` : le champ du hero n'avait ni `inputMode`, ni `aria-describedby`, ni `aria-invalid`, ni message d'erreur — une adresse incomplète faisait défiler sans rien dire. Aide et erreur écrites sous le champ, soumission bloquée tant que l'adresse n'est pas lisible.
+- `Carte.tsx`, `App.tsx` : les deux `scrollIntoView({ behavior: 'smooth' })` ignoraient `prefers-reduced-motion`. Un helper `doux()` rend `auto` dans ce cas.
+- `Carte.tsx` : le bouton du hero décrochait du champ parce que le texte d'aide était dans le même bloc que l'input ; l'aide passe sur sa propre ligne.
+
+Vérifié conforme, sans changement : `<canvas>` en `aria-hidden` et `pointer-events: none` ;
+`useEffect` avec nettoyage strict (rAF, `ResizeObserver`, `MutationObserver`, `visibilitychange`) ;
+aucun écouteur de défilement ; aucun `transition: all` ; contraste du bouton orange 5,8:1 sur le
+texte d'encre sombre ; cibles 44 px sur le champ, le bouton, les plaques et le repère de
+défilement ; `translate="no"` sur la marque et les montants en wei.
+
+Reste, et pourquoi : l'animation du flux et le tracé des pistes portent sur `stroke-dashoffset`,
+qui n'est ni `transform` ni `opacity`. C'est une propriété de peinture, sans recalcul de mise en
+page, et c'est le seul moyen de dessiner un trait progressivement ; les deux s'arrêtent sous
+mouvement réduit. Le preload des deux polices dans `index.html` reste pour le build.
+
+**Design Audit, deuxième passe.** La typographie a gagné une voix de titre distincte d'Archivo
+(700, -0,035em) contre la prose d'Instrument Sans — la hiérarchie ne tient plus seulement à la
+taille. La couleur reste disciplinée : un seul accent orange, sur le bouton primaire et la
+famille action ; les câbles colorés n'ajoutent pas une couleur, ils appliquent celle qui existe
+déjà. Le layout a perdu son trou : le premier écran est plein, l'enceinte est le seul geste de
+cadrage, rien n'est centré. Les états sont complets sur le champ (vide, erreur, valide) et sur
+les plaques (repos, survol, focus, actif, en attente, hors ligne).
+
+### Fix Priority (ce qui reste, pour `/da-kit:build`)
+1. Le rail des 27 jeux garde la grammaire d'une liste alors que tout le reste est en plaques : lui donner un port et un filet de famille, ou le réduire à une plaque dépliable.
+2. La section usage et preuve, les accès et la matrice sont encore dans l'ancien `Panel` : les passer au système (titres `t-headline`, champs `field`, boutons `button-*`).
+3. Les pages outil et l'instrument : onglets avec repère de famille, tables `table-header` / `table-cell`, index collant.
+4. Preload des deux polices dans `index.html`.
+5. Vérifier la bande du corpus en thème clair : les trois valeurs qu'elle lit changent, la densité perçue aussi.

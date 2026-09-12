@@ -13,7 +13,7 @@
  * réponse maintenant, l'extension pour qui échange ailleurs, le MCP pour un agent, x402 pour
  * un agent sans compte, le compte pour qui revient.
  */
-import { Fragment, useEffect, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Panel, Copy, NonLu, Replay } from './Prim'
 import { FigureAppariee } from './Figure'
 import { COULEUR } from './familles'
@@ -125,11 +125,18 @@ function LignePorte({ p, rang, meilleur }: { p: Porte; rang: number; meilleur: n
  * la difference se voit : l'ecart de la hero est un `display`, celui-ci un `metric`, comme la
  * charte le demande — un seul `display` par ecran.
  */
-export function AccueilPanel() {
+export function AccueilPanel({
+  saisie,
+  setSaisie,
+}: {
+  /** L'adresse vient du champ du hero : la section RÉPOND, elle ne redemande pas. */
+  saisie: string
+  setSaisie: (v: string) => void
+}) {
   const proposes = useMemo(() => jetonsProposes(), [])
-  const [saisie, setSaisie] = useState('')
   const [taille, setTaille] = useState<string | undefined>(undefined)
 
+  const champ = useRef<HTMLInputElement | null>(null)
   const jeton = saisie.trim().toLowerCase()
   const valide = EST_ADRESSE.test(jeton)
   const tailles = useMemo(() => (valide ? taillesPour(dataset.rows, jeton) : []), [jeton, valide])
@@ -180,6 +187,7 @@ export function AccueilPanel() {
               setSaisie(e.target.value)
               setTaille(undefined)
             }}
+            ref={champ}
             spellCheck={false}
             autoComplete="off"
             translate="no"

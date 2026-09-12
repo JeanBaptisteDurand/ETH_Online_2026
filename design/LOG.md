@@ -21,3 +21,7 @@
 - 21:58 hero passe 1 : barre haute débordait à 390, compte des jeux répété ; corrigé, recapturé
 - 22:05 hero passe 2 : provenance flottait au centre de la barre, dt/dd inversés dans la figure, translate=no ; corrigé, recapturé
 - 22:12 audits hero : web-design-guidelines (4 corrigées, 1 reste : preload polices) et Design Audit écrits dans design/audit-hero.md
+- 22:20 corrections hero (6 locks) : 96,74 et le champ d'adresse dans le hero, trois interactions évidentes, graphe plus clair et dynamique (réf. Dribbble SEDA Kit), Archivo pour les titres, fond animé. locks : 21
+- 22:30 DESIGN.md mis à jour (Archivo, champ de câblage, ports, pistes colorées, flux, scroll-cue, hero avec le chiffre et le champ), lint 0/0
+- 22:10 corrections hero 2 : les trois blocs dans le premier écran, le fond de pistes refusé (trop AI). locks : 24
+- 22:35 hero révision 2 : les trois blocs dans le premier écran, fond remplacé par la bande du corpus (3 400 mesures relues), ports et câbles colorés, Archivo. audits repassés dans design/audit-hero.md

@@ -45,3 +45,24 @@ Locks ajoutés :
 
 Lock : direction **A · La plaque** — la carte est une enceinte d'un cran plus claire que la page,
 les nœuds sont des plaques avec un liseré haut d'un pixel, le câblage passe du gris à l'encre au survol.
+
+## Corrections sur la hero (2026-09-12, 22:20)
+
+> « Alors quelque correction mais j'aime deja beaucoup. Je voudrais que ma statistique, 96,74, apparaissent directement dans le hero, comme le fait de pouvoir coller un jeton pour compute une adresse. Aussi, je veux que trois interaction soit evidente : la possibilite de scroll down pour voir les details de nos process, la possibilite de cliquer sur un node pour voir le detail de l'outil. Aussi, meme si le graph est deja bien, je trouve qu'il manque un peu de clarte et de dynamisme. Tu peux t'inspirer de ce genre de graph la : https://dribbble.com/shots/26500134-Ai-generation-of-a-node-system-for-generating-images-SEDA-Kit. Aussi, une police plus affirme genre archivo pour les titres serait bienvenu. Et finalement, je voudrais avoir un fond complexe et anime pour ma hero. Je te laisse le soin de definir quel type d'animation (en utilisant motion ou pas) s'y prete le mieux. »
+
+Locks ajoutés :
+- « ma statistique, 96,74, apparaissent directement dans le hero » (composition : l'écart de la porte A4 dans le premier écran)
+- « pouvoir coller un jeton pour compute une adresse » dans le hero (composition : le champ d'adresse dans le premier écran)
+- « trois interaction soit evidente : […] scroll down pour voir les details de nos process, […] cliquer sur un node pour voir le detail de l'outil » (composition, motion : coller, cliquer un nœud, descendre, les trois signalées sans lire)
+- « le graph […] manque un peu de clarte et de dynamisme », référence https://dribbble.com/shots/26500134 (SEDA Kit) (composition, motion)
+- « une police plus affirme genre archivo pour les titres » (typographie : Archivo pour les titres ; Instrument Sans reste pour la prose, JetBrains Mono pour les données)
+- « un fond complexe et anime pour ma hero », le type d'animation laissé à la DA (fond, motion)
+
+## Corrections sur la hero, 2 (2026-09-12, 22:10)
+
+> « petit detail : la map, la stat, et le compute doivent etre visible tous les 3 dans le hero, tu peux reduire le contenu de la stat et du compute, mais pas le schema. Tu peux changer le layout des trois component pour que cela passe. Aussi, je n'aime pas trop l'animation propose, trop AI generated dans le style, cherche pour une autre reference. »
+
+Locks ajoutés :
+- « la map, la stat, et le compute doivent etre visible tous les 3 dans le hero » (composition : le premier écran porte le schéma entier, l'écart et le champ)
+- « tu peux reduire le contenu de la stat et du compute, mais pas le schema » (la carte ne se réduit pas ; la mesure et le champ se compactent)
+- « je n'aime pas trop l'animation propose, trop AI generated dans le style » (le champ de pistes qui poussent au hasard est refusé : chercher une autre référence)

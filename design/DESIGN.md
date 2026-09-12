@@ -24,7 +24,7 @@ colors:
 
 typography:
   display:
-    fontFamily: "Instrument Sans Variable"
+    fontFamily: "Archivo Variable"
     fontSize: "4rem"
     fontWeight: 600
     letterSpacing: "-0.03em"
@@ -36,13 +36,13 @@ typography:
     letterSpacing: "-0.02em"
     lineHeight: 1
   headline:
-    fontFamily: "Instrument Sans Variable"
+    fontFamily: "Archivo Variable"
     fontSize: "2rem"
     fontWeight: 600
     letterSpacing: "-0.02em"
     lineHeight: 1.15
   title:
-    fontFamily: "Instrument Sans Variable"
+    fontFamily: "Archivo Variable"
     fontSize: "1.25rem"
     fontWeight: 500
     letterSpacing: "-0.01em"
@@ -111,6 +111,18 @@ components:
   wire-rest:
     backgroundColor: "{colors.border}"
     height: "1px"
+  port:
+    backgroundColor: "{colors.surface-3}"
+    width: "7px"
+    height: "7px"
+  bande-corpus:
+    backgroundColor: "{colors.ink-subtle}"
+    height: "1px"
+  scroll-cue:
+    backgroundColor: "{colors.canvas}"
+    textColor: "{colors.ink-muted}"
+    typography: "{typography.mono-sm}"
+    height: "44px"
   button-primary:
     backgroundColor: "{colors.primary}"
     textColor: "{colors.on-primary}"
@@ -219,20 +231,20 @@ Skills invoked : frontend-design, design-taste-frontend, high-end-visual-design,
 Brand DESIGN.md read : linear.app.md, vercel.md
 Dials (taste-skill) : variance 6, motion 4, density 7
 Ambition : marqué
-Locks (the user's words, never rediscussed) : "une map en node/flux […] la première chose que l'on voit sur la page, l'orchestrateur et tous les tools qu'il utilise", "à la fois la preuve et l'usage", "évite les canevas pointillés, trop AI", "évite globalement les rendus type AI. Choix des couleurs, coins arrondis etc.", "l'instrument est en français", "A, avec l'horloge de B : le schéma d'appareil en hero", "une véritable identité SaaS type Awwwards, très soignée", "reprendre l'ensemble du front entièrement, juste il faut garder la composition globale", "Va pour la A"
+Locks (the user's words, never rediscussed) : "une map en node/flux […] la première chose que l'on voit sur la page, l'orchestrateur et tous les tools qu'il utilise", "à la fois la preuve et l'usage", "évite les canevas pointillés, trop AI", "évite globalement les rendus type AI. Choix des couleurs, coins arrondis etc.", "l'instrument est en français", "A, avec l'horloge de B : le schéma d'appareil en hero", "une véritable identité SaaS type Awwwards, très soignée", "reprendre l'ensemble du front entièrement, juste il faut garder la composition globale", "Va pour la A", "ma statistique, 96,74, apparaissent directement dans le hero", "pouvoir coller un jeton pour compute une adresse", "trois interaction soit evidente : scroll down, cliquer sur un node", "le graph manque un peu de clarte et de dynamisme" (réf. Dribbble SEDA Kit), "une police plus affirme genre archivo pour les titres", "un fond complexe et anime pour ma hero", "la map, la stat, et le compute doivent etre visible tous les 3 dans le hero", "tu peux reduire le contenu de la stat et du compute, mais pas le schema", "je n'aime pas trop l'animation propose, trop AI generated dans le style"
 
 ## Overview
 
-**Memorable** : on survole un outil et son chemin s'allume à travers toute la carte, du jeu de données à l'orchestrateur, en encre sur une plaque usinée.
+**Memorable** : le premier écran porte les 125 072 mesures en fond, relues sans fin par une tête de lecture, et par-dessus les trois choses qui comptent — ce qu'un hook a pris, un champ pour le demander sur son propre jeton, et le système entier en un schéma dont chaque nœud s'ouvre.
 
 TARE appartient au monde des instruments de mesure et des schémas d'atelier : une plaque sombre, des pistes tirées à angle droit, des chiffres qui portent leur unité et leur bloc. On arrive sur un produit fini, pas sur un terminal : la voix est Instrument Sans, calme et large, et la mono n'apparaît que là où une valeur est une valeur. Ce site n'est ni un tableau de bord ni une page de lancement : c'est la carte d'un système, et la carte se lit avant de se lire. De **linear.app.md** je prends l'échelle de quatre surfaces sans ombre (`{colors.canvas}` → `{colors.surface-1}` → `{colors.surface-2}` → `{colors.surface-3}`) qui construit toute la profondeur, le liseré clair sur le bord haut d'un panneau qui le fait « rendu », et le display à 600 jamais au-delà. De **vercel.md** la règle de partage : la sans porte tout ce qui est récit, la mono seulement la couche technique, et le chiffre display du hero est le seul endroit où la mono devient grande.
 
 **Key Characteristics:**
 - Quatre surfaces et deux filets : la page, l'enceinte de la carte un cran plus claire, la plaque, la plaque survolée. La profondeur est une valeur, jamais une ombre.
 - Un seul accent, l'orange action `{colors.primary}`, sur trois choses : les nœuds de la famille action, le bouton primaire, l'onglet actif. Le bleu collecte et le jaune analyse sont des couleurs de catégorie, jamais de décoration.
-- Display Instrument Sans 600 à -0.03em, un titre par route ; le nombre display en JetBrains Mono 500, un par écran, pour l'écart en bps.
-- Matière plate : filet 1 px, liseré haut 1 px sur chaque plaque, rayon 0 partout. Aucun dégradé, aucune ombre, aucun flou, aucune trame.
-- Motion calm : le câblage se trace une fois au chargement, puis tout répond au survol. Les nombres ne bougent jamais.
+- Display **Archivo** 700 à -0.035em pour les titres, Instrument Sans pour la prose, JetBrains Mono pour les données. Trois voix, trois fonctions.
+- Matière plate : filet 1 px, liseré haut 1 px sur chaque plaque, rayon 0 partout. Aucun dégradé, aucune ombre, aucun flou. La seule matière animée est la bande du corpus, en fond du hero.
+- Motion calm : la bande du corpus est relue en continu, le câblage de la carte se trace une fois au chargement, le flux descend le long des pistes, et tout le reste répond au survol. Les nombres ne bougent jamais.
 - Jamais : capitales espacées en titre, chaînes de métadonnées en points médians, flèches collées aux liens, kit de cartes identiques, mono comme voix par défaut.
 
 ## Colors
@@ -251,26 +263,35 @@ Le jaune analyse est désaturé (`#dfc24d` au lieu du `#f6d746` actuel) pour ten
 
 ## Typography
 
-Deux familles auto-hébergées (`@fontsource-variable/instrument-sans`, `@fontsource-variable/jetbrains-mono`), déjà dans le paquet. Instrument Sans est la voix : `{typography.display}` pour le titre de route, `{typography.headline}` pour un titre de section, `{typography.title}` pour le nom d'un outil sur sa plaque, `{typography.body}` pour la prose à 65 ch au plus, les libellés et la navigation. JetBrains Mono est la donnée : `{typography.mono}` pour toute valeur, adresse, commande et champ, `{typography.mono-sm}` pour la ligne de métadonnée d'une plaque et les en-têtes de table, `{typography.number}` pour l'écart en bps, une fois par écran. Échelle : 11 / 13 / 16 / 20 / 32 / 64 / 112 px, rapport 10:1 dans le pli du hero ; `{typography.display}` descend à 2,75 rem et `{typography.number}` à 3,5 rem sous 768 px (clamp dans le code). Graisses 400, 500, 600 ; jamais 700. Chiffres tabulaires partout, zéro barré sur l'hexadécimal. Les capitales ne servent qu'aux valeurs qui s'écrivent ainsi (`MESURE`, `PRÊT`, `ABSENT`).
+Trois familles auto-hébergées (`@fontsource-variable/archivo`, `@fontsource-variable/instrument-sans`, `@fontsource-variable/jetbrains-mono`), toutes dans le paquet. **Archivo** est la voix des titres — une grotesque plus large et plus affirmée qu'Instrument Sans, qui donne au titre de route la présence que la charte demande : `{typography.display}` pour le titre de route (700, -0.035em), `{typography.headline}` pour un titre de section (700), `{typography.title}` pour le nom d'un outil sur sa plaque (600). Instrument Sans reste la voix de la prose : `{typography.body}` à 65 ch au plus, les libellés, la navigation. JetBrains Mono est la donnée : `{typography.mono}` pour toute valeur, adresse, commande et champ, `{typography.mono-sm}` pour la ligne de métadonnée d'une plaque et les en-têtes de table, `{typography.number}` pour l'écart en bps, une fois par écran. Échelle : 11 / 13 / 16 / 20 / 32 / 64 / 112 px, rapport 10:1 dans le pli du hero ; `{typography.display}` descend à 2,75 rem et `{typography.number}` à 3,5 rem sous 768 px (clamp dans le code). Graisses 400, 500, 600 ; jamais 700. Chiffres tabulaires partout, zéro barré sur l'hexadécimal. Les capitales ne servent qu'aux valeurs qui s'écrivent ainsi (`MESURE`, `PRÊT`, `ABSENT`).
 
 ## Layout
 
 Shell : barre haute de 56 px sur `{colors.canvas}`, filet bas `{colors.border}`, le nom TARE en `{typography.title}` à gauche, les deux routes et le thème à droite en `{typography.body}`, la provenance dans un dépliant. Grille 12 colonnes, gouttière 24 px, largeur maximale 1360 px, marges 24 px (16 px sous 768). Rythme vertical par 8, sections séparées par `{spacing.section}` et un filet pleine largeur. Tout est aligné à gauche.
 
-**Écran 1, `#/`, la carte puis l'opération.** Hero nommé **editorial-schema** : sur 7 colonnes, le titre en `{typography.display}` « Ce qu'un hook prend vraiment sur un swap. » avec sous lui un `{typography.body}` de deux lignes en `{colors.ink-muted}` et la légende des trois familles ; à droite, sur 5 colonnes, l'horloge réelle de la chaîne. Sous eux, l'**enclosure** pleine largeur porte la carte : le rail des 27 jeux à gauche (une colonne de lignes mono, comptée), la plaque orchestrateur au centre gauche, les quatorze plaques en trois colonnes de famille à droite, câblées. Au-dessus du pli à 1440 : le titre, la légende, l'horloge, l'orchestrateur, les quatorze plaques. Sous le pli : la section usage et preuve (champ d'adresse, six jetons du corpus, puis la **figure-paired** : deux séries dans les mêmes axes, l'intervalle entre crochets, l'écart en `{typography.number}`), puis les cinq accès en liste à filets, puis la matrice 27 × 14 en grille `gap: 1px`. Action primaire : cliquer une plaque. États de la section usage : vide (les six jetons), refus motivé (« il n'y a qu'une porte », écrit dans la figure), succès.
+**Écran 1, `#/`, la carte puis l'opération.** Hero nommé **editorial-schema**, sur la bande du corpus (rubrique Elevation).
+
+**Le premier écran porte les trois, et c'est un verrou** : le schéma entier, l'écart mesuré, et le champ où l'on colle une adresse. Le schéma ne se réduit pas ; ce sont la mesure et le champ qui se compactent autour de lui. Disposition à 1440 : en haut à gauche sur 7 colonnes, le titre en `{typography.display}` sur deux lignes puis le champ (`field` + `button-primary` « voir ce qu'elle coûte ») ; en haut à droite sur 5 colonnes, séparé par un filet vertical, l'écart en `{typography.number}` suivi d'une seule phrase qui donne les deux cotations ; sous eux, pleine largeur, l'**enclosure** avec la légende des trois familles, le rail des 27 jeux, la plaque orchestrateur et les quatorze plaques câblées. En bas, le **scroll-cue**.
+
+Sous le premier écran : la section usage et preuve, qui reçoit l'adresse collée dans le hero et rend la **figure-paired** du jeton ; puis les cinq accès en liste à filets ; puis la matrice 27 × 14 en grille `gap: 1px`. États de la section usage : vide (six jetons du corpus proposés), refus motivé (« il n'y a qu'une porte », écrit à la place du verdict), succès.
+
+**Les trois interactions, et comment chacune se voit sans lire.** Coller : le champ est dans le premier écran, avec le seul bouton orange de la page, et son aide s'écrit sous lui. Cliquer un nœud : chaque plaque porte un port coloré sur son bord gauche et, au survol, un chevron `›` apparaît à droite de son nom pendant que son chemin s'allume ; l'en-tête de l'enceinte le dit en toutes lettres. Descendre : le scroll-cue sous la carte, animé, cliquable, qui nomme ce qui vient.
 
 ```
-TARE                          la carte   l'instrument   clair
-Ce qu'un hook prend                      LA CHAÎNE  6/6 · 13 680 ms
-vraiment sur un swap.                    ▁▂▃▅▂▇
-■ collecte  ■ analyse  ■ action
-┌ enclosure ──────────────────────────────────────────────────┐
-│ 27 jeux      ┌──────────┐    ┌ 1 Mesurer ┐ ┌ 2 Consulter┐ ┌ 7 Substituer┐ │
-│ measurements ┤ LA CHAÎNE ├─┬──┤ 3 jeux lus│ │ 6 jeux lus │ │ 3 jeux lus  │ │
-│ one-way      └──────────┘ ├──┤ 8 Intercep│ │ 3 Situer   │ │ 9 Approuver │ │
-│ +25          ─────────────┘  └───────────┘ └────────────┘ └─────────────┘ │
-└──────────────────────────────────────────────────────────────┘
+Ce qu’un hook prend              |  96,74
+vraiment sur un swap.            |  bps pris sur un swap réellement exécuté
+[ 0x…                ] [ voir ]  |  il en reste 99,03 au lieu de 100,00
+────────────────── la bande du corpus, relue en continu ──────────────────
+┌ enclosure ───────────────────────────────────────────────────────┐
+│ La chaîne et ses 14 outils   ■ collecte  ■ analyse  ■ action     │
+│ 27 jeux   ┌ LA CHAÎNE ┐─┬─▌1 Mesurer  ▌2 Consulter ▌7 Substituer │
+│ corpus    │ 6/6 · 13 680 ├─▌8 Intercep ▌3 Situer   ▌9 Approuver  │
+│ …         └ ▁▂▃▅ ────┘ └─▌10 Payer    ▌4 Comprendre…             │
+└──────────────────────────────────────────────────────────────────┘
+│ plus bas : l’opération sur ton jeton, les accès, les données
 ```
+
+À 768 : une colonne, le titre puis le champ puis la mesure, la carte garde ses trois colonnes de famille sous l'orchestrateur. À 390 : le titre en trois lignes, le champ et le bouton empilés, la mesure en une ligne de chiffre plus une phrase, les plaques en deux colonnes sans métadonnée, le rail des jeux remplacé par un compteur cliquable.
 
 **Écran 2, `#/outil/1` à `14`.** Bandeau d'onglets collant sous la barre (un par outil, repère de famille à gauche du numéro, l'actif souligné de 2 px dans sa couleur de famille, défilable au doigt). Au-dessus du pli : le nom en `{typography.display}` réduit d'un cran, la question de l'outil en `{typography.body}`, famille et état, et la sortie réelle ; pour l'outil 1 c'est la figure appariée en grand. Sous le pli : entrée, exécution, sortie, en trois blocs à `{typography.headline}` séparés par filets, sans boîte. L'échantillon de cinq lignes se déplie. Action primaire : copier la commande de rejeu (bouton secondaire) ; pour l'outil 7, le bouton primaire n'est actif que sur `PRÊT` et les neuf autres états sont listés avec leur raison.
 
@@ -280,12 +301,12 @@ vraiment sur un swap.                    ▁▂▃▅▂▇
 
 ## Elevation & Depth
 
-Trois niveaux, tous faits de valeur et de filet : le canvas, l'enceinte un cran plus clair avec un filet `{colors.border}`, la plaque deux crans plus claire avec un filet `{colors.border}` et un liseré haut `{colors.highlight}`. Le survol monte d'un cran (`{colors.surface-3}`, filet `{colors.border-strong}`). Le liseré `plate-highlight` est le seul emploi de `{colors.highlight}` ; l'anneau de focus `focus-ring` le seul emploi de `{colors.focus}` hors les champs. Aucune ombre, aucun flou : la lumière vient du liseré haut, toujours la même source.
+Trois niveaux, tous faits de valeur et de filet : le canvas, l'enceinte un cran plus clair avec un filet `{colors.border}`, la plaque deux crans plus claire avec un filet `{colors.border}` et un liseré haut `{colors.highlight}`. Sous le canvas du hero, et seulement là, un quatrième plan qui n'est pas une surface : la bande du corpus. Le survol monte d'un cran (`{colors.surface-3}`, filet `{colors.border-strong}`). Le liseré `plate-highlight` est le seul emploi de `{colors.highlight}` ; l'anneau de focus `focus-ring` le seul emploi de `{colors.focus}` hors les champs. Aucune ombre, aucun flou : la lumière vient du liseré haut, toujours la même source.
 
 | section | base | field | texture | accents | why |
 |---|---|---|---|---|---|
 | barre haute | canvas | aucun | aucune | aucun | elle s'efface derrière la carte |
-| hero, titre et horloge | canvas | aucun | aucune | légende des familles | le titre ne se bat contre rien |
+| hero | canvas | **la bande du corpus** (canvas 2D : 3 400 mesures réelles, rang en abscisse, bps en log en ordonnée, relues par une tête de lecture en 11 s) | aucune | le nombre en encre, le bouton orange | le fond n'illustre rien, il montre la donnée du produit ; il ne passe jamais devant un texte, parce qu'on creuse les rectangles de ligne mesurés, pas les boîtes |
 | carte | surface-1 (enclosure) | aucun | aucune | barres de famille 3 px, orange sur les plaques action | l'enceinte est le seul geste de cadrage de la page |
 | usage et preuve | canvas, figure sur surface-1 | aucun | aucune | verdict en encre, série de référence grise | la figure est une lecture de précision |
 | accès | canvas | aucun | aucune | aucun | respiration |
@@ -295,7 +316,7 @@ Trois niveaux, tous faits de valeur et de filet : le canvas, l'enceinte un cran 
 
 ## Shapes
 
-Rayon 0 sur tout, sans exception : c'est un lock et une mesure de la charte (6/6 des sites primés de référence). Filets 1 px, jamais plus, sauf la barre de famille de 3 px au bord gauche d'une plaque et le soulignement de 2 px d'un onglet actif. Les extrémités d'une piste se terminent par un segment perpendiculaire de 6 px, jamais une flèche pleine. Aucune icône : les états s'écrivent (`prêt`, `en attente`, `hors ligne`), la famille se voit à la barre et à la colonne.
+Rayon 0 sur tout, sans exception : c'est un lock et une mesure de la charte (6/6 des sites primés de référence). Filets 1 px, jamais plus, sauf la barre de famille de 3 px au bord gauche d'une plaque et le soulignement de 2 px d'un onglet actif. Une piste part et arrive sur un **port** : un carré plein de 7 px, de la couleur de la famille qu'il dessert, posé sur le bord de la plaque. Jamais une flèche pleine. Aucune icône : les états s'écrivent (`prêt`, `en attente`, `hors ligne`), la famille se voit à la barre et à la colonne.
 
 ## Components
 
@@ -305,7 +326,15 @@ Rayon 0 sur tout, sans exception : c'est un lock et une mesure de la charte (6/6
 
 **plate-orchestrator** : deux plaques de large, filet `{colors.border-strong}`, le nom « La chaîne » en `{typography.headline}`, `6/6 étapes en 13 680 ms` en `{typography.mono}`, six graduations hautes comme la durée de leur étape en `{colors.ink-muted}`.
 
-**wire** : SVG, polylignes orthogonales 1 px, `{colors.border-strong}` au repos (`wire-rest` `{colors.border}` pour les pistes éteintes pendant un survol), pleines d'outil à outil, tirets 4/4 d'un jeu de données vers un outil. Extrémité : segment perpendiculaire 6 px. Au survol d'une plaque, le chemin complet passe à `{colors.ink}`.
+**wire** : SVG, polylignes orthogonales 1 px. **Chaque piste porte la couleur de la famille qu'elle dessert** — c'est ce qui rend la carte lisible d'un coup d'œil : on suit le bleu, le jaune ou l'orange de l'orchestrateur jusqu'à son outil, au lieu de démêler quarante traits gris. Au repos la couleur est posée à 45 % sur le fond ; au survol d'une plaque, son chemin passe à pleine couleur et s'épaissit à 1,5 px pendant que les autres descendent à `wire-rest`. Un **flux** parcourt les pistes en continu : un tiret court de la couleur de la famille qui descend de l'orchestrateur vers les outils, 4 s par cycle, décalé par famille — le dynamisme vient de là, et il s'arrête sous `prefers-reduced-motion`. Les pistes du rail des données restent en tirets 4/4 gris : une alimentation n'est pas un flux d'outil.
+
+**port** : un carré plein de 7 px à la couleur de la famille, à cheval sur le bord gauche d'une plaque et sur les bords de l'orchestrateur. Il dit où le câble se branche, et c'est le signe qu'une plaque est un nœud connecté, pas une case. Au survol, il passe à `{colors.ink}`.
+
+**scroll-cue** : en bas du premier écran, un trait vertical de 24 px en `{colors.border-strong}` dans lequel un segment de 8 px descend en boucle (1,8 s), suivi du nom des sections qui viennent en `{typography.mono-sm}`. C'est un `<button>` : il défile jusqu'à la carte. Sous `prefers-reduced-motion`, le segment reste en haut du trait.
+
+**bande-corpus** (le fond du hero) : un `<canvas>` 2D en `position: absolute`, `aria-hidden`, `pointer-events: none`, derrière le titre, le champ et la mesure — et pas derrière la carte, qui est opaque et le cacherait. Il peint un échantillon de 3 400 des 125 072 mesures embarquées : en abscisse le rang dans le corpus, en ordonnée le prélèvement en points de base, en log sur quatre décades. Un point par mesure, 1 px, `{colors.ink-subtle}` à 70 %. Une tête de lecture verticale de 1 px balaie la bande en 11 s ; les points qu'elle vient de traverser passent à `{colors.ink-muted}` puis retombent. Une ligne en `{typography.mono-sm}` la nomme en bas à droite (« 125 072 mesures du corpus, relues en continu ») : sans elle un semis de points n'est qu'une texture, avec elle c'est la preuve. Les textes sont protégés en creusant les **rectangles de ligne** obtenus du `Range` de chaque nœud de texte, jamais la boîte du bloc — un titre de deux lignes occupe une boîte à moitié vide, et la creuser effacerait la bande. Sous `prefers-reduced-motion`, la bande est peinte une fois, complète et immobile ; l'onglet caché l'arrête (`visibilitychange`) ; le canvas est redimensionné par `ResizeObserver`, jamais par un écouteur de défilement.
+
+**Ce que ce fond n'est pas.** Une première version peignait des pistes orthogonales qui poussaient toutes seules ; elle a été refusée — « trop AI generated dans le style » — et elle avait le défaut de sa forme : des traits qui se tracent sur un fond sombre sont le fond de n'importe quel site technique. La règle qui en sort : le fond de ce site ne peut être fait que de ce que ce site mesure.
 
 **figure-paired** : sur `{colors.surface-1}` à filet, deux cellules : à gauche les deux séries dans les mêmes axes (avec le hook en `{colors.ink}`, avec le talon en `{colors.baseline}`), axes en `{typography.mono-sm}`, légende en deux barres de nuancier 24 × 8 px (`series-without` pour la grise) ; à droite l'intervalle `[ 99.9942 → 102.4610 ]` en `{typography.mono}`, l'écart en `{typography.number}`, « bps, ce que le hook a pris » en `{typography.body}`, les deux montants en wei en `{typography.mono-sm}`. Aucun lissage. Refus motivé écrit à la place du verdict.
 
@@ -321,17 +350,17 @@ Rayon 0 sur tout, sans exception : c'est un lock et une mesure de la charte (6/6
 
 ## Motion
 
-Preset **calm**, variance 6, motion 4, densité 7. Pas de smooth scroll. Le moment orchestré, une fois au chargement de `#/` : les plaques sont présentes dès la première image, et les pistes se tracent depuis l'orchestrateur vers les outils par `stroke-dashoffset`, 600 ms, `cubic-bezier(0.32, 0.72, 0, 1)`, famille par famille (collecte, analyse, action). Aucun préchargeur. Ce qui répond : le survol d'une plaque allume son chemin et monte la plaque d'un cran en 120 ms ; le survol d'une étape de l'horloge trace son parcours ; un dépliant ouvre sa hauteur en 180 ms. Une animation par famille : collecte, la piste se remplit ; analyse, la série de référence se superpose à la série mesurée en 180 ms ; action, le bouton et son état changent ensemble en 90 ms. Ce qui ne bouge jamais : les nombres, la rampe. Sous `prefers-reduced-motion` : les pistes sont tracées d'emblée, les changements d'état sont instantanés, rien n'est retiré.
+Preset **calm**, variance 6, motion 4, densité 7. Pas de smooth scroll, pas de bibliothèque de motion : tout tient en CSS et en un `<canvas>` 2D, aucune dépendance ajoutée. Le moment orchestré, une fois au chargement de `#/` : les plaques sont présentes dès la première image, et les pistes se tracent depuis l'orchestrateur vers les outils par `stroke-dashoffset`, 600 ms, `cubic-bezier(0.32, 0.72, 0, 1)`, famille par famille (collecte, analyse, action). Aucun préchargeur. Deux mouvements continus, et deux seulement : la tête de lecture de la bande du corpus (11 s), et le flux qui descend les pistes de la carte (4 s). Tous deux sont lents, posés, et aucun ne traverse un texte. Ce qui répond : le survol d'une plaque allume son chemin et monte la plaque d'un cran en 120 ms ; le survol d'une étape de l'horloge trace son parcours ; un dépliant ouvre sa hauteur en 180 ms. Une animation par famille : collecte, la piste se remplit ; analyse, la série de référence se superpose à la série mesurée en 180 ms ; action, le bouton et son état changent ensemble en 90 ms. Ce qui ne bouge jamais : les nombres, la rampe. Sous `prefers-reduced-motion` : les pistes sont tracées d'emblée, les changements d'état sont instantanés, rien n'est retiré.
 
 ## Do's and Don'ts
 
 **Do** : un seul geste de cadrage par page, l'enceinte, et tout le reste groupé par filet et espace. Instrument Sans pour tout ce qui se lit, JetBrains Mono pour tout ce qui se mesure. Écrire la raison de chaque refus, de chaque état inactif, de chaque lecture manquée.
 
-**Don't** : pas de capitales espacées en titre ni en libellé, pas de chaîne de métadonnées en points médians, pas de flèche `→` collée à un lien, les trois tells de frontend-design auxquels cette direction est le plus exposée. Pas de dégradé, pas d'ombre, pas de coin arrondi, pas de canevas pointillé, pas de compteur animé, pas de préchargeur : les interdits de l'utilisateur. Pas de plaques emboîtées dans des plaques : l'enceinte contient des plaques, une plaque ne contient rien d'autre que son texte.
+**Don't** : pas de fond en dégradé, en mesh, en trame de points ni en pistes qui poussent — le fond du hero est fait des mesures du produit, ou il n'est pas. Pas de capitales espacées en titre ni en libellé, pas de chaîne de métadonnées en points médians, pas de flèche `→` collée à un lien, les trois tells de frontend-design auxquels cette direction est le plus exposée. Pas de dégradé, pas d'ombre, pas de coin arrondi, pas de canevas pointillé, pas de compteur animé, pas de préchargeur : les interdits de l'utilisateur. Pas de plaques emboîtées dans des plaques : l'enceinte contient des plaques, une plaque ne contient rien d'autre que son texte.
 
 ## Responsive Behavior
 
-À 1440 : hero en 7 / 5 colonnes, enceinte pleine largeur avec les quatorze plaques entières dans le pli. À 768 : une colonne pour le hero, l'enceinte garde ses trois colonnes de famille sous l'orchestrateur, les pistes deviennent verticales, les onglets défilent. À 390 : le titre en trois lignes au plus, les plaques en deux colonnes sans métadonnée (douze entières dans le pli), le rail des jeux remplacé par un compteur cliquable, la figure appariée empilée avec le verdict au-dessus, le nombre display à 3,5 rem. Aucun défilement horizontal de la page ; seules les tables défilent dans leur conteneur. Cibles 44 px sur les plaques, 24 px au minimum ailleurs. Focus visible partout.
+À 1440 : hero en 7 / 5 colonnes et enceinte pleine largeur **dans le même écran**, les quatorze plaques entières, le scroll-cue au bas du pli. À 768 : une colonne pour le hero, l'enceinte garde ses trois colonnes de famille sous l'orchestrateur, les pistes deviennent verticales, les onglets défilent. À 390 : le titre en trois lignes au plus, les plaques en deux colonnes sans métadonnée (douze entières dans le pli), le rail des jeux remplacé par un compteur cliquable, la figure appariée empilée avec le verdict au-dessus, le nombre display à 3,5 rem. Aucun défilement horizontal de la page ; seules les tables défilent dans leur conteneur. Cibles 44 px sur les plaques, 24 px au minimum ailleurs. Focus visible partout.
 
 ## Iteration Guide
 
@@ -343,4 +372,4 @@ Preset **calm**, variance 6, motion 4, densité 7. Pas de smooth scroll. Le mome
 
 ## Known Gaps
 
-Le jaune analyse désaturé (`{colors.accent-3}`) et ses valeurs en thème clair sont à confirmer avec l'équipier, qui tient la charte ; la rampe n'est pas touchée. La landing anglaise (`apps/landing`) n'est pas couverte par ce document. Le contenu de l'horloge (six étapes) vient de `chaine-complete.json` : si l'artefact change, la plaque orchestrateur suit.
+Le jaune analyse désaturé (`{colors.accent-3}`) et ses valeurs en thème clair sont à confirmer avec l'équipier, qui tient la charte ; la rampe n'est pas touchée. La landing anglaise (`apps/landing`) n'est pas couverte par ce document. Le contenu de l'horloge (six étapes) vient de `chaine-complete.json` : si l'artefact change, la plaque orchestrateur suit. La bande du corpus est peinte en canvas 2D sans dépendance ; si le site gagne une bibliothèque de motion plus tard, elle n'a pas à être réécrite pour autant.

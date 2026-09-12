@@ -19,7 +19,9 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { OUTILS, type Famille, type Outil } from '../lib/outils'
+import { FondCorpus } from './Fond'
 import { DONNEES, luPar } from '../lib/donnees'
+import { dataset } from '../lib/dataset'
 import { groupDigits } from '../lib/format'
 import facts from '../data/facts.json'
 
@@ -63,11 +65,34 @@ interface Trace {
   len: number
   /** le tracé du chargement part famille par famille : collecte, analyse, action */
   delai: number
+  /** LA COULEUR DE LA PISTE. Une piste grise parmi quarante ne se suit pas ; une piste qui
+      porte la couleur de la famille qu'elle dessert se suit du doigt, de l'orchestrateur
+      jusqu'à son outil. C'est le même encodage que partout : ce que l'outil fait au monde. */
+  couleur: string
 }
 
 const DELAI: Record<Famille, number> = { collecte: 0, analyse: 150, action: 300 }
 
-export function Carte({ surOutil }: { surOutil: (n: number) => void }) {
+/** « smooth », sauf si la personne a demande moins de mouvement — alors on saute. */
+export function doux(): ScrollBehavior {
+  return typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ? 'auto'
+    : 'smooth'
+}
+
+export function Carte({
+  surOutil,
+  saisie,
+  setSaisie,
+  versOperation,
+}: {
+  surOutil: (n: number) => void
+  saisie: string
+  setSaisie: (v: string) => void
+  versOperation: () => void
+}) {
   const boite = useRef<HTMLDivElement | null>(null)
   const chaine = useRef<HTMLDivElement | null>(null)
   const rail = useRef<HTMLDivElement | null>(null)
@@ -151,7 +176,15 @@ export function Carte({ surOutil }: { surOutil: (n: number) => void }) {
         const y = Math.round(r.y + r.height / 2)
         const d = `${amorce} H ${bus} V ${y} H ${r.x}`
         const fam = OUTILS.find((o) => o.n === n)?.famille ?? 'collecte'
-        out.push({ cle: `o${n}`, d, outil: n, alimente: false, len: longueur(d), delai: DELAI[fam] })
+        out.push({
+          cle: `o${n}`,
+          d,
+          outil: n,
+          alimente: false,
+          len: longueur(d),
+          delai: DELAI[fam],
+          couleur: COULEUR[fam],
+        })
       }
     }
 
@@ -162,7 +195,15 @@ export function Carte({ surOutil }: { surOutil: (n: number) => void }) {
       const r = rel(rl.getBoundingClientRect())
       if (r.x + r.width <= rch.x + 1) {
         const d = `M ${r.x + r.width} ${r.y + 14} H ${r.x + r.width + 14} V ${rch.y + rch.height / 2} H ${rch.x}`
-        out.push({ cle: 'rail', d, outil: null, alimente: true, len: longueur(d), delai: 0 })
+        out.push({
+          cle: 'rail',
+          d,
+          outil: null,
+          alimente: true,
+          len: longueur(d),
+          delai: 0,
+          couleur: 'var(--line-strong)',
+        })
       }
     }
 
@@ -188,6 +229,16 @@ export function Carte({ surOutil }: { surOutil: (n: number) => void }) {
 
   const ch = facts.chaine
   const nJeux = DONNEES.length
+
+  /** L'adresse est-elle lisible ? Le meme test que la section qui repond. */
+  const valide = /^0x[0-9a-fA-F]{40}$/.test(saisie.trim())
+
+  /** La carte est dans le premier écran : le repère de défilement mène donc à ce qui vient
+      après elle, l'opération. Le defilement doux est un mouvement : sous
+      `prefers-reduced-motion`, il saute. */
+  const versSuite = useCallback(() => {
+    document.getElementById('operation')?.scrollIntoView({ block: 'start', behavior: doux() })
+  }, [])
 
   // Le temps PROPRE de chaque etape : `a_ms` est un cumul depuis le debut de la chaine.
   const durees = useMemo(() => {
@@ -224,41 +275,122 @@ export function Carte({ surOutil }: { surOutil: (n: number) => void }) {
   }, [])
 
   return (
-    <section aria-labelledby="carte-titre" className="flex flex-col" style={{ gap: 32 }}>
-      {/* LE HERO : le titre à gauche sur sept colonnes, la légende des familles à droite.
-          Une seule focale, le titre ; l'enceinte dessous est la deuxième chose vue. */}
-      <div className="hero">
-        <div className="flex flex-col" style={{ gap: 16 }}>
-          <h1 id="carte-titre" className="t-display m-0" style={{ maxWidth: '18ch' }}>
-            Ce qu’un hook prend vraiment sur un swap.
-          </h1>
-          <p className="t-body t-body-muted m-0" style={{ maxWidth: '52ch' }}>
-            Le même swap coté deux fois, avec le hook et contre un talon inerte de 89 octets.
-            L’écart est la mesure. Chaque nœud de la carte s’ouvre.
-          </p>
-        </div>
-        {/* La légende : trois barres de nuancier, le nom en sans, ce que la famille fait. */}
-        <dl className="legende m-0 p-0 grid" style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 16 }}>
-          {ORDRE.map((f) => (
-            <div key={f} className="flex flex-col" style={{ gap: 6, borderTop: `3px solid ${COULEUR[f]}`, paddingTop: 10 }}>
-              <dt className="legende-nom m-0">{f}</dt>
-              <dd className="legende-glose m-0 t-body-muted" style={{ fontSize: 14, lineHeight: 1.4 }}>
-                {QUOI[f]}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      </div>
+    <section aria-labelledby="carte-titre" className="flex flex-col" style={{ gap: 64 }}>
+      {/* LE HERO. Trois choses dans le premier écran, et les trois interactions avec elles :
+          le titre, le champ où l'on colle une adresse (on agit), l'écart déjà mesuré (on lit),
+          et en bas le repère de défilement (on descend). Derrière, le champ de câblage. */}
+      <div className="hero-cadre">
+        <div className="flex flex-col" style={{ gap: 24 }}>
+          {/* LA BANDE DU CORPUS. Le nuage des 125 072 mesures vit ici, derriere le titre et la
+              mesure — et pas derriere la carte, qui est opaque et le cacherait entierement. */}
+          <div className="hero-haut relative">
+            <FondCorpus />
+            <div className="hero relative" style={{ zIndex: 1 }}>
+            <div className="flex flex-col" style={{ gap: 16 }}>
+              {/* Deux lignes, pas trois : le premier ecran doit porter AUSSI la carte entiere,
+                  et c'est elle qui ne se reduit pas. La glose qui suivait le titre disait ce que
+                  la mesure, a droite, montre deja. */}
+              <h1 id="carte-titre" className="t-display m-0" style={{ maxWidth: '21ch' }}>
+                Ce qu’un hook prend vraiment sur un swap.
+              </h1>
 
-      {/* L'ENCEINTE : la carte entière sur une surface un cran plus claire, cadrée d'un filet. */}
-      <div className="enceinte">
-        <div className="flex flex-wrap items-baseline justify-between gap-[12px] pb-[20px]">
-          <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
-            la chaîne et ses {OUTILS.length} outils
-          </span>
-          <span className="t-data-sm enceinte-aide" style={{ color: 'var(--ink-2)' }}>
-            survoler un outil allume son chemin
-          </span>
+              {/* PREMIÈRE INTERACTION : coller une adresse. C'est l'action primaire de la page,
+                  et le seul bouton orange du site. La recherche se fait sur le corpus embarqué :
+                  aucune requête, et la réponse s'écrit dans la section juste dessous. */}
+              <form
+                className="hero-saisie flex flex-wrap items-end"
+                style={{ gap: 12, rowGap: 6 }}
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  // Une adresse incomplete ne fait pas defiler : la reponse est ici, sous le
+                  // champ, pas trois ecrans plus bas.
+                  if (valide) versOperation()
+                }}
+              >
+                <div className="flex flex-col grow" style={{ gap: 6, minWidth: 0, flexBasis: 320 }}>
+                  <label className="t-body t-body-muted" htmlFor="jeton-hero" style={{ fontSize: 14 }}>
+                    colle l’adresse d’un jeton, lis ce qu’elle coûte
+                  </label>
+                  <input
+                    id="jeton-hero"
+                    name="jeton"
+                    value={saisie}
+                    onChange={(e) => setSaisie(e.target.value)}
+                    spellCheck={false}
+                    autoComplete="off"
+                    translate="no"
+                    inputMode="text"
+                    aria-describedby="jeton-hero-aide"
+                    aria-invalid={saisie.length > 0 && !valide}
+                    placeholder="0x2eb2… 40 caractères après 0x"
+                    className="t-data hex champ"
+                  />
+                </div>
+                <button type="submit" className="bouton-primaire">
+                  voir ce qu’elle coûte
+                </button>
+                {/* L'aide occupe sa ligne meme vide : sans cela le bloc saute quand l'erreur
+                    apparait. L'erreur s'ecrit sous le champ, jamais en alerte. */}
+                <span
+                  id="jeton-hero-aide"
+                  className="t-data-sm"
+                  style={{ color: 'var(--ink-2)', minHeight: 16, flexBasis: '100%' }}
+                >
+                  {saisie.length > 0 && !valide
+                    ? 'une adresse de contrat : 0x suivi de 40 caractères hexadécimaux'
+                    : 'rien n’est envoyé : la recherche se fait sur le corpus embarqué'}
+                </span>
+              </form>
+            </div>
+
+            {/* L'ÉCART, dans le premier écran : c'est ce que le produit mesure, et il se lit
+                avant tout le reste. Les deux cotations viennent de `facts.execution`, la porte
+                A4 — un swap réellement exécuté sur Base, coté deux fois sur le fork. */}
+            {paire && (
+              <div className="hero-mesure flex flex-col" style={{ gap: 6 }}>
+                <output className="t-number m-0" style={{ color: 'var(--ink)' }}>
+                  {paire.bps}
+                </output>
+                <p className="t-body m-0 t-body-muted" style={{ maxWidth: '34ch' }}>
+                  bps pris sur un swap réellement exécuté&nbsp;: il en reste{' '}
+                  <span className="t-data" style={{ color: 'var(--ink)' }}>{paire.avec}</span> au lieu
+                  de <span className="t-data">{paire.sans}</span>, à 89 octets inertes près.
+                </p>
+              </div>
+            )}
+            </div>
+            {/* Ce que le fond montre, dit en une ligne : sans elle, un semis de points n'est
+                qu'une texture. Avec elle, c'est le corpus. */}
+            <span className="hero-fond-legende t-data-sm" aria-hidden="true">
+              {dataset.totals.rows.toLocaleString('fr')} mesures du corpus, relues en continu
+            </span>
+          </div>
+
+          {/* L'ENCEINTE : la carte entière sur une surface un cran plus claire, cadrée d'un filet.
+          Elle est DANS le premier écran, avec le titre, la mesure et le champ : le schéma ne se
+          réduit pas, c'est la mesure et le champ qui se compactent autour de lui. */}
+          <div className="enceinte">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-[28px] gap-y-[8px] pb-[16px]">
+          <div className="flex flex-wrap items-baseline" style={{ gap: 14 }}>
+            <h2 className="t-headline m-0" style={{ fontSize: '1.3125rem' }}>
+              La chaîne et ses {OUTILS.length} outils
+            </h2>
+            {/* DEUXIÈME INTERACTION, écrite : un nœud s'ouvre. */}
+            <span className="t-body t-body-muted" style={{ fontSize: 13.5 }}>
+              cliquer un outil ouvre sa page, le survoler allume son chemin
+            </span>
+          </div>
+          <dl className="legende m-0 p-0 flex flex-wrap items-baseline" style={{ gap: 16 }}>
+            {ORDRE.map((f) => (
+              <div key={f} className="flex items-baseline" style={{ gap: 8 }}>
+                <span aria-hidden="true" className="nuancier" style={{ background: COULEUR[f], height: 6 }} />
+                <dt className="legende-nom m-0" style={{ fontSize: 14 }}>{f}</dt>
+                <dd className="legende-glose m-0 t-body-muted" style={{ fontSize: 13 }}>
+                  {QUOI[f]}
+                </dd>
+              </div>
+            ))}
+          </dl>
         </div>
 
       <div ref={boite} className="relative grid" style={{ gridTemplateColumns: 'minmax(0, 1fr)' }}>
@@ -271,19 +403,48 @@ export function Carte({ surOutil }: { surOutil: (n: number) => void }) {
           style={{ zIndex: 0 }}
         >
           {traces.map((t) => (
-            <path
-              key={t.cle}
-              d={t.d}
-              className={[
-                'piste',
-                t.alimente ? 'piste--alimente' : '',
-                !tracee ? 'piste--trace' : '',
-                actif === null ? '' : actif === t.outil ? 'piste--allumee' : 'piste--eteinte',
-              ]
-                .filter(Boolean)
-                .join(' ')}
-              style={{ '--piste-len': t.len, '--piste-delay': `${t.delai}ms` } as CSSProperties}
-            />
+            <g key={t.cle}>
+              <path
+                d={t.d}
+                className={[
+                  'piste',
+                  t.alimente ? 'piste--alimente' : '',
+                  !tracee ? 'piste--trace' : '',
+                  actif === null ? '' : actif === t.outil ? 'piste--allumee' : 'piste--eteinte',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                style={
+                  {
+                    '--piste-len': t.len,
+                    '--piste-delay': `${t.delai}ms`,
+                    '--piste-couleur': t.couleur,
+                  } as CSSProperties
+                }
+              />
+              {/* LE FLUX : un tiret court qui descend de l'orchestrateur vers l'outil, en
+                  continu. C'est le seul mouvement de la carte après le tracé initial, et il
+                  dit ce que le schéma ne peut pas dire : ça circule. Il s'arrête sous
+                  `prefers-reduced-motion`, et il ne part qu'une fois le tracé fini. */}
+              {!t.alimente && tracee && (
+                <path
+                  d={t.d}
+                  className={[
+                    'flux',
+                    actif === null ? '' : actif === t.outil ? 'flux--allume' : 'flux--eteint',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                  style={
+                    {
+                      '--piste-len': t.len,
+                      '--piste-delay': `${t.delai}ms`,
+                      '--piste-couleur': t.couleur,
+                    } as CSSProperties
+                  }
+                />
+              )}
+            </g>
           ))}
         </svg>
 
@@ -315,11 +476,19 @@ export function Carte({ surOutil }: { surOutil: (n: number) => void }) {
             {/* L'ORCHESTRATEUR : la plaque large, la seule qui porte une séquence. */}
             <div
               ref={chaine}
-              className="plaque plaque-orch flex flex-col justify-between self-center carte-chaine"
-              style={{ minHeight: 160 }}
+              className="plaque plaque-orch flex flex-col justify-between self-center carte-chaine relative"
+              style={{ minHeight: 146 }}
             >
+              {ORDRE.map((f, i) => (
+                <span
+                  key={f}
+                  className="plaque-port plaque-port--sortie"
+                  aria-hidden="true"
+                  style={{ background: COULEUR[f], top: `${34 + i * 22}%` }}
+                />
+              ))}
               <div className="px-[16px] pt-[14px]">
-                <p className="t-headline m-0" style={{ fontSize: '1.5rem' }}>
+                <p className="t-headline m-0" style={{ fontSize: '1.375rem' }}>
                   La chaîne
                 </p>
                 <p className="t-data m-0 pt-[6px]" style={{ color: 'var(--ink)' }}>
@@ -354,9 +523,9 @@ export function Carte({ surOutil }: { surOutil: (n: number) => void }) {
             </a>
 
             {/* LES QUATORZE PLAQUES, trois colonnes de famille. */}
-            <div className="grid gap-[16px] carte-outils" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))' }}>
+            <div className="grid gap-[14px] carte-outils" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(186px, 1fr))' }}>
               {ORDRE.map((f) => (
-                <div key={f} className="flex flex-col gap-[8px]">
+                <div key={f} className="flex flex-col gap-[6px]">
                   {OUTILS.filter((o) => o.famille === f).map((o) => (
                     <a
                       key={o.n}
@@ -377,14 +546,20 @@ export function Carte({ surOutil }: { surOutil: (n: number) => void }) {
                       className="plaque noeud flex items-stretch no-underline"
                       style={{
                         borderLeft: `3px solid ${COULEUR[f]}`,
-                        minHeight: 56,
+                        minHeight: 52,
                         color: 'inherit',
                       }}
                     >
-                      <span className="flex flex-col justify-center px-[12px] py-[9px]" style={{ gap: 2 }}>
+                      {/* LE PORT : le carré de 7 px où le câble se branche. Il dit qu'une
+                          plaque est un nœud connecté, et pas une case dans une liste. */}
+                      <span className="plaque-port" aria-hidden="true" style={{ background: COULEUR[f] }} />
+                      <span className="flex flex-col justify-center px-[12px] py-[7px] grow" style={{ gap: 1, minWidth: 0 }}>
                         <span className="flex items-baseline" style={{ gap: 10 }}>
                           <span className="t-data-sm" style={{ color: 'var(--ink-2)', minWidth: 16 }}>{o.n}</span>
                           <span className="plaque-titre">{o.nom}</span>
+                          {/* la deuxième interaction, montrée : au survol, le chevron dit que
+                              la plaque s'ouvre sur la page de l'outil */}
+                          <span className="plaque-chevron" aria-hidden="true">›</span>
                         </span>
                         <span className="noeud-meta t-data-sm" style={{ color: 'var(--ink-2)', paddingLeft: 26 }}>
                           {meta(o)}
@@ -398,45 +573,21 @@ export function Carte({ surOutil }: { surOutil: (n: number) => void }) {
           </div>
         </div>
       </div>
-      </div>
+          </div>
 
-      {/* LA FIGURE APPARIÉE : deux cellules sur surface-1, la paire à gauche, le verdict à
-          droite dans le seul rôle number de l'écran. Les deux cotations viennent de
-          `facts.execution`, la porte A4. */}
-      {paire && (
-        <div className="grid" style={{ background: 'var(--surface-1)', border: '1px solid var(--line)', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
-          <div className="flex flex-col justify-between p-[24px]" style={{ gap: 24, borderRight: '1px solid var(--line)' }}>
-            <p className="t-data-sm m-0" style={{ color: 'var(--ink-2)' }}>
-              un swap réellement exécuté sur Base, coté deux fois sur le fork
-            </p>
-            <dl className="m-0 grid gap-[14px]">
-              <div className="flex items-baseline" style={{ gap: 12 }}>
-                <span aria-hidden="true" style={{ width: 24, height: 8, background: 'var(--ink)', display: 'inline-block', flex: 'none', order: 0 }} />
-                <dt className="m-0 t-body-muted" style={{ fontSize: 14, order: 2 }}>reçu avec le hook en place</dt>
-                <dd className="t-data-lg m-0" style={{ color: 'var(--ink)', minWidth: 72, order: 1 }}>{paire.avec}</dd>
-              </div>
-              <div className="flex items-baseline" style={{ gap: 12 }}>
-                <span aria-hidden="true" style={{ width: 24, height: 8, background: 'var(--baseline)', display: 'inline-block', flex: 'none', order: 0 }} />
-                <dt className="m-0 t-body-muted" style={{ fontSize: 14, order: 2 }}>reçu contre 89 octets inertes</dt>
-                <dd className="t-data-lg m-0" style={{ color: 'var(--ink-2)', minWidth: 72, order: 1 }}>{paire.sans}</dd>
-              </div>
-            </dl>
-            <p className="t-data-sm m-0 hex" style={{ color: 'var(--ink-2)' }}>
-              en wei, tels que le fork les rend : <span translate="no">{paire.avecWei}</span> contre{' '}
-              <span translate="no">{paire.sansWei}</span>
-            </p>
-          </div>
-          <div className="flex flex-col justify-end p-[24px]" style={{ gap: 8 }}>
-            <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>[ {paire.avec} → {paire.sans} ]</span>
-            <output className="t-number" style={{ color: 'var(--ink)' }}>
-              {paire.bps}
-            </output>
-            <p className="t-body m-0 t-body-muted" style={{ maxWidth: '36ch' }}>
-              bps, l’écart entre les deux. C’est ce que le hook a pris.
-            </p>
-          </div>
+          {/* TROISIÈME INTERACTION : descendre. Le segment tombe en boucle dans son trait, et
+              le bouton défile jusqu'à la section suivante. Immobile sous mouvement réduit. */}
+          <button type="button" className="scroll-cue" onClick={versSuite}>
+            <span className="scroll-cue-trait" aria-hidden="true">
+              <span className="scroll-cue-pion" />
+            </span>
+            <span className="t-data-sm">
+              plus bas&nbsp;: l’opération sur ton jeton, les cinq accès, les vingt-sept jeux de
+              données
+            </span>
+          </button>
         </div>
-      )}
+      </div>
     </section>
   )
 }

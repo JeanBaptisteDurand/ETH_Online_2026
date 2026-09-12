@@ -10,7 +10,7 @@
 
 ## 0. Où va le projet — lis ça avant tout le reste
 
-**Le produit est figé.** Ce qu'il fait, ce qu'il mesure, les quatorze outils, les vingt-cinq jeux
+**Le produit est figé.** Ce qu'il fait, ce qu'il mesure, les quatorze outils, les vingt-sept jeux
 de données, les cinq accès et les mots employés : c'est décidé, écrit, testé. La question
 « et si on ajoutait… » n'est plus ouverte. Il reste **le design**, et rien d'autre.
 

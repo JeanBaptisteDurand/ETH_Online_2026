@@ -13,10 +13,122 @@
  */
 import { Fragment, useEffect, useState } from 'react'
 import { COULEUR } from './familles'
+import { dataset } from '../lib/dataset'
 import { ACCES, OUTILS, outil } from '../lib/outils'
 import { DONNEES, taille } from '../lib/donnees'
 import type { Volume } from '../lib/donnees'
 import facts from '../data/facts.json'
+
+/* ------------------------------------------------- pourquoi ce produit existe */
+
+/**
+ * POURQUOI TARE EXISTE — et la réponse est faite de chiffres, pas d'intentions.
+ *
+ * Trois faits, dans l'ordre où ils se sont imposés : le registre officiel ne peut pas dire
+ * combien, presque personne ne le déclare, et comparer est impossible par construction. Le
+ * quatrième bloc est ce qu'on en a fait.
+ *
+ * AUCUN NOMBRE N'EST ÉCRIT ICI. Le recensement des champs vient de `dataset.provenance`, les
+ * comptes de hooks de `totals` et de `facts.registre`. Si le corpus change, cette section
+ * change avec lui — et si une source manque, elle le dit au lieu d'afficher un chiffre mort.
+ */
+export function Pourquoi() {
+  const p = dataset.provenance.registry
+  const T = dataset.totals
+  const reg = (facts as { registre?: { epingle?: { adresses?: number } } }).registre
+
+  const points: { titre: string; texte: React.ReactNode }[] = [
+    {
+      titre: 'Le registre ne peut pas dire combien',
+      texte: (
+        <>
+          La liste officielle des hooks décrit {p.entries.toLocaleString('fr')} fiches avec{' '}
+          {p.field_census.leaf_fields} champs, dont {p.field_census.boolean_fields} booléens.{' '}
+          <strong style={{ color: 'var(--ink)', fontWeight: 500 }}>
+            {p.field_census.quantitative_fields.length === 0
+              ? 'Aucun n’est une quantité'
+              : `${p.field_census.quantitative_fields.length} sont des quantités`}
+          </strong>{' '}
+          : le seul champ numérique est <code className="t-data-sm">chainId</code>, qui nomme un
+          réseau. Un booléen dit qu’un hook change ton swap, jamais de combien.
+        </>
+      ),
+    },
+    {
+      titre: 'Et presque personne ne le déclare',
+      texte: (
+        <>
+          Uniswap propose aux hooks d’annoncer ce qu’ils prélèvent, par deux événements que son
+          propre guide recommande. Sur les hooks vus en deux cent mille blocs Base,{' '}
+          <strong style={{ color: 'var(--ink)', fontWeight: 500 }}>neuf</strong> en émettent un.
+          Et un montant émis sur un swap passé n’est pas le taux que tu paierais à ta taille.
+        </>
+      ),
+    },
+    {
+      titre: 'Comparer était impossible par construction',
+      texte: (
+        <>
+          L’identité d’un pool v4 — sa <code className="t-data-sm">PoolKey</code> — contient
+          l’adresse du hook. « Le même pool sans son hook » n’existe donc pas, et il n’y a rien à
+          quoi comparer.{' '}
+          {reg?.epingle?.adresses ? (
+            <>
+              Sur les {T.hooks} hooks mesurés ici, {T.hooksAbsentFromRegistry} sont absents du
+              registre épinglé.
+            </>
+          ) : null}
+        </>
+      ),
+    },
+    {
+      titre: 'Alors on ne change pas le pool, on change le hook',
+      texte: (
+        <>
+          Sur un fork épinglé à un bloc, on remplace le bytecode du hook par un talon inerte de
+          89 octets. Le poolId, la liquidité et les réserves restent identiques à l’octet près :
+          la seule chose qui a changé est le code qui s’exécute pendant le swap. On cote le même
+          swap deux fois, et{' '}
+          <strong style={{ color: 'var(--ink)', fontWeight: 500 }}>l’écart est le prélèvement</strong>.
+          {' '}
+          {T.rows.toLocaleString('fr')} mesures plus tard, chaque ligne se rejoue en une commande.
+        </>
+      ),
+    },
+  ]
+
+  return (
+    <section aria-labelledby="pourquoi-t" className="flex flex-col" style={{ gap: 28 }}>
+      <header className="flex flex-col" style={{ gap: 10, maxWidth: '46ch' }}>
+        <h2 id="pourquoi-t" className="t-headline m-0">
+          Pourquoi TARE existe
+        </h2>
+        <p className="t-body t-body-muted m-0">
+          Parce que personne ne publie combien un hook prend, et que la question n’était pas
+          seulement sans réponse&nbsp;: elle était sans méthode.
+        </p>
+      </header>
+
+      <ol className="pourquoi-grille m-0 p-0" style={{ listStyle: 'none' }}>
+        {points.map((x, i) => (
+          <li key={x.titre} className="flex flex-col" style={{ gap: 10, borderTop: '1px solid var(--line)', paddingTop: 16 }}>
+            {/* Un ordinal EST legitime ici : les quatre points sont une sequence, chacun ne se
+                comprend qu'apres le precedent. */}
+            <span className="t-data-sm" style={{ color: 'var(--ink-3)' }}>
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <h3 className="t-title m-0" style={{ fontSize: '1.0625rem' }}>
+              {x.titre}
+            </h3>
+            <p className="t-body t-body-muted m-0" style={{ fontSize: 14.5 }}>
+              {x.texte}
+            </p>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )
+}
 
 /* ------------------------------------------------- les accès, en bas de page */
 

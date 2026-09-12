@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { dataset } from './lib/dataset'
 import { PALIERS } from './lib/ramp'
 import { fmtBlock } from './lib/format'
@@ -11,11 +11,13 @@ import { GraphPanels } from './components/Graph'
 import { MachinePanels } from './components/Machine'
 import { ComptePanel } from './components/Compte'
 import { SubstituerPanel } from './components/Substituer'
-import { AccesPanel, DonneesPanel } from './components/Accueil'
+import { AccesPanel, DonneesPanel, Pourquoi } from './components/Accueil'
 import { IndexPanneaux } from './components/Index'
 import { Carte } from './components/Carte'
 import { OutilPanel } from './components/Outil'
 import { OUTILS } from './lib/outils'
+import { COULEUR as COULEUR_FAM, ORDRE as ORDRE_FAM } from './components/familles'
+import { Reveal, Route as RouteMotion } from './components/Motion'
 import FA from './data/facts.json'
 import { Panel } from './components/Prim'
 import { Chat } from './chat/Chat'
@@ -84,7 +86,82 @@ function Evitement() {
   )
 }
 
-function Head({ theme, setTheme, vue }: { theme: string; setTheme: (t: string) => void; vue: Vue }) {
+/**
+ * LE MENU DES QUATORZE OUTILS, dans la barre haute.
+ *
+ * On y arrivait par la carte, et seulement par elle : depuis une page d'outil ou depuis
+ * l'instrument, il fallait remonter à l'accueil pour en ouvrir un autre. Le menu les donne
+ * tous, groupés par famille et dans leur couleur, depuis n'importe quelle route.
+ */
+function MenuOutils({ n, aller }: { n: number | null; aller: (n: number) => void }) {
+  const ref = useRef<HTMLDetailsElement | null>(null)
+  // Un menu qui reste ouvert derriere la page qu'il vient d'ouvrir est un menu qu'on ferme a
+  // la main : on le referme au clic et a l'echappement.
+  useEffect(() => {
+    const surTouche = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && ref.current?.open) ref.current.open = false
+    }
+    const surClic = (e: MouseEvent) => {
+      if (ref.current?.open && !ref.current.contains(e.target as Node)) ref.current.open = false
+    }
+    document.addEventListener('keydown', surTouche)
+    document.addEventListener('click', surClic)
+    return () => {
+      document.removeEventListener('keydown', surTouche)
+      document.removeEventListener('click', surClic)
+    }
+  }, [])
+
+  return (
+    <details ref={ref} className="relative menu-outils">
+      <summary className="nav-lien cursor-pointer list-none inline-flex items-center" style={{ gap: 7 }}>
+        les outils
+        <span className="t-data-sm" style={{ color: 'var(--ink-3)' }}>{OUTILS.length}</span>
+      </summary>
+      <div className="menu-panneau" role="group" aria-label="les quatorze outils">
+        {ORDRE_FAM.map((f) => (
+          <div key={f} className="flex flex-col" style={{ gap: 2 }}>
+            <span className="t-data-sm flex items-center" style={{ gap: 8, color: 'var(--ink-3)', padding: '2px 0 6px' }}>
+              <span aria-hidden="true" style={{ width: 10, height: 3, background: COULEUR_FAM[f], display: 'inline-block' }} />
+              {f}
+            </span>
+            {OUTILS.filter((o) => o.famille === f).map((o) => (
+              <a
+                key={o.n}
+                href={`#/outil/${o.n}`}
+                aria-current={o.n === n ? 'page' : undefined}
+                onClick={(e) => {
+                  if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
+                  e.preventDefault()
+                  if (ref.current) ref.current.open = false
+                  aller(o.n)
+                }}
+                className="menu-ligne no-underline flex items-baseline"
+                style={{ gap: 10, color: o.n === n ? 'var(--ink)' : 'var(--ink-2)' }}
+                title={o.question}
+              >
+                <span className="t-data-sm" style={{ color: 'var(--ink-3)', minWidth: 16 }}>{o.n}</span>
+                <span className="t-body" style={{ fontSize: 14 }}>{o.nom}</span>
+              </a>
+            ))}
+          </div>
+        ))}
+      </div>
+    </details>
+  )
+}
+
+function Head({
+  theme,
+  setTheme,
+  vue,
+  versOutil,
+}: {
+  theme: string
+  setTheme: (t: string) => void
+  vue: Vue
+  versOutil: (n: number) => void
+}) {
   const paires: [string, string][] = [
     ['chaîne', `base, chainid ${P.measurements.chain_ids.join(', ')}`],
     ['bloc épinglé', P.measurements.blocks.map(fmtBlock).join(', ')],
@@ -107,6 +184,7 @@ function Head({ theme, setTheme, vue }: { theme: string; setTheme: (t: string) =
           TARE
         </a>
         <nav className="flex items-center gap-[2px] ml-[12px]" aria-label="les vues">
+          <MenuOutils n={vue.quoi === 'outil' ? vue.n : null} aller={versOutil} />
           {routes.map((x) => (
             <a
               key={x.h}
@@ -318,16 +396,29 @@ export default function App() {
     return (
       <div className="min-h-full">
         <Evitement />
-        <Head theme={theme} setTheme={setTheme} vue={vue} />
-        <main id="contenu" className="flex flex-col px-[24px] pt-[40px] pb-[24px] mx-auto w-full" style={{ maxWidth: 1360, gap: 'clamp(4rem, 8vw, 7rem)' }}>
-          {/* LA CARTE D'ABORD. Le système en une image, et chaque nœud est une porte. */}
-          <Carte surOutil={versOutil} saisie={saisie} setSaisie={setSaisie} />
-          <AccesPanel surOutil={versOutil} />
-          {/* La cible des liens du rail de la carte : « le detail d'un jeu de donnees ». */}
-          <div id="donnees">
-            <DonneesPanel surOutil={versOutil} />
-          </div>
-        </main>
+        <Head theme={theme} setTheme={setTheme} vue={vue} versOutil={versOutil} />
+        <RouteMotion cle="accueil">
+          <main
+            id="contenu"
+            className="flex flex-col px-[24px] pt-[40px] pb-[24px] mx-auto w-full"
+            style={{ maxWidth: 1360, gap: 'clamp(4rem, 8vw, 7rem)' }}
+          >
+            {/* LA CARTE D'ABORD. Le système en une image, et chaque nœud est une porte.
+                Elle n'est pas sous un `Reveal` : elle est dans le premier écran, et faire
+                monter ce qu'on regarde déjà est un effet, pas une lecture. */}
+            <Carte surOutil={versOutil} saisie={saisie} setSaisie={setSaisie} />
+            <Reveal>
+              <Pourquoi />
+            </Reveal>
+            <Reveal>
+              <AccesPanel surOutil={versOutil} />
+            </Reveal>
+            {/* La cible des liens du rail de la carte : « le detail d'un jeu de donnees ». */}
+            <Reveal id="donnees">
+              <DonneesPanel surOutil={versOutil} />
+            </Reveal>
+          </main>
+        </RouteMotion>
       </div>
     )
   }
@@ -336,10 +427,12 @@ export default function App() {
     return (
       <div className="min-h-full">
         <Evitement />
-        <Head theme={theme} setTheme={setTheme} vue={vue} />
-        <main id="contenu" className="flex flex-col gap-[16px] px-[24px] pb-[24px] mx-auto w-full" style={{ maxWidth: 1360 }}>
-          <OutilPanel n={vue.n} surOutil={versOutil} />
-        </main>
+        <Head theme={theme} setTheme={setTheme} vue={vue} versOutil={versOutil} />
+        <RouteMotion cle={`outil-${vue.n}`}>
+          <main className="flex flex-col gap-[16px] px-[24px] pb-[24px] mx-auto w-full" id="contenu" style={{ maxWidth: 1360 }}>
+            <OutilPanel n={vue.n} surOutil={versOutil} />
+          </main>
+        </RouteMotion>
       </div>
     )
   }
@@ -347,7 +440,7 @@ export default function App() {
   return (
     <div className="min-h-full">
       <Evitement />
-      <Head theme={theme} setTheme={setTheme} vue={vue} />
+      <Head theme={theme} setTheme={setTheme} vue={vue} versOutil={versOutil} />
 
       <main id="contenu" className="px-[24px] pt-[24px] pb-[24px] mx-auto w-full" style={{ maxWidth: 1360 }}>
         <div className="flex flex-wrap items-end justify-between gap-x-[40px] gap-y-[12px] pb-[28px]">

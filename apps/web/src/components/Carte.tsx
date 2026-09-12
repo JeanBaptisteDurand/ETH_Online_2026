@@ -19,7 +19,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { OUTILS, type Famille, type Outil } from '../lib/outils'
-import { FondCretes } from './Fond'
 import { DONNEES, luPar } from '../lib/donnees'
 import { dataset } from '../lib/dataset'
 import { MONNAIES_DE_COTATION } from '../lib/exit'
@@ -349,11 +348,7 @@ export function Carte({
           et en bas le repère de défilement (on descend). Derrière, le champ de câblage. */}
       <div className="hero-cadre">
         <div className="flex flex-col" style={{ gap: 24 }}>
-          {/* LES CRETES. Une par hook, empilees comme un releve de pulsar : elles vivent ici,
-              derriere le titre et la mesure, et pas derriere la carte qui les cacherait. */}
-          <div className="hero-haut relative">
-            <FondCretes />
-            <div className="hero relative" style={{ zIndex: 1 }}>
+          <div className="hero">
             <div className="flex flex-col" style={{ gap: 16 }}>
               {/* Deux lignes, pas trois : le premier ecran doit porter AUSSI la carte entiere,
                   et c'est elle qui ne se reduit pas. La glose qui suivait le titre disait ce que
@@ -467,12 +462,6 @@ export function Carte({
                 )
               )}
             </div>
-            </div>
-            {/* Ce que le fond montre, dit en une ligne : sans elle, un semis de points n'est
-                qu'une texture. Avec elle, c'est le corpus. */}
-            <span className="hero-fond-legende t-data-sm" aria-hidden="true">
-              une crête par hook — {dataset.totals.hooks} hooks mesurés, ce que chacun prend
-            </span>
           </div>
 
           {/* L'ENCEINTE : la carte entière sur une surface un cran plus claire, cadrée d'un filet.
@@ -691,7 +680,7 @@ export function Carte({
               <span className="scroll-cue-pion" />
             </span>
             <span className="t-data-sm">
-              plus bas&nbsp;: les cinq accès au produit, et quelle donnée sert quel outil
+              plus bas&nbsp;: pourquoi TARE existe, les cinq accès, et quelle donnée sert quel outil
             </span>
           </button>
         </div>

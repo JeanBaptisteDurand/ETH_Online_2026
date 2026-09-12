@@ -112,6 +112,18 @@ body,
   height: 100%;
 }
 
+/* LE DEFILEMENT DOUX. La direction l'avait refuse — « sur une page dense, il rend la lecture
+   d'un tableau imprecise ». L'utilisateur le demande : sa decision prime, et elle est notee
+   dans design/BRIEF.md. Il saute sous mouvement reduit. */
+html {
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 body {
   margin: 0;
   background: var(--bg);
@@ -143,12 +155,13 @@ textarea {
   font-family: var(--mono);
 }
 
-/* Une ancre ne doit jamais se poser sous la barre collante de 44 px. */
+/* Une ancre ne doit jamais se poser SOUS la barre collante, ni raser son filet : 56 px de
+   barre plus 20 px d'air. */
 :target,
 h1,
 h2,
 h3 {
-  scroll-margin-top: 60px;
+  scroll-margin-top: 76px;
 }
 
 /* Le triangle natif du depliant n'a rien a faire dans cette charte. */
@@ -519,28 +532,88 @@ summary::-webkit-details-marker {
   color: var(--ink);
 }
 
-/* LA BANDE DU CORPUS : la zone que le nuage occupe, au-dessus de la carte. Elle deborde de
-   24 px en bas pour que le semis respire sous le champ, et sa legende se pose a droite. */
-.hero-haut {
-  /* Le semis a besoin d'une bande a lui : les blocs de texte occupent presque toute la zone,
-     et sans ce pas en bas il ne serait qu'un liseré entre deux paragraphes. */
-  padding-bottom: 32px;
+/* LE MENU DES OUTILS, dans la barre haute : un depliant, pas une page de plus. */
+.menu-outils > summary::-webkit-details-marker {
+  display: none;
 }
-@media (max-width: 899px) {
-  .hero-haut {
-    padding-bottom: 28px;
-  }
-}
-.hero-fond-legende {
+.menu-panneau {
   position: absolute;
-  right: 0;
-  bottom: 0;
-  color: var(--ink-3);
-  pointer-events: none;
+  left: 0;
+  right: auto;
+  top: calc(100% + 6px);
+  z-index: 20;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(150px, 1fr));
+  gap: 22px;
+  padding: 18px 20px;
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  border-top-color: var(--highlight);
+  max-width: calc(100vw - 32px);
+}
+.menu-ligne {
+  padding: 5px 8px 5px 0;
+  min-height: 28px;
+  transition: color var(--t-feedback) var(--e-out);
+}
+.menu-ligne:hover {
+  color: var(--ink);
 }
 @media (max-width: 639px) {
-  .hero-fond-legende {
-    display: none;
+  .menu-panneau {
+    /* Le panneau part du bord gauche de la page, pas du menu : a 390 px, un panneau ancre sur
+       le menu sortirait de l'ecran a droite. */
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    top: 62px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    max-height: 70vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+/* L'APPARITION D'UNE SECTION : elle monte de douze pixels et s'ouvre, une seule fois.
+   `transform` et `opacity` uniquement, donc rien ne recalcule la mise en page. */
+.reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  transition:
+    opacity 520ms var(--e-out),
+    transform 520ms var(--e-out);
+  will-change: opacity, transform;
+}
+.reveal--vu {
+  opacity: 1;
+  transform: none;
+  will-change: auto;
+}
+
+/* LE CHANGEMENT DE ROUTE : le contenu se repose, court et net. */
+@keyframes route-entre {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.route-entre {
+  animation: route-entre 260ms var(--e-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .route-entre {
+    animation: none;
   }
 }
 
@@ -603,6 +676,25 @@ summary::-webkit-details-marker {
 }
 .ligne-table:hover {
   background: var(--surface-1);
+}
+
+/* LES QUATRE POINTS DU POURQUOI : quatre colonnes a 1440, deux a 900, une en dessous. */
+.pourquoi-grille {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 28px;
+}
+@media (min-width: 700px) {
+  .pourquoi-grille {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px 40px;
+  }
+}
+@media (min-width: 1100px) {
+  .pourquoi-grille {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 32px;
+  }
 }
 
 /* UNE LIGNE D'ACCES : le nom a gauche, ce qu'il est et ce qu'il ouvre a droite. Une liste a
@@ -813,11 +905,16 @@ summary::-webkit-details-marker {
 }
 @media (max-width: 639px) {
   .nav-provenance,
-  .enceinte-aide {
+  .enceinte-aide,
+  /* le compte des outils : le menu le dit deja en s'ouvrant */
+  .menu-outils summary .t-data-sm {
     display: none;
   }
+  /* Quatre entrees et un bouton dans 390 px : les libelles gardent leur taille, ce sont les
+     gouttieres qui cedent. */
   .nav-lien {
-    padding: 8px 6px;
+    padding: 8px 4px;
+    font-size: 0.875rem;
   }
   .nav-theme {
     margin-left: auto;

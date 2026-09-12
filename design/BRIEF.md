@@ -83,3 +83,14 @@ Locks ajoutés :
 
 Lock ajouté :
 - « reprends l'animation du background, genre totalement de style, adopte une autre ref » (le semis de points du corpus est refusé à son tour : changer de registre, pas de réglages ; une autre référence)
+
+## Corrections après le build (2026-09-12, 23:58)
+
+> « Dans le header, rajoute un acces direct aux pages "outils" (celles auxquelles on accede en cliquant sur les nodes du schema). Dans les section de la homepage, rajoute une section "pourquoi avoir cree TARE". Supprime l'animation derrier le Hero. Rajoute un scroll smooth. Rajoute des transitions fluides d'apparitions des components et entre les pages. »
+
+Locks ajoutés :
+- « dans le header, rajoute un acces direct aux pages outils » (la barre haute mène aux quatorze outils, pas seulement la carte)
+- « rajoute une section "pourquoi avoir cree TARE" » (l'accueil porte une section qui dit la raison d'être)
+- « supprime l'animation derrier le Hero » (le fond du hero disparaît : ni crêtes, ni semis, ni pistes)
+- « rajoute un scroll smooth » (écrase la décision inverse de DESIGN.md → Motion, qui l'avait refusé)
+- « rajoute des transitions fluides d'apparitions des components et entre les pages » (reveal au défilement, et transition de route)

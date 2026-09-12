@@ -35,3 +35,5 @@
 - 23:40 section page outil : construite, capturée, auditée
 - 23:50 section instrument : construite, capturée, auditée
 - 23:55 build terminé : 4 sections construites, captures complètes dans design/shots/build
+- 23:58 corrections après build : accès outils dans le header, section pourquoi, fond du hero supprimé, smooth scroll, transitions. locks : 34
+- 00:05 corrections après build : menu des outils, section pourquoi, fond supprimé, smooth scroll, reveal et transition de route

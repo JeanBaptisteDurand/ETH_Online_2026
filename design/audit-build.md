@@ -61,3 +61,30 @@ mono, et leur glose passe en prose sans.
 - **Le rail des 27 jeux de données** dans la carte reste une liste à filets, pas une suite de plaques à port. La direction ne tranche pas ce point ; le changer toucherait la mise en page de la carte, validée par l'utilisateur.
 - **Le preload des deux polices** dans `index.html` n'est pas posé : elles sont auto-hébergées par `@fontsource-variable` et leurs fichiers sont hashés au build, donc l'étiquette de preload demanderait un plugin de build. Hors périmètre d'une étape de design.
 - **Un test tombe**, et il ne vient pas du front : `facts.test.ts` exige que toutes les sources aient été lues, or `packages/guard/data/table.json` n'existe pas dans le dépôt. Le générateur de faits le signalait déjà avant toute modification. 113 tests passent.
+
+## Après le build — les cinq corrections de l'utilisateur
+
+**Accès aux outils dans la barre haute.** Un dépliant « les outils » donne les quatorze, groupés
+par famille et dans leur couleur, depuis n'importe quelle route. Il se ferme au clic dehors, à
+l'échappement et au choix. Sous 640 px il s'ancre aux bords de l'écran et passe en une colonne
+défilante, avec `overscroll-behavior: contain`.
+
+**Section « pourquoi TARE existe ».** Quatre points numérotés — un ordinal légitime, puisque
+c'est une séquence dont chaque point suppose le précédent. Tous ses chiffres viennent de
+`dataset.provenance` et de `totals` : le recensement des champs du registre, le nombre de hooks
+mesurés, ceux absents du registre, le total des mesures. Aucun n'est écrit à la main, donc la
+section suit le corpus.
+
+**Le fond du hero est supprimé**, et `Fond.tsx` avec lui. Trois formes avaient été essayées.
+
+**Défilement doux** posé sur `html`, avec la bascule sous `prefers-reduced-motion`. Il écrase la
+décision inverse de la direction, notée dans `design/BRIEF.md`.
+
+**Transitions.** Un `Reveal` par section — `IntersectionObserver` à 12 %, montée de 12 px et
+ouverture en 520 ms, une seule fois — et une transition de route de 260 ms dont la clé remonte
+le sous-arbre, ce qui remet les reveals à zéro à l'arrivée. Les deux sur `transform` et
+`opacity`, donc sans recalcul de mise en page, et les deux inertes sous mouvement réduit.
+
+- `index.css` : la marge d'ancre valait 60 px pour une barre de 56 px, ce qui posait un titre au ras du filet après un saut. Portée à 76 px.
+- `index.css` : la barre haute débordait à 390 px avec l'entrée de plus. Les gouttières cèdent, le compte des outils est masqué, les libellés gardent leur taille.
+- Vérifié : le menu est un `<details>` natif (clavier et lecteur d'écran gratuits), ses entrées sont des `<a href>` avec `aria-current`, cibles à 28 px, et le `summary` porte sa propre cible de 44 px dans la barre.

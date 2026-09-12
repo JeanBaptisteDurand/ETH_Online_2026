@@ -1,0 +1,20 @@
+# LOG — da-kit
+
+- 20:39 setup : 16 skills dans .claude/skills, playwright-cli 0.1.19, 33 DESIGN.md de marques, design/.da-kit
+- 20:41 brief : design/BRIEF.md écrit depuis project/decisions.json, arguments vides. locks : 10
+- 20:41 front : apps/web (React 19 + Vite, routeur par fragment, #/ #/outil/<n> #/instrument), dev sur :5173 ; apps/landing (Vite vanilla, anglais) est la seconde surface
+- 20:42 captures avant : design/shots/before, 4 routes × 390/768/1440, regardées home-1440 et home-390
+- 20:42 refs : 1 utilisateur (inspi/schema.png = carte n8n) copiée dans design/refs/
+- 20:50 réponse utilisateur : identité SaaS type Awwwards, front repris entièrement, composition globale gardée. locks : 14
+- 20:52 refs : 1 utilisateur (carte n8n), 5 trouvées : sstr.tech, dottxt.ai (brief), cerebrium.ai (SOTD 11 sept. 2026), linear.app, resend.com (famille SaaS soigné) → design/refs/found/
+- 20:54 skill frontend-design invoqué : liste noire des tells (kit cartes SaaS, broadsheet rayon zéro, capitales chassées, points médians, mono décoratif)
+- 20:56 skill design-taste-frontend invoqué : Design Read (jury + trader, instrument SaaS soigné sombre, Linear + SSTR), curseurs variance 6 / motion 4 / densité 7
+- 20:58 skill high-end-visual-design invoqué : enceinte emboîtée sans rayon, respiration doublée, easing personnalisé ; rayon, pilules, halos et mesh rejetés par les locks
+- 21:02 skill redesign-existing-projects invoqué : Design Audit écrit dans design/audit-before.md, Fix Priority en 7 points
+- 21:06 design-md : linear.app.md, vercel.md lus en entier (échelle de 4 surfaces sans ombre ; mono réservé à la couche technique, display 600 max)
+- 21:12 skill image-to-code : outil Skill le refuse (Unknown skill, installé après le démarrage), SKILL.md lu, protocole §8–9 et §14–16 appliqué dans design/refs/analysis.md sur la carte n8n, la figure SSTR et l'existant
+- 21:14 directions : 3 (A la plaque, B la constellation, C la feuille réglée) → design/shots/directions.png
+- 21:16 image-to-code appliqué sur directions.png : matière et anatomie du nœud varient, pas la couleur ; C risque le broadsheet
+- 21:20 direction choisie : « Va pour la A. » (la plaque). locks : 15
+- 21:32 DESIGN.md écrit au format design.md, lint : 0 erreur, 0 avertissement
+- 21:33 taste-skill : design-taste-frontend (v2) invoqué à 20:56, redesign-existing-projects et image-to-code appliqués, curseurs variance 6 / motion 4 / densité 7

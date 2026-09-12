@@ -1,0 +1,37 @@
+{
+  "project": "TARE",
+  "locked": ["composition gardée : carte en hero, usage et preuve, accès, matrice, pages outil, instrument", "JetBrains Mono pour les données, Instrument Sans pour la prose", "rayon 0, aucun dégradé, aucune ombre, aucun canevas pointillé", "fond #08090a, encre #e8eaed, rampe --m-0…--m-6", "français"],
+  "fonts": { "google": ["Instrument Sans:wght@400;500;600;700", "JetBrains Mono:wght@400;500"] },
+  "directions": [
+    {
+      "name": "A · La plaque",
+      "memorable": "La carte est une plaque usinée : une enceinte d'un cran plus claire que la page, les nœuds en plaques posées dessus avec un liseré haut d'un pixel, et le câblage passe de gris à encre quand on survole un outil, comme un circuit qui s'allume.",
+      "palette": { "bg": "#08090a", "fg": "#e8eaed", "accent": "#eb6628", "accent2": "#3376f6", "muted": "#a2a9b0", "enceinte": "#0e1013", "surface": "#161a1e" },
+      "display": "Instrument Sans", "body": "Instrument Sans", "mono": "JetBrains Mono",
+      "composition": "enceinte : titre 64 px à gauche, plaque pleine largeur dessous, nœuds en plaques",
+      "background": "base + enceinte 1 cran + liseré haut 1 px sur chaque plaque",
+      "motion": "le câblage se trace au chargement (600 ms), le chemin d'un nœud s'allume au survol",
+      "sketch": "Ce qu'un hook prend        [ la carte · l'instrument · clair ]\nvraiment sur un swap.\n┌─ enceinte ───────────────────────────────────────┐\n│ ▭ 27 jeux ─┐  ▭ LA CHAÎNE ─┬─ ▭ 1 Mesurer  ▭ 2 Consulter │\n│            └──────────────┼─ ▭ 8 Intercep ▭ 3 Situer    │\n│                           └─ ▭ 10 Payer   ▭ 7 Substituer│\n└──────────────────────────────────────────────────┘\n[ avec le hook ·· | avec le talon ·· ]  [99.99 → 102.46]  247.31 bps"
+    },
+    {
+      "name": "B · La constellation",
+      "memorable": "Aucune boîte : chaque outil est son nom en Instrument Sans 22 px souligné d'un trait de famille, la méta en mono dessous, et un seul trait continu de 1 px relie l'orchestrateur à ses quatorze outils comme une constellation tracée d'un geste.",
+      "palette": { "bg": "#08090a", "fg": "#e8eaed", "accent": "#eb6628", "accent2": "#3376f6", "muted": "#a2a9b0", "enceinte": "#08090a", "surface": "#101214" },
+      "display": "Instrument Sans", "body": "Instrument Sans", "mono": "JetBrains Mono",
+      "composition": "feuille ouverte : titre 96 px sur 7 colonnes, la carte flotte à droite puis descend, sections à 128 px",
+      "background": "base seule, aucune surface ; les filets de section sont les seuls traits",
+      "motion": "un seul trait se dessine (stroke-dashoffset, 900 ms) ; le nom d'un outil passe de gris à encre au survol",
+      "sketch": "Ce qu'un hook prend vraiment       1 Mesurer ─┐\nsur un swap.                        ‾‾‾‾‾‾‾‾   │\n                       LA CHAÎNE ───┤ 2 Consulter\n27 jeux · 14 outils    6/6 · 13 680 ms ‾‾‾‾‾‾‾‾  │\n                                    │ 7 Substituer\n                                    └ ‾‾‾‾‾‾‾‾‾‾\n─────────────────────────────────────────────────\navec le hook ····  avec le talon ····    247.31 bps"
+    },
+    {
+      "name": "C · La feuille réglée",
+      "memorable": "Toute la page d'accueil est une seule grille de filets 1 px, façon SSTR : chaque nœud est une cellule de la grille, les filets sont le câblage, et la figure appariée occupe deux cellules côte à côte, le graphe et le verdict.",
+      "palette": { "bg": "#08090a", "fg": "#e8eaed", "accent": "#eb6628", "accent2": "#3376f6", "muted": "#a2a9b0", "enceinte": "#0b0c0e", "surface": "#121417" },
+      "display": "JetBrains Mono", "body": "Instrument Sans", "mono": "JetBrains Mono",
+      "composition": "grille réglée : cellules de 1 px, titre dans une cellule, l'orchestrateur sur deux rangs, les outils une cellule chacun",
+      "background": "base + filets de grille 1 px pleine hauteur, cellule survolée un cran plus claire",
+      "motion": "la cellule survolée s'éclaire et ses filets passent à l'encre ; au chargement, rien ne bouge sauf l'horloge",
+      "sketch": "├──────────────────┼─────────┼─────────┼─────────┤\n│ Ce qu'un hook    │ 1       │ 2       │ 7       │\n│ prend vraiment   │ Mesurer │ Consult.│ Substit.│\n├────────┬─────────┼─────────┼─────────┼─────────┤\n│ 27 jeux│LA CHAÎNE│ 8       │ 3       │ 9       │\n│        │6/6·13680│ Interc. │ Situer  │ Approuv.│\n├────────┴─────────┼─────────┴─────────┼─────────┤\n│ avec / sans ···· │ [99.99 → 102.46]  │ 247.31  │"
+    }
+  ]
+}

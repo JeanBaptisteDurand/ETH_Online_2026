@@ -54,3 +54,5 @@ landing-hero.png
 hero.png
 s0.png
 section03-*.png
+# Playwright CLI output (may contain credentials)
+.playwright-cli/

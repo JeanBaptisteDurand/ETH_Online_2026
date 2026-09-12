@@ -51,7 +51,7 @@ function SortieMesurer() {
   }, [])
   return (
     <>
-      <div className="px-[16px] py-[9px] t-data-sm" style={{ color: 'var(--ink-2)', borderTop: '1px solid var(--line)' }}>
+      <div className="px-[16px] py-[11px] t-body t-body-muted" style={{ fontSize: 14, maxWidth: '74ch', borderTop: '1px solid var(--line)' }}>
         Six exécutions du contrefactuel, les plus fortes du corpus. À chaque ligne : le même swap
         coté <strong style={{ color: 'var(--ink)' }}>avec</strong> le hook, puis avec un talon
         inerte de 89 octets à son adresse. L'écart <strong style={{ color: 'var(--ink)' }}>est</strong> le
@@ -102,7 +102,7 @@ function SortiePayer() {
       <L k="jeton" v={String(x.jeton)} />
       <L k="prix unitaire" v={`${String(x.prix_unite_usd)} USDC par mesure`} />
       <L k="payeur → encaisseur" v={`${String(x.payeur)} → ${String(x.encaisseur)}`} />
-      <div className="px-[16px] py-[9px] t-data-sm" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-2)' }}>
+      <div className="px-[16px] py-[11px] t-body t-body-muted" style={{ borderTop: '1px solid var(--line)', fontSize: 14, maxWidth: '72ch' }}>
         Un règlement n'est compté que si le <strong style={{ color: 'var(--ink)' }}>mirror node</strong> le
         rend. Le serveur qui dit « payé » ne suffit pas : c'est lui qu'on vérifie.
       </div>
@@ -171,7 +171,7 @@ function SortiePorte() {
   return (
     <>
       <div className="px-[16px] py-[10px]" style={{ borderTop: '1px solid var(--line)' }}>
-        <div className="t-data-sm" style={{ color: 'var(--ink-2)', lineHeight: 1.6, maxWidth: '78ch' }}>
+        <div className="t-body t-body-muted" style={{ fontSize: 14, maxWidth: '72ch' }}>
           Sur les <strong style={{ color: 'var(--ink)' }}>125 072</strong> lignes du corpus,
           <strong style={{ color: 'var(--ink)' }}> 124 704</strong> répondent « il n'y a qu'une
           porte » — <strong>99,71 %</strong>. Quinze passent le seuil d'un point de base, sur
@@ -182,7 +182,7 @@ function SortiePorte() {
       {s && (
         <L k="pools à sens unique" v={<>{String(s.pools)} sur {String(s.hooks)} hooks <span style={{ color: 'var(--ink-2)' }}>— gratuit à l'entrée, fermé à la sortie</span></>} />
       )}
-      <div className="px-[16px] py-[9px] t-data-sm" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-2)' }}>
+      <div className="px-[16px] py-[11px] t-body t-body-muted" style={{ borderTop: '1px solid var(--line)', fontSize: 14, maxWidth: '72ch' }}>
         « Il n'y a qu'une porte » est une <strong style={{ color: 'var(--ink)' }}>réponse</strong>, pas
         un échec de recherche. C'est la phrase qu'aucun agrégateur ne dit.
       </div>
@@ -195,7 +195,7 @@ function SortieSubstituer() {
   return (
     <>
       <div className="px-[16px] py-[11px]" style={{ borderTop: '1px solid var(--line)' }}>
-        <div className="t-data-sm" style={{ color: 'var(--ink-2)', lineHeight: 1.65, maxWidth: '80ch' }}>
+        <div className="t-body t-body-muted" style={{ fontSize: 14, maxWidth: '72ch' }}>
           C'est la pièce qui transforme un verdict en <strong style={{ color: 'var(--ink)' }}>décision</strong>.
           Le site a déjà tout : l'adresse du jeton, le montant, la porte visée. Il construit la
           transaction de remplacement et la fait signer — <strong style={{ color: 'var(--ink)' }}>il
@@ -280,7 +280,7 @@ const cap = (t: string): string => t.charAt(0).toUpperCase() + t.slice(1)
 
 const L = ({ k, v }: { k: string; v: React.ReactNode }) => (
   <div className="flex flex-wrap items-baseline gap-x-[10px] gap-y-[3px] px-[16px] py-[6px]" style={{ borderTop: '1px solid var(--line)' }}>
-    <span className="t-data-sm" style={{ color: 'var(--ink-3)', minWidth: 120, flexShrink: 0 }}>{k}</span>
+    <span className="t-data-sm" style={{ color: 'var(--ink-2)', minWidth: 120, flexShrink: 0 }}>{k}</span>
     <span className="t-data-sm" style={{ color: 'var(--ink-2)', flex: '1 1 200px', minWidth: 0, overflowWrap: 'anywhere' }}>{v}</span>
   </div>
 )
@@ -384,7 +384,7 @@ function Ingere({ n }: { n: number }) {
       {jeux.map((j) => <Jeu key={j.cle} j={j} sens="lit" />)}
       {jeux.length === 0 && (
         <div className="px-[16px] py-[7px] t-data-sm" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-2)' }}>
-          aucun fichier du dépôt : tout ce qu'il lit est lu <strong style={{ color: 'var(--ink-2)' }}>sur la
+          aucun fichier du dépôt : tout ce qu'il lit est lu <strong style={{ color: 'var(--ink)' }}>sur la
           chaîne</strong>, au moment où on le lui demande
         </div>
       )}
@@ -552,7 +552,7 @@ function Onglets({ n, surOutil }: { n: number; surOutil?: (x: number) => void })
               aria-hidden="true"
               style={{ width: 8, height: 8, background: COULEUR[x.famille], flex: 'none', opacity: actif ? 1 : 0.65 }}
             />
-            <span className="t-data-sm" style={{ color: 'var(--ink-3)' }}>{x.n}</span>
+            <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>{x.n}</span>
             <span className="t-body" style={{ fontSize: 14 }}>{x.nom}</span>
           </a>
         )
@@ -738,7 +738,7 @@ export function OutilPanel({ n, surOutil }: { n: number; surOutil?: (n: number) 
           {o.rend}
         </p>
         {/* La glose de la famille : une phrase, pas une formule « MOT — fragment ». */}
-        <p className="t-body m-0 pt-[8px]" style={{ fontSize: 14, color: 'var(--ink-3)', maxWidth: '68ch' }}>
+        <p className="t-body m-0 pt-[8px]" style={{ fontSize: 14, color: 'var(--ink-2)', maxWidth: '68ch' }}>
           C’est un outil de {FAMILLES[o.famille].nom}&nbsp;: {FAMILLES[o.famille].quoi}.
         </p>
       </header>
@@ -783,9 +783,11 @@ export function OutilPanel({ n, surOutil }: { n: number; surOutil?: (n: number) 
       </Panel>
 
       {o.pourquoi && (
-        <div className="px-[16px] py-[14px]" style={{ borderTop: '1px solid var(--line-strong)' }}>
-          <div className="t-data" style={{ color: 'var(--ink)' }}>pourquoi il n’est pas prêt</div>
-          <div className="t-data-sm mt-[6px]" style={{ color: 'var(--ink-2)', maxWidth: '76ch', lineHeight: 1.55 }}
+        <div className="px-[16px] py-[18px]" style={{ borderTop: '1px solid var(--line)' }}>
+          <div className="t-title" style={{ fontSize: '1.0625rem', color: 'var(--ink)' }}>
+            Pourquoi il n’est pas prêt
+          </div>
+          <div className="t-body t-body-muted mt-[8px]" style={{ fontSize: 14, maxWidth: '72ch' }}
             dangerouslySetInnerHTML={{ __html: o.pourquoi.replace(/\*\*(.+?)\*\*/g, '<strong style="color:var(--ink)">$1</strong>') }} />
         </div>
       )}

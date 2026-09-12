@@ -188,7 +188,7 @@ function GateRow({ gate, rank }: { gate: PresentedGate; rank: string | null }) {
           <span className="t-label" style={{ color: 'var(--ink-2)' }}>
             {rank === null ? 'porte' : 'rang'}
           </span>
-          <span className="t-title" style={{ color: rank === null ? 'var(--ink-3)' : 'var(--ink)' }}>
+          <span className="t-title" style={{ color: rank === null ? 'var(--ink-2)' : 'var(--ink)' }}>
             {rank ?? '—'}
           </span>
         </div>

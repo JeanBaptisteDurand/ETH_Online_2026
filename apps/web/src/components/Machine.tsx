@@ -224,7 +224,7 @@ function Identite() {
 
             <div className="flex flex-col gap-[5px]">
               <Ligne quoi="etat" valeur={a.etat}>
-                <span style={{ color: a.etat === 'ANNOUNCED' ? 'var(--ink)' : 'var(--ink-3)' }}>
+                <span style={{ color: a.etat === 'ANNOUNCED' ? 'var(--ink)' : 'var(--ink-2)' }}>
                   {a.etat === 'ANNOUNCED'
                     ? 'annonce, et relu octet pour octet sur le mirror node'
                     : "pas d'annonce trouvee sur le topic"}

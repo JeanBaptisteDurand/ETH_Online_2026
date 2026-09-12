@@ -114,7 +114,7 @@ export function Pourquoi() {
           <li key={x.titre} className="flex flex-col" style={{ gap: 10, borderTop: '1px solid var(--line)', paddingTop: 16 }}>
             {/* Un ordinal EST legitime ici : les quatre points sont une sequence, chacun ne se
                 comprend qu'apres le precedent. */}
-            <span className="t-data-sm" style={{ color: 'var(--ink-3)' }}>
+            <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
               {String(i + 1).padStart(2, '0')}
             </span>
             <h3 className="t-title m-0" style={{ fontSize: '1.0625rem' }}>
@@ -181,7 +181,7 @@ export function AccesPanel({ surOutil }: { surOutil?: (n: number) => void }) {
                 }}
               />
               <div className="flex flex-wrap items-baseline" style={{ gap: 10 }}>
-                <span className="t-data-sm" style={{ color: 'var(--ink-3)', minWidth: 52 }}>
+                <span className="t-data-sm" style={{ color: 'var(--ink-2)', minWidth: 52 }}>
                   il faut
                 </span>
                 <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
@@ -189,7 +189,7 @@ export function AccesPanel({ surOutil }: { surOutil?: (n: number) => void }) {
                 </span>
               </div>
               <div className="flex flex-wrap items-center" style={{ gap: 6 }}>
-                <span className="t-data-sm" style={{ color: 'var(--ink-3)', minWidth: 52 }}>
+                <span className="t-data-sm" style={{ color: 'var(--ink-2)', minWidth: 52 }}>
                   ouvre
                 </span>
                 {a.outils.map((n) => (
@@ -255,7 +255,7 @@ function Matrice({ surOutil }: { surOutil?: (n: number) => void }) {
           <span style={{ width: 11, height: 11, border: '1px solid var(--ink)', display: 'inline-block' }} />
           {ecritures} écritures
         </span>
-        <span className="t-body" style={{ fontSize: 13.5, color: 'var(--ink-3)' }}>
+        <span className="t-body" style={{ fontSize: 13.5, color: 'var(--ink-2)' }}>
           la couleur d’une case est celle de la famille de son outil
         </span>
       </div>
@@ -422,7 +422,7 @@ export function DonneesPanel({ surOutil }: { surOutil?: (n: number) => void }) {
                     key={h}
                     scope="col"
                     className="t-data-sm px-[10px] py-[8px]"
-                    style={{ color: 'var(--ink-3)', textAlign: 'left', whiteSpace: 'nowrap', fontWeight: 400 }}
+                    style={{ color: 'var(--ink-2)', textAlign: 'left', whiteSpace: 'nowrap', fontWeight: 400 }}
                   >
                     {h}
                   </th>
@@ -445,7 +445,7 @@ export function DonneesPanel({ surOutil }: { surOutil?: (n: number) => void }) {
                     <td className="t-data-sm px-[10px] py-[9px]" style={{ color: 'var(--ink-2)', whiteSpace: 'nowrap', verticalAlign: 'top' }}>
                       {v ? taille(v.octets) : 'non lu'}
                       {v && v.n !== null && v.unite ? (
-                        <div style={{ color: 'var(--ink-3)' }}>
+                        <div style={{ color: 'var(--ink-2)' }}>
                           {v.n.toLocaleString('fr')} {v.unite}
                         </div>
                       ) : null}
@@ -461,7 +461,7 @@ export function DonneesPanel({ surOutil }: { surOutil?: (n: number) => void }) {
                         {v?.fichier ?? j.cle}
                       </code>
                       {/* UNE COMMANDE, pas une etiquette : elle est sensible a la casse. */}
-                      <code className="t-data-sm mt-[3px] block" style={{ color: 'var(--ink-3)', wordBreak: 'break-all' }}>
+                      <code className="t-data-sm mt-[3px] block" style={{ color: 'var(--ink-2)', wordBreak: 'break-all' }}>
                         {j.produit}
                       </code>
                     </td>
@@ -511,7 +511,7 @@ function PuceOutil({ n, surOutil }: { n: number; surOutil?: (n: number) => void 
       style={{ borderLeft: `2px solid ${COULEUR[o.famille]}` }}
       title={`${o.n}. ${o.nom} — ${o.question}`}
     >
-      <span className="t-data-sm" style={{ color: 'var(--ink-3)', paddingRight: 6 }}>
+      <span className="t-data-sm" style={{ color: 'var(--ink-2)', paddingRight: 6 }}>
         {o.n}
       </span>
       <span className="t-body" style={{ fontSize: 13.5, color: 'var(--ink-2)' }}>

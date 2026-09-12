@@ -116,12 +116,12 @@ function MenuOutils({ n, aller }: { n: number | null; aller: (n: number) => void
     <details ref={ref} className="relative menu-outils">
       <summary className="nav-lien cursor-pointer list-none inline-flex items-center" style={{ gap: 7 }}>
         les outils
-        <span className="t-data-sm" style={{ color: 'var(--ink-3)' }}>{OUTILS.length}</span>
+        <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>{OUTILS.length}</span>
       </summary>
       <div className="menu-panneau" role="group" aria-label="les quatorze outils">
         {ORDRE_FAM.map((f) => (
           <div key={f} className="flex flex-col" style={{ gap: 2 }}>
-            <span className="t-data-sm flex items-center" style={{ gap: 8, color: 'var(--ink-3)', padding: '2px 0 6px' }}>
+            <span className="t-data-sm flex items-center" style={{ gap: 8, color: 'var(--ink-2)', padding: '2px 0 6px' }}>
               <span aria-hidden="true" style={{ width: 10, height: 3, background: COULEUR_FAM[f], display: 'inline-block' }} />
               {f}
             </span>
@@ -140,7 +140,7 @@ function MenuOutils({ n, aller }: { n: number | null; aller: (n: number) => void
                 style={{ gap: 10, color: o.n === n ? 'var(--ink)' : 'var(--ink-2)' }}
                 title={o.question}
               >
-                <span className="t-data-sm" style={{ color: 'var(--ink-3)', minWidth: 16 }}>{o.n}</span>
+                <span className="t-data-sm" style={{ color: 'var(--ink-2)', minWidth: 16 }}>{o.n}</span>
                 <span className="t-body" style={{ fontSize: 14 }}>{o.nom}</span>
               </a>
             ))}
@@ -270,7 +270,7 @@ function Verdict() {
           <div className="t-body" style={{ fontSize: 14, color: 'var(--ink)' }}>
             {l}
           </div>
-          <div className="t-body" style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--ink-3)' }}>
+          <div className="t-body" style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--ink-2)' }}>
             {s}
           </div>
         </div>

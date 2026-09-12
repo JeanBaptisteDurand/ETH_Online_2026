@@ -173,7 +173,7 @@ export function ExitPanel() {
               }}
             >
               {e.addr.slice(0, 10)}…{' '}
-              <span style={{ color: 'var(--ink-3)' }}>{e.note}</span>
+              <span style={{ color: 'var(--ink-2)' }}>{e.note}</span>
             </button>
           ))}
         </div>

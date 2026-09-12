@@ -530,7 +530,7 @@ export function Chat({
             style={{
               border: '1px solid var(--line)',
               background: 'var(--bg-2)',
-              color: enCours === null ? 'var(--ink-3)' : 'var(--ink-4)',
+              color: enCours === null ? 'var(--ink-2)' : 'var(--ink-3)',
               maxWidth: '100%',
             }}
           >

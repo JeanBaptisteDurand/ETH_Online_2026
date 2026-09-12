@@ -84,7 +84,7 @@ export function IndexPanneaux() {
 
   return (
     <nav className="index-panneaux" aria-label="les dix-sept panneaux de l’instrument">
-      <p className="t-data-sm m-0 px-[10px] pb-[10px]" style={{ color: 'var(--ink-3)' }}>
+      <p className="t-data-sm m-0 px-[10px] pb-[10px]" style={{ color: 'var(--ink-2)' }}>
         {PANNEAUX.length} panneaux
       </p>
       <ol className="m-0 p-0" style={{ listStyle: 'none' }}>
@@ -108,11 +108,11 @@ export function IndexPanneaux() {
                   minHeight: 34,
                 }}
               >
-                <span className="t-data-sm" style={{ color: 'var(--ink-3)' }}>
+                <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
                   {p.id}
                 </span>
                 <span className="t-body" style={{ fontSize: 13.5, lineHeight: 1.35 }}>{p.titre}</span>
-                <span className="t-data-sm text-right" style={{ color: 'var(--ink-3)', whiteSpace: 'nowrap' }}>
+                <span className="t-data-sm text-right" style={{ color: 'var(--ink-2)', whiteSpace: 'nowrap' }}>
                   {p.compte}
                 </span>
               </a>

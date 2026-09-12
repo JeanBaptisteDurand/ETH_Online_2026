@@ -7,11 +7,18 @@
     <meta name="theme-color" content="#08090a" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#f7f7f5" media="(prefers-color-scheme: light)" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <title>TARE · instrument</title>
+    <title>TARE, ce qu'un hook prend vraiment sur un swap</title>
     <meta
       name="description"
-      content="Ce qu'un hook Uniswap v4 prend reellement sur un swap. Le meme swap cote deux fois, avec le hook et avec un stub inerte. L'ecart est la mesure."
+      content="Ce qu'un hook Uniswap v4 prend vraiment sur un swap. Le même swap coté deux fois, avec le hook et contre un talon inerte de 89 octets. L'écart est la mesure."
     />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="TARE, ce qu'un hook prend vraiment sur un swap" />
+    <meta
+      property="og:description"
+      content="Le même swap coté deux fois, avec le hook et contre un talon inerte de 89 octets. L'écart est la mesure, et chaque ligne se rejoue en une commande."
+    />
+    <meta name="twitter:card" content="summary" />
     <style>
       /* Peint le canevas avant tout octet de JS : pas de flash blanc, pas de prechargeur. */
       html { background: #08090a; }
@@ -21,10 +28,20 @@
   <body>
     <div id="root"></div>
     <noscript>
-      <p style="font-family: monospace; color: #e8eaed; padding: 24px">
-        TARE — instrument. 128 mesures, 4 hooks, 32 pools, Base, bloc 50614000. 60 mesures
-        au-dessus de 1 bps sur des pools dont la commission LP lue on-chain vaut zero.
-        Source brute&nbsp;: docs/measurements-v1.json.
+      <!-- AUCUN CHIFFRE ICI. Ce bloc en portait quatre, ecrits a la main et perimes depuis
+           longtemps — 128 mesures quand le corpus en compte plus de cent vingt mille. Sur un
+           produit dont toute la these est qu'un chiffre publie doit etre verifiable, un chiffre
+           faux dans le repli sans JavaScript est la pire faute possible. Les comptes vivent
+           dans le corpus, et le corpus a besoin du script : on renvoie donc au depot. -->
+      <p style="font-family: monospace; color: #e8eaed; padding: 24px; line-height: 1.6">
+        TARE mesure ce qu'un hook Uniswap v4 prend sur un swap&nbsp;: le même swap est coté deux
+        fois sur un fork épinglé, une fois avec le hook, une fois contre un talon inerte de
+        89&nbsp;octets, et l'écart est le prélèvement. L'instrument a besoin de JavaScript pour
+        lire son corpus, qui est embarqué dans la page. Le corpus brut et les commandes qui le
+        rejouent sont dans le dépôt&nbsp;:
+        <a href="https://github.com/JeanBaptisteDurand/ETH_Online_2026" style="color: #e8eaed"
+          >github.com/JeanBaptisteDurand/ETH_Online_2026</a
+        >.
       </p>
     </noscript>
     <script type="module" src="/src/main.tsx"></script>

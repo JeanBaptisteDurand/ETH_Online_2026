@@ -575,18 +575,18 @@ summary::-webkit-details-marker {
   }
 }
 
-/* L'APPARITION D'UNE SECTION : elle monte de douze pixels et s'ouvre, une seule fois.
-   `transform` et `opacity` uniquement, donc rien ne recalcule la mise en page. */
+/* L'APPARITION D'UNE SECTION : elle MONTE, elle ne s'allume pas.
+   Un reveal qui part a `opacity: 0` est un pari sur JavaScript : si l'observateur ne se
+   declenche pas — a l'impression, dans une capture pleine page, sur un navigateur qui ne
+   l'implemente pas — le contenu reste invisible, et la revue a vu trois sections blanches sur
+   la capture pleine page de l'accueil. L'apparition se fait donc par le seul mouvement : dans
+   le pire des cas, un bloc est decale de vingt-deux pixels et parfaitement lisible. */
 .reveal {
-  opacity: 0;
-  transform: translateY(12px);
-  transition:
-    opacity 520ms var(--e-out),
-    transform 520ms var(--e-out);
-  will-change: opacity, transform;
+  transform: translateY(22px);
+  transition: transform 560ms var(--e-out);
+  will-change: transform;
 }
 .reveal--vu {
-  opacity: 1;
   transform: none;
   will-change: auto;
 }
@@ -594,8 +594,8 @@ summary::-webkit-details-marker {
 /* LE CHANGEMENT DE ROUTE : le contenu se repose, court et net. */
 @keyframes route-entre {
   from {
-    opacity: 0;
-    transform: translateY(8px);
+    opacity: 0.4;
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -608,7 +608,6 @@ summary::-webkit-details-marker {
 
 @media (prefers-reduced-motion: reduce) {
   .reveal {
-    opacity: 1;
     transform: none;
     transition: none;
   }
@@ -654,7 +653,8 @@ summary::-webkit-details-marker {
   border-color: var(--ink-3);
 }
 .champ::placeholder {
-  color: var(--ink-3);
+  /* Une invite EST du texte : `--ink-3` donne 4,04:1 sur le fond de page, sous le seuil. */
+  color: var(--ink-2);
 }
 
 /* UN DEPLIANT au systeme : une ligne de prose, pas une etiquette, et une cible de 44 px. */

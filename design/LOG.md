@@ -37,3 +37,4 @@
 - 23:55 build terminé : 4 sections construites, captures complètes dans design/shots/build
 - 23:58 corrections après build : accès outils dans le header, section pourquoi, fond du hero supprimé, smooth scroll, transitions. locks : 34
 - 00:05 corrections après build : menu des outils, section pourquoi, fond supprimé, smooth scroll, reveal et transition de route
+- 00:20 review : captures 5 routes, axe 0 violation, Lighthouse a11y 100, 5 corrections (contraste, reveal, prose mono, noscript faux, meta)

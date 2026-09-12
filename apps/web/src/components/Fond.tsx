@@ -1,91 +1,120 @@
 /**
- * LE FOND DU HERO — et ce n'est pas une décoration : c'est le corpus.
+ * LE FOND DU HERO — une crête par hook, empilées.
  *
- * Ce qu'on peint : un échantillon des 125 072 mesures embarquées, une par point. En abscisse
- * le rang de la mesure dans le corpus, en ordonnée son rang de prélèvement — la moins chère en
- * bas, la plus chère en haut. Une ligne verticale balaie la bande sans fin, comme la tête d'un
- * enregistreur qui relit son papier : les points qu'elle traverse s'allument une seconde, puis
- * retombent au gris.
+ * LA RÉFÉRENCE : le *ridgeline plot*, dit *joyplot*. Le nom vient de la pochette d'Unknown
+ * Pleasures (Peter Saville, 1979), qui n'est pas un dessin mais un relevé : les impulsions du
+ * pulsar PSR B1919+21, tracées l'une sous l'autre, chaque courbe masquant celles du dessous.
+ * C'est la forme canonique pour comparer des distributions quand il y en a beaucoup, et c'est
+ * exactement la question de ce site : cent douze hooks, et ce que chacun prend.
  *
- * POURQUOI PAS UN CHAMP DE PISTES QUI POUSSENT. C'était la première version, refusée : « trop
- * AI generated dans le style ». Des traits qui se tracent tout seuls sur un fond sombre, c'est
- * le fond de n'importe quelle page de produit technique, et ça ne dit rien de celle-ci. Un
- * nuage de mesures réelles n'appartient qu'à ce projet : ce que le fond montre est exactement
- * ce que le titre annonce.
+ * CE QU'ON PEINT : une crête par hook. En abscisse le prélèvement en points de base, réparti
+ * en rang sur toute la largeur ; en ordonnée la densité — combien de mesures de ce hook tombent
+ * là. Les hooks sont empilés du moins cher en bas au plus cher en haut, et chaque crête est
+ * remplie de la couleur du fond, si bien qu'elle masque celles qui sont derrière. Une crête
+ * s'illumine à la fois, de bas en haut : l'instrument relit ses hooks l'un après l'autre.
  *
- * LA RÉFÉRENCE. Le nuage de sstr.tech, référence numéro un de la charte de l'équipier : la
- * même grandeur mesurée deux fois, en points et jamais en courbe, sans lissage, sans grille.
- * On en reprend la matière — un semis de points fins — et on lui ajoute le seul mouvement
- * qu'un instrument s'autorise : la relecture de sa propre bande.
+ * DEUX FONDS ONT ÉTÉ REFUSÉS AVANT CELUI-CI, et les deux refus ont appris quelque chose. Des
+ * pistes orthogonales qui poussaient : « trop AI generated dans le style » — la forme était
+ * celle de n'importe quel site technique. Un semis de points : juste, mais sans style, un voile
+ * sans figure. Une crête a une silhouette qu'on reconnaît de loin, et elle dit une chose vraie
+ * du corpus : la plupart des hooks prennent un taux fixe, donc leur crête est un pic étroit.
  *
- * CE QU'IL NE FAIT JAMAIS : passer devant un texte (les blocs protégés sont mesurés, pas
- * devinés), tourner dans un onglet caché, ni bouger sous `prefers-reduced-motion` — le nuage
- * est alors peint une fois, complet et immobile, et c'est la même image.
+ * CE QU'IL NE FAIT JAMAIS : passer devant un texte (les rectangles de ligne sont mesurés et
+ * creusés), tourner dans un onglet caché, ni bouger sous `prefers-reduced-motion` — les crêtes
+ * sont alors peintes une fois, complètes et immobiles.
  */
 import { useEffect, useRef } from 'react'
 import { dataset } from '../lib/dataset'
 
-/** Un point de la bande, déjà projeté en coordonnées relatives (0 à 1). */
-interface Point {
-  /** rang dans le corpus, ramené sur [0, 1] — la bande se lit de gauche à droite */
-  x: number
-  /** prélèvement en bps, en log, ramené sur [0, 1] — 0 en bas */
-  y: number
-}
+/** Une crête : la densité des prélèvements d'un hook, en `PAS` valeurs de 0 à 1. */
+type Crete = number[]
 
-const MAX_POINTS = 3400
-/** une relecture complète de la bande */
-const BALAYAGE_MS = 11000
+/** points de la courbe, en largeur. Peu de pas, volontairement : un hook a taux fixe donne
+    une barre d'un pixel sur une echelle fine, et une pile de barres n'est pas une silhouette. */
+const PAS = 64
+/** crêtes empilées — au-delà, elles se touchent et la figure devient une trame */
+const CRETES = 18
+/** temps d'illumination d'une crête */
+const LECTURE_MS = 420
 
 /**
- * L'ÉCHANTILLON — et la projection, qui est le vrai choix.
+ * LES CRÊTES, construites du corpus.
  *
- * Porter la taille du swap en abscisse paraissait naturel, et c'était faux : le corpus ne
- * contient que HUIT tailles, alors le nuage se réduisait à huit colonnes. Ce qui se déroule
- * ici est la bande elle-même : en abscisse le rang de la mesure dans le corpus, en ordonnée
- * son prélèvement en points de base, en log parce que la colonne court de 0,1 à 1 800 bps.
- * On lit une bande d'enregistreur, pas un diagramme — et c'est bien ce que le corpus est.
+ * Un histogramme par hook sur l'échelle des prélèvements, puis un lissage court : sans lui un
+ * hook à taux fixe donne une barre d'un pixel, avec lui il donne le pic étroit qui le décrit.
+ * L'abscisse est le RANG du prélèvement et non sa valeur : la médiane du corpus vaut 100 bps
+ * et les valeurs s'entassent, alors que le rang étale les cent douze hooks sur toute la largeur.
  */
-function echantillon(): Point[] {
-  const rows = dataset.rows
-  const pts: Point[] = []
-  const pas = Math.max(1, Math.floor(rows.length / MAX_POINTS))
-  const gardees: number[] = []
-  for (let i = 0; i < rows.length; i += pas) {
-    const r = rows[i]
-    // Seules les lignes MESUREES portent un prelevement : une NON_COTABLE n'a pas de valeur,
-    // et lui en inventer une serait la faute meme que ce produit reproche au registre.
+function cretes(): Crete[] {
+  const parHook = new Map<string, number[]>()
+  for (const r of dataset.rows) {
     if (r.label !== 'MESURE' || r.bps === null || r.bps <= 0) continue
-    gardees.push(r.bps)
+    const l = parHook.get(r.hook) ?? []
+    l.push(r.bps)
+    parHook.set(r.hook, l)
   }
-  if (gardees.length === 0) return pts
-  /**
-   * L'ORDONNEE EST UN RANG, et c'est un choix, pas une facilite.
-   *
-   * Porter le prelevement en log sur une echelle de valeurs tassait tout le semis dans le
-   * tiers haut de la bande : la mediane du corpus vaut 100 bps, et une distribution aussi
-   * asymetrique ne remplit pas une hauteur, elle s'y empile. En ordonnee, chaque mesure est
-   * donc placee a son RANG parmi les autres — la mesure la moins chere en bas, la plus chere
-   * en haut. Le semis couvre alors toute la bande, et l'axe reste vrai : plus haut veut dire
-   * plus cher. La legende le dit en toutes lettres, « rangees par prelevement ».
-   */
-  const ordre = gardees.map((b, i) => ({ b, i })).sort((x, y) => x.b - y.b)
-  const rang = new Array<number>(gardees.length)
-  for (let k = 0; k < ordre.length; k++) rang[ordre[k].i] = k / (ordre.length - 1 || 1)
-  for (let i = 0; i < gardees.length; i++) {
-    pts.push({ x: i / (gardees.length - 1 || 1), y: rang[i] })
+  if (parHook.size === 0) return []
+
+  // L'echelle commune : le rang du prelevement parmi toutes les valeurs vues.
+  const toutes = [...parHook.values()].flat().sort((a, b) => a - b)
+  const rang = (b: number) => {
+    let lo = 0
+    let hi = toutes.length - 1
+    while (lo < hi) {
+      const mi = (lo + hi) >> 1
+      if (toutes[mi] < b) lo = mi + 1
+      else hi = mi
+    }
+    return lo / (toutes.length - 1 || 1)
   }
-  return pts
+
+  // Les hooks, du moins cher au plus cher : la pile monte, comme le prelevement.
+  const hooks = [...parHook.entries()]
+    .map(([h, bs]) => ({ h, bs, med: bs.slice().sort((a, b) => a - b)[Math.floor(bs.length / 2)] }))
+    .sort((a, b) => a.med - b.med)
+
+  // On garde CRETES hooks repartis sur toute la pile, pas les CRETES premiers.
+  const choisis: typeof hooks = []
+  for (let i = 0; i < CRETES; i++) {
+    choisis.push(hooks[Math.min(hooks.length - 1, Math.floor((i * hooks.length) / CRETES))])
+  }
+
+  return choisis.map(({ bs }) => {
+    const h = new Array<number>(PAS).fill(0)
+    for (const b of bs) {
+      const i = Math.min(PAS - 1, Math.max(0, Math.round(rang(b) * (PAS - 1))))
+      h[i] += 1
+    }
+    // Lissage court, sur des pas larges : assez pour qu'un taux fixe devienne un pic dessinable,
+    // pas assez pour l'aplatir en ondulation. La silhouette tient a ce reglage.
+    let c = h
+    for (let p = 0; p < 2; p++) {
+      const n = new Array<number>(PAS).fill(0)
+      for (let i = 0; i < PAS; i++) {
+        let s = 0
+        let k = 0
+        for (let d = -2; d <= 2; d++) {
+          const j = i + d
+          if (j < 0 || j >= PAS) continue
+          s += c[j]
+          k++
+        }
+        n[i] = s / k
+      }
+      c = n
+    }
+    const max = Math.max(...c, 1)
+    return c.map((v) => v / max)
+  })
 }
 
-/** La bande est la même pour toute la session : on la calcule une fois. */
-let cache: Point[] | null = null
-function bande(): Point[] {
-  if (!cache) cache = echantillon()
+let cache: Crete[] | null = null
+function pile(): Crete[] {
+  if (!cache) cache = cretes()
   return cache
 }
 
-export function FondCorpus() {
+export function FondCretes() {
   const ref = useRef<HTMLCanvasElement | null>(null)
 
   useEffect(() => {
@@ -98,7 +127,8 @@ export function FondCorpus() {
       typeof window.matchMedia === 'function' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-    const pts = bande()
+    const lignes = pile()
+    if (lignes.length === 0) return
     let w = 0
     let h = 0
     let raf = 0
@@ -107,40 +137,20 @@ export function FondCorpus() {
     const lire = () => {
       const st = getComputedStyle(document.documentElement)
       return {
-        repos: st.getPropertyValue('--ink-4').trim() || '#454a50',
+        fond: st.getPropertyValue('--bg').trim() || '#08090a',
+        trait: st.getPropertyValue('--line-strong').trim() || '#363b42',
         lu: st.getPropertyValue('--ink-2').trim() || '#a2a9b0',
-        tete: st.getPropertyValue('--ink').trim() || '#e8eaed',
       }
     }
     let couleurs = lire()
 
     /**
-     * LES CREUX — et ils suivent les LIGNES, pas les boîtes.
-     *
-     * Creuser le rectangle de chaque bloc revenait à effacer la bande entière : un titre de
-     * deux lignes occupe une boîte de 780 px de large dont la moitié est vide. On creuse donc
-     * les rectangles de ligne, obtenus du `Range` de chaque nœud de texte — ce qui libère tout
-     * ce qui n'est pas un glyphe, et c'est là que la bande se voit.
-     *
-     * Les surfaces opaques (le champ, le bouton) ne sont pas de la partie : le canvas est
-     * derrière elles, elles le masquent d'elles-mêmes.
+     * LES CREUX suivent les LIGNES de texte, pas les boîtes : un titre de deux lignes occupe
+     * une boîte à moitié vide, et creuser la boîte effacerait la figure. Les surfaces opaques
+     * (le champ, le bouton) ne sont pas de la partie, elles masquent d'elles-mêmes.
      */
-    const PROTEGES = '.hero h1, .hero p, .hero-mesure, .hero-saisie label, .hero-saisie span, .scroll-cue span, .hero-fond-legende'
-    const lignes = (el: Element): DOMRect[] => {
-      const out: DOMRect[] = []
-      const it = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
-      let n = it.nextNode()
-      while (n) {
-        if ((n.textContent ?? '').trim().length > 0) {
-          const r = document.createRange()
-          r.selectNodeContents(n)
-          for (const rect of Array.from(r.getClientRects())) out.push(rect)
-          r.detach?.()
-        }
-        n = it.nextNode()
-      }
-      return out
-    }
+    const PROTEGES =
+      '.hero h1, .hero p, .hero-mesure, .hero-saisie label, .hero-saisie span, .scroll-cue span, .hero-fond-legende'
     const creuser = () => {
       const cadre = cv.getBoundingClientRect()
       const parent = cv.parentElement
@@ -150,44 +160,57 @@ export function FondCorpus() {
       if (typeof ctx.filter === 'string') ctx.filter = 'blur(10px)'
       ctx.fillStyle = 'rgba(0,0,0,1)'
       for (const el of Array.from(parent.querySelectorAll(PROTEGES))) {
-        for (const r of lignes(el)) {
-          if (r.width === 0 || r.height === 0) continue
-          const mx = 6
-          const my = 3
-          ctx.fillRect(r.x - cadre.x - mx, r.y - cadre.y - my, r.width + mx * 2, r.height + my * 2)
+        const it = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
+        let n = it.nextNode()
+        while (n) {
+          if ((n.textContent ?? '').trim().length > 0) {
+            const rg = document.createRange()
+            rg.selectNodeContents(n)
+            for (const r of Array.from(rg.getClientRects())) {
+              if (r.width === 0 || r.height === 0) continue
+              ctx.fillRect(r.x - cadre.x - 6, r.y - cadre.y - 3, r.width + 12, r.height + 6)
+            }
+          }
+          n = it.nextNode()
         }
       }
       ctx.restore()
     }
 
-    /** `tete` est l'abscisse relative de la ligne de lecture, ou -1 quand elle ne passe pas. */
-    const peindre = (tete: number) => {
+    /** `active` est l'indice de la crête illuminée, ou -1. */
+    const peindre = (active: number) => {
       ctx.clearRect(0, 0, w, h)
-      const mx = 24
-      const my = 10
+      const mx = 20
       const lw = Math.max(1, w - mx * 2)
-      const lh = Math.max(1, h - my * 2)
-      for (const p of pts) {
-        const x = mx + p.x * lw
-        const y = my + (1 - p.y) * lh
-        // La distance a la tete de lecture : les points qu'elle vient de traverser sont encore
-        // chauds, les autres sont au repos.
-        const d = tete < 0 ? 1 : tete - p.x
-        if (d >= 0 && d < 0.07) {
-          ctx.fillStyle = d < 0.012 ? couleurs.tete : couleurs.lu
-          ctx.globalAlpha = d < 0.012 ? 0.95 : 0.6 * (1 - d / 0.07)
-          ctx.fillRect(x - 1, y - 1, 2, 2)
-        } else {
-          ctx.fillStyle = couleurs.repos
-          ctx.globalAlpha = 0.85
-          ctx.fillRect(x, y, 1, 1)
+      // Les crêtes montent : la première est en bas. Elles se chevauchent d'un tiers, ce qui
+      // est ce qui donne la silhouette — une pile sans recouvrement n'est qu'un tableau.
+      const pasY = (h - 24) / (lignes.length - 1 || 1)
+      // Un pic monte sur cinq a six cretes : c'est le recouvrement qui fait la silhouette.
+      const amp = Math.min(96, pasY * 6)
+      for (let k = lignes.length - 1; k >= 0; k--) {
+        const base = 12 + k * pasY
+        const c = lignes[lignes.length - 1 - k]
+        ctx.beginPath()
+        ctx.moveTo(mx, base)
+        // Une courbe lisse plutot qu'une ligne brisee : a soixante-quatre pas, les segments
+        // se verraient. On passe par des quadratiques entre milieux de segments.
+        const px = (i: number) => mx + (i / (PAS - 1)) * lw
+        const py = (i: number) => base - c[i] * amp
+        ctx.lineTo(px(0), py(0))
+        for (let i = 1; i < PAS - 1; i++) {
+          ctx.quadraticCurveTo(px(i), py(i), (px(i) + px(i + 1)) / 2, (py(i) + py(i + 1)) / 2)
         }
-      }
-      // La tete de lecture : un trait de 1 px, pas un halo.
-      if (tete >= 0) {
-        ctx.globalAlpha = 0.45
-        ctx.fillStyle = couleurs.tete
-        ctx.fillRect(Math.round(mx + tete * lw) + 0.5, my, 1, lh)
+        ctx.lineTo(px(PAS - 1), py(PAS - 1))
+        ctx.lineTo(mx + lw, base)
+        // Le remplissage au fond de page : c'est lui qui fait qu'une crête MASQUE celles du
+        // dessous. Sans lui la pile est un enchevetrement illisible.
+        ctx.globalAlpha = 1
+        ctx.fillStyle = couleurs.fond
+        ctx.fill()
+        ctx.globalAlpha = lignes.length - 1 - k === active ? 1 : 0.9
+        ctx.strokeStyle = lignes.length - 1 - k === active ? couleurs.lu : couleurs.trait
+        ctx.lineWidth = 1
+        ctx.stroke()
       }
       ctx.globalAlpha = 1
       creuser()
@@ -195,7 +218,8 @@ export function FondCorpus() {
 
     const pas = (t: number) => {
       if (!debut) debut = t
-      peindre(((t - debut) % BALAYAGE_MS) / BALAYAGE_MS)
+      const i = Math.floor(((t - debut) / LECTURE_MS) % lignes.length)
+      peindre(i)
       raf = window.requestAnimationFrame(pas)
     }
 
@@ -216,7 +240,7 @@ export function FondCorpus() {
     const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(dimensionner)
     ro?.observe(cv)
 
-    // Le theme change les trois valeurs : on les relit sans redemarrer le balayage.
+    // Le theme change les trois valeurs : on les relit sans redemarrer la lecture.
     const mo = new MutationObserver(() => {
       couleurs = lire()
       if (reduit) peindre(-1)

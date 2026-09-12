@@ -19,7 +19,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { OUTILS, type Famille, type Outil } from '../lib/outils'
-import { FondCorpus } from './Fond'
+import { FondCretes } from './Fond'
 import { DONNEES, luPar } from '../lib/donnees'
 import { dataset } from '../lib/dataset'
 import { MONNAIES_DE_COTATION } from '../lib/exit'
@@ -349,10 +349,10 @@ export function Carte({
           et en bas le repère de défilement (on descend). Derrière, le champ de câblage. */}
       <div className="hero-cadre">
         <div className="flex flex-col" style={{ gap: 24 }}>
-          {/* LA BANDE DU CORPUS. Le nuage des 125 072 mesures vit ici, derriere le titre et la
-              mesure — et pas derriere la carte, qui est opaque et le cacherait entierement. */}
+          {/* LES CRETES. Une par hook, empilees comme un releve de pulsar : elles vivent ici,
+              derriere le titre et la mesure, et pas derriere la carte qui les cacherait. */}
           <div className="hero-haut relative">
-            <FondCorpus />
+            <FondCretes />
             <div className="hero relative" style={{ zIndex: 1 }}>
             <div className="flex flex-col" style={{ gap: 16 }}>
               {/* Deux lignes, pas trois : le premier ecran doit porter AUSSI la carte entiere,
@@ -471,7 +471,7 @@ export function Carte({
             {/* Ce que le fond montre, dit en une ligne : sans elle, un semis de points n'est
                 qu'une texture. Avec elle, c'est le corpus. */}
             <span className="hero-fond-legende t-data-sm" aria-hidden="true">
-              {dataset.totals.rows.toLocaleString('fr')} mesures du corpus, rangées par prélèvement, relues en continu
+              une crête par hook — {dataset.totals.hooks} hooks mesurés, ce que chacun prend
             </span>
           </div>
 

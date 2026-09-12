@@ -27,3 +27,5 @@
 - 22:35 hero révision 2 : les trois blocs dans le premier écran, fond remplacé par la bande du corpus (3 400 mesures relues), ports et câbles colorés, Archivo. audits repassés dans design/audit-hero.md
 - 22:40 corrections hero 3 : les trois entiers, le fond visible, la section compute supprimée au profit de la barre du hero, jetons de démo. locks : 28
 - 22:50 hero révision 3 : trois éléments entiers (enceinte à 740, cue à 800), section compute supprimée au profit de la barre du hero avec jetons de démo, fond visible (ordonnée en rang)
+- 23:00 correction hero 4 : le semis de points refusé à son tour, changer de registre et de référence. locks : 29
+- 23:15 hero révision 4 : fond refait en ridgeline plot (réf. Unknown Pleasures / pulsar PSR B1919+21), une crête par hook, lecture séquentielle

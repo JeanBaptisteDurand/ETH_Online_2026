@@ -76,3 +76,10 @@ Locks ajoutés :
 - « je ne vois pas ton animation dans le fond, elle est cache par mes composants » (le fond doit se voir : réduire les composants ou revoir leur layout)
 - « supprime la section compute apres le scroll. Ma barre compute la remplace » (l'accueil n'a plus de section d'opération : le hero calcule et répond)
 - « permet de mettre une adresse demo directement dans le hero » (des jetons du corpus proposés sous le champ)
+
+## Corrections sur la hero, 4 (2026-09-12, 23:00)
+
+> « Reprends l'animation du background, genre totalement de style, adopte une autre ref. »
+
+Lock ajouté :
+- « reprends l'animation du background, genre totalement de style, adopte une autre ref » (le semis de points du corpus est refusé à son tour : changer de registre, pas de réglages ; une autre référence)

@@ -133,3 +133,33 @@ assertion tombe, « toutes les sources ont été lues », parce que
 `packages/guard/data/table.json` n'existe pas dans le dépôt. Le générateur de faits le
 signalait déjà au premier `npm run data`, avant toute modification de design. `packages/` est
 hors du périmètre du front : à signaler à l'équipier, pas à corriger ici.
+
+---
+
+## Révision 4 — le fond, troisième forme
+
+Le semis de points a été refusé à son tour : « reprends l'animation du background, genre
+totalement de style, adopte une autre ref ». Changement de registre, pas de réglage.
+
+**La référence.** Le *ridgeline plot*, dit *joyplot*. Le nom vient de la pochette d'Unknown
+Pleasures (Peter Saville, 1979), qui n'est pas un dessin mais un relevé : les impulsions du
+pulsar PSR B1919+21, chaque courbe tracée sous la précédente et la masquant. C'est la forme
+canonique pour comparer beaucoup de distributions à la fois, et c'est exactement la question
+du site. Capture dans `design/refs/found/ridgeline-wikipedia.png`.
+
+**Ce qui est peint.** Une crête par hook, dix-huit prises régulièrement parmi les cent douze,
+du moins cher en bas au plus cher en haut. Le remplissage au fond de page est ce qui produit la
+silhouette : sans lui la pile est un enchevêtrement. Une crête s'illumine toutes les 420 ms, de
+bas en haut — l'instrument relit ses hooks l'un après l'autre.
+
+**Trois réglages ont fait la forme**, et ils sont dans le code avec leur raison : soixante-quatre
+pas et non cent cinquante, parce qu'un hook à taux fixe donne une barre d'un pixel sur une
+échelle fine ; un lissage court sur noyau de cinq, parce qu'un lissage large aplatit les pics en
+ondulation molle ; une amplitude de six fois l'espacement, parce que c'est le recouvrement qui
+fait la silhouette.
+
+**web-design-guidelines, quatrième passe.** Rien de neuf à corriger : le canvas reste
+`aria-hidden` et `pointer-events: none`, le nettoyage de l'effet est strict, `visibilitychange`
+arrête la boucle, `prefers-reduced-motion` peint une passe immobile, aucun écouteur de
+défilement, zéro erreur console sur les trois largeurs. La légende du fond a été refaite pour
+dire ce qu'on regarde.

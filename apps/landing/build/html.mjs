@@ -159,11 +159,15 @@ export function render(f) {
   <div class="wrap s0-in">
     <div class="s0-left">
       <p class="eyebrow caption">UNISWAP V4 · BASE · BLOCK ${B}</p>
-      <h1 class="hero">${grp(f.upstream.hooks_swept)}&nbsp;hooks.<br>Zero<br>declare.</h1>
+      <h1 class="hero">${grp(f.upstream.hooks_swept)}&nbsp;hooks.<br>${grp(
+    f.upstream.hooks_declaring,
+  )}<br>declare.</h1>
       <p class="lead">Uniswap asks a hook to declare what it charges, through the <span class="mono-in">HookSwap</span>
       and <span class="mono-in">HookFee</span> events its own guide recommends. Across
       ${or(f.upstream.hooks_swept, (v) => grp(v))} hooks deployed in ${or(f.upstream.block_window, (v) => grp(v))}
-      Base blocks, not one emits either. So this measures it instead — by replacing the hook with an inert
+      Base blocks, ${or(f.upstream.hooks_declaring, (v) => grp(v))} emit either — and what they emit is an
+      absolute amount on one past swap, not the rate you would pay at your size. So this measures it
+      instead — by replacing the hook with an inert
       ${or(f.stub.bytes, (v) => v)}-byte stub and quoting the same swap twice.</p>
       <div class="s0-facts">
         <div><span class="caption">CORPUS</span><span class="data">${grp(f.corpus.n)} measurements · ${grp(

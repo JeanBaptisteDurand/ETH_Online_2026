@@ -25,7 +25,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 
@@ -179,5 +179,27 @@ test('chaque acces dit a qui il s\'adresse, pourquoi lui, et ce qu\'il faut', ()
 test('chaque outil est atteignable par au moins un acces', () => {
   for (const o of OUTILS) {
     assert.ok(o.acces.length >= 1, `outil ${o.n} (${o.nom}) n'est atteignable par rien`)
+  }
+})
+
+test('le repli sans JavaScript dit les memes chiffres que le corpus', () => {
+  // `<noscript>` est servi a tout ce qui ne lance pas de JavaScript : un robot d'indexation,
+  // un apercu de lien, un lecteur en mode texte. Il annoncait « 128 mesures, 4 hooks,
+  // 32 pools » et citait `docs/measurements-v1.json`, un fichier qui n'existe plus — un
+  // corpus 977 fois trop petit, servi sur CHAQUE route, et que personne ne relisait parce
+  // que personne ne le voit dans un navigateur normal.
+  const html = readFileSync(resolve(DEPOT, 'apps/web/index.html'), 'utf8')
+  const bloc = html.slice(html.indexOf('<noscript>'), html.indexOf('</noscript>'))
+  assert.ok(bloc.length > 0, 'le <noscript> a disparu')
+
+  const totaux = (facts as { inventaire: Record<string, { n: number | null }> }).inventaire
+  const mesures = totaux.corpus?.n
+  assert.ok(mesures, 'le compte du corpus n\'a pas ete statte')
+  assert.ok(
+    bloc.includes(String(mesures)),
+    `le repli sans JS n'annonce pas ${mesures} mesures — il dit : ${bloc.replace(/\s+/g, ' ').trim()}`,
+  )
+  for (const mort of ['128 mesures', '4 hooks', '32 pools', 'measurements-v1.json']) {
+    assert.equal(bloc.includes(mort), false, `« ${mort} » est encore annonce au monde sans JavaScript`)
   }
 })

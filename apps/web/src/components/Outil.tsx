@@ -131,7 +131,8 @@ function SortieAttester() {
   return (
     <>
       <L k="contrat" v={String(t.contrat)} />
-      <L k="écrits" v={<>{String(t.ecrits)} <span style={{ color: 'var(--ink-4)' }}>· {String(t.ecartes)} écartés faute de mesure — pas écrits à zéro</span></>} />
+      <L k="écrits on-chain" v={<><strong style={{ color: 'var(--ink)' }}>{String(t.ecrits)}</strong> <span style={{ color: 'var(--ink-4)' }}>sur {String(t.tentes)} transactions envoyées</span></>} />
+      <L k="calculés" v={<>{String(t.calcules)} <span style={{ color: 'var(--ink-4)' }}>· {String(t.ecartes)} écartés faute de mesure — pas écrits à zéro. L'écart entre {String(t.calcules)} et {String(t.ecrits)} attend du gaz, et il est publié.</span></>} />
       <L k="empreinte du corpus" v={<span style={{ wordBreak: 'break-all' }}>{String(t.corpus_digest)}</span>} />
       <div className="px-[16px] py-[9px] t-data-xs" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-3)' }}>
         Un autre contrat peut lire ces valeurs. C'est la seule surface du produit qu'une machine

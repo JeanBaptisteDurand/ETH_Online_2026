@@ -54,3 +54,10 @@ mono, et leur glose passe en prose sans.
 - `Exit.tsx` : deux séparateurs en point médian, remplacés.
 - Reste : l'indicateur de tri d'une colonne de table utilise `·` pour « non trié », en regard de `↑` et `↓`. C'est un symbole d'état d'une colonne, pas une chaîne de métadonnées ; conservé.
 - Les dix erreurs console de cette route sont toutes `ERR_CONNECTION_REFUSED` vers l'API locale absente, le cas que couvre le refus motivé à l'écran.
+
+## Écarts assumés avec `design/DESIGN.md`
+
+- **La grande table de `#/instrument`** garde son implémentation TanStack : ses colonnes sont pilotées par l'assistant (visibilité, tri, surlignage), et la rampe y encode les bps cellule par cellule. Les composants `table-header` / `table-cell` de la direction décrivent une table statique ; les appliquer ici aurait demandé de refaire la logique, ce que l'étape interdit. Sa typographie suit déjà le système (mono pour les valeurs, filets de ligne).
+- **Le rail des 27 jeux de données** dans la carte reste une liste à filets, pas une suite de plaques à port. La direction ne tranche pas ce point ; le changer toucherait la mise en page de la carte, validée par l'utilisateur.
+- **Le preload des deux polices** dans `index.html` n'est pas posé : elles sont auto-hébergées par `@fontsource-variable` et leurs fichiers sont hashés au build, donc l'étiquette de preload demanderait un plugin de build. Hors périmètre d'une étape de design.
+- **Un test tombe**, et il ne vient pas du front : `facts.test.ts` exige que toutes les sources aient été lues, or `packages/guard/data/table.json` n'existe pas dans le dépôt. Le générateur de faits le signalait déjà avant toute modification. 113 tests passent.

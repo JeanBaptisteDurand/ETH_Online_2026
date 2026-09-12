@@ -38,8 +38,17 @@
      doit se reperer sans lire. Trois jetons propres tiennent l'ecart dans les deux themes.
      La rampe, elle, n'est pas touchee : elle encode bps et rien d'autre. */
   --fam-collecte: #3376f6;
-  --fam-analyse: #f6d746;
+  /* désaturé : #f6d746 criait à côté du bleu et de l'orange (design/DESIGN.md → Colors) */
+  --fam-analyse: #dfc24d;
   --fam-action: #eb6628;
+
+  /* LA PLAQUE (design/DESIGN.md, direction A) : quatre surfaces et un liseré, aucune ombre.
+     surface-1 l'enceinte de la carte, surface-2 la plaque, surface-3 la plaque survolée,
+     highlight le liseré haut de 1 px qui fait la plaque usinée. */
+  --surface-1: #0e1013;
+  --surface-2: #161a1e;
+  --surface-3: #1c2126;
+  --highlight: #2a3037;
 
   --mix: 22%;
 
@@ -47,6 +56,7 @@
   --t-element: 180ms;
   --t-data: 320ms;
   --e-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --e-out: cubic-bezier(0.32, 0.72, 0, 1);
 
   --mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
   --prose: 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;
@@ -81,6 +91,10 @@
   --fam-collecte: #1b4fc4;
   --fam-analyse: #9a7b00;
   --fam-action: #c2410c;
+  --surface-1: #f0f0ed;
+  --surface-2: #ffffff;
+  --surface-3: #f7f7f5;
+  --highlight: #ffffff;
 
   color-scheme: light;
 }
@@ -99,11 +113,31 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family: var(--mono);
-  font-size: 13px;
-  line-height: 18px;
+  /* La sans est la voix du produit ; la mono ne parle que là où une valeur est une valeur
+     (les rôles .t-data*, .t-label, .t-valeur, .hex, code). design/DESIGN.md → Typography. */
+  font-family: var(--prose);
+  font-size: 16px;
+  line-height: 1.55;
   font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
+}
+
+.t-data-xs,
+.t-data-sm,
+.t-data,
+.t-data-lg,
+.t-label,
+.t-valeur,
+.t-metric,
+.chip,
+.hex,
+code,
+kbd,
+table,
+input,
+select,
+textarea {
+  font-family: var(--mono);
 }
 
 /* Une ancre ne doit jamais se poser sous la barre collante de 44 px. */
@@ -251,7 +285,7 @@ summary::-webkit-details-marker {
 }
 .piste--trace {
   stroke-dasharray: var(--piste-len, 400);
-  animation: piste-trace 600ms var(--e-enter) both;
+  animation: piste-trace 600ms var(--e-out) both;
   animation-delay: var(--piste-delay, 0ms);
 }
 
@@ -268,6 +302,7 @@ summary::-webkit-details-marker {
    outils prend ce qui reste. */
 .carte-grille {
   grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
 }
 /* En une colonne, l'orchestrateur et les outils passent devant : ce sont eux que le brief
    veut voir sans defiler. Le rail des jeux de donnees descend et se reduit, en disant
@@ -296,8 +331,8 @@ summary::-webkit-details-marker {
 }
 @media (min-width: 900px) {
   .carte-grille {
-    grid-template-columns: 200px 240px minmax(0, 1fr);
-    gap: 44px;
+    grid-template-columns: 200px 250px minmax(0, 1fr);
+    gap: 40px;
   }
 }
 
@@ -311,6 +346,156 @@ summary::-webkit-details-marker {
   letter-spacing: -0.03em;
   font-weight: 600;
   text-wrap: balance; /* pas de mot orphelin sur la derniere ligne */
+}
+
+/* design/DESIGN.md → Typography : display (le titre de route), number (l'écart, une fois par
+   écran), headline (titre de section), title (nom d'un outil sur sa plaque), body. */
+.t-display {
+  font-family: var(--prose);
+  font-size: clamp(2.75rem, 5vw, 4rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  font-weight: 600;
+  text-wrap: balance;
+}
+.t-number {
+  font-family: var(--mono);
+  font-size: clamp(3.5rem, 7vw, 7rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-weight: 500;
+}
+.t-headline {
+  font-family: var(--prose);
+  font-size: 2rem;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+.t-title {
+  font-family: var(--prose);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.t-body {
+  font-family: var(--prose);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+.t-body-muted {
+  color: var(--ink-2);
+}
+
+/* L'ENCEINTE : le seul geste de cadrage de la page. Un cran plus clair que la page, un filet,
+   et dedans les plaques. */
+.enceinte {
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  padding: 24px;
+}
+@media (max-width: 639px) {
+  .enceinte {
+    padding: 12px;
+  }
+}
+
+/* LA PLAQUE : surface-2, filet, liseré haut de 1 px (la seule lumière du site), barre de
+   famille de 3 px. Le survol monte d'un cran et allume ses pistes. */
+.plaque {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-top-color: var(--highlight);
+  transition:
+    background var(--t-element) var(--e-out),
+    border-color var(--t-element) var(--e-out);
+}
+.plaque:hover,
+.plaque:focus-visible {
+  background: var(--surface-3);
+  border-color: var(--line-strong);
+  border-top-color: var(--highlight);
+}
+.plaque-orch {
+  border-color: var(--line-strong);
+  border-top-color: var(--highlight);
+}
+.plaque-titre {
+  font-family: var(--prose);
+  font-size: 1.125rem;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+/* La légende des familles : barre de nuancier 24 × 8, le nom en sans, la glose en muted. */
+.legende-nom {
+  font-family: var(--prose);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+/* Le hero : 7 colonnes de titre, 5 de légende. */
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  align-items: end;
+}
+@media (min-width: 900px) {
+  .hero {
+    grid-template-columns: 7fr 5fr;
+    gap: 48px;
+  }
+}
+
+/* La barre haute : 56 px, la voix en sans, les routes en liens texte. */
+.nav-lien {
+  font-family: var(--prose);
+  font-size: 0.9375rem;
+  color: var(--ink-2);
+  padding: 8px 10px;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: color var(--t-feedback) var(--e-out);
+}
+.nav-lien:hover,
+.nav-lien[aria-current='page'] {
+  color: var(--ink);
+}
+.bouton-ghost {
+  font-family: var(--prose);
+  font-size: 0.875rem;
+  color: var(--ink-2);
+  background: transparent;
+  border: 1px solid var(--line);
+  padding: 6px 10px;
+  cursor: pointer;
+  transition:
+    color var(--t-feedback) var(--e-out),
+    border-color var(--t-feedback) var(--e-out);
+}
+.bouton-ghost:hover {
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+/* Sous 640 px la barre ne garde que la marque, les deux routes et le thème : la provenance
+   (importance 3) attend l'instrument, et l'indication de survol n'a pas de sens au doigt. */
+.nav-theme {
+  margin-left: 8px;
+}
+@media (max-width: 639px) {
+  .nav-provenance,
+  .enceinte-aide {
+    display: none;
+  }
+  .nav-lien {
+    padding: 8px 6px;
+  }
+  .nav-theme {
+    margin-left: auto;
+  }
 }
 
 /* La gouttiere de caracteres — une texture faite de signes, pas d'image, et jamais lue par
@@ -441,7 +626,7 @@ summary::-webkit-details-marker {
    d'un outil a l'autre, et le bandeau reste sous la main. Il colle sous la barre haute. */
 .onglets {
   position: sticky;
-  top: 44px;
+  top: 56px;
   z-index: 5;
   background: var(--bg);
   border-bottom: 1px solid var(--line-strong);
@@ -605,7 +790,7 @@ span a[href] {
   .matrice-tete {
     min-height: 32px;
     position: sticky;
-    top: 44px;
+    top: 56px;
     z-index: 2;
   }
   .matrice-cadre {

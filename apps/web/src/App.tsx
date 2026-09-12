@@ -84,37 +84,57 @@ function Evitement() {
   )
 }
 
-function Head({ theme, setTheme }: { theme: string; setTheme: (t: string) => void }) {
+function Head({ theme, setTheme, vue }: { theme: string; setTheme: (t: string) => void; vue: Vue }) {
   const paires: [string, string][] = [
-    ['chaîne', `base · chainid ${P.measurements.chain_ids.join(', ')}`],
+    ['chaîne', `base, chainid ${P.measurements.chain_ids.join(', ')}`],
     ['bloc épinglé', P.measurements.blocks.map(fmtBlock).join(', ')],
     ['moteur', P.measurements.engine_ver],
     ['talon', P.measurements.stub_hash],
-    ['registre', `${P.registry.commit.slice(0, 7)} — ${P.registry.entries} fiches`],
+    ['registre', `${P.registry.commit.slice(0, 7)}, ${P.registry.entries} fiches`],
+  ]
+  const routes = [
+    { h: '/', t: 'la carte', actif: vue.quoi === 'accueil' || vue.quoi === 'outil' },
+    { h: '/instrument', t: "l'instrument", actif: vue.quoi === 'instrument' },
   ]
   return (
     <header
       className="sticky top-0 z-10"
-      style={{ background: 'var(--bg-2)', borderBottom: '1px solid var(--line-strong)' }}
+      style={{ background: 'var(--bg)', borderBottom: '1px solid var(--line)' }}
     >
-      <div className="flex items-center gap-[16px] px-[16px] mx-auto w-full" style={{ maxWidth: 1560, minHeight: 44 }}>
-        <span className="t-data" style={{ color: 'var(--ink)', fontWeight: 700, letterSpacing: '0.14em' }}>
+      <div className="flex items-center gap-[8px] px-[24px] mx-auto w-full" style={{ maxWidth: 1360, minHeight: 56 }}>
+        {/* La marque : en sans, comme la voix du produit. Plus de capitales chassées. */}
+        <a href="#/" className="no-underline" translate="no" style={{ color: 'var(--ink)', fontFamily: 'var(--prose)', fontWeight: 600, fontSize: 20, letterSpacing: '-0.01em' }}>
           TARE
-        </span>
-        <details className="ml-auto">
-          <summary
-            className="t-data-sm cursor-pointer list-none"
-            style={{ color: 'var(--ink-2)', padding: '6px 8px', border: '1px solid var(--line)' }}
-          >
+        </a>
+        <nav className="flex items-center gap-[2px] ml-[12px]" aria-label="les vues">
+          {routes.map((x) => (
+            <a
+              key={x.h}
+              href={`#${x.h}`}
+              aria-current={x.actif ? 'page' : undefined}
+              className="nav-lien"
+              onClick={(e) => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
+                e.preventDefault()
+                window.location.hash = x.h
+                window.scrollTo({ top: 0 })
+              }}
+            >
+              {x.t}
+            </a>
+          ))}
+        </nav>
+        <details className="ml-auto relative nav-provenance">
+          <summary className="bouton-ghost cursor-pointer list-none inline-flex items-center" style={{ minHeight: 32 }}>
             provenance
           </summary>
           <div
-            className="absolute right-[16px] mt-[6px] p-[12px] grid gap-[6px]"
-            style={{ background: 'var(--bg-1)', border: '1px solid var(--line-strong)', zIndex: 20, maxWidth: 'calc(100vw - 32px)' }}
+            className="absolute right-0 mt-[6px] p-[14px] grid gap-[8px]"
+            style={{ background: 'var(--surface-2)', border: '1px solid var(--line-strong)', borderTopColor: 'var(--highlight)', zIndex: 20, minWidth: 320, maxWidth: 'calc(100vw - 32px)' }}
           >
             {paires.map(([k, v]) => (
-              <div key={k} className="grid gap-[10px]" style={{ gridTemplateColumns: 'auto minmax(0,1fr)' }}>
-                <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>{k}</span>
+              <div key={k} className="grid gap-[12px]" style={{ gridTemplateColumns: '96px minmax(0,1fr)' }}>
+                <span className="t-body-muted" style={{ fontSize: 13 }}>{k}</span>
                 <span className="t-data-sm hex" style={{ color: 'var(--ink)' }}>{v}</span>
               </div>
             ))}
@@ -123,8 +143,8 @@ function Head({ theme, setTheme }: { theme: string; setTheme: (t: string) => voi
         <button
           type="button"
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="t-data-sm cursor-pointer"
-          style={{ border: '1px solid var(--line)', background: 'transparent', color: 'var(--ink-2)', padding: '6px 8px' }}
+          className="bouton-ghost nav-theme"
+          style={{ minHeight: 32 }}
         >
           {theme === 'dark' ? 'clair' : 'sombre'}
         </button>
@@ -285,40 +305,6 @@ export default function App() {
 
   const hook = dataset.hooks.find((h) => h.address === selected)!
 
-  /** La barre des trois vues. Elle dit où on est, et ce que chaque vue contient. */
-  const Nav = () => (
-    <nav className="flex flex-wrap items-center gap-[6px] px-[16px] pt-[16px] mx-auto w-full" style={{ maxWidth: 1560 }}>
-      {[
-        // Sentence case, et pas de point median : deux tells de page generee, et la barre
-        // n'a pas a chiffrer ce que la page qui suit compte deja.
-        { h: '/', t: 'la carte', actif: vue.quoi === 'accueil' },
-        { h: '/instrument', t: "l'instrument", actif: vue.quoi === 'instrument' },
-      ].map((x) => (
-        // Une navigation est un lien, pas un bouton : Cmd-clic et clic molette doivent
-        // ouvrir un onglet, et l'adresse doit se copier.
-        <a
-          key={x.h}
-          href={`#${x.h}`}
-          aria-current={x.actif ? 'page' : undefined}
-          onClick={(e) => {
-            if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
-            e.preventDefault()
-            aller(x.h)
-          }}
-          className="t-data-sm no-underline"
-          style={{
-            padding: '8px 12px',
-            border: `1px solid ${x.actif ? 'var(--line-strong)' : 'var(--line)'}`,
-            background: x.actif ? 'var(--bg-3)' : 'transparent',
-            color: x.actif ? 'var(--ink)' : 'var(--ink-2)',
-            cursor: 'pointer',
-          }}
-        >
-          {x.t}
-        </a>
-      ))}
-    </nav>
-  )
   // Les quatorze pastilles numérotées et la légende des familles vivaient ici, en doublon de
   // ce que la carte montre maintenant en entier. Sur la page outil, le bandeau d'onglets les
   // remplace ; sur l'accueil, c'est la carte elle-même qui sert de navigation.
@@ -327,9 +313,8 @@ export default function App() {
     return (
       <div className="min-h-full">
         <Evitement />
-        <Head theme={theme} setTheme={setTheme} />
-        <Nav />
-        <main id="contenu" className="flex flex-col gap-[48px] px-[16px] pt-[24px] pb-[16px] mx-auto" style={{ maxWidth: 1560 }}>
+        <Head theme={theme} setTheme={setTheme} vue={vue} />
+        <main id="contenu" className="flex flex-col px-[24px] pt-[40px] pb-[24px] mx-auto w-full" style={{ maxWidth: 1360, gap: 'clamp(4rem, 8vw, 7rem)' }}>
           {/* LA CARTE D'ABORD. Le système en une image, et chaque nœud est une porte. */}
           <Carte surOutil={versOutil} />
           <AccueilPanel />
@@ -347,9 +332,8 @@ export default function App() {
     return (
       <div className="min-h-full">
         <Evitement />
-        <Head theme={theme} setTheme={setTheme} />
-        <Nav />
-        <main id="contenu" className="flex flex-col gap-[16px] p-[16px] mx-auto" style={{ maxWidth: 1560 }}>
+        <Head theme={theme} setTheme={setTheme} vue={vue} />
+        <main id="contenu" className="flex flex-col gap-[16px] px-[24px] pb-[24px] mx-auto w-full" style={{ maxWidth: 1360 }}>
           <OutilPanel n={vue.n} surOutil={versOutil} />
         </main>
       </div>
@@ -359,10 +343,9 @@ export default function App() {
   return (
     <div className="min-h-full">
       <Evitement />
-      <Head theme={theme} setTheme={setTheme} />
-      <Nav />
+      <Head theme={theme} setTheme={setTheme} vue={vue} />
 
-      <main id="contenu" className="px-[16px] pt-[20px] pb-[16px] mx-auto w-full" style={{ maxWidth: 1560 }}>
+      <main id="contenu" className="px-[24px] pt-[24px] pb-[24px] mx-auto w-full" style={{ maxWidth: 1360 }}>
         <div className="pb-[16px]">
         <h1 className="t-hero m-0">L’instrument</h1>
         <p

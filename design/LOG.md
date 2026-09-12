@@ -18,3 +18,6 @@
 - 21:20 direction choisie : « Va pour la A. » (la plaque). locks : 15
 - 21:32 DESIGN.md écrit au format design.md, lint : 0 erreur, 0 avertissement
 - 21:33 taste-skill : design-taste-frontend (v2) invoqué à 20:56, redesign-existing-projects et image-to-code appliqués, curseurs variance 6 / motion 4 / densité 7
+- 21:58 hero passe 1 : barre haute débordait à 390, compte des jeux répété ; corrigé, recapturé
+- 22:05 hero passe 2 : provenance flottait au centre de la barre, dt/dd inversés dans la figure, translate=no ; corrigé, recapturé
+- 22:12 audits hero : web-design-guidelines (4 corrigées, 1 reste : preload polices) et Design Audit écrits dans design/audit-hero.md

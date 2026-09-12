@@ -61,7 +61,11 @@ interface Trace {
   outil: number | null
   alimente: boolean
   len: number
+  /** le tracé du chargement part famille par famille : collecte, analyse, action */
+  delai: number
 }
+
+const DELAI: Record<Famille, number> = { collecte: 0, analyse: 150, action: 300 }
 
 export function Carte({ surOutil }: { surOutil: (n: number) => void }) {
   const boite = useRef<HTMLDivElement | null>(null)
@@ -71,12 +75,6 @@ export function Carte({ surOutil }: { surOutil: (n: number) => void }) {
   const [traces, setTraces] = useState<Trace[]>([])
   const [taille, setTaille] = useState({ w: 0, h: 0 })
   const [actif, setActif] = useState<number | null>(null)
-  // LE FIL DE LA RUBRIQUE 0. Il descendait de 40 px en dur et s'arretait 63 px au-dessus de sa
-  // cible : la promesse etait qu'il vienne SE BRANCHER sur la figure. On mesure donc la
-  // position reelle du premier nuancier, comme la carte mesure celle de ses noeuds.
-  const cadreFigure = useRef<HTMLDivElement | null>(null)
-  const nuancier = useRef<HTMLSpanElement | null>(null)
-  const [fil, setFil] = useState(0)
   const [tracee, setTracee] = useState(false)
   // Empile : sous 900 px la grille passe en une colonne. L'ordre de lecture change avec elle.
   const [empile, setEmpile] = useState(false)
@@ -152,7 +150,8 @@ export function Carte({ surOutil }: { surOutil: (n: number) => void }) {
         const r = rel(el.getBoundingClientRect())
         const y = Math.round(r.y + r.height / 2)
         const d = `${amorce} H ${bus} V ${y} H ${r.x}`
-        out.push({ cle: `o${n}`, d, outil: n, alimente: false, len: longueur(d) })
+        const fam = OUTILS.find((o) => o.n === n)?.famille ?? 'collecte'
+        out.push({ cle: `o${n}`, d, outil: n, alimente: false, len: longueur(d), delai: DELAI[fam] })
       }
     }
 
@@ -163,7 +162,7 @@ export function Carte({ surOutil }: { surOutil: (n: number) => void }) {
       const r = rel(rl.getBoundingClientRect())
       if (r.x + r.width <= rch.x + 1) {
         const d = `M ${r.x + r.width} ${r.y + 14} H ${r.x + r.width + 14} V ${rch.y + rch.height / 2} H ${rch.x}`
-        out.push({ cle: 'rail', d, outil: null, alimente: true, len: longueur(d) })
+        out.push({ cle: 'rail', d, outil: null, alimente: true, len: longueur(d), delai: 0 })
       }
     }
 
@@ -179,21 +178,6 @@ export function Carte({ surOutil }: { surOutil: (n: number) => void }) {
     ro.observe(b)
     return () => ro.disconnect()
   }, [calculer])
-
-  useLayoutEffect(() => {
-    const mesurer = () => {
-      const c = cadreFigure.current
-      const n = nuancier.current
-      if (!c || !n) return
-      // depuis le filet de section (28 px au-dessus du cadre) jusqu'au bord haut du nuancier
-      setFil(Math.max(0, n.getBoundingClientRect().top - c.getBoundingClientRect().top + 28))
-    }
-    mesurer()
-    if (typeof ResizeObserver === 'undefined') return
-    const ro = new ResizeObserver(mesurer)
-    if (cadreFigure.current) ro.observe(cadreFigure.current)
-    return () => ro.disconnect()
-  })
 
   // Le tracé n'a lieu qu'une fois, au premier rendu. Un recalcul de mise en page ne doit pas
   // relancer une animation : rien ne rejoue derrière le dos du lecteur.
@@ -240,42 +224,44 @@ export function Carte({ surOutil }: { surOutil: (n: number) => void }) {
   }, [])
 
   return (
-    <section aria-labelledby="carte-titre">
-      <header
-        className="flex flex-wrap items-baseline justify-between gap-x-[24px] gap-y-[4px] pb-[10px]"
-        style={{ borderBottom: '1px solid var(--line-strong)' }}
-      >
-        <h1 id="carte-titre" className="t-hero m-0">
-          La chaîne et ses {OUTILS.length} outils
-        </h1>
-        {/* Une legende, pas une liste de formules « mot — fragment » : le nom de la famille
-            sur une ligne, ce qu'elle fait dessous. Aucun tiret cadratin espace. */}
-        <dl className="legende flex flex-wrap gap-x-[24px] gap-y-[6px] m-0 p-0">
-          {/* `dt` et `dd` sont des enfants DIRECTS du div de groupe : une seconde division
-              entre eux et la liste casse `definition-list`, et la legende cesse d'etre lue
-              comme une legende. La grille garde le rendu au pixel — le nuancier tient les
-              deux lignes, le nom au-dessus de sa glose. */}
+    <section aria-labelledby="carte-titre" className="flex flex-col" style={{ gap: 32 }}>
+      {/* LE HERO : le titre à gauche sur sept colonnes, la légende des familles à droite.
+          Une seule focale, le titre ; l'enceinte dessous est la deuxième chose vue. */}
+      <div className="hero">
+        <div className="flex flex-col" style={{ gap: 16 }}>
+          <h1 id="carte-titre" className="t-display m-0" style={{ maxWidth: '18ch' }}>
+            Ce qu’un hook prend vraiment sur un swap.
+          </h1>
+          <p className="t-body t-body-muted m-0" style={{ maxWidth: '52ch' }}>
+            Le même swap coté deux fois, avec le hook et contre un talon inerte de 89 octets.
+            L’écart est la mesure. Chaque nœud de la carte s’ouvre.
+          </p>
+        </div>
+        {/* La légende : trois barres de nuancier, le nom en sans, ce que la famille fait. */}
+        <dl className="legende m-0 p-0 grid" style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 16 }}>
           {ORDRE.map((f) => (
-            <div
-              key={f}
-              style={{ display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr)', columnGap: 8 }}
-            >
-              <span
-                aria-hidden="true"
-                style={{ width: 24, height: 8, background: COULEUR[f], display: 'inline-block', marginTop: 5, gridRow: '1 / span 2' }}
-              />
-              <dt className="t-data-sm m-0" style={{ color: 'var(--ink)' }}>
-                {f}
-              </dt>
-              <dd className="legende-glose t-data-sm m-0" style={{ color: 'var(--ink-2)' }}>
+            <div key={f} className="flex flex-col" style={{ gap: 6, borderTop: `3px solid ${COULEUR[f]}`, paddingTop: 10 }}>
+              <dt className="legende-nom m-0">{f}</dt>
+              <dd className="legende-glose m-0 t-body-muted" style={{ fontSize: 14, lineHeight: 1.4 }}>
                 {QUOI[f]}
               </dd>
             </div>
           ))}
         </dl>
-      </header>
+      </div>
 
-      <div ref={boite} className="relative grid gap-x-[32px] gap-y-[24px] pt-[24px]" style={{ gridTemplateColumns: 'minmax(0, 1fr)' }}>
+      {/* L'ENCEINTE : la carte entière sur une surface un cran plus claire, cadrée d'un filet. */}
+      <div className="enceinte">
+        <div className="flex flex-wrap items-baseline justify-between gap-[12px] pb-[20px]">
+          <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
+            la chaîne et ses {OUTILS.length} outils
+          </span>
+          <span className="t-data-sm enceinte-aide" style={{ color: 'var(--ink-2)' }}>
+            survoler un outil allume son chemin
+          </span>
+        </div>
+
+      <div ref={boite} className="relative grid" style={{ gridTemplateColumns: 'minmax(0, 1fr)' }}>
         <svg
           aria-hidden="true"
           className="absolute inset-0 pointer-events-none"
@@ -296,72 +282,56 @@ export function Carte({ surOutil }: { surOutil: (n: number) => void }) {
               ]
                 .filter(Boolean)
                 .join(' ')}
-              style={{ '--piste-len': t.len } as CSSProperties}
+              style={{ '--piste-len': t.len, '--piste-delay': `${t.delai}ms` } as CSSProperties}
             />
           ))}
         </svg>
 
-        <div className="relative grid gap-[24px] items-start" style={{ gridTemplateColumns: 'minmax(0,1fr)', zIndex: 1 }}>
-          <div className="carte-grille grid gap-[24px] items-start">
-            {/* LA SOURCE — les jeux de données, comptés, tronqués en le disant. */}
-            <div ref={rail} className="flex carte-source" style={{ gap: 8 }}>
-              <div className="gouttiere" aria-hidden="true">
-                {Array.from({ length: 9 }, (_, i) => (
-                  <div key={i}>#</div>
-                ))}
-              </div>
-              <div className="flex flex-col grow" style={{ borderLeft: '1px solid var(--line)' }}>
-              <p className="t-data-sm m-0 px-[10px] pb-[8px]" style={{ color: 'var(--ink-2)' }}>
-                {nJeux} jeux de données, en amont
+        <div className="relative grid items-start" style={{ gridTemplateColumns: 'minmax(0,1fr)', zIndex: 1 }}>
+          <div className="carte-grille grid items-start">
+            {/* LA SOURCE : les jeux de données, comptés, tronqués en le disant. */}
+            <div ref={rail} className="flex flex-col carte-source">
+              <p className="t-data-sm m-0 pb-[8px]" style={{ color: 'var(--ink-2)' }}>
+                {nJeux} jeux de données
               </p>
-              <ul className="m-0 p-0 flex flex-col" style={{ listStyle: 'none' }}>
+              <ul className="m-0 p-0 flex flex-col" style={{ listStyle: 'none', borderTop: '1px solid var(--line)' }}>
                 {DONNEES.slice(0, empile ? 3 : 9).map((j) => (
-                  <li key={j.cle} style={{ borderTop: '1px solid var(--line)' }}>
+                  <li key={j.cle} style={{ borderBottom: '1px solid var(--line)' }}>
                     <a
                       href={`#donnees-${j.cle}`}
-                      className="noeud-donnee t-data-sm px-[10px] py-[7px] hex no-underline block"
+                      className="noeud-donnee t-data-sm py-[7px] hex no-underline block"
                       style={{ color: 'var(--ink-2)' }}
                     >
                       {j.nom}
                     </a>
                   </li>
                 ))}
-                <li
-                  className="t-data-sm px-[10px] py-[5px]"
-                  style={{ color: 'var(--ink-2)', borderTop: '1px solid var(--line)' }}
-                >
+                <li className="t-data-sm py-[6px]" style={{ color: 'var(--ink-2)' }}>
                   et {nJeux - (empile ? 3 : 9)} autres, plus bas
                 </li>
               </ul>
-              </div>
             </div>
 
-            {/* L'ORCHESTRATEUR. Le seul bloc qui porte une séquence, donc le seul qui a des
-                numéros d'étape : six étapes sous une seule horloge. */}
+            {/* L'ORCHESTRATEUR : la plaque large, la seule qui porte une séquence. */}
             <div
               ref={chaine}
-              className="flex flex-col justify-between self-center carte-chaine"
-              style={{ background: 'var(--bg-2)', border: '1px solid var(--line-strong)', minHeight: 148 }}
+              className="plaque plaque-orch flex flex-col justify-between self-center carte-chaine"
+              style={{ minHeight: 160 }}
             >
-              <div className="px-[14px] pt-[12px]">
-                <p className="t-title m-0" style={{ fontFamily: 'var(--prose)', fontWeight: 600 }}>
+              <div className="px-[16px] pt-[14px]">
+                <p className="t-headline m-0" style={{ fontSize: '1.5rem' }}>
                   La chaîne
                 </p>
-                {/* L'HORLOGE REELLE, pas le mot « horloge » : le compte d'etapes vertes sur le
-                    total, et la duree bout en bout. Les deux viennent de `facts.chaine`, lu au
-                    build depuis `docs/dataset/chaine-complete.json`. */}
-                <p className="t-data m-0 pt-[4px]" style={{ color: 'var(--ink)' }}>
+                <p className="t-data m-0 pt-[6px]" style={{ color: 'var(--ink)' }}>
                   {ch ? `${ch.n_ok}/${ch.n_total} étapes en ${msFr(ch.duree_ms)}` : '—'}
                 </p>
-                <p className="m-0 pt-[3px]" style={{ fontFamily: 'var(--prose)', fontSize: 13, lineHeight: '18px', color: 'var(--ink-2)' }}>
+                <p className="m-0 pt-[2px] t-body-muted" style={{ fontSize: 13, lineHeight: 1.4 }}>
                   {ch?.complete ? 'bout en bout, sous une seule horloge' : 'une étape n’a pas tourné'}
                 </p>
               </div>
-              {/* Une graduation par etape, haute comme le temps qu'elle a pris. L'escalier
-                  croissant d'avant n'encodait rien ; celui-ci encode `a_ms`. */}
               <ul
-                className="flex items-end gap-[4px] px-[14px] pb-[12px] m-0"
-                style={{ listStyle: 'none', height: (empile ? 22 : 40) + 12, marginTop: 10 }}
+                className="flex items-end gap-[4px] px-[16px] pb-[14px] m-0"
+                style={{ listStyle: 'none', height: (empile ? 22 : 40) + 14, marginTop: 10 }}
               >
                 {durees.map((d) => (
                   <li
@@ -377,15 +347,13 @@ export function Carte({ surOutil }: { surOutil: (n: number) => void }) {
               </ul>
             </div>
 
-            {/* Empile, le rail des donnees descend sous les outils : un compteur prend sa place
-                dans le premier ecran, et il mene au recensement complet. */}
+            {/* Empilé, le rail descend sous les outils : un compteur prend sa place. */}
             <a href="#donnees" className="carte-compteur t-data-sm no-underline px-[10px] py-[8px]"
                style={{ color: 'var(--ink-2)', border: '1px solid var(--line)', minHeight: 44, display: 'none', alignItems: 'center' }}>
               {nJeux} jeux de données, en amont
             </a>
 
-            {/* LES QUATORZE OUTILS, groupés par famille : trois colonnes qui disent ce que la
-                couleur dit déjà. */}
+            {/* LES QUATORZE PLAQUES, trois colonnes de famille. */}
             <div className="grid gap-[16px] carte-outils" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))' }}>
               {ORDRE.map((f) => (
                 <div key={f} className="flex flex-col gap-[8px]">
@@ -398,8 +366,6 @@ export function Carte({ surOutil }: { surOutil: (n: number) => void }) {
                       }}
                       href={`#/outil/${o.n}`}
                       onClick={(e) => {
-                        // Un clic modifie (Cmd, Ctrl, Maj, molette) doit garder son comportement
-                        // natif : ouvrir dans un onglet. On n'intercepte que le clic nu.
                         if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
                         e.preventDefault()
                         surOutil(o.n)
@@ -408,21 +374,19 @@ export function Carte({ surOutil }: { surOutil: (n: number) => void }) {
                       onMouseLeave={() => setActif(null)}
                       onFocus={() => setActif(o.n)}
                       onBlur={() => setActif(null)}
-                      className="noeud flex items-stretch no-underline"
+                      className="plaque noeud flex items-stretch no-underline"
                       style={{
-                        background: 'var(--bg-1)',
-                        border: '1px solid var(--line)',
                         borderLeft: `3px solid ${COULEUR[f]}`,
-                        minHeight: 44,
+                        minHeight: 56,
                         color: 'inherit',
                       }}
                     >
-                      <span className="flex flex-col justify-center px-[10px] py-[7px]">
-                        <span className="t-data" style={{ color: 'var(--ink)' }}>
-                          <span style={{ color: 'var(--ink-2)', paddingRight: 10 }}>{o.n}</span>
-                          {o.nom}
+                      <span className="flex flex-col justify-center px-[12px] py-[9px]" style={{ gap: 2 }}>
+                        <span className="flex items-baseline" style={{ gap: 10 }}>
+                          <span className="t-data-sm" style={{ color: 'var(--ink-2)', minWidth: 16 }}>{o.n}</span>
+                          <span className="plaque-titre">{o.nom}</span>
                         </span>
-                        <span className="noeud-meta t-data-sm" style={{ color: 'var(--ink-2)' }}>
+                        <span className="noeud-meta t-data-sm" style={{ color: 'var(--ink-2)', paddingLeft: 26 }}>
                           {meta(o)}
                         </span>
                       </span>
@@ -434,67 +398,45 @@ export function Carte({ surOutil }: { surOutil: (n: number) => void }) {
           </div>
         </div>
       </div>
+      </div>
 
-      {/* L'ECART, une fois par ecran, dans le seul role `display` de la charte.
-          C'est la PAIRE qui est montree, pas un extreme : le meme swap cote deux fois, une
-          fois avec le hook en place, une fois contre un talon inerte de 89 octets — et la
-          difference. Les deux cotations viennent de `facts.execution`, la porte A4, le seul
-          endroit du depot ou une cotation devient un swap reellement execute. */}
+      {/* LA FIGURE APPARIÉE : deux cellules sur surface-1, la paire à gauche, le verdict à
+          droite dans le seul rôle number de l'écran. Les deux cotations viennent de
+          `facts.execution`, la porte A4. */}
       {paire && (
-        <div ref={cadreFigure} className="relative pt-[28px] mt-[28px]" style={{ borderTop: '1px solid var(--line-strong)' }}>
-          {/* La piste continue : elle sort de la carte, franchit le filet de section et vient
-              se brancher sur la figure. C'est ce qui fait que la page entiere a l'air cablee
-              plutot qu'empilee. */}
-          <svg
-            aria-hidden="true"
-            className="absolute pointer-events-none"
-            width="16"
-            height={Math.max(1, fil)}
-            viewBox={`0 0 16 ${Math.max(1, fil)}`}
-            style={{ left: 0, top: -28 }}
-          >
-            {/* le fil, puis le segment perpendiculaire de 6 px qui marque la jonction */}
-            <path className="piste" d={`M 2 0 V ${Math.max(1, fil - 3)}`} />
-            <path className="piste" d={`M 0 ${Math.max(1, fil - 3)} H 6`} />
-          </svg>
-          <div className="flex flex-wrap items-end gap-x-[40px] gap-y-[16px]">
-            <dl className="m-0 grid gap-[10px]" style={{ minWidth: 250 }}>
-              <div>
-                <dt className="t-data-sm m-0" style={{ color: 'var(--ink-2)' }}>
-                  reçu avec le hook en place
-                </dt>
-                <dd className="t-data-lg m-0" style={{ color: 'var(--ink)' }}>
-                  <span ref={nuancier} aria-hidden="true" style={{ width: 24, height: 8, background: 'var(--ink)', display: 'inline-block', marginRight: 8 }} />
-                  {paire.avec}
-                </dd>
+        <div className="grid" style={{ background: 'var(--surface-1)', border: '1px solid var(--line)', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
+          <div className="flex flex-col justify-between p-[24px]" style={{ gap: 24, borderRight: '1px solid var(--line)' }}>
+            <p className="t-data-sm m-0" style={{ color: 'var(--ink-2)' }}>
+              un swap réellement exécuté sur Base, coté deux fois sur le fork
+            </p>
+            <dl className="m-0 grid gap-[14px]">
+              <div className="flex items-baseline" style={{ gap: 12 }}>
+                <span aria-hidden="true" style={{ width: 24, height: 8, background: 'var(--ink)', display: 'inline-block', flex: 'none', order: 0 }} />
+                <dt className="m-0 t-body-muted" style={{ fontSize: 14, order: 2 }}>reçu avec le hook en place</dt>
+                <dd className="t-data-lg m-0" style={{ color: 'var(--ink)', minWidth: 72, order: 1 }}>{paire.avec}</dd>
               </div>
-              <div>
-                <dt className="t-data-sm m-0" style={{ color: 'var(--ink-2)' }}>
-                  reçu contre 89 octets inertes
-                </dt>
-                <dd className="t-data-lg m-0" style={{ color: 'var(--ink-2)' }}>
-                  <span aria-hidden="true" style={{ width: 24, height: 8, background: 'var(--baseline)', display: 'inline-block', marginRight: 8 }} />
-                  {paire.sans}
-                </dd>
+              <div className="flex items-baseline" style={{ gap: 12 }}>
+                <span aria-hidden="true" style={{ width: 24, height: 8, background: 'var(--baseline)', display: 'inline-block', flex: 'none', order: 0 }} />
+                <dt className="m-0 t-body-muted" style={{ fontSize: 14, order: 2 }}>reçu contre 89 octets inertes</dt>
+                <dd className="t-data-lg m-0" style={{ color: 'var(--ink-2)', minWidth: 72, order: 1 }}>{paire.sans}</dd>
               </div>
             </dl>
-            <output className="t-display" style={{ color: 'var(--ink)' }}>
-              {paire.bps}
-            </output>
-            <p
-              className="m-0"
-              style={{ fontFamily: 'var(--prose)', fontSize: 16, lineHeight: 1.5, color: 'var(--ink-2)', maxWidth: '34ch' }}
-            >
-              bps, l’écart entre les deux. C’est ce que le hook a pris, sur un swap réellement
-              exécuté puis reconfronté à sa cotation.
+            <p className="t-data-sm m-0 hex" style={{ color: 'var(--ink-2)' }}>
+              en wei, tels que le fork les rend : <span translate="no">{paire.avecWei}</span> contre{' '}
+              <span translate="no">{paire.sansWei}</span>
             </p>
           </div>
-          <p className="t-data-sm m-0 pt-[12px] hex" style={{ color: 'var(--ink-2)' }}>
-            en wei, tels que le fork les rend : {paire.avecWei} contre {paire.sansWei}
-          </p>
+          <div className="flex flex-col justify-end p-[24px]" style={{ gap: 8 }}>
+            <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>[ {paire.avec} → {paire.sans} ]</span>
+            <output className="t-number" style={{ color: 'var(--ink)' }}>
+              {paire.bps}
+            </output>
+            <p className="t-body m-0 t-body-muted" style={{ maxWidth: '36ch' }}>
+              bps, l’écart entre les deux. C’est ce que le hook a pris.
+            </p>
+          </div>
         </div>
       )}
-
     </section>
   )
 }

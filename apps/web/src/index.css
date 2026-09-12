@@ -999,7 +999,7 @@ summary::-webkit-details-marker {
     color var(--t-feedback) linear;
 }
 .index-ligne:hover {
-  background: var(--bg-1);
+  background: var(--surface-1);
   color: var(--ink);
 }
 

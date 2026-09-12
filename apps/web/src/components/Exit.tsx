@@ -75,7 +75,7 @@ function Barre({ test }: { test: TestSortie }) {
       <div className="flex justify-between t-data-xs" style={{ color: 'var(--ink-2)' }}>
         <span>ce qui te revient</span>
         {max > min && <span>zone incertaine</span>}
-        <span>ce qui reste au pool · {coutBps.toFixed(0)} bps</span>
+        <span>ce qui reste au pool, {coutBps.toFixed(0)} bps</span>
       </div>
     </div>
   )
@@ -172,7 +172,8 @@ export function ExitPanel() {
                 cursor: 'pointer',
               }}
             >
-              {e.addr.slice(0, 10)}… · {e.note}
+              {e.addr.slice(0, 10)}…{' '}
+              <span style={{ color: 'var(--ink-3)' }}>{e.note}</span>
             </button>
           ))}
         </div>

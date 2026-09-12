@@ -157,7 +157,11 @@ function Head({ theme, setTheme, vue }: { theme: string; setTheme: (t: string) =
 function Verdict() {
   const items: [string, string, string][] = [
     [String(T.over1bpsWithZeroStoredFee), 'mesures au-dessus de 1 bps', 'sur des pools dont la commission LP lue on-chain vaut ZERO'],
-    [String(T.hooks), 'hooks mesures', `${T.pools} pools · ${T.rows} mesures · ${T.measured} etiquetees MESURE`],
+    [
+      String(T.hooks),
+      'hooks mesurés',
+      `${T.pools.toLocaleString('fr')} pools, ${T.rows.toLocaleString('fr')} mesures, dont ${T.measured.toLocaleString('fr')} étiquetées MESURE`,
+    ],
     // Ce nombre est calcule contre l'instantane EPINGLE du registre. Contre un tirage plus
     // recent il en vaut un autre, et le taire reviendrait a publier le plus flatteur des deux :
     // la note dit les deux, avec la date de chacun. Un registre qui gagne 198 adresses en un
@@ -166,15 +170,13 @@ function Verdict() {
       String(T.hooksAbsentFromRegistry),
       'de ces hooks sont absents du registre',
       FA.registre
-        ? `${FA.registre.epingle.adresses} adresses au commit epingle du ${FA.registre.epingle.le?.slice(0, 10)}` +
-          ` — contre le tirage du ${FA.registre.plus_recent.le} (${FA.registre.plus_recent.adresses} adresses),` +
-          ` ils sont ${FA.registre.plus_recent.absents} : le registre en a inscrit ${FA.registre.gagnes.length} entre les deux`
-        : `${P.registry.entries} fiches, aucun champ numerique`,
+        ? `${FA.registre.epingle.adresses} adresses au commit épinglé du ${FA.registre.epingle.le?.slice(0, 10)}. Contre le tirage du ${FA.registre.plus_recent.le} (${FA.registre.plus_recent.adresses} adresses), ils sont ${FA.registre.plus_recent.absents} : le registre en a inscrit ${FA.registre.gagnes.length} entre les deux.`
+        : `${P.registry.entries} fiches, aucun champ numérique`,
     ],
     [
       String(P.registry.field_census.quantitative_fields.length),
       'champ quantitatif dans le registre',
-      `${P.registry.field_census.leaf_fields} champs, ${P.registry.field_census.boolean_fields} booleens, 1 numerique (chainId, un identifiant de reseau)`,
+      `${P.registry.field_census.leaf_fields} champs, ${P.registry.field_census.boolean_fields} booléens, 1 numérique (chainId, un identifiant de réseau)`,
     ],
   ]
   return (
@@ -183,14 +185,14 @@ function Verdict() {
       style={{ background: 'var(--line)', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}
     >
       {items.map(([n, l, s]) => (
-        <div key={l} className="px-[16px] py-[14px]" style={{ background: 'var(--bg-1)' }}>
+        <div key={l} className="px-[16px] py-[16px] flex flex-col" style={{ background: 'var(--surface-1)', gap: 4 }}>
           <div className="t-metric" style={{ color: 'var(--ink)' }}>
             {n}
           </div>
-          <div className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
+          <div className="t-body" style={{ fontSize: 14, color: 'var(--ink)' }}>
             {l}
           </div>
-          <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
+          <div className="t-body" style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--ink-3)' }}>
             {s}
           </div>
         </div>
@@ -348,15 +350,19 @@ export default function App() {
       <Head theme={theme} setTheme={setTheme} vue={vue} />
 
       <main id="contenu" className="px-[24px] pt-[24px] pb-[24px] mx-auto w-full" style={{ maxWidth: 1360 }}>
-        <div className="pb-[16px]">
-        <h1 className="t-hero m-0">L’instrument</h1>
-        <p
-          className="m-0 pt-[10px]"
-          style={{ fontFamily: 'var(--prose)', fontSize: 16, lineHeight: 1.6, color: 'var(--ink-2)', maxWidth: '68ch' }}
-        >
-          Le corpus en entier, panneau par panneau&nbsp;: ce que le registre déclare, ce que la
-          mesure trouve, et tout ce qui sert à le vérifier. Le sommaire suit la lecture.
-        </p>
+        <div className="flex flex-wrap items-end justify-between gap-x-[40px] gap-y-[12px] pb-[28px]">
+          <div className="flex flex-col" style={{ gap: 12, maxWidth: '52ch' }}>
+            <h1 className="t-display m-0">L’instrument</h1>
+            <p className="t-body t-body-muted m-0">
+              Le corpus en entier, panneau par panneau&nbsp;: ce que le registre déclare, ce que
+              la mesure trouve, et tout ce qui sert à le vérifier. Le sommaire suit la lecture.
+            </p>
+          </div>
+          <span className="flex flex-wrap items-baseline t-data-sm" style={{ gap: 14, color: 'var(--ink-2)' }}>
+            <span>{T.rows.toLocaleString('fr')} mesures</span>
+            <span className="meta-filet">{T.hooks} hooks</span>
+            <span className="meta-filet">{T.pools.toLocaleString('fr')} pools</span>
+          </span>
         </div>
       <div className="instrument">
         <IndexPanneaux />
@@ -373,15 +379,15 @@ export default function App() {
         >
           <Verdict />
           <p
-            className="m-0 px-[16px] py-[12px]"
-            style={{ fontFamily: 'var(--prose)', fontSize: 15, lineHeight: 1.6, maxWidth: '78ch', color: 'var(--ink-2)', borderTop: '1px solid var(--line)' }}
+            className="t-body t-body-muted m-0 px-[16px] py-[14px]"
+            style={{ maxWidth: '74ch', borderTop: '1px solid var(--line)' }}
           >
-            La PoolKey contient l'adresse du hook&nbsp;: le meme pool sans son hook n'existe pas. Sur un
-            fork epingle, on ne change pas le pool, <strong style={{ color: 'var(--ink)' }}>on change le hook</strong> —
+            La PoolKey contient l’adresse du hook&nbsp;: le même pool sans son hook n’existe pas. Sur un
+            fork épinglé, on ne change pas le pool, <strong style={{ color: 'var(--ink)' }}>on change le hook</strong> :
             <code style={{ fontFamily: 'var(--mono)' }}> anvil_setCode</code> remplace son bytecode par un
-            stub inerte de 89 octets conforme a <code style={{ fontFamily: 'var(--mono)' }}>Hooks.sol</code>.
-            On cote le meme swap deux fois via V4Quoter. <strong style={{ color: 'var(--ink)' }}>L'ecart est ce que le hook a pris.</strong>{' '}
-            Chaque valeur affichee porte son bloc, sa taille et son sens, et se rejoue en une commande.
+            talon inerte de 89 octets conforme à <code style={{ fontFamily: 'var(--mono)' }}>Hooks.sol</code>.
+            On cote le même swap deux fois via V4Quoter. <strong style={{ color: 'var(--ink)' }}>L’écart est ce que le hook a pris.</strong>{' '}
+            Chaque valeur affichée porte son bloc, sa taille et son sens, et se rejoue en une commande.
           </p>
         </Panel>
 

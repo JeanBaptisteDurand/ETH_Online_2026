@@ -33,3 +33,4 @@
 - 23:30 section accès : construite, capturée, auditée
 - 23:32 section données (matrice 27×14) : construite, capturée, auditée
 - 23:40 section page outil : construite, capturée, auditée
+- 23:50 section instrument : construite, capturée, auditée

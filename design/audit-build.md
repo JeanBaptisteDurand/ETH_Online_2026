@@ -25,3 +25,17 @@ gabarit `.depliant` (44 px de cible, une phrase et non une étiquette).
 - `Accueil.tsx` : le nom d'un jeu dans la matrice allumait sa ligne au survol mais pas au focus clavier — `onFocus`/`onBlur` ajoutés.
 - `index.css` : l'en-tête de la matrice était collante sous 700 px et **recouvrait le nom du premier jeu**. Empilée, chaque jeu porte déjà son nom au-dessus de ses cases : le collant est retiré à cette largeur.
 - `Accueil.tsx` : les fonds de survol passaient par `--bg-2`, hérité de l'ancien système ; ils passent à `surface-1`, l'échelle de la direction.
+
+## `#/outil/1` à `#/outil/14` — la page outil
+
+Passée au système : titre en `t-display` Archivo avec le numéro en `ink-3`, question en
+`t-title`, bandeau de famille / état / coût en sans séparé par filets, titres de section en
+`t-headline` 24 px sur filet `--line` avec 32 px d'air au-dessus (le composant `Panel` a été
+corrigé, ce qui met aussi l'instrument à jour). Le bandeau d'onglets porte un carré de famille
+de 8 px avant le numéro et le nom en sans, l'actif souligné dans sa couleur sur `surface-1`.
+
+- `Outil.tsx` : **le bandeau se déclarait `role="tablist"` avec des `role="tab"`** alors que chaque entrée change de route. Le motif ARIA promet à un lecteur d'écran un panneau dans la même page, qui n'existe pas, et `tabIndex={-1}` rendait treize outils inatteignables au clavier. Remplacé par une `<nav>` de liens avec `aria-current="page"`, tous tabulables, les flèches gauche/droite conservées comme raccourci.
+- `Outil.tsx` : chaque ligne d'entrée commençait par une flèche `→` collée au texte, le tell que frontend-design nomme. Remplacée par un port de 7 px à la couleur de la famille.
+- `Outil.tsx` : sept chaînes de métadonnées en points médians (`0→1 · 1e18 · bloc 50 614 000`, `standard · spec`, `écrans · type · champs`…). Les faits d'une même ligne sont séparés par un filet, les autres par une virgule.
+- `Outil.tsx` : le libellé d'une paire libellé/valeur était de la même couleur que sa valeur — il passe en `ink-3`, la valeur reste en `ink-2`.
+- Reste : `dangerouslySetInnerHTML` sur deux textes du dépôt (la raison d'être d'un accès, la raison d'un outil non prêt) — un gras sur une chaîne de `lib/`, jamais une saisie. Le tiret cadratin espacé dans la question d'un outil vient de `lib/outils.ts`, qui appartient à l'équipier.

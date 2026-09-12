@@ -32,3 +32,4 @@
 - 23:20 hero validée — « On garde. » (les mots de l'utilisateur). Acquis pour tout le site : le premier écran à trois blocs, la barre qui calcule, la plaque et ses ports, les crêtes en fond, Archivo.
 - 23:30 section accès : construite, capturée, auditée
 - 23:32 section données (matrice 27×14) : construite, capturée, auditée
+- 23:40 section page outil : construite, capturée, auditée

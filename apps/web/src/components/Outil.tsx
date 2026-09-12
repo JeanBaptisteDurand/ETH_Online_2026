@@ -63,7 +63,11 @@ function SortieMesurer() {
           <div key={r.pool_id + r.amount_in + sens} className="px-[16px] py-[10px]" style={{ borderTop: '1px solid var(--line)' }}>
             <div className="flex flex-wrap items-baseline gap-[10px]">
               <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>hook {court(r.hook)}</span>
-              <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>{sens} · {r.amount_in} · bloc {nb(r.block_number)}</span>
+              <span className="t-data-sm flex flex-wrap" style={{ gap: 12, color: 'var(--ink-2)' }}>
+                <span>{sens}</span>
+                <span className="meta-filet">{r.amount_in}</span>
+                <span className="meta-filet">bloc {nb(r.block_number)}</span>
+              </span>
               <span className="ml-auto t-data" style={{ color: 'var(--ink)' }}>{r.bps!.toFixed(4)} bps</span>
             </div>
             <div className="mt-[6px] grid gap-[3px]" style={{ gridTemplateColumns: 'auto 1fr' }}>
@@ -92,7 +96,7 @@ function SortiePayer() {
   if (!x) return <NonLu quoi="facts.x402" />
   return (
     <>
-      <L k="réglés et relus" v={<>{String(x.regles)} <span style={{ color: 'var(--ink-2)' }}>sur {String(x.vus)} tentés · {String(x.par_keyring)} signés depuis le trousseau</span></>} />
+      <L k="réglés et relus" v={<>{String(x.regles)} <span style={{ color: 'var(--ink-2)' }}>sur {String(x.vus)} tentés, {String(x.par_keyring)} signés depuis le trousseau</span></>} />
       <L k="réseau" v={String(x.reseau)} />
       <L k="facilitateur" v={String(x.facilitateur)} />
       <L k="jeton" v={String(x.jeton)} />
@@ -113,8 +117,8 @@ function SortieProuver() {
   return (
     <>
       <L k="UAID" v={<span style={{ wordBreak: 'break-all' }}>{String(a.uaid)}</span>} />
-      <L k="standard" v={`${String(a.standard)} · ${String(a.spec)}`} />
-      <L k="topic Hedera" v={`${String(a.topic)} · message #${String(a.sequence)}`} />
+      <L k="standard" v={`${String(a.standard)}, ${String(a.spec)}`} />
+      <L k="topic Hedera" v={`${String(a.topic)}, message #${String(a.sequence)}`} />
       <L k="état" v={String(a.etat)} />
       <div className="px-[16px] py-[9px]" style={{ borderTop: '1px solid var(--line)' }}>
         <div className="t-data-sm mb-[5px]" style={{ color: 'var(--ink-2)' }}>les six champs canoniques, hachés en SHA-384 puis encodés en base58</div>
@@ -134,7 +138,7 @@ function SortieAttester() {
   return (
     <>
       <L k="contrat" v={String(t.contrat)} />
-      <L k="écrits" v={<>{String(t.ecrits)} <span style={{ color: 'var(--ink-2)' }}>· {String(t.ecartes)} écartés faute de mesure — pas écrits à zéro</span></>} />
+      <L k="écrits" v={<>{String(t.ecrits)} <span style={{ color: 'var(--ink-2)' }}>, {String(t.ecartes)} écartés faute de mesure, pas écrits à zéro</span></>} />
       <L k="empreinte du corpus" v={<span style={{ wordBreak: 'break-all' }}>{String(t.corpus_digest)}</span>} />
       <div className="px-[16px] py-[9px] t-data-sm" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-2)' }}>
         Un autre contrat peut lire ces valeurs. C'est la seule surface du produit qu'une machine
@@ -152,7 +156,7 @@ function SortieApprouver() {
     <>
       <L k="appareil" v={`${String(l.appareil)}${l.physique ? '' : ' (émulé — et on le dit)'}`} />
       <L k="verdict rendu" v={String(l.verdict)} />
-      <L k="écrans" v={`${String(l.ecrans)} · type EIP-712 ${String(l.type_712)} · ${String(l.champs_712)} champs`} />
+      <L k="écrans" v={`${String(l.ecrans)}, type EIP-712 ${String(l.type_712)}, ${String(l.champs_712)} champs`} />
       <div className="px-[16px] py-[9px] t-data-sm" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-2)' }}>
         Le rapport est encodé en EIP-712 et rendu <strong style={{ color: 'var(--ink)' }}>champ par
         champ</strong> sur l'appareil : on ne signe pas un hash opaque, on lit ce qu'on signe.
@@ -239,7 +243,7 @@ function SortieComprendre() {
   if (!g) return <NonLu quoi="facts.graph" />
   return (
     <>
-      <L k="source confrontée" v={`${String(g.nom)} · ${String(g.subgraph)}`} />
+      <L k="source confrontée" v={`${String(g.nom)}, ${String(g.subgraph)}`} />
       <L k="pools du recensement" v={<>{nb(Number(g.pools_du_recensement))} <span style={{ color: 'var(--ink-2)' }}>dont {nb(Number(g.retrouves))} retrouvés — {String(g.part)}</span></>} />
       <L k="volume observé" v={`${String(g.volume_usd)} USD`} />
       <L k="TVL" v={`${String(g.tvl_usd)} USD`} />
@@ -276,7 +280,7 @@ const cap = (t: string): string => t.charAt(0).toUpperCase() + t.slice(1)
 
 const L = ({ k, v }: { k: string; v: React.ReactNode }) => (
   <div className="flex flex-wrap items-baseline gap-x-[10px] gap-y-[3px] px-[16px] py-[6px]" style={{ borderTop: '1px solid var(--line)' }}>
-    <span className="t-data-sm" style={{ color: 'var(--ink-2)', minWidth: 120, flexShrink: 0 }}>{k}</span>
+    <span className="t-data-sm" style={{ color: 'var(--ink-3)', minWidth: 120, flexShrink: 0 }}>{k}</span>
     <span className="t-data-sm" style={{ color: 'var(--ink-2)', flex: '1 1 200px', minWidth: 0, overflowWrap: 'anywhere' }}>{v}</span>
   </div>
 )
@@ -327,7 +331,7 @@ function Jeu({ j, sens }: { j: JeuT; sens: 'lit' | 'écrit' }) {
         <span className="t-data-sm" style={{ color: 'var(--ink)' }}>{j.nom}</span>
         {v ? (
           <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
-            {taille(v.octets)}{v.n !== null && v.unite ? ` · ${nb(v.n)} ${v.unite}` : ''}
+            {taille(v.octets)}{v.n !== null && v.unite ? `, ${nb(v.n)} ${v.unite}` : ''}
           </span>
         ) : (
           <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>non lu</span>
@@ -365,9 +369,16 @@ function Ingere({ n }: { n: number }) {
   return (
     <>
       {o.entree.map((e) => (
-        <div key={e} className="px-[16px] py-[6px] flex gap-[9px]" style={{ borderTop: '1px solid var(--line)' }}>
-          <span style={{ color: 'var(--ink-2)' }}>→</span>
-          <span className="t-data-sm" style={{ color: 'var(--ink-2)', lineHeight: 1.5, maxWidth: '82ch' }}>{e}</span>
+        <div key={e} className="px-[16px] py-[8px] flex gap-[12px]" style={{ borderTop: '1px solid var(--line)' }}>
+          {/* Un port, pas une fleche collee au texte : la fleche est le tell que
+              frontend-design nomme, et elle ne dit rien de plus que le filet. */}
+          <span
+            aria-hidden="true"
+            style={{ width: 7, height: 7, background: accent(n), flex: 'none', marginTop: 7 }}
+          />
+          <span className="t-body t-body-muted" style={{ fontSize: 14, maxWidth: '76ch' }}>
+            {e}
+          </span>
         </div>
       ))}
       {jeux.map((j) => <Jeu key={j.cle} j={j} sens="lit" />)}
@@ -478,9 +489,9 @@ function Rend({ n }: { n: number }) {
  * redit ce que la carte a deja dit.
  */
 function Onglets({ n, surOutil }: { n: number; surOutil?: (x: number) => void }) {
-  const bande = useRef<HTMLDivElement | null>(null)
+  const bande = useRef<HTMLElement | null>(null)
 
-  const auClavier = (e: React.KeyboardEvent<HTMLDivElement>) => {
+  const auClavier = (e: React.KeyboardEvent<HTMLElement>) => {
     const cles = ['ArrowRight', 'ArrowLeft', 'Home', 'End']
     if (!cles.includes(e.key)) return
     e.preventDefault()
@@ -501,9 +512,12 @@ function Onglets({ n, surOutil }: { n: number; surOutil?: (x: number) => void })
   }
 
   return (
-    <div
+    /* UNE NAVIGATION, PAS UN JEU D'ONGLETS ARIA. Chaque entree CHANGE DE ROUTE : le motif
+       `tablist` promet a un lecteur d'ecran un panneau dans la meme page, et il n'y en a pas.
+       On garde donc des liens, `aria-current` sur celui qu'on lit, tous atteignables au
+       clavier — et les fleches restent, comme raccourci. */
+    <nav
       ref={bande}
-      role="tablist"
       aria-label="les quatorze outils"
       onKeyDown={auClavier}
       className="onglets flex"
@@ -514,10 +528,7 @@ function Onglets({ n, surOutil }: { n: number; surOutil?: (x: number) => void })
           <a
             key={x.n}
             data-outil={x.n}
-            role="tab"
-            aria-selected={actif}
             aria-current={actif ? 'page' : undefined}
-            tabIndex={actif ? 0 : -1}
             href={`#/outil/${x.n}`}
             onClick={(e) => {
               if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
@@ -525,22 +536,28 @@ function Onglets({ n, surOutil }: { n: number; surOutil?: (x: number) => void })
               e.preventDefault()
               surOutil(x.n)
             }}
-            className="onglet t-data no-underline flex items-center gap-[7px] px-[12px]"
+            className="onglet no-underline flex items-center gap-[8px] px-[12px]"
             style={{
               minHeight: 44,
               whiteSpace: 'nowrap',
               color: actif ? 'var(--ink)' : 'var(--ink-2)',
               borderBottomColor: actif ? COULEUR[x.famille] : 'transparent',
-              background: actif ? 'var(--bg-1)' : 'transparent',
+              background: actif ? 'var(--surface-1)' : 'transparent',
             }}
             title={x.question}
           >
-            <span style={{ color: actif ? COULEUR[x.famille] : 'var(--ink-2)' }}>{x.n}</span>
-            {x.nom}
+            {/* LE REPERE DE FAMILLE, avant le numero : la couleur se lit sans lire, et elle
+                dit la meme chose que sur la carte. */}
+            <span
+              aria-hidden="true"
+              style={{ width: 8, height: 8, background: COULEUR[x.famille], flex: 'none', opacity: actif ? 1 : 0.65 }}
+            />
+            <span className="t-data-sm" style={{ color: 'var(--ink-3)' }}>{x.n}</span>
+            <span className="t-body" style={{ fontSize: 14 }}>{x.nom}</span>
           </a>
         )
       })}
-    </div>
+    </nav>
   )
 }
 
@@ -696,38 +713,33 @@ export function OutilPanel({ n, surOutil }: { n: number; surOutil?: (n: number) 
       {/* LE NOM ET LA QUESTION — le titre de page, une fois, en tete de route. */}
       <header className="px-[16px] pt-[8px] pb-[14px]">
         <div className="flex flex-wrap items-center gap-x-[16px] gap-y-[6px] pb-[10px]">
-          <span className="t-data flex items-center gap-[8px]" style={{ color: 'var(--ink-2)' }}>
-            <span aria-hidden="true" style={{ width: 24, height: 8, background: c, display: 'inline-block' }} />
+          <span className="t-body flex items-center gap-[8px]" style={{ fontSize: 14, color: 'var(--ink-2)' }}>
+            <span aria-hidden="true" className="nuancier" style={{ background: c }} />
             {FAMILLES[o.famille].nom}
           </span>
-          <span className="t-data" style={{ color: 'var(--ink-2)', borderLeft: '1px solid var(--line)', paddingLeft: 16 }}>
+          <span className="t-body meta-filet" style={{ fontSize: 14, color: 'var(--ink-2)' }}>
             {etat}
           </span>
-          <span className="t-data" style={{ color: 'var(--ink-2)', borderLeft: '1px solid var(--line)', paddingLeft: 16 }}>
+          <span className="t-body meta-filet" style={{ fontSize: 14, color: 'var(--ink-2)' }}>
             {o.cout}
           </span>
         </div>
-        <h1 className="t-hero m-0" style={{ color: 'var(--ink)' }}>
-          <span style={{ color: 'var(--ink-2)', paddingRight: 16 }}>{o.n}</span>
+        <h1 className="t-display m-0" style={{ color: 'var(--ink)', maxWidth: '20ch' }}>
+          <span style={{ color: 'var(--ink-3)', paddingRight: 18 }}>{o.n}</span>
           {o.nom}
         </h1>
         <p
-          className="m-0 pt-[12px]"
-          style={{ fontFamily: 'var(--prose)', fontSize: 20, lineHeight: 1.45, color: 'var(--ink)', maxWidth: '54ch' }}
+          className="t-title m-0 pt-[14px]"
+          style={{ fontSize: '1.25rem', color: 'var(--ink)', maxWidth: '52ch' }}
         >
           « {o.question} »
         </p>
-        <p
-          className="m-0 pt-[10px]"
-          style={{ fontFamily: 'var(--prose)', fontSize: 16, lineHeight: 1.6, color: 'var(--ink-2)', maxWidth: '68ch' }}
-        >
+        <p className="t-body t-body-muted m-0 pt-[12px]" style={{ maxWidth: '68ch' }}>
           {o.rend}
         </p>
-        <p
-          className="m-0 pt-[8px] t-data-sm"
-          style={{ color: 'var(--ink-2)', maxWidth: '68ch' }}
-        >
-          famille {FAMILLES[o.famille].nom}&nbsp;— {FAMILLES[o.famille].quoi}.
+        {/* La glose de la famille : une phrase, pas une formule « MOT — fragment ». */}
+        <p className="t-body m-0 pt-[8px]" style={{ fontSize: 14, color: 'var(--ink-3)', maxWidth: '68ch' }}>
+          C’est un outil de {FAMILLES[o.famille].nom}&nbsp;: {FAMILLES[o.famille].quoi}.
         </p>
       </header>
 

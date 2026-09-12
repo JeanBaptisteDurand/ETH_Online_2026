@@ -82,8 +82,15 @@ export function Copy({ text, label = 'copier' }: { text: string; label?: string 
 
 /** Une commande rejouable, telle quelle, sans reformulation. */
 export function Replay({ cmd, note }: { cmd: string; note?: string }) {
+  // `min-width: 0` et `max-width: 100%` sur le CADRE, pas sur le <pre>.
+  //
+  // Le <pre> porte `overflow-x-auto`, mais un conteneur ne peut defiler que si sa largeur est
+  // CONTRAINTE. Dans une colonne flex, la largeur minimale par defaut est `auto` — c'est-a-dire
+  // celle du contenu — donc un contenu large pousse toute la mise en page au lieu de defiler.
+  // La commande de rejeu d'une mesure fait 260 caracteres : elle elargissait la page a 2 190 px
+  // sur un ecran de 1 190, et TOUT le site defilait horizontalement.
   return (
-    <div style={{ border: '1px solid var(--line)', background: 'var(--bg-2)' }}>
+    <div style={{ border: '1px solid var(--line)', background: 'var(--bg-2)', minWidth: 0, maxWidth: '100%' }}>
       <div
         className="t-label flex items-center justify-between px-[10px] py-[6px]"
         style={{ borderBottom: '1px solid var(--line)', color: 'var(--ink-3)' }}

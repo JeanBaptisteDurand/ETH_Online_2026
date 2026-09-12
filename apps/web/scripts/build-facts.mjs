@@ -11,7 +11,7 @@
 // recopiee a la main : si un fichier source manque, le fait correspondant vaut `null` et
 // l'ecran le DIT, au lieu d'afficher une valeur figee qui aurait cesse d'etre vraie.
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
+import { readFileSync, writeFileSync, existsSync, mkdirSync, statSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -301,6 +301,72 @@ if (ledger === null) manquants.push('preuve Ledger (docs/ledger/guard-speculos.j
 
 /* ------------------------------------------------------------- l'ecriture */
 
+
+/* ------------------------------------- l'inventaire : chaque jeu de donnees, mesure */
+
+// POURQUOI CE BLOC EXISTE.
+//
+// Les pages outil disent « il ingere » et « il rend ». Sans volume derive, « il ingere le
+// corpus » est une phrase ; avec, c'est un fait qu'on peut contredire. Chaque entree est
+// STATEE sur le fichier reel au build : personne ne recopie 125 072 a la main, et un fichier
+// absent passe a null — l'ecran affiche « non lu », jamais zero.
+//
+// La liste fait aussi office de RECENSEMENT : `outils.test.ts` verifie qu'aucun fichier suivi
+// de docs/dataset/ ni de packages/guard/data/ n'est absent d'ici. Une donnee qu'aucun outil ne
+// reclame est une donnee qu'on a oublie de montrer.
+
+const octets = (chemin) => (existsSync(chemin) ? statSync(chemin).size : null)
+const lignes = (chemin) =>
+  existsSync(chemin)
+    ? readFileSync(chemin, 'utf8').split('\n').filter((l) => l.trim()).length
+    : null
+
+/** cle -> [chemin depuis la racine du depot, comment se compte son unite] */
+const JEUX = {
+  corpus: ['docs/dataset/measurements.jsonl', (c) => [lignes(c), 'mesures']],
+  corpus_resume: ['docs/dataset/summary.json', (c) => [lireJson(c)?.n_measurements ?? null, 'mesures resumees']],
+  corpus_encode: ['apps/web/src/data/dataset.json', () => [null, null]],
+  contestes_mesures: ['docs/dataset/measurements-contestes.jsonl', (c) => [lignes(c), 'mesures']],
+  contestes_resume: ['docs/dataset/summary-contestes.json', (c) => [lireJson(c)?.n_measurements ?? null, 'mesures resumees']],
+  contestes_pools: ['docs/dataset/pools-contestes.json', (c) => [lireJson(c)?.length ?? null, 'pools']],
+  recensement: ['docs/dataset/init-logs-200k.json', () => {
+    const m = lireJson(p('docs/dataset/init-logs-200k.json.manifest.json'))
+    return [m?.n_events ?? null, 'evenements Initialize']
+  }],
+  recensement_manifeste: ['docs/dataset/init-logs-200k.json.manifest.json', (c) => [lireJson(c)?.n_hooks ?? null, 'hooks distincts']],
+  pools_liquides: ['docs/dataset/pools-liquides-full.json', (c) => [lireJson(c)?.length ?? null, 'pools']],
+  pools_liquides_scan: ['docs/dataset/pools-liquides-full.json.scan.json', (c) => [lireJson(c)?.n_liquid ?? null, 'pools liquides']],
+  declarations: ['docs/dataset/declarations.json', (c) => [lireJson(c)?.conclusion?.n_hooks_qui_declarent ?? null, 'hooks qui declarent']],
+  sens_unique: ['docs/dataset/one-way.json', (c) => [lireJson(c)?.pools?.length ?? null, 'pools a sens unique']],
+  porte_a4: ['docs/dataset/porte-a4.json', (c) => [lireJson(c)?.n ?? null, 'swaps executes']],
+  porte_a4_journal: ['docs/dataset/porte-a4.jsonl', (c) => [lignes(c), 'sondes']],
+  registre_couverture: ['docs/dataset/registre-couverture.json', (c) => [lireJson(c)?.couverture?.absents ?? null, 'hooks absents du registre']],
+  attestations: ['docs/dataset/attestations.json', (c) => [lireJson(c)?.n_envoyes ?? null, 'attestations ecrites']],
+  identite: ['docs/dataset/agent-identity.json', (c) => [lireJson(c)?.competences?.length ?? null, 'competences declarees']],
+  chaine: ['docs/dataset/chaine-complete.json', (c) => [lireJson(c)?.n_ok ?? null, 'etapes vertes']],
+  volume: ['docs/dataset/volume-base.json', (c) => [lireJson(c)?.couverture?.pools_du_recensement ?? null, 'pools confrontes']],
+  table_garde: ['packages/guard/data/table.json', (c) => [lireJson(c)?.n_measurements ?? null, 'mesures embarquees']],
+  chiffres_alternative: ['packages/guard/data/chiffres-alternative.json', (c) => [lireJson(c)?.mesures_lues ?? null, 'mesures confrontees']],
+  reglements: ['docs/x402-settlements.jsonl', (c) => [lignes(c), 'reglements']],
+  registre_epingle: ['apps/web/public/data/hooklist.snapshot.json', () => [null, null]],
+  registre_vivant: ['docs/hooklist-live-20260905.json', () => [null, null]],
+  concordance: ['docs/hooks-source/analysis.json', (c) => {
+    const d = lireJson(c)
+    return [d?.hooks?.length ?? null, 'hooks confrontes a leur code source']
+  }],
+  graphe_cache: ['engine/tare/graph/data/chain-cache.json', () => [null, null]],
+  ledger: ['docs/ledger/guard-speculos.json', (c) => [lireJson(c)?.ecrans?.length ?? null, 'ecrans rendus']],
+}
+
+const inventaire = {}
+for (const [cle, [rel, compte]] of Object.entries(JEUX)) {
+  const chemin = p(rel)
+  const o = octets(chemin)
+  if (o === null) manquants.push(rel)
+  const [n, unite] = o === null ? [null, null] : compte(chemin)
+  inventaire[cle] = { fichier: rel, octets: o, n, unite }
+}
+
 const facts = {
   v: 'tare.facts.v1',
   bati_le: new Date().toISOString().replace(/\.\d+Z$/, 'Z'),
@@ -330,6 +396,8 @@ const facts = {
   execution,
   ledger,
   mcp,
+  // chaque jeu de donnees du depot, state au build — voir apps/web/src/lib/donnees.ts
+  inventaire,
 }
 
 mkdirSync(dirname(OUT), { recursive: true })

@@ -11,6 +11,9 @@ import { GraphPanels } from './components/Graph'
 import { MachinePanels } from './components/Machine'
 import { ComptePanel } from './components/Compte'
 import { SubstituerPanel } from './components/Substituer'
+import { AccueilPanel, AccesPanel, DonneesPanel } from './components/Accueil'
+import { OutilPanel } from './components/Outil'
+import { OUTILS, FAMILLES } from './lib/outils'
 import FA from './data/facts.json'
 import { Panel } from './components/Prim'
 import { Chat } from './chat/Chat'
@@ -139,8 +142,33 @@ function Legend() {
   )
 }
 
+/**
+ * LE ROUTEUR, en trois vues et sans dépendance.
+ *
+ *   #/            l'opération : on colle un jeton, on lit par où l'acheter
+ *   #/outil/<n>   une page par outil, avec ce que cet outil PRODUIT
+ *   #/instrument  les dix-sept panneaux d'analyse
+ *
+ * Le fragment porte déjà l'état de l'assistant, encodé sous `tare=` (voir chat/engine.ts).
+ * Les chemins commencent donc par `/`, que ce décodeur-là ne peut pas confondre avec le sien.
+ */
+type Vue = { quoi: 'accueil' } | { quoi: 'instrument' } | { quoi: 'outil'; n: number }
+
+function lireVue(hash: string): Vue {
+  const m = /^#\/outil\/(\d+)/.exec(hash)
+  if (m) {
+    const n = Number(m[1])
+    if (OUTILS.some((o) => o.n === n)) return { quoi: 'outil', n }
+  }
+  if (hash.startsWith('#/instrument')) return { quoi: 'instrument' }
+  return { quoi: 'accueil' }
+}
+
 export default function App() {
   const [theme, setTheme] = useState('dark')
+  const [vue, setVue] = useState<Vue>(() =>
+    lireVue(typeof window === 'undefined' ? '' : window.location.hash),
+  )
   const [selected, setSelected] = useState<string>(
     [...dataset.hooks].sort((a, b) => (b.bpsMax ?? -1) - (a.bpsMax ?? -1))[0].address,
   )
@@ -154,6 +182,20 @@ export default function App() {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
   }, [theme])
+
+  // Le bouton « précédent » du navigateur doit marcher : on écoute le fragment plutôt que de
+  // garder l'état seul. Sans ça, revenir en arrière quitte le site au lieu de la page outil.
+  useEffect(() => {
+    const sur = () => setVue(lireVue(window.location.hash))
+    window.addEventListener('hashchange', sur)
+    return () => window.removeEventListener('hashchange', sur)
+  }, [])
+
+  const aller = (h: string) => {
+    window.location.hash = h
+    window.scrollTo({ top: 0 })
+  }
+  const versOutil = (n: number) => aller(`/outil/${n}`)
 
   const model = useMemo(
     () => buildModel(dataset.hooks, dataset.rows, dataset.provenance.registry.entries),
@@ -174,9 +216,87 @@ export default function App() {
 
   const hook = dataset.hooks.find((h) => h.address === selected)!
 
+  /** La barre des trois vues. Elle dit où on est, et ce que chaque vue contient. */
+  const Nav = () => (
+    <nav className="flex flex-wrap items-center gap-[6px] px-[16px] pt-[16px] mx-auto w-full" style={{ maxWidth: 1560 }}>
+      {[
+        { h: '/', t: "l'opération", actif: vue.quoi === 'accueil' },
+        { h: '/instrument', t: "l'instrument · 17 panneaux", actif: vue.quoi === 'instrument' },
+      ].map((x) => (
+        <button
+          key={x.h}
+          type="button"
+          onClick={() => aller(x.h)}
+          className="t-label"
+          style={{
+            padding: '6px 12px',
+            border: `1px solid ${x.actif ? 'var(--line-strong)' : 'var(--line)'}`,
+            background: x.actif ? 'var(--bg-3)' : 'transparent',
+            color: x.actif ? 'var(--ink)' : 'var(--ink-3)',
+            cursor: 'pointer',
+          }}
+        >
+          {x.t}
+        </button>
+      ))}
+      <span className="t-label ml-[6px]" style={{ color: 'var(--ink-4)' }}>outils</span>
+      {(['collecte', 'analyse', 'action'] as const).map((f) => (
+        <span key={f} className="t-label flex items-center gap-[4px]" style={{ color: 'var(--ink-4)' }}>
+          <i style={{ width: 8, height: 8, background: FAMILLES[f].couleur, display: 'inline-block' }} />
+          {f}
+        </span>
+      ))}
+      {OUTILS.map((o) => (
+        <button
+          key={o.n}
+          type="button"
+          onClick={() => versOutil(o.n)}
+          className="t-label"
+          style={{
+            padding: '6px 9px',
+            border: `1px solid ${vue.quoi === 'outil' && vue.n === o.n ? FAMILLES[o.famille].couleur : 'var(--line)'}`,
+            background: vue.quoi === 'outil' && vue.n === o.n ? 'var(--bg-3)' : 'transparent',
+            color: FAMILLES[o.famille].couleur,
+            cursor: 'pointer',
+          }}
+          title={`${o.nom} — ${o.question}`}
+        >
+          {o.n}
+        </button>
+      ))}
+    </nav>
+  )
+
+  if (vue.quoi === 'accueil') {
+    return (
+      <div className="min-h-full">
+        <Head theme={theme} setTheme={setTheme} />
+        <Nav />
+        <main className="flex flex-col gap-[16px] p-[16px] mx-auto" style={{ maxWidth: 1560 }}>
+          <AccueilPanel />
+          <AccesPanel surOutil={versOutil} />
+          <DonneesPanel surOutil={versOutil} />
+        </main>
+      </div>
+    )
+  }
+
+  if (vue.quoi === 'outil') {
+    return (
+      <div className="min-h-full">
+        <Head theme={theme} setTheme={setTheme} />
+        <Nav />
+        <main className="flex flex-col gap-[16px] p-[16px] mx-auto" style={{ maxWidth: 1560 }}>
+          <OutilPanel n={vue.n} surOutil={versOutil} />
+        </main>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-full">
       <Head theme={theme} setTheme={setTheme} />
+      <Nav />
 
       <main className="flex flex-col gap-[16px] p-[16px] mx-auto" style={{ maxWidth: 1560 }}>
         {/* Le test de sortie vient EN PREMIER : c'est la seule question qu'un visiteur se pose

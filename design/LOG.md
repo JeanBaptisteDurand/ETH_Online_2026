@@ -29,3 +29,4 @@
 - 22:50 hero révision 3 : trois éléments entiers (enceinte à 740, cue à 800), section compute supprimée au profit de la barre du hero avec jetons de démo, fond visible (ordonnée en rang)
 - 23:00 correction hero 4 : le semis de points refusé à son tour, changer de registre et de référence. locks : 29
 - 23:15 hero révision 4 : fond refait en ridgeline plot (réf. Unknown Pleasures / pulsar PSR B1919+21), une crête par hook, lecture séquentielle
+- 23:20 hero validée — « On garde. » (les mots de l'utilisateur). Acquis pour tout le site : le premier écran à trois blocs, la barre qui calcule, la plaque et ses ports, les crêtes en fond, Archivo.

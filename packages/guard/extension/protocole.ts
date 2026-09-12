@@ -71,3 +71,34 @@ export const CLES_STOCKAGE = {
 
 /** L'API par defaut. Remplacable depuis la page d'options — jamais devinee ailleurs. */
 export const API_DEFAUT = "http://127.0.0.1:8787";
+
+/**
+ * LA CIBLE D'UN postMessage VERS NOTRE PROPRE FENETRE.
+ *
+ * Les trois morceaux se parlent par `window.postMessage` DANS LA MEME FENETRE : inject (monde
+ * MAIN) et pont (monde ISOLATED) partagent le meme `window`. Le deuxieme argument de
+ * postMessage sert a ne pas divulguer un message a une autre origine — il n'y a ici aucune
+ * autre origine, et les deux bouts verifient deja `ev.source !== window`.
+ *
+ * ON NE PEUT PAS Y METTRE `location.origin`, et ca s'est vu a l'execution. Dans un iframe
+ * `sandbox="allow-scripts"` — donc sans `allow-same-origin`, ce que font les widgets embarques
+ * sur de vrais sites — l'origine du document est OPAQUE, mais `location.origin` rend quand
+ * meme l'origine tiree de l'URL :
+ *
+ *   location.origin -> "http://exemple.test"   alors que l'origine reelle est "null"
+ *
+ * Chrome refuse alors la livraison, et il la refuse SANS LEVER — une simple ligne en console :
+ *
+ *   Failed to execute 'postMessage' on 'DOMWindow': The target origin provided
+ *   ('http://exemple.test') does not match the recipient window's origin ('null').
+ *
+ * Aucun `try` ne rattrape ca. Le message est perdu en silence : la question n'arrive pas au
+ * pont, ou la reponse du pont n'arrive pas au monde MAIN, et inject attend son delai pour
+ * rien avant de laisser passer la transaction. Le manifeste posant les scripts avec
+ * `all_frames: true` sur `<all_urls>`, ces cadres-la sont dans la portee.
+ *
+ * D'ou "*" : la seule cible qui decrive vraiment « cette fenetre, quelle que soit son
+ * origine ». Ce n'est pas un relachement — le monde MAIN est deja celui de la page, comme dit
+ * plus haut, et un message qui ne sort pas de la fenetre n'a personne d'autre a qui fuiter.
+ */
+export const CIBLE_MEME_FENETRE = "*";

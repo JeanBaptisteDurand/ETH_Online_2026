@@ -14,7 +14,7 @@
  */
 import { installerInjection } from "../src/injection.js";
 import type { GuardReport } from "../src/types.js";
-import { MARQUE, estDeNous, type ReponseConsultation } from "./protocole.js";
+import { MARQUE, estDeNous, CIBLE_MEME_FENETRE, type ReponseConsultation } from "./protocole.js";
 
 /** Au-dela, on considere que le worker ne repondra pas. Un swap n'attend pas trois secondes. */
 const DELAI_MS = 2500;
@@ -50,7 +50,7 @@ function demander(genre: "consulter", tx: unknown): Promise<ReponseConsultation>
       clearTimeout(minuteur);
       resoudre(r);
     });
-    window.postMessage({ marque: MARQUE, genre, id, tx }, window.location.origin);
+    window.postMessage({ marque: MARQUE, genre, id, tx }, CIBLE_MEME_FENETRE);
   });
 }
 
@@ -94,7 +94,7 @@ const installation = installerInjection({
           origine: window.location.host,
         },
       },
-      window.location.origin,
+      CIBLE_MEME_FENETRE,
     );
   },
 });

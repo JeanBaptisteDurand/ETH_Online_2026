@@ -14,7 +14,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
-import { MARQUE, estDeNous, CLES_STOCKAGE, API_DEFAUT } from "../extension/protocole.js";
+import { MARQUE, estDeNous, CLES_STOCKAGE, API_DEFAUT, CIBLE_MEME_FENETRE } from "../extension/protocole.js";
 
 const RACINE = resolve(import.meta.dirname, "..");
 const EXT = resolve(RACINE, "extension");
@@ -252,6 +252,35 @@ describe("le journal du worker", () => {
 
   it("l'API par defaut est locale : rien ne part vers un domaine devine", () => {
     expect(API_DEFAUT).toMatch(/^http:\/\/127\.0\.0\.1/);
+  });
+});
+
+/* --------------------------------------- LA CIBLE DES postMessage ENTRE MONDES */
+
+describe("les deux mondes se parlent meme sans origine", () => {
+  /**
+   * Verifie a l'execution dans Chrome : dans un iframe `sandbox="allow-scripts"`, l'origine du
+   * document est opaque ("null") mais `location.origin` rend quand meme l'origine de l'URL.
+   * Postee comme cible, elle fait refuser la livraison par Chrome — SANS LEVER, une simple
+   * ligne en console :
+   *
+   *   The target origin provided ('http://127.0.0.1:8796') does not match the recipient
+   *   window's origin ('null').
+   *
+   * La question n'arrivait donc pas au pont, ou la reponse n'arrivait pas au monde MAIN, et
+   * inject attendait ses 2500 ms avant de laisser passer la transaction sans verdict. Le
+   * manifeste posant les scripts avec `all_frames: true`, ces cadres sont dans la portee.
+   */
+  it("la cible est *, jamais une origine devinee", () => {
+    expect(CIBLE_MEME_FENETRE).toBe("*");
+  });
+
+  it("ni inject ni pont ne postent vers location.origin", () => {
+    for (const f of ["inject.src.ts", "pont.src.ts"]) {
+      const s = readFileSync(resolve(EXT, f), "utf8");
+      expect(s).toContain("CIBLE_MEME_FENETRE");
+      expect(s.includes("location.origin"), `${f} poste vers une origine qui ment en bac a sable`).toBe(false);
+    }
   });
 });
 

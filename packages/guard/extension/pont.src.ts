@@ -8,7 +8,7 @@
  * Il ne decide rien, ne garde rien, ne lit aucune cle. Il transporte. C'est volontaire : plus
  * ce fichier est petit, moins il y a d'endroits ou une erreur peut changer un verdict.
  */
-import { estDeNous, MARQUE } from "./protocole.js";
+import { estDeNous, MARQUE, CIBLE_MEME_FENETRE } from "./protocole.js";
 
 window.addEventListener("message", (ev) => {
   if (ev.source !== window) return;
@@ -32,7 +32,7 @@ window.addEventListener("message", (ev) => {
               raison: err?.message ?? "le service worker n'a rien renvoye",
             }
           : reponse,
-        window.location.origin,
+        CIBLE_MEME_FENETRE,
       );
     });
     return;

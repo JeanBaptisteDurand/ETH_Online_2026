@@ -584,6 +584,59 @@ summary::-webkit-details-marker {
   color: var(--ink-3);
 }
 
+/* UN DEPLIANT au systeme : une ligne de prose, pas une etiquette, et une cible de 44 px. */
+.depliant {
+  padding: 14px 0;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-size: 0.9375rem;
+  transition: color var(--t-feedback) var(--e-out);
+}
+.depliant:hover {
+  color: var(--ink);
+}
+
+/* UNE LIGNE DE TABLE : elle monte d'un cran au survol, elle ne change pas de couleur. */
+.ligne-table {
+  transition: background var(--t-feedback) var(--e-out);
+}
+.ligne-table:hover {
+  background: var(--surface-1);
+}
+
+/* UNE LIGNE D'ACCES : le nom a gauche, ce qu'il est et ce qu'il ouvre a droite. Une liste a
+   filets, pas cinq cartes — au-dessus de la densite 7, le groupement se fait par filet. */
+.acces-ligne {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  padding: 18px 0;
+}
+@media (min-width: 900px) {
+  .acces-ligne {
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 40px;
+    padding: 20px 0;
+  }
+}
+
+/* UNE PUCE D'OUTIL : un port de famille, un numero, un nom. Pas une boite coloree — la
+   couleur dit la famille, elle n'habille pas le texte. */
+.puce-outil {
+  padding: 3px 8px 3px 7px;
+  background: var(--surface-2);
+  min-height: 24px;
+  white-space: nowrap;
+  transition: background var(--t-feedback) var(--e-out);
+}
+.puce-outil:hover {
+  background: var(--surface-3);
+}
+.puce-outil:hover .t-body {
+  color: var(--ink);
+}
+
 /* UN JETON DE DEMONSTRATION : la barre du hero remplace la section d'operation, il faut donc
    pouvoir essayer sans aller chercher une adresse ailleurs. */
 .jeton-demo {
@@ -1056,15 +1109,11 @@ span a[href] {
     min-height: 24px;
   }
   /* Une colonne fait 24 px de large a cette largeur d'ecran : l'en-tete gagne en hauteur ce
-     qu'elle ne peut pas prendre en largeur, pour rester une cible de 24 px au moins. Et elle
-     colle sous la barre haute : empilee, la matrice fait 1 400 px, et sans en-tete visible on
-     perd le numero de la colonne des le troisieme jeu. A 1440 la question ne se pose pas, les
-     quatorze colonnes tiennent dans un ecran avec leur en-tete. */
+     qu'elle ne peut pas prendre en largeur, pour rester une cible de 24 px au moins.
+     ELLE NE COLLE PLUS : empilee, chaque jeu porte son nom juste au-dessus de ses quatorze
+     cases, l'en-tete collante n'apprend donc plus rien et elle recouvrait le premier nom. */
   .matrice-tete {
     min-height: 32px;
-    position: sticky;
-    top: 56px;
-    z-index: 2;
   }
   .matrice-cadre {
     padding-left: 4px !important;

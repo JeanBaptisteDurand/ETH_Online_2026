@@ -83,7 +83,7 @@ export function IndexPanneaux() {
   }, [])
 
   return (
-    <nav className="index-panneaux" aria-label="the seventeen panels of the instrument">
+    <nav className="index-panneaux voile" aria-label="the seventeen panels of the instrument">
       <p className="t-data-sm m-0 px-[10px] pb-[10px]" style={{ color: 'var(--ink-2)' }}>
         {PANNEAUX.length} panels
       </p>

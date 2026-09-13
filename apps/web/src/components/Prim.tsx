@@ -158,15 +158,16 @@ export function Panel({
 }) {
   const id = `p-${index}`
   return (
-    <section id={id} aria-labelledby={`${id}-t`} style={{ borderTop: '1px solid var(--line)' }}>
-      {/* L'EN-TETE DE SECTION, au systeme : Archivo, 24 px, et de l'air au-dessus. Le titre
-          etait en 20 px sur un filet fort, ce qui donnait a une section le poids d'un
-          paragraphe. Voir design/DESIGN.md → Typography. */}
+    // Le voile (lock 32) : un panneau se lit par-dessus le champ de courbes, pas dedans.
+    <section id={id} aria-labelledby={`${id}-t`} className="voile" style={{ borderTop: '1px solid var(--line)' }}>
+      {/* L'EN-TETE DE SECTION, au systeme : la mono du tableau, 24 px, capitales, et de l'air
+          au-dessus. Plus de couleur en dur : le role `headline` porte l'accent depuis
+          index.css (lock 29), et un `color` inline le neutralisait. */}
       <header className="flex flex-wrap items-baseline gap-x-[20px] gap-y-[6px] pt-[32px] pb-[14px] px-[16px]">
         <h2
           id={`${id}-t`}
           className="t-headline m-0"
-          style={{ fontSize: '1.5rem', color: 'var(--ink)', textWrap: 'balance' }}
+          style={{ fontSize: '1.5rem', textWrap: 'balance' }}
         >
           {title}
         </h2>

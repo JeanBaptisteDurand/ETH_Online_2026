@@ -47,9 +47,86 @@ const QUOI: Record<Famille, string> = {
 
 const ORDRE: Famille[] = ['collecte', 'analyse', 'action']
 
+/** Les totaux et la provenance du corpus. Tous les nombres du hero sortent d'ici. */
+const T = dataset.totals
+const PROV = dataset.provenance.measurements
+const EXEC = facts.execution
+
 /** « 13 680 ms » — en millisecondes, comme la chaine les mesure. Arrondir a « 13,7 s »
     perdrait la precision que le fichier porte, sur un produit dont c'est tout le propos. */
 const msFr = (ms: number | null): string => (ms === null ? '—' : `${ms.toLocaleString('fr')} ms`)
+
+/**
+ * LE COMPTEUR — il monte de 0 a la valeur.
+ *
+ * C'est le lock 20 de design/BRIEF.md, et il remplace une regle que le produit publiait :
+ * « un nombre n'anime jamais sa valeur ». La raison de cette regle etait bonne — un compteur
+ * affiche, le temps qu'il monte, des valeurs qui n'ont jamais ete mesurees — alors trois
+ * garde-fous limitent ce qu'elle protegeait :
+ *
+ *   1. il ne tourne QUE quand une reponse arrive, jamais au chargement de la page : le panneau
+ *      affiche la mesure de reference tant qu'aucune adresse lisible n'a ete collee ;
+ *   2. il ne depasse jamais la cible : l'easing est decelere, pas un ressort, donc aucune
+ *      valeur superieure a la mesure n'est affichee, meme une frame ;
+ *   3. tant qu'il tourne il porte `aria-busy`, et son contenu n'est annonce qu'une fois pose :
+ *      un lecteur d'ecran n'entend jamais un chiffre intermediaire.
+ *
+ * Sous `prefers-reduced-motion`, il affiche directement. Il n'anime que du texte deja present,
+ * jamais une position : rien ne bouge autour de lui.
+ *
+ * DIFFERENCE ASSUMEE AVEC LA BRANCHE DE DESIGN : la-bas le calcul partait d'une pression sur le
+ * bouton, et `anime` valait ce declenchement. Ici le verdict tombe des que l'adresse est
+ * lisible — c'est notre regle des cinq secondes, et `Raisonnement` en depend — donc le
+ * declenchement EST l'arrivee de la reponse. Les trois garde-fous, eux, sont les siens.
+ */
+function Compteur({ valeur, anime, className, style }: {
+  valeur: number
+  anime: boolean
+  className?: string
+  style?: CSSProperties
+}) {
+  const [affiche, setAffiche] = useState(valeur)
+  const [enCours, setEnCours] = useState(false)
+
+  useEffect(() => {
+    const reduit =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (!anime || reduit) {
+      setAffiche(valeur)
+      setEnCours(false)
+      return
+    }
+    let brut = 0
+    let debut: number | null = null
+    const duree = 520
+    setEnCours(true)
+    const pas = (t: number) => {
+      if (debut === null) debut = t
+      const p = Math.min(1, (t - debut) / duree)
+      // decelere (easeOutCubic) : on arrive sur la valeur, on ne la depasse pas.
+      setAffiche(valeur * (1 - Math.pow(1 - p, 3)))
+      if (p < 1) brut = requestAnimationFrame(pas)
+      else {
+        setAffiche(valeur)
+        setEnCours(false)
+      }
+    }
+    brut = requestAnimationFrame(pas)
+    return () => cancelAnimationFrame(brut)
+  }, [valeur, anime])
+
+  return (
+    <output
+      className={className}
+      style={style}
+      aria-busy={enCours || undefined}
+      aria-live={enCours ? 'off' : 'polite'}
+    >
+      {affiche.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+    </output>
+  )
+}
 
 /** Une seule ligne de métadonnée par nœud — l'anatomie de la référence, rien de plus. */
 function meta(o: Outil): string {
@@ -312,7 +389,7 @@ export function Carte({
     if (g) {
       return {
         quoi: 'ecart' as const,
-        ecart: g.ecart_bps!.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        ecart: g.ecart_bps!,
         bas: g.classees[0]!.totalBps!.toFixed(2),
         haut: g.classees[g.classees.length - 1]!.totalBps!.toFixed(2),
         portes: g.classees.length,
@@ -369,13 +446,16 @@ export function Carte({
           le titre, le champ où l'on colle une adresse (on agit), l'écart déjà mesuré (on lit),
           et en bas le repère de défilement (on descend). Derrière, le champ de câblage. */}
       <div className="hero-cadre">
-        <div className="flex flex-col" style={{ gap: 24 }}>
+        <div className="flex flex-col" style={{ gap: 16 }}>
           <div className="hero">
             <div className="flex flex-col" style={{ gap: 16 }}>
-              {/* Deux lignes, pas trois : le premier ecran doit porter AUSSI la carte entiere,
-                  et c'est elle qui ne se reduit pas. La glose qui suivait le titre disait ce que
-                  la mesure, a droite, montre deja. */}
-              <h1 id="carte-titre" className="t-display m-0" style={{ maxWidth: '21ch' }}>
+              {/* LA PLAQUE — la catchphrase du produit (lock 17), mise dans la police du
+                  TABLEAU : c'est la meme phrase qu'avant, ce qui change est qu'elle grave au
+                  lieu d'ecrire. Elle reste a l'encre : trois lignes d'accent ecraseraient la
+                  valeur mesuree, qui est la seule chose que l'accent veut dire.
+                  L'eyebrow « corpus · base · bloc » est retiree (lock 18) : le bloc et la
+                  chaine sont deja dits dans le panneau de droite, sous « block ». */}
+              <h1 id="carte-titre" className="t-hero m-0">
                 What a hook really takes on a swap.
               </h1>
 
@@ -454,12 +534,52 @@ export function Carte({
                     ))}
                 </span>
               </form>
+
+              {/* LES TROIS CHIFFRES DU CORPUS — UNE LIGNE, pas une grille de blocs.
+                  Le lock 22 demande quatre choses entieres dans le premier ecran ; a 1440x900
+                  il reste 844 px sous la barre et le schema en reclame 330. Les blocs cadres
+                  coutaient 90 px de hauteur pour trois nombres qui en demandent 30. Ils sont
+                  toujours separes au filet, mais le filet est vertical. Aucun n'est tape :
+                  tous sortent de `dataset.totals`. */}
+              <dl className="hero-chiffres m-0">
+                {(
+                  [
+                    ['corpus', `${T.rows.toLocaleString('en-US')} measurements · ${T.pools.toLocaleString('en-US')} pools`],
+                    ['hooks', `${T.hooks} measured · ${T.hooksAbsentFromRegistry} absent from the registry`],
+                    ['labels', `${T.measured.toLocaleString('en-US')} measured`],
+                  ] as [string, string][]
+                ).map(([quoi, valeur]) => (
+                  <div key={quoi}>
+                    <dt className="t-valeur" style={{ color: 'var(--ink-3)' }}>
+                      {quoi}
+                    </dt>
+                    <dd className="t-data-sm m-0" style={{ color: 'var(--ink-2)' }}>
+                      {valeur}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
             </div>
 
             {/* L'ÉCART, dans le premier écran : c'est ce que le produit mesure, et il se lit
                 avant tout le reste. Les deux cotations viennent de `facts.execution`, la porte
                 A4 — un swap réellement exécuté sur Base, coté deux fois sur le fork. */}
-            <div className="hero-mesure flex flex-col" style={{ gap: 6 }} aria-live="polite">
+            <div className="hero-mesure panneau-mesure flex flex-col" aria-live="polite">
+              {/* L'EN-TETE DU PANNEAU : ce qu'on lit a gauche, l'etat a droite. Le badge est un
+                  rectangle au filet, jamais une pilule, et seul « measured » prend le fond de la
+                  rampe — l'etat mesure est la seule chose qui s'allume (DESIGN.md -> Colors). */}
+              <div
+                className="flex items-center justify-between"
+                style={{ gap: 12, padding: '10px 16px', borderBottom: '1px solid var(--line)' }}
+              >
+                <span className="t-valeur" style={{ color: 'var(--ink-2)' }}>
+                  {reponse?.quoi === 'ecart' ? 'gap between its doors' : 'reference measurement'}
+                </span>
+                <span className={`t-valeur badge${reponse?.quoi === 'refus' ? '' : ' badge-mesure'}`}>
+                  {reponse?.quoi === 'refus' ? 'not measurable' : 'measured'}
+                </span>
+              </div>
+              <div className="flex flex-col" style={{ gap: 6, padding: 16 }}>
               {/* L'AGENT AU TRAVAIL. Les cinq etapes que `ouAcheter()` execute vraiment,
                   rendues visibles. Ce n'est pas une decoration : chaque ligne correspond a une
                   passe que le code fait, avec le nombre qu'elle a produit. */}
@@ -475,9 +595,12 @@ export function Carte({
                 </>
               ) : reponse?.quoi === 'ecart' ? (
                 <>
-                  <output className="t-number m-0" style={{ color: 'var(--ink)' }}>
-                    {reponse.ecart}
-                  </output>
+                  <Compteur
+                    valeur={reponse.ecart}
+                    anime
+                    className="t-number m-0"
+                    style={{ color: 'var(--m-4)' }}
+                  />
                   <p className="t-body m-0 t-body-muted" style={{ maxWidth: '34ch' }}>
                     bps between its {reponse.portes} doors, paid in {reponse.monnaie}: from{' '}
                     <span className="t-data" style={{ color: 'var(--ink)' }}>{reponse.bas}</span> to{' '}
@@ -487,17 +610,60 @@ export function Carte({
               ) : (
                 paire && (
                   <>
-                    <output className="t-number m-0" style={{ color: 'var(--ink)' }}>
+                    <output className="t-number m-0" style={{ color: 'var(--m-4)' }}>
                       {paire.bps}
                     </output>
                     <p className="t-body m-0 t-body-muted" style={{ maxWidth: '34ch' }}>
-                      bps taken on a swap that really ran: {' '}
+                      bps on a swap that really ran:{' '}
                       <span className="t-data" style={{ color: 'var(--ink)' }}>{paire.avec}</span> is
-                      left instead of <span className="t-data">{paire.sans}</span>, to within 89 inert bytes.
+                      left instead of <span className="t-data">{paire.sans}</span>.
                     </p>
+
+                    {/* CE QUI A ETE MESURE, exactement : les deux cotations en wei, le bloc, la
+                        chaine, et le fichier qui les produit. C'est aussi la ou repartent les
+                        « 89 octets inertes » que la phrase au-dessus portait : une clause en
+                        fin de phrase, elle se lisait comme une reserve ; en ligne de tableau,
+                        avec sa valeur, c'est une preuve. Aucun nombre n'est tape : les deux
+                        cotations viennent de `facts.execution`, le bloc de `provenance`. */}
+                    <dl className="kv m-0">
+                      {(
+                        [
+                          ['received with the hook, in wei', paire.avecWei],
+                          ['received with the stub, in wei', paire.sansWei],
+                          ['block', `${PROV.blocks[0].toLocaleString('en-US')} · chain ${PROV.chain_ids[0]}`],
+                          ['stub', '89 bytes, conforms to Hooks.sol'],
+                          ['source', EXEC.source],
+                        ] as [string, string][]
+                      ).map(([k, v]) => (
+                        <div key={k}>
+                          <dt className="t-valeur" style={{ color: 'var(--ink-3)' }}>
+                            {k}
+                          </dt>
+                          <dd className="t-data-sm m-0" translate="no" style={{ color: 'var(--ink-2)' }}>
+                            {v}
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
+
+                    {/* REJOUER CETTE LIGNE. La commande qui reproduit ce nombre-la, pas une
+                        commande d'exemple : gate A4 execute les swaps et compare l'execution a
+                        la cotation. Depliant, ferme par defaut : la preuve n'est pas cachee par
+                        honte, elle se demande. */}
+                    <details className="rejouer">
+                      <summary className="t-valeur" style={{ color: 'var(--ink-3)' }}>
+                        replay this row
+                      </summary>
+                      <code className="t-data-sm" translate="no" style={{ color: 'var(--ink-2)', display: 'block' }}>
+                        docker compose up -d anvil
+                        <br />
+                        make gate-a4
+                      </code>
+                    </details>
                   </>
                 )
               )}
+              </div>
             </div>
           </div>
 
@@ -505,14 +671,14 @@ export function Carte({
           Elle est DANS le premier écran, avec le titre, la mesure et le champ : le schéma ne se
           réduit pas, c'est la mesure et le champ qui se compactent autour de lui. */}
           <div className="enceinte">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-[24px] gap-y-[6px] pb-[14px]">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-[24px] gap-y-[6px] pb-[10px]">
           <div className="flex flex-wrap items-baseline" style={{ gap: 12 }}>
             <h2 className="t-headline m-0" style={{ fontSize: '1.25rem' }}>
               The chain and its {OUTILS.length} tools
             </h2>
             {/* DEUXIÈME INTERACTION, écrite : un nœud s'ouvre. */}
             <span className="t-body t-body-muted" style={{ fontSize: 13 }}>
-              clicking a tool opens its page, hovering lights its path
+              click opens, hover lights the path
             </span>
           </div>
           <dl className="legende m-0 p-0 flex flex-wrap items-baseline" style={{ gap: 16 }}>

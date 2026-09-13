@@ -124,7 +124,7 @@ export function Pourquoi() {
   ]
 
   return (
-    <section aria-labelledby="pourquoi-t" className="flex flex-col" style={{ gap: 28 }}>
+    <section aria-labelledby="pourquoi-t" className="flex flex-col voile voile-air" style={{ gap: 28 }}>
       <header className="flex flex-col" style={{ gap: 10, maxWidth: '46ch' }}>
         <h2 id="pourquoi-t" className="t-headline m-0">
           Why TARE exists
@@ -170,7 +170,7 @@ export function Pourquoi() {
  */
 export function AccesPanel({ surOutil }: { surOutil?: (n: number) => void }) {
   return (
-    <section aria-labelledby="acces-t" className="flex flex-col" style={{ gap: 28 }}>
+    <section aria-labelledby="acces-t" className="flex flex-col voile voile-air" style={{ gap: 28 }}>
       <header className="flex flex-wrap items-baseline justify-between gap-x-[32px] gap-y-[8px]">
         <div className="flex flex-col" style={{ gap: 10, maxWidth: '46ch' }}>
           <h2 id="acces-t" className="t-headline m-0">
@@ -400,7 +400,7 @@ export function DonneesPanel({ surOutil }: { surOutil?: (n: number) => void }) {
   }, [])
 
   return (
-    <section aria-labelledby="donnees-t" className="flex flex-col" style={{ gap: 24 }}>
+    <section aria-labelledby="donnees-t" className="flex flex-col voile voile-air" style={{ gap: 24 }}>
       <header className="flex flex-wrap items-baseline justify-between gap-x-[32px] gap-y-[8px]">
         <div className="flex flex-col" style={{ gap: 10, maxWidth: '52ch' }}>
           <h2 id="donnees-t" className="t-headline m-0">

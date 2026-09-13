@@ -72,7 +72,11 @@ export function Portefeuilles({ theme, children }: { theme: string; children: Re
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={client}>
-        <RainbowKitProvider theme={t} modalSize="compact" appInfo={{ appName: 'TARE' }}>
+        {/* LA LANGUE EST EPINGLEE. Sans `locale`, RainbowKit suit celle du navigateur : sur une
+            machine reglee en francais, son bouton affichait « Connecter le portefeuille » au
+            milieu d'un site entierement anglais — vu a la capture, sur un navigateur reel. Le
+            site n'a qu'une langue, ce bouton aussi. */}
+        <RainbowKitProvider theme={t} locale="en-US" modalSize="compact" appInfo={{ appName: 'TARE' }}>
           {children}
         </RainbowKitProvider>
       </QueryClientProvider>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { dataset } from './lib/dataset'
+import { FondShader } from './components/backgrounds/FondShader'
 import { PALIERS } from './lib/ramp'
 import { fmtBlock } from './lib/format'
 import { HookTable } from './components/Table'
@@ -100,6 +101,7 @@ function Evitement() {
  */
 function MenuOutils({ n, aller }: { n: number | null; aller: (n: number) => void }) {
   const ref = useRef<HTMLDetailsElement | null>(null)
+  const panneau = useRef<HTMLDivElement | null>(null)
   // Un menu qui reste ouvert derriere la page qu'il vient d'ouvrir est un menu qu'on ferme a
   // la main : on le referme au clic et a l'echappement.
   useEffect(() => {
@@ -117,8 +119,45 @@ function MenuOutils({ n, aller }: { n: number | null; aller: (n: number) => void
     }
   }, [])
 
+  /**
+   * LE PANNEAU DOIT SORTIR DU DEFILEMENT DE LA BARRE (lock 30).
+   *
+   * `.nav-routes` porte `overflow-x: auto` pour que la barre defile DANS elle-meme au lieu de
+   * pousser la fenetre, et un conteneur qui defile CLIPPE ce qui en sort : le panneau etait
+   * rendu, ouvert, mesurable a 536x291 px — et invisible. Mesure a 390, 640, 900 et 1100 px :
+   * la barre defile vraiment en dessous de 1280 px, on ne peut donc pas simplement lui rendre
+   * `overflow: visible`.
+   *
+   * `position: fixed` echappe au clip, quel que soit l'ancetre. La position est donc recalculee
+   * sur le declencheur a chaque ouverture, ancree a sa droite comme le fait `right: 0` dans
+   * index.css, et retenue de 16 px du bord gauche. Sous 640 px index.css pose deja le panneau
+   * en fixed pleine largeur : on lui rend la main en effacant tout.
+   */
+  const poser = () => {
+    const d = ref.current
+    const p = panneau.current
+    if (!d || !p) return
+    p.style.cssText = ''
+    if (!d.open || window.innerWidth < 640) return
+    const r = d.getBoundingClientRect()
+    p.style.position = 'fixed'
+    p.style.top = `${Math.round(r.bottom + 6)}px`
+    p.style.left = 'auto'
+    const droite = Math.max(16, Math.round(window.innerWidth - r.right))
+    p.style.right = `${droite}px`
+    // Seconde passe : la largeur n'est connue qu'une fois pose. Si le bord gauche sort de
+    // l'ecran, on decale d'autant — le panneau glisse, il ne se coupe pas.
+    const gauche = p.getBoundingClientRect().left
+    if (gauche < 16) p.style.right = `${Math.max(0, droite - (16 - gauche))}px`
+  }
+  useEffect(() => {
+    const sur = () => poser()
+    window.addEventListener('resize', sur)
+    return () => window.removeEventListener('resize', sur)
+  })
+
   return (
-    <details ref={ref} className="relative menu-outils">
+    <details ref={ref} className="relative menu-outils" onToggle={poser}>
       {/* Le libelle nomme L'AGENT, pas « les outils » : le proprietaire avait raison, une barre
           qui listait « outil » a cote d'« instrument » donnait deux freres jumeaux au lieu du
           produit. L'agent est le sujet ; les quatorze outils sont ce qu'il tient. Le compte
@@ -132,7 +171,7 @@ function MenuOutils({ n, aller }: { n: number | null; aller: (n: number) => void
         what it can do
         <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>{OUTILS.length} tools</span>
       </summary>
-      <div className="menu-panneau" role="group" aria-label="the agent’s fourteen tools">
+      <div ref={panneau} className="menu-panneau" role="group" aria-label="the agent’s fourteen tools">
         {ORDRE_FAM.map((f) => (
           <div key={f} className="flex flex-col" style={{ gap: 2 }}>
             <span className="t-data-sm flex items-center" style={{ gap: 8, color: 'var(--ink-2)', padding: '2px 0 6px' }}>
@@ -527,7 +566,7 @@ function AppInterne() {
         <RouteMotion cle="accueil">
           <main
             id="contenu"
-            className="flex flex-col px-[24px] pt-[40px] pb-[24px] mx-auto w-full"
+            className="flex flex-col px-[24px] pt-[24px] pb-[24px] mx-auto w-full"
             style={{ maxWidth: 1360, gap: 'clamp(4rem, 8vw, 7rem)' }}
           >
             {/* LA PHRASE, PUIS LA CARTE. Le système en une image, et chaque nœud est une porte.
@@ -616,7 +655,8 @@ function AppInterne() {
       <Head theme={theme} setTheme={setTheme} vue={vue} versOutil={versOutil} />
 
       <main id="contenu" className="px-[24px] pt-[24px] pb-[24px] mx-auto w-full" style={{ maxWidth: 1360 }}>
-        <div className="flex flex-wrap items-end justify-between gap-x-[40px] gap-y-[12px] pb-[28px]">
+        {/* Le voile (lock 32) : l'en-tete de la route est un bloc de texte comme un autre. */}
+        <div className="flex flex-wrap items-end justify-between gap-x-[40px] gap-y-[12px] pb-[28px] voile voile-air">
           <div className="flex flex-col" style={{ gap: 12, maxWidth: '52ch' }}>
             {/* Le titre suit la barre : « the evidence ». La page n'a jamais ete un second
                 catalogue d'outils — c'est ce que les outils ont RENDU, panneau par panneau. */}
@@ -782,8 +822,27 @@ export default function App() {
     o.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
     return () => o.disconnect()
   }, [])
+  // LES TROIS COULEURS DU FOND, LUES SUR LES JETONS et non ecrites ici : le shader doit suivre
+  // le theme, et --line n'a pas la meme valeur en clair qu'en sombre.
+  const [couleursFond, setCouleursFond] = useState({ bg: '#08090a', c1: '#383c42', c2: '#454a50' })
+  useEffect(() => {
+    const s = getComputedStyle(document.documentElement)
+    const lu = (n: string, secours: string) => s.getPropertyValue(n).trim() || secours
+    setCouleursFond({
+      bg: lu('--bg', '#08090a'),
+      c1: lu('--line-strong', '#383c42'),
+      c2: lu('--ink-4', '#454a50'),
+    })
+  }, [theme])
+
   return (
     <Portefeuilles theme={theme}>
+      {/* LE FOND, SUR TOUTES LES PAGES (lock 28). Il vivait dans la seule route d'accueil ;
+          il est monte ici, au-dessus du routeur, donc il ne se demonte plus d'une vue a
+          l'autre — le terrain ne se reinitialise pas quand on change de page, ce qui serait
+          un saut visible. Le preset est `releve` : les courbes de niveau de `topo` sur un plan
+          en perspective, que le pointeur DEPLACE au lieu de l'eclairer (locks 23 a 26). */}
+      <FondShader preset="releve" bg={couleursFond.bg} c1={couleursFond.c1} c2={couleursFond.c2} />
       <AppInterne />
     </Portefeuilles>
   )

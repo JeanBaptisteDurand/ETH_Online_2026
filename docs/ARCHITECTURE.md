@@ -240,7 +240,7 @@ interception itself — a transaction caught three seconds before signature — 
 | 21.5 MB | 22,896 raw `Initialize` logs | `docs/dataset/init-logs-200k.json` | **source** |
 | 1.7 MB | 7,817 pools in the census | `docs/dataset/pools-liquides-full.json` | **source** |
 | 1.2 MB | 978 entries of the official registry | `docs/hooklist-live-20260905.json` | **source** |
-| 29 MB | **2,309 verified Solidity files**, fetched from Sourcify | `docs/hooks-source/` | **source** |
+| 29 MB | **2,309 verified Solidity files**, fetched from Sourcify — **on disk, no longer versioned**: they are third-party code, and publishing them multiplied the repository's file count by five for a proof `analysis.json` already carries. Each folder keeps its `provenance.json`, and `python3 -m tare.source.cli fetch` brings them all back | `docs/hooks-source/` | fetched |
 | 7.3 MB | 112 hooks analysed against their own code | `docs/hooks-source/analysis.json` | derived |
 | 188.8 MB | typed graph — 143,788 nodes, 149,904 edges | `engine/tare/graph/data/graph.json` | derived |
 | 51.2 MB | vector index — 3,591 chunks, dim 768 | `engine/tare/rag/var/index.jsonl` | derived |

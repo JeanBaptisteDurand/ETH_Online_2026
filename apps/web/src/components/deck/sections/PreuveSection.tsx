@@ -25,7 +25,7 @@ const ETAPE_EN: Readonly<Record<string, string>> = {
     'the guard decodes the calldata and returns a verdict',
   'y a-t-il une autre porte ?': 'is there another door?',
   'une mesure neuve, payee en x402 sur Hedera et relue sur le mirror node':
-    'a new measurement, paid over x402, read on Hedera',
+    'a new measurement, paid over x402 and read back',
   'le lot est ancre sur le topic HCS, et relu':
     'the batch is anchored on the HCS topic, and read',
   "le rapport encode en EIP-712, rendu ecran par ecran sur l'appareil, et signe":

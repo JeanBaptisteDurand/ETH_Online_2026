@@ -201,6 +201,12 @@ export function DeveloppeursPage() {
           <span className="meta-filet">1 Manifest V3 extension</span>
           <span className="meta-filet">12 account routes</span>
           <span className="meta-filet">1 paid route</span>
+          {/* LA FEUILLE DE ROUTE se rejoint d'ici, et de nulle part ailleurs : elle a quitte
+              la barre parce qu'elle en est la suite, pas une vue de plus. Une page sans lien
+              n'existe pas. */}
+          <a className="meta-filet" href="#/roadmap" style={{ color: 'var(--ink)' }}>
+            the roadmap →
+          </a>
         </div>
         <h1 className="t-headline m-0" style={{ color: 'var(--ink)', maxWidth: '22ch' }}>
           Plugging TARE in somewhere other than this site

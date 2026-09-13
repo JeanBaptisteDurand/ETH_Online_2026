@@ -286,6 +286,25 @@ function Head({
             ))}
           </div>
         </details>
+        {/* `settings` A DROITE, CONTRE LE PORTEFEUILLE.
+            Il a quitte la barre de gauche pour une raison — on cherche ses reglages a cote de
+            son portefeuille, pas au milieu des vues du produit — mais le lien n'avait jamais
+            ete repose ailleurs : la route n'etait plus atteignable qu'en tapant l'URL. Une
+            page sans aucun lien n'existe pas. */}
+        <a
+          href="#/reglages"
+          className="nav-lien"
+          aria-current={vue.quoi === 'reglages' ? 'page' : undefined}
+          style={{ flexShrink: 0 }}
+          onClick={(e) => {
+            if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
+            e.preventDefault()
+            window.location.hash = '/reglages'
+            window.scrollTo({ top: 0 })
+          }}
+        >
+          settings
+        </a>
         <button
           type="button"
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}

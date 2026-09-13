@@ -187,16 +187,17 @@ verdict with no network request at all — the 125,072 measurements are compiled
 | Route | What it is |
 |---|---|
 | [`#/`](https://tare-hooks.tech/#/) | **check a token** — paste an address, read which door to buy it through, and what that door takes |
-| [`#/instrument`](https://tare-hooks.tech/#/instrument) | **the evidence** — the panels, one per question: the hook table, the 14 permission LEDs, the size curve, and the raw rows with their replay commands |
+| [`#/instrument`](https://tare-hooks.tech/#/instrument) | **the measurements** — seventeen panels, one per question: the hook table, the 14 permission LEDs, the size curve, what is written on chain, and the raw rows with their replay commands |
 | [`#/outil/<n>`](https://tare-hooks.tech/#/outil/1) | one page per tool, `1` to `14` — what it takes in, what it runs, what it gives back, what it costs |
 | [`#/deck`](https://tare-hooks.tech/#/deck) | **the deck** — nine full-screen beats, with the real app running inside the boards. `?presenter=1` adds the clock, the beat counter and the keyboard shortcuts; the public URL carries none of them |
 | [`#/developpeurs`](https://tare-hooks.tech/#/developpeurs) | **developers** — the two pieces you install (the MCP server, the browser extension) and the two network doors (the account API, the x402 toll). Every figure on it names the file it was read from |
 | [`#/roadmap`](https://tare-hooks.tech/#/roadmap) | **roadmap** — the fourteen tools sorted by their *real* state, read from `outils.ts`, not retyped: running · written and tested but not deployed, each with its reason · not built. No dates, and the word "soon" appears nowhere |
 | [`#/reglages`](https://tare-hooks.tech/#/reglages) | **settings** — everything that needs a wallet: the RainbowKit connection, the signature that opens a session, the two kinds of API key, and the subscription read on chain |
 
-The nav bar carries them in that order: *check a token · the agent (14 tools) · the evidence ·
-the deck · developers · roadmap · settings*. `#/feuille` still resolves, as an alias of
-`#/roadmap`: the route was renamed and the old links were not broken.
+The top bar carries the first five, plus the fourteen tools as a drop-down and the wallet button.
+`#/roadmap` and `#/reglages` are not in the bar; they resolve from their URL, and so does every
+route above, whatever the bar happens to be showing. `#/feuille` still resolves too, as an alias
+of `#/roadmap`: the route was renamed and the old links were not broken.
 
 ---
 
@@ -284,9 +285,9 @@ node apps/web/scripts/build-dataset.mjs               # the instrument's data
 ```
 
 The two published surfaces need none of this: `apps/web` and `apps/landing` regenerate their own
-data as the first step of `npm run build`, which is why <https://tare-hooks.tech> builds from a
-clean checkout — the instrument at the root, the landing under `/landing/`, behind a Let's Encrypt
-certificate.
+data as the first step of `npm run build`, so publishing them takes a clean checkout and nothing
+else. That is what <https://tare-hooks.tech> serves — the instrument at the root, the landing under
+`/landing/`, behind Caddy and a Let's Encrypt certificate.
 
 ---
 
@@ -419,7 +420,7 @@ The same fourteen tools are reachable five ways, and each way exists for a reaso
 | **The site** | someone who wants an answer now, with nothing installed | the whole corpus is *in the page*: 125,072 measurements encoded by column, 7.9 MB. Paste an address, read the result — no wallet, no account, not one network request | a browser: <https://tare-hooks.tech> | 2, 3, 4, 5, 6, 7, 9, 13, 14 |
 | **The extension** | someone who already swaps elsewhere and will never come to our site | the right moment to know what a hook takes is not when you are researching: it is **three seconds before signing**, on the site where you swap. It sits between the page and the wallet, reads Universal Router calldata, and rules before the signature. The measurement table lives in its service worker and answers with no request — so it works even if our server is off | install it; an API key only for history | 2, 6, 8, 9 |
 | **The MCP server** | an agent, not a human | a model asked "what does this hook take?" **invents a plausible number**. The MCP server gives it four tools whose descriptions say, in as many words, never to state a figure the tool did not return — and every answer carries its label, block, size, direction and replay command. It reads the 125,072 measurements off disk and answers offline | Claude Desktop or any MCP client | 1, 2, 3, 5, 6, 13 |
-| **x402, live, on Hedera** | an autonomous agent with no account and no wish for one | an agent does not fill in a signup form. It makes a request, gets a **402 that announces the price**, pays, and gets the measurement — 0.001 USDC, settled and re-read on the Hedera mirror node, not on our word. The signing key is sealed in a Ledger, and the answering agent has an HCS-14 identity published on a topic: the caller can check **who** it is calling before paying | a Hedera account and test USDC | 1, 10, 13 |
+| **x402, live, on Hedera** | an autonomous agent with no account and no wish for one | an agent does not fill in a signup form. It makes a request, gets a **402 that announces the price**, pays, and gets the measurement — 0.001 USDC, settled and re-read on the Hedera mirror node, not on our word. The signing key is sealed in a Ledger, and the answering agent has an HCS-14 identity published on a topic: the caller can check **who** it is calling before paying. "Live" here is about the money — **5 settlements really moved**, each re-read on the mirror node — not about a public endpoint: the API is not hosted yet, and the last section says so | a Hedera account, test USDC, and the API running locally | 1, 10, 13 |
 | **The account** | someone who uses the product more than once | it adds no measurement — it opens **surfaces**: one API key per surface, the extension and MCP downloads, and the history of what they did. Login is a wallet signature — RainbowKit for the connection, a JWT for the session, revocable by its `jti` — and the subscription is read **on chain** rather than believed | a wallet, and an active subscription for the keys | 11, 12 |
 
 ---

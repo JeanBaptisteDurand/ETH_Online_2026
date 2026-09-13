@@ -52,10 +52,10 @@ function SortieMesurer() {
   return (
     <>
       <div className="px-[16px] py-[11px] t-body t-body-muted" style={{ fontSize: 14, maxWidth: '74ch', borderTop: '1px solid var(--line)' }}>
-        Six exécutions du contrefactuel, les plus fortes du corpus. À chaque ligne : le même swap
-        coté <strong style={{ color: 'var(--ink)' }}>avec</strong> le hook, puis avec un talon
-        inerte de 89 octets à son adresse. L'écart <strong style={{ color: 'var(--ink)' }}>est</strong> le
-        prélèvement.
+        Six runs of the counterfactual, the largest in the corpus. On each row: the same swap
+        quoted <strong style={{ color: 'var(--ink)' }}>with</strong> the hook, then with an 89-byte
+        inert stub at its address. The gap <strong style={{ color: 'var(--ink)' }}>is</strong> the
+        take.
       </div>
       {runs.map((r) => {
         const sens = r.zero_for_one ? '0→1' : '1→0'
@@ -66,14 +66,14 @@ function SortieMesurer() {
               <span className="t-data-sm flex flex-wrap" style={{ gap: 12, color: 'var(--ink-2)' }}>
                 <span>{sens}</span>
                 <span className="meta-filet">{r.amount_in}</span>
-                <span className="meta-filet">bloc {nb(r.block_number)}</span>
+                <span className="meta-filet">block {nb(r.block_number)}</span>
               </span>
               <span className="ml-auto t-data" style={{ color: 'var(--ink)' }}>{r.bps!.toFixed(4)} bps</span>
             </div>
             <div className="mt-[6px] grid gap-[3px]" style={{ gridTemplateColumns: 'auto 1fr' }}>
-              <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>avec le hook</span>
+              <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>with the hook</span>
               <span className="t-data-sm" style={{ color: 'var(--ink-2)', wordBreak: 'break-all' }}>{r.out_with}</span>
-              <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>avec le talon</span>
+              <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>with the stub</span>
               <span className="t-data-sm" style={{ color: 'var(--ink-2)', wordBreak: 'break-all' }}>{r.out_without}</span>
             </div>
             <Replay cmd={[
@@ -96,15 +96,15 @@ function SortiePayer() {
   if (!x) return <NonLu quoi="facts.x402" />
   return (
     <>
-      <L k="réglés et relus" v={<>{String(x.regles)} <span style={{ color: 'var(--ink-2)' }}>sur {String(x.vus)} tentés, {String(x.par_keyring)} signés depuis le trousseau</span></>} />
-      <L k="réseau" v={String(x.reseau)} />
-      <L k="facilitateur" v={String(x.facilitateur)} />
-      <L k="jeton" v={String(x.jeton)} />
-      <L k="prix unitaire" v={`${String(x.prix_unite_usd)} USDC par mesure`} />
-      <L k="payeur → encaisseur" v={`${String(x.payeur)} → ${String(x.encaisseur)}`} />
+      <L k="settled and re-read" v={<>{String(x.regles)} <span style={{ color: 'var(--ink-2)' }}>of {String(x.vus)} attempted, {String(x.par_keyring)} signed from the keyring</span></>} />
+      <L k="network" v={String(x.reseau)} />
+      <L k="facilitator" v={String(x.facilitateur)} />
+      <L k="token" v={String(x.jeton)} />
+      <L k="unit price" v={`${String(x.prix_unite_usd)} USDC per measurement`} />
+      <L k="payer → payee" v={`${String(x.payeur)} → ${String(x.encaisseur)}`} />
       <div className="px-[16px] py-[11px] t-body t-body-muted" style={{ borderTop: '1px solid var(--line)', fontSize: 14, maxWidth: '72ch' }}>
-        Un règlement n'est compté que si le <strong style={{ color: 'var(--ink)' }}>mirror node</strong> le
-        rend. Le serveur qui dit « payé » ne suffit pas : c'est lui qu'on vérifie.
+        A settlement is counted only if the <strong style={{ color: 'var(--ink)' }}>mirror node</strong> returns
+        it. The server that says “paid” is not enough: it is the one being checked.
       </div>
     </>
   )
@@ -118,14 +118,14 @@ function SortieProuver() {
     <>
       <L k="UAID" v={<span style={{ wordBreak: 'break-all' }}>{String(a.uaid)}</span>} />
       <L k="standard" v={`${String(a.standard)}, ${String(a.spec)}`} />
-      <L k="topic Hedera" v={`${String(a.topic)}, message #${String(a.sequence)}`} />
-      <L k="état" v={String(a.etat)} />
+      <L k="Hedera topic" v={`${String(a.topic)}, message #${String(a.sequence)}`} />
+      <L k="state" v={String(a.etat)} />
       <div className="px-[16px] py-[9px]" style={{ borderTop: '1px solid var(--line)' }}>
-        <div className="t-data-sm mb-[5px]" style={{ color: 'var(--ink-2)' }}>les six champs canoniques, hachés en SHA-384 puis encodés en base58</div>
+        <div className="t-data-sm mb-[5px]" style={{ color: 'var(--ink-2)' }}>the six canonical fields, hashed with SHA-384 then encoded in base58</div>
         <div className="t-data-sm" style={{ color: 'var(--ink-2)', wordBreak: 'break-all', fontFamily: 'var(--mono)' }}>
           {String(a.canonical_json)}
         </div>
-        <div className="mt-[6px]"><Copy text={String(a.canonical_json)} label="copier le JSON canonique" /></div>
+        <div className="mt-[6px]"><Copy text={String(a.canonical_json)} label="copy the canonical JSON" /></div>
       </div>
     </>
   )
@@ -137,13 +137,13 @@ function SortieAttester() {
   if (!t) return <NonLu quoi="facts.attestations" />
   return (
     <>
-      <L k="contrat" v={String(t.contrat)} />
-      <L k="écrits on-chain" v={<><strong style={{ color: 'var(--ink)' }}>{String(t.ecrits)}</strong> <span style={{ color: 'var(--ink-2)' }}>sur {String(t.tentes)} transactions envoyées</span></>} />
-      <L k="calculés" v={<>{String(t.calcules)} <span style={{ color: 'var(--ink-2)' }}>, {String(t.ecartes)} écartés faute de mesure, pas écrits à zéro. L'écart entre {String(t.calcules)} et {String(t.ecrits)} attend du gaz, et il est publié.</span></>} />
-      <L k="empreinte du corpus" v={<span style={{ wordBreak: 'break-all' }}>{String(t.corpus_digest)}</span>} />
+      <L k="contract" v={String(t.contrat)} />
+      <L k="written on-chain" v={<><strong style={{ color: 'var(--ink)' }}>{String(t.ecrits)}</strong> <span style={{ color: 'var(--ink-2)' }}>of {String(t.tentes)} transactions sent</span></>} />
+      <L k="computed" v={<>{String(t.calcules)} <span style={{ color: 'var(--ink-2)' }}>, {String(t.ecartes)} set aside for lack of a measurement, not written as zero. The gap between {String(t.calcules)} and {String(t.ecrits)} is waiting on gas, and it is published.</span></>} />
+      <L k="corpus digest" v={<span style={{ wordBreak: 'break-all' }}>{String(t.corpus_digest)}</span>} />
       <div className="px-[16px] py-[9px] t-data-sm" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-2)' }}>
-        Un autre contrat peut lire ces valeurs. C'est la seule surface du produit qu'une machine
-        consomme sans nous demander la permission.
+        Another contract can read these values. It is the only surface of the product a machine
+        consumes without asking us for permission.
       </div>
     </>
   )
@@ -155,12 +155,12 @@ function SortieApprouver() {
   if (!l) return <NonLu quoi="facts.ledger" />
   return (
     <>
-      <L k="appareil" v={`${String(l.appareil)}${l.physique ? '' : ' (émulé — et on le dit)'}`} />
-      <L k="verdict rendu" v={String(l.verdict)} />
-      <L k="écrans" v={`${String(l.ecrans)}, type EIP-712 ${String(l.type_712)}, ${String(l.champs_712)} champs`} />
+      <L k="device" v={`${String(l.appareil)}${l.physique ? '' : ' (emulated — and we say so)'}`} />
+      <L k="verdict rendered" v={String(l.verdict)} />
+      <L k="screens" v={`${String(l.ecrans)}, EIP-712 type ${String(l.type_712)}, ${String(l.champs_712)} fields`} />
       <div className="px-[16px] py-[9px] t-data-sm" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-2)' }}>
-        Le rapport est encodé en EIP-712 et rendu <strong style={{ color: 'var(--ink)' }}>champ par
-        champ</strong> sur l'appareil : on ne signe pas un hash opaque, on lit ce qu'on signe.
+        The report is encoded in EIP-712 and rendered <strong style={{ color: 'var(--ink)' }}>field by
+        field</strong> on the device: you do not sign an opaque hash, you read what you sign.
       </div>
     </>
   )
@@ -173,19 +173,19 @@ function SortiePorte() {
     <>
       <div className="px-[16px] py-[10px]" style={{ borderTop: '1px solid var(--line)' }}>
         <div className="t-body t-body-muted" style={{ fontSize: 14, maxWidth: '72ch' }}>
-          Sur les <strong style={{ color: 'var(--ink)' }}>125 072</strong> lignes du corpus,
-          <strong style={{ color: 'var(--ink)' }}> 124 704</strong> répondent « il n'y a qu'une
-          porte » — <strong>99,71 %</strong>. Quinze passent le seuil d'un point de base, sur
-          quatre couples de pools ; la meilleure fait passer de <strong>295,59 à 216,92 bps</strong>.
-          Aucune ne dépasse 100 bps.
+          Of the <strong style={{ color: 'var(--ink)' }}>125 072</strong> rows in the corpus,
+          <strong style={{ color: 'var(--ink)' }}> 124 704</strong> answer “there is only one
+          door” — <strong>99.71%</strong>. Fifteen clear the one-basis-point threshold, across
+          four pool pairs; the best takes you from <strong>295.59 to 216.92 bps</strong>.
+          None exceeds 100 bps.
         </div>
       </div>
       {s && (
-        <L k="pools à sens unique" v={<>{String(s.pools)} sur {String(s.hooks)} hooks <span style={{ color: 'var(--ink-2)' }}>— gratuit à l'entrée, fermé à la sortie</span></>} />
+        <L k="one-way pools" v={<>{String(s.pools)} across {String(s.hooks)} hooks <span style={{ color: 'var(--ink-2)' }}>— free on the way in, closed on the way out</span></>} />
       )}
       <div className="px-[16px] py-[11px] t-body t-body-muted" style={{ borderTop: '1px solid var(--line)', fontSize: 14, maxWidth: '72ch' }}>
-        « Il n'y a qu'une porte » est une <strong style={{ color: 'var(--ink)' }}>réponse</strong>, pas
-        un échec de recherche. C'est la phrase qu'aucun agrégateur ne dit.
+        “There is only one door” is an <strong style={{ color: 'var(--ink)' }}>answer</strong>, not
+        a failed search. It is the sentence no aggregator says.
       </div>
     </>
   )
@@ -197,40 +197,39 @@ function SortieSubstituer() {
     <>
       <div className="px-[16px] py-[11px]" style={{ borderTop: '1px solid var(--line)' }}>
         <div className="t-body t-body-muted" style={{ fontSize: 14, maxWidth: '72ch' }}>
-          C'est la pièce qui transforme un verdict en <strong style={{ color: 'var(--ink)' }}>décision</strong>.
-          Le site a déjà tout : l'adresse du jeton, le montant, la porte visée. Il construit la
-          transaction de remplacement et la fait signer — <strong style={{ color: 'var(--ink)' }}>il
-          ne l'envoie jamais</strong>.
+          This is the piece that turns a verdict into a <strong style={{ color: 'var(--ink)' }}>decision</strong>.
+          The site already has everything: the token address, the amount, the target door. It builds
+          the replacement transaction and has it signed — <strong style={{ color: 'var(--ink)' }}>it
+          never sends it</strong>.
         </div>
       </div>
 
-      <L k="ce qu'il rend" v={<code style={{ fontFamily: 'var(--mono)' }}>{'{ to, data, value }'}</code>} />
-      <L k="plancher de sortie" v={<>tiré d'une <strong style={{ color: 'var(--ink)' }}>cotation vivante</strong>, moins 50 bps de tolérance <span style={{ color: 'var(--ink-2)' }}>— jamais du corpus, qui est épinglé à un bloc</span></>} />
-      <L k="échéance" v={<>maintenant + 20 minutes <span style={{ color: 'var(--ink-2)' }}>— le défaut valait 0xffffffff, soit le 7 février 2106</span></>} />
+      <L k="what it returns" v={<code style={{ fontFamily: 'var(--mono)' }}>{'{ to, data, value }'}</code>} />
+      <L k="output floor" v={<>taken from a <strong style={{ color: 'var(--ink)' }}>live quote</strong>, minus 50 bps of tolerance <span style={{ color: 'var(--ink-2)' }}>— never from the corpus, which is pinned to a block</span></>} />
+      <L k="deadline" v={<>now + 20 minutes <span style={{ color: 'var(--ink-2)' }}>— the default was 0xffffffff, that is 7 February 2106</span></>} />
 
       <div className="px-[16px] pt-[12px] pb-[8px]" style={{ borderTop: '1px solid var(--line-strong)' }}>
-        <div className="t-data-sm" style={{ color: 'var(--ink)' }}>Permit2 — une signature au lieu de deux transactions</div>
+        <div className="t-data-sm" style={{ color: 'var(--ink)' }}>Permit2 — one signature instead of two transactions</div>
         <div className="t-data-sm mt-[6px]" style={{ color: 'var(--ink-2)', lineHeight: 1.65, maxWidth: '80ch' }}>
-          Sans lui, remplacer une transaction en demande <strong style={{ color: 'var(--ink)' }}>deux</strong> :
-          un <code style={{ fontFamily: 'var(--mono)' }}>approve</code> du jeton vers le routeur,
-          puis le swap. Avec, on <strong style={{ color: 'var(--ink)' }}>signe hors chaîne</strong> —
-          gratuit, et une signature ne peut pas échouer — et le routeur présente cette signature
-          lui-même, dans la même transaction que le swap. Un envoi, une signature.
+          Without it, replacing a transaction takes <strong style={{ color: 'var(--ink)' }}>two</strong>:
+          an <code style={{ fontFamily: 'var(--mono)' }}>approve</code> of the token to the router,
+          then the swap. With it, you <strong style={{ color: 'var(--ink)' }}>sign off-chain</strong> —
+          free, and a signature cannot fail — and the router presents that signature itself, in the
+          same transaction as the swap. One send, one signature.
         </div>
       </div>
 
-      <L k="liste de commandes" v={<><code style={{ fontFamily: 'var(--mono)' }}>0x0a10</code> <span style={{ color: 'var(--ink-2)' }}>— PERMIT2_PERMIT puis V4_SWAP. L'ordre compte : un swap présenté avant son permit échouerait faute d'autorisation.</span></>} />
-      <L k="domaine EIP-712" v={<><code style={{ fontFamily: 'var(--mono)' }}>EIP712Domain(string name,uint256 chainId,address verifyingContract)</code></>} />
+      <L k="command list" v={<><code style={{ fontFamily: 'var(--mono)' }}>0x0a10</code> <span style={{ color: 'var(--ink-2)' }}>— PERMIT2_PERMIT then V4_SWAP. Order matters: a swap presented before its permit would fail for lack of allowance.</span></>} />
+      <L k="EIP-712 domain" v={<><code style={{ fontFamily: 'var(--mono)' }}>EIP712Domain(string name,uint256 chainId,address verifyingContract)</code></>} />
 
       <div className="px-[16px] py-[10px]" style={{ borderTop: '1px solid var(--line)', background: 'var(--bg-2)' }}>
-        <div className="t-data" style={{ color: 'var(--ink)' }}>ce que Permit2 ne dispense pas de faire</div>
+        <div className="t-data" style={{ color: 'var(--ink)' }}>what Permit2 does not spare you</div>
         <div className="t-data-sm mt-[5px]" style={{ color: 'var(--ink-2)', lineHeight: 1.6, maxWidth: '80ch' }}>
-          Le jeton doit avoir été approuvé <strong style={{ color: 'var(--ink)' }}>vers le contrat
-          Permit2</strong>, une fois pour toutes. Celle-là est une vraie transaction, et
-          l'utilisateur peut ne l'avoir jamais faite. On ne la devine pas : les deux lectures
-          on-chain la nomment, et l'écran la demande AVANT de proposer une signature qui
-          échouerait. Promettre « une seule signature » à quelqu'un qui n'a pas approuvé Permit2
-          serait faux.
+          The token must have been approved <strong style={{ color: 'var(--ink)' }}>to the Permit2
+          contract</strong>, once and for all. That one is a real transaction, and the user may
+          never have made it. We do not guess it: the two on-chain reads name it, and the screen
+          asks for it BEFORE offering a signature that would fail. Promising “a single signature”
+          to someone who has not approved Permit2 would be false.
         </div>
       </div>
 
@@ -244,9 +243,9 @@ function SortieComprendre() {
   if (!g) return <NonLu quoi="facts.graph" />
   return (
     <>
-      <L k="source confrontée" v={`${String(g.nom)}, ${String(g.subgraph)}`} />
-      <L k="pools du recensement" v={<>{nb(Number(g.pools_du_recensement))} <span style={{ color: 'var(--ink-2)' }}>dont {nb(Number(g.retrouves))} retrouvés — {String(g.part)}</span></>} />
-      <L k="volume observé" v={`${String(g.volume_usd)} USD`} />
+      <L k="source cross-checked" v={`${String(g.nom)}, ${String(g.subgraph)}`} />
+      <L k="pools in the census" v={<>{nb(Number(g.pools_du_recensement))} <span style={{ color: 'var(--ink-2)' }}>of which {nb(Number(g.retrouves))} found again — {String(g.part)}</span></>} />
+      <L k="volume observed" v={`${String(g.volume_usd)} USD`} />
       <L k="TVL" v={`${String(g.tvl_usd)} USD`} />
     </>
   )
@@ -272,7 +271,7 @@ function SortieComprendre() {
 const N_ETATS = Object.keys(SUITE).length
 
 const CHAMP_REECRIT: Record<string, string> = {
-  etat: `PRÊT, ou l'un des ${N_ETATS - 1} autres états qui disent ce qui manque`,
+  etat: `PRET, or one of the ${N_ETATS - 1} other states that say what is missing`,
 }
 
 /** Un titre de section commence par une majuscule et rien d'autre : ni capitales espacees,
@@ -315,15 +314,15 @@ function Sortie({ n }: { n: number }) {
  * la page dise vraiment ce que l'outil fait.
  */
 const TEMPS: Record<Famille, { entree: string; milieu: string; sortie: string }> = {
-  collecte: { entree: 'ce qu\'il va chercher', milieu: 'il s\'exécute', sortie: 'ce qu\'il ramène' },
-  analyse: { entree: 'donnée d\'entrée', milieu: 'il s\'exécute', sortie: 'donnée de sortie' },
-  action: { entree: 'ce qu\'il lit avant d\'agir', milieu: 'l\'action', sortie: 'ce qui change' },
+  collecte: { entree: 'what it goes and fetches', milieu: 'it runs', sortie: 'what it brings back' },
+  analyse: { entree: 'input data', milieu: 'it runs', sortie: 'output data' },
+  action: { entree: 'what it reads before acting', milieu: 'the action', sortie: 'what changes' },
 }
 
 const INV = (facts as { inventaire?: Record<string, Volume> }).inventaire ?? {}
 
 /** Un jeu de données, avec son volume statté au build — « non lu » quand le fichier manque. */
-function Jeu({ j, sens }: { j: JeuT; sens: 'lit' | 'écrit' }) {
+function Jeu({ j, sens }: { j: JeuT; sens: 'reads' | 'writes' }) {
   const v = INV[j.cle]
   return (
     <div className="px-[16px] py-[8px]" style={{ borderTop: '1px solid var(--line)' }}>
@@ -335,12 +334,12 @@ function Jeu({ j, sens }: { j: JeuT; sens: 'lit' | 'écrit' }) {
             {taille(v.octets)}{v.n !== null && v.unite ? `, ${nb(v.n)} ${v.unite}` : ''}
           </span>
         ) : (
-          <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>non lu</span>
+          <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>not read</span>
         )}
         <code className="ml-auto" style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--ink-2)', wordBreak: 'break-all' }}>{v?.fichier ?? j.cle}</code>
       </div>
       <div className="t-data-sm mt-[4px]" style={{ color: 'var(--ink-2)', lineHeight: 1.5, maxWidth: '82ch' }}>{j.quoi}</div>
-      <div className="t-data-sm mt-[4px]" style={{ color: 'var(--ink-2)' }}>produit par <code style={{ fontFamily: 'var(--mono)' }}>{j.produit}</code></div>
+      <div className="t-data-sm mt-[4px]" style={{ color: 'var(--ink-2)' }}>produced by <code style={{ fontFamily: 'var(--mono)' }}>{j.produit}</code></div>
     </div>
   )
 }
@@ -382,11 +381,11 @@ function Ingere({ n }: { n: number }) {
           </span>
         </div>
       ))}
-      {jeux.map((j) => <Jeu key={j.cle} j={j} sens="lit" />)}
+      {jeux.map((j) => <Jeu key={j.cle} j={j} sens="reads" />)}
       {jeux.length === 0 && (
         <div className="px-[16px] py-[7px] t-data-sm" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-2)' }}>
-          aucun fichier du dépôt : tout ce qu'il lit est lu <strong style={{ color: 'var(--ink)' }}>sur la
-          chaîne</strong>, au moment où on le lui demande
+          no file from the repository: everything it reads is read <strong style={{ color: 'var(--ink)' }}>on
+          the chain</strong>, at the moment it is asked for it
         </div>
       )}
       {echantillon.length > 0 && (
@@ -398,13 +397,13 @@ function Ingere({ n }: { n: number }) {
           className="t-data px-[16px] py-[12px] cursor-pointer list-none"
           style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-2)' }}
         >
-          déplier cinq lignes du corpus — sur {nb(dataset.totals.rows)} au total
+          expand five rows of the corpus — out of {nb(dataset.totals.rows)} in total
         </summary>
-        <div tabIndex={0} role="region" aria-label="échantillon du corpus" style={{ overflowX: 'auto' }}>
+        <div tabIndex={0} role="region" aria-label="corpus sample" style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
-                {['hook', 'pool', 'taille', 'sens', 'frais LP', 'bps', 'étiquette'].map((h, i) => (
+                {['hook', 'pool', 'size', 'direction', 'LP fee', 'bps', 'label'].map((h, i) => (
                   <th key={h} scope="col" className="t-data-sm px-[10px] py-[5px]"
                     style={{ color: 'var(--ink-2)', textAlign: i >= 4 ? 'right' : 'left', whiteSpace: 'nowrap' }}>
                     {h}
@@ -429,8 +428,8 @@ function Ingere({ n }: { n: number }) {
             </tbody>
           </table>
           <div className="px-[16px] py-[6px] t-data-sm" style={{ color: 'var(--ink-2)' }}>
-            cinq lignes sur {nb(dataset.totals.rows)} — un échantillon, et le compte est dit pour
-            que la troncature se voie
+            five rows out of {nb(dataset.totals.rows)} — a sample, and the count is stated so the
+            truncation shows
           </div>
         </div>
         </details>
@@ -474,7 +473,7 @@ function Rend({ n }: { n: number }) {
           </span>
         </div>
       ))}
-      {ecrits.map((j) => <Jeu key={j.cle} j={j} sens="écrit" />)}
+      {ecrits.map((j) => <Jeu key={j.cle} j={j} sens="writes" />)}
     </>
   )
 }
@@ -519,7 +518,7 @@ function Onglets({ n, surOutil }: { n: number; surOutil?: (x: number) => void })
        clavier — et les fleches restent, comme raccourci. */
     <nav
       ref={bande}
-      aria-label="les quatorze outils"
+      aria-label="the fourteen tools"
       onKeyDown={auClavier}
       className="onglets flex"
     >
@@ -588,35 +587,35 @@ function FigureMesure() {
     if (sans === 0n) return null
     return { r, sur100: Number((avec * 1000000n) / sans) / 10000 }
   }, [])
-  if (!paire) return <NonLu quoi="une mesure du corpus avec ses deux sorties" />
+  if (!paire) return <NonLu quoi="a corpus measurement with both of its outputs" />
   const { r, sur100 } = paire
   return (
     <>
       <FigureAppariee
         taille="display"
-        axe={`sur 100 reçus sans le hook, ce que le même swap rend avec lui — la mesure médiane du corpus au-dessus d’un point de base, pool ${court(r.pool_id)}, taille ${r.amount_in}, bloc ${nb(r.block_number)}`}
+        axe={`out of 100 received without the hook, what the same swap returns with it — the corpus median above one basis point, pool ${court(r.pool_id)}, size ${r.amount_in}, block ${nb(r.block_number)}`}
         series={[
           {
-            libelle: 'coté avec le hook en place',
+            libelle: 'quoted with the hook in place',
             valeur: sur100,
-            texte: sur100.toLocaleString('fr', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            texte: sur100.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
             provenance: <span>out_with {r.out_with}</span>,
           },
           {
-            libelle: 'coté contre un talon inerte de 89 octets',
+            libelle: 'quoted against an 89-byte inert stub',
             valeur: 100,
-            texte: '100,00',
+            texte: '100.00',
             reference: true,
             provenance: <span>out_without {r.out_without}</span>,
           },
         ]}
         ecart={r.bps!.toFixed(2)}
-        unite="bps, ce que le hook a pris"
+        unite="bps, what the hook took"
         glose={
           <>
-            La PoolKey contient l’adresse du hook&nbsp;: le même pool sans son hook n’existe pas.
-            On ne change donc pas le pool, on remplace le bytecode du hook par un talon inerte,
-            et on cote deux fois. L’écart <em>est</em> le prélèvement.
+            The PoolKey contains the hook’s address: the same pool without its hook does not
+            exist. So we do not change the pool, we replace the hook’s bytecode with an inert
+            stub, and we quote twice. The gap <em>is</em> the take.
           </>
         }
       />
@@ -627,7 +626,7 @@ function FigureMesure() {
           `--currency0 ${r.currency0} --currency1 ${r.currency1}`,
           `--fee ${r.key_fee} --tick-spacing ${r.tick_spacing}`,
           `--zero-for-one ${r.zero_for_one} --amount-in ${r.amount_in}`,
-        ].join(' ')} note="la mesure ci-dessus, rejouable telle quelle" />
+        ].join(' ')} note="the measurement above, replayable as is" />
       </div>
     </>
   )
@@ -649,9 +648,9 @@ function EtatsEnvoi() {
   return (
     <div style={{ borderTop: '1px solid var(--line)' }}>
       <p className="m-0 px-[16px] pt-[12px] pb-[10px] t-data-sm" style={{ color: 'var(--ink-2)', maxWidth: '76ch' }}>
-        {N_ETATS} états d’envoi, et un seul autorise à signer&nbsp;: <strong style={{ color: 'var(--ink)' }}>PRÊT</strong>.
-        Les {N_ETATS - 1} autres restent visibles avec ce qu’il leur manque — un état caché ferait
-        croire à une étape ratée.
+        {N_ETATS} send states, and only one allows signing: <strong style={{ color: 'var(--ink)' }}>PRET</strong>.
+        The other {N_ETATS - 1} stay visible with what they are missing — a hidden state would
+        suggest a step went wrong.
       </p>
       <ul className="m-0 p-0" style={{ listStyle: 'none' }}>
         {etats.map(([e, suite]) => {
@@ -669,12 +668,12 @@ function EtatsEnvoi() {
                 {e}
               </span>
               <span className="t-data-sm" style={{ color: 'var(--ink-2)', flex: '1 1 260px', minWidth: 0 }}>
-                {suite ?? 'rien à cliquer — une lecture manque, et l’état la nomme'}
+                {suite ?? 'nothing to click — a read is missing, and the state names it'}
               </span>
               <button
                 type="button"
                 disabled
-                aria-label={pret ? `${e} — signer, sans envoyer` : `${e} — inactif`}
+                aria-label={pret ? `${e} — sign, without sending` : `${e} — inactive`}
                 className="t-data"
                 style={{
                   padding: '8px 12px',
@@ -685,18 +684,17 @@ function EtatsEnvoi() {
                   cursor: 'not-allowed',
                 }}
               >
-                {pret ? 'signer, sans envoyer' : 'inactif'}
+                {pret ? 'sign, without sending' : 'inactive'}
               </button>
             </li>
           )
         })}
       </ul>
       <p className="m-0 px-[16px] py-[12px] t-data-sm" style={{ color: 'var(--ink-2)', maxWidth: '76ch', borderTop: '1px solid var(--line)' }}>
-        Sur cette page les {N_ETATS} boutons sont inactifs, et la raison est la même pour tous&nbsp;:
-        aucune proposition n’a été construite ici. La commande réelle vit dans le panneau 16 de
-        l’instrument, où un portefeuille est branché — et là encore, la transaction est
-        construite et signée, <strong style={{ color: 'var(--ink)' }}>jamais envoyée</strong> par
-        nous.
+        On this page all {N_ETATS} buttons are inactive, and the reason is the same for every one
+        of them: no proposal was built here. The real control lives in panel 16 of the instrument,
+        where a wallet is connected — and there too the transaction is built and signed,{' '}
+        <strong style={{ color: 'var(--ink)' }}>never sent</strong> by us.
       </p>
     </div>
   )
@@ -708,7 +706,7 @@ export function OutilPanel({ n, surOutil }: { n: number; surOutil?: (n: number) 
   const o = outil(n)
   if (!o) return null
   const c = accent(o.n)
-  const etat = o.etat === 'pret' ? 'prêt' : o.etat === 'en_attente' ? 'en attente' : 'hors ligne'
+  const etat = o.etat === 'pret' ? 'ready' : o.etat === 'en_attente' ? 'pending' : 'offline'
   return (
     <>
       {/* LE NOM ET LA QUESTION — le titre de page, une fois, en tete de route. */}
@@ -740,7 +738,7 @@ export function OutilPanel({ n, surOutil }: { n: number; surOutil?: (n: number) 
         </p>
         {/* La glose de la famille : une phrase, pas une formule « MOT — fragment ». */}
         <p className="t-body m-0 pt-[8px]" style={{ fontSize: 14, color: 'var(--ink-2)', maxWidth: '68ch' }}>
-          C’est un outil de {FAMILLES[o.famille].nom}&nbsp;: {FAMILLES[o.famille].quoi}.
+          It is a {FAMILLES[o.famille].nom} tool: {FAMILLES[o.famille].quoi}.
         </p>
       </header>
 
@@ -764,29 +762,29 @@ export function OutilPanel({ n, surOutil }: { n: number; surOutil?: (n: number) 
       <Panel index={`outil-${o.n}-execution`} title={cap(TEMPS[o.famille].milieu)} meta={[o.cout]}>
         <Execute n={o.n} />
       </Panel>
-      <Panel index={`outil-${o.n}-champs`} title="Les champs qu’il rend">
+      <Panel index={`outil-${o.n}-champs`} title="The fields it returns">
         <Rend n={o.n} />
       </Panel>
 
-      <Panel index={`outil-${o.n}-reperes`} title="Où ça vit, dans le dépôt">
+      <Panel index={`outil-${o.n}-reperes`} title="Where it lives, in the repository">
         {o.routes.length > 0 && (
           <L k="routes" v={<span className="flex flex-wrap gap-[12px]">{o.routes.map((r) => (
             <code key={r} style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--ink-2)', wordBreak: 'break-all' }}>{r}</code>
           ))}</span>} />
         )}
-        <L k="le code" v={<span className="flex flex-wrap gap-[12px]">{o.code.map((d) => (
+        <L k="the code" v={<span className="flex flex-wrap gap-[12px]">{o.code.map((d) => (
           <code key={d} style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--ink-2)', wordBreak: 'break-all' }}>{d}</code>
         ))}</span>} />
-        <L k="accès" v={<span className="flex flex-wrap gap-[12px]">{o.acces.map((a) => <span key={a}>{a}</span>)}</span>} />
+        <L k="access" v={<span className="flex flex-wrap gap-[12px]">{o.acces.map((a) => <span key={a}>{a}</span>)}</span>} />
         {o.panneaux.length > 0 && (
-          <L k="déjà affiché en" v={`panneau ${o.panneaux.join(', ')}`} />
+          <L k="already shown in" v={`panel ${o.panneaux.join(', ')}`} />
         )}
       </Panel>
 
       {o.pourquoi && (
         <div className="px-[16px] py-[18px]" style={{ borderTop: '1px solid var(--line)' }}>
           <div className="t-title" style={{ fontSize: '1.0625rem', color: 'var(--ink)' }}>
-            Pourquoi il n’est pas prêt
+            Why it is not ready
           </div>
           <div className="t-body t-body-muted mt-[8px]" style={{ fontSize: 14, maxWidth: '72ch' }}
             dangerouslySetInnerHTML={{ __html: o.pourquoi.replace(/\*\*(.+?)\*\*/g, '<strong style="color:var(--ink)">$1</strong>') }} />

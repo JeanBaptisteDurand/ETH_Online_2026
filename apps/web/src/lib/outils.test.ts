@@ -128,7 +128,7 @@ test('un outil qui n\'est pas pret dit pourquoi, et un outil pret ne s\'excuse p
 test('les outils d\'action nomment ce qui change, pas seulement ce qu\'ils rendent', () => {
   // La famille `action` est la seule qui touche a l'argent de quelqu'un. Sa derniere etape doit
   // dire ce qui se passe vraiment : une signature demandee, une transaction rendue, un refus.
-  const verbes = /sign|transaction|refus|session|ecri|écri|rend|ouvre|ancre|activ/i
+  const verbes = /sign|transaction|refus|session|ecri|écri|rend|ouvre|ancre|activ|writ|open|return|anchor/i
   for (const o of OUTILS.filter((x) => x.famille === 'action')) {
     const derniere = o.execute[o.execute.length - 1] ?? ''
     assert.match(derniere, verbes, `outil ${o.n} (${o.nom}) : la derniere etape ne nomme pas ce qui change`)

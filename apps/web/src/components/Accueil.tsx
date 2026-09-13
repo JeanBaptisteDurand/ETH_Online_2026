@@ -39,59 +39,58 @@ export function Pourquoi() {
 
   const points: { titre: string; texte: React.ReactNode }[] = [
     {
-      titre: 'Le registre ne peut pas dire combien',
+      titre: 'The registry cannot say how much',
       texte: (
         <>
-          La liste officielle des hooks décrit {p.entries.toLocaleString('fr')} fiches avec{' '}
-          {p.field_census.leaf_fields} champs, dont {p.field_census.boolean_fields} booléens.{' '}
+          The official list of hooks describes {p.entries.toLocaleString('fr')} entries with{' '}
+          {p.field_census.leaf_fields} fields, {p.field_census.boolean_fields} of them booleans.{' '}
           <strong style={{ color: 'var(--ink)', fontWeight: 500 }}>
             {p.field_census.quantitative_fields.length === 0
-              ? 'Aucun n’est une quantité'
-              : `${p.field_census.quantitative_fields.length} sont des quantités`}
+              ? 'None is a quantity'
+              : `${p.field_census.quantitative_fields.length} are quantities`}
           </strong>{' '}
-          : le seul champ numérique est <code className="t-data-sm">chainId</code>, qui nomme un
-          réseau. Un booléen dit qu’un hook change ton swap, jamais de combien.
+          : the only numeric field is <code className="t-data-sm">chainId</code>, which names a
+          network. A boolean says a hook changes your swap, never by how much.
         </>
       ),
     },
     {
-      titre: 'Et presque personne ne le déclare',
+      titre: 'And almost nobody declares it',
       texte: (
         <>
-          Uniswap propose aux hooks d’annoncer ce qu’ils prélèvent, par deux événements que son
-          propre guide recommande. Sur les hooks vus en deux cent mille blocs Base,{' '}
-          <strong style={{ color: 'var(--ink)', fontWeight: 500 }}>neuf</strong> en émettent un.
-          Et un montant émis sur un swap passé n’est pas le taux que tu paierais à ta taille.
+          Uniswap offers hooks a way to announce what they take, through two events its own guide
+          recommends. Of the hooks seen across two hundred thousand Base blocks,{' '}
+          <strong style={{ color: 'var(--ink)', fontWeight: 500 }}>nine</strong> emit one. And an
+          amount emitted on a past swap is not the rate you would pay at your size.
         </>
       ),
     },
     {
-      titre: 'Comparer était impossible par construction',
+      titre: 'Comparing was impossible by construction',
       texte: (
         <>
-          L’identité d’un pool v4 — sa <code className="t-data-sm">PoolKey</code> — contient
-          l’adresse du hook. « Le même pool sans son hook » n’existe donc pas, et il n’y a rien à
-          quoi comparer.{' '}
+          A v4 pool’s identity — its <code className="t-data-sm">PoolKey</code> — contains the
+          hook’s address. “The same pool without its hook” therefore does not exist, and there is
+          nothing to compare against.{' '}
           {reg?.epingle?.adresses ? (
             <>
-              Sur les {T.hooks} hooks mesurés ici, {T.hooksAbsentFromRegistry} sont absents du
-              registre épinglé.
+              Of the {T.hooks} hooks measured here, {T.hooksAbsentFromRegistry} are absent from the
+              pinned registry.
             </>
           ) : null}
         </>
       ),
     },
     {
-      titre: 'Alors on ne change pas le pool, on change le hook',
+      titre: 'So we do not change the pool, we change the hook',
       texte: (
         <>
-          Sur un fork épinglé à un bloc, on remplace le bytecode du hook par un talon inerte de
-          89 octets. Le poolId, la liquidité et les réserves restent identiques à l’octet près :
-          la seule chose qui a changé est le code qui s’exécute pendant le swap. On cote le même
-          swap deux fois, et{' '}
-          <strong style={{ color: 'var(--ink)', fontWeight: 500 }}>l’écart est le prélèvement</strong>.
+          On a fork pinned to a block, we replace the hook’s bytecode with an 89-byte inert stub.
+          The poolId, the liquidity and the reserves stay identical to the byte: the only thing
+          that changed is the code that runs during the swap. We quote the same swap twice, and{' '}
+          <strong style={{ color: 'var(--ink)', fontWeight: 500 }}>the gap is the take</strong>.
           {' '}
-          {T.rows.toLocaleString('fr')} mesures plus tard, chaque ligne se rejoue en une commande.
+          {T.rows.toLocaleString('fr')} measurements later, every row replays in one command.
         </>
       ),
     },
@@ -101,11 +100,11 @@ export function Pourquoi() {
     <section aria-labelledby="pourquoi-t" className="flex flex-col" style={{ gap: 28 }}>
       <header className="flex flex-col" style={{ gap: 10, maxWidth: '46ch' }}>
         <h2 id="pourquoi-t" className="t-headline m-0">
-          Pourquoi TARE existe
+          Why TARE exists
         </h2>
         <p className="t-body t-body-muted m-0">
-          Parce que personne ne publie combien un hook prend, et que la question n’était pas
-          seulement sans réponse&nbsp;: elle était sans méthode.
+          Because nobody publishes how much a hook takes, and the question was not merely
+          unanswered: it was without a method.
         </p>
       </header>
 
@@ -148,16 +147,16 @@ export function AccesPanel({ surOutil }: { surOutil?: (n: number) => void }) {
       <header className="flex flex-wrap items-baseline justify-between gap-x-[32px] gap-y-[8px]">
         <div className="flex flex-col" style={{ gap: 10, maxWidth: '46ch' }}>
           <h2 id="acces-t" className="t-headline m-0">
-            Par où on atteint ce produit
+            How you reach this product
           </h2>
           <p className="t-body t-body-muted m-0">
-            Le même corpus, cinq façons de l’atteindre. Elles ne se remplacent pas&nbsp;: chacune
-            existe parce qu’il y a un moment où les autres ne marchent pas.
+            The same corpus, five ways to reach it. They do not replace one another: each exists
+            because there is a moment when the others do not work.
           </p>
         </div>
         <span className="flex flex-wrap items-baseline t-data-sm" style={{ gap: 14, color: 'var(--ink-2)' }}>
-          <span>{ACCES.length} accès</span>
-          <span className="meta-filet">{OUTILS.length} outils</span>
+          <span>{ACCES.length} ways in</span>
+          <span className="meta-filet">{OUTILS.length} tools</span>
         </span>
       </header>
 
@@ -169,7 +168,7 @@ export function AccesPanel({ surOutil }: { surOutil?: (n: number) => void }) {
                 {a.nom}
               </span>
               <span className="t-body t-body-muted" style={{ fontSize: 14 }}>
-                pour {a.pour}
+                for {a.pour}
               </span>
             </div>
             <div className="flex flex-col" style={{ gap: 12, minWidth: 0 }}>
@@ -182,7 +181,7 @@ export function AccesPanel({ surOutil }: { surOutil?: (n: number) => void }) {
               />
               <div className="flex flex-wrap items-baseline" style={{ gap: 10 }}>
                 <span className="t-data-sm" style={{ color: 'var(--ink-2)', minWidth: 52 }}>
-                  il faut
+                  requires
                 </span>
                 <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
                   {a.prerequis}
@@ -190,7 +189,7 @@ export function AccesPanel({ surOutil }: { surOutil?: (n: number) => void }) {
               </div>
               <div className="flex flex-wrap items-center" style={{ gap: 6 }}>
                 <span className="t-data-sm" style={{ color: 'var(--ink-2)', minWidth: 52 }}>
-                  ouvre
+                  opens
                 </span>
                 {a.outils.map((n) => (
                   <PuceOutil key={n} n={n} surOutil={surOutil} />
@@ -249,14 +248,14 @@ function Matrice({ surOutil }: { surOutil?: (n: number) => void }) {
       <div className="flex flex-wrap items-center gap-x-[20px] gap-y-[8px] pb-[14px]" aria-hidden="true">
         <span className="t-body flex items-center gap-[8px]" style={{ fontSize: 13.5, color: 'var(--ink-2)' }}>
           <span style={{ width: 11, height: 11, background: 'var(--ink)', display: 'inline-block' }} />
-          {lectures} lectures
+          {lectures} reads
         </span>
         <span className="t-body flex items-center gap-[8px]" style={{ fontSize: 13.5, color: 'var(--ink-2)' }}>
           <span style={{ width: 11, height: 11, border: '1px solid var(--ink)', display: 'inline-block' }} />
-          {ecritures} écritures
+          {ecritures} writes
         </span>
         <span className="t-body" style={{ fontSize: 13.5, color: 'var(--ink-2)' }}>
-          la couleur d’une case est celle de la famille de son outil
+          a cell’s colour is that of its tool’s family
         </span>
       </div>
 
@@ -264,7 +263,7 @@ function Matrice({ surOutil }: { surOutil?: (n: number) => void }) {
         className="matrice-cadre"
         tabIndex={0}
         role="region"
-        aria-label={`matrice de ${DONNEES.length} jeux de données par ${OUTILS.length} outils, défilement horizontal`}
+        aria-label={`matrix of ${DONNEES.length} datasets by ${OUTILS.length} tools, horizontal scrolling`}
         style={{ overflowX: 'auto' }}
       >
         <div className="matrice" style={{ background: 'var(--line)' }}>
@@ -325,7 +324,7 @@ function Matrice({ surOutil }: { surOutil?: (n: number) => void }) {
                     style={{ background: allume ? 'var(--surface-1)' : 'var(--bg)' }}
                     title={
                       lu || ecrit
-                        ? `${j.nom} — ${ecrit ? 'écrit' : 'lu'} par ${o.n}. ${o.nom}`
+                        ? `${j.nom} — ${ecrit ? 'written' : 'read'} by ${o.n}. ${o.nom}`
                         : undefined
                     }
                   >
@@ -378,17 +377,17 @@ export function DonneesPanel({ surOutil }: { surOutil?: (n: number) => void }) {
       <header className="flex flex-wrap items-baseline justify-between gap-x-[32px] gap-y-[8px]">
         <div className="flex flex-col" style={{ gap: 10, maxWidth: '52ch' }}>
           <h2 id="donnees-t" className="t-headline m-0">
-            Quelle donnée sert quel outil
+            Which data serves which tool
           </h2>
           <p className="t-body t-body-muted m-0">
-            {DONNEES.length} jeux de données, {OUTILS.length} outils,{' '}
-            {DONNEES.length * OUTILS.length} cases&nbsp;: pleine quand l’outil lit le jeu, en
-            contour quand il l’écrit. Un test refuse qu’un fichier suivi par git manque à cette
-            matrice.
+            {DONNEES.length} datasets, {OUTILS.length} tools,{' '}
+            {DONNEES.length * OUTILS.length} cells: filled when the tool reads the dataset,
+            outlined when it writes it. A test refuses to let a git-tracked file go missing from
+            this matrix.
           </p>
         </div>
         <span className="flex flex-wrap items-baseline t-data-sm" style={{ gap: 14, color: 'var(--ink-2)' }}>
-          <span>{DONNEES.length} jeux</span>
+          <span>{DONNEES.length} datasets</span>
           <span className="meta-filet">{taille(total)}</span>
         </span>
       </header>
@@ -400,24 +399,24 @@ export function DonneesPanel({ surOutil }: { surOutil?: (n: number) => void }) {
           className="t-body cursor-pointer list-none depliant"
           style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-2)' }}
         >
-          {detail ? 'replier' : 'déplier'} le détail de chaque jeu&nbsp;: ce qu’il contient, son
-          volume, la commande qui l’a produit
+          {detail ? 'collapse' : 'expand'} the detail of each dataset: what it contains, its
+          size, the command that produced it
         </summary>
 
         <div
           tabIndex={0}
           role="region"
-          aria-label="tableau des jeux de données, défilement horizontal"
+          aria-label="table of datasets, horizontal scrolling"
           style={{ overflowX: 'auto' }}
         >
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 720 }}>
             <caption className="sr-only">
-              les {DONNEES.length} jeux de données du dépôt, leur volume, les outils qui les
-              lisent ou les écrivent, et la commande qui les a produits
+              the {DONNEES.length} datasets of the repository, their size, the tools that read or
+              write them, and the command that produced them
             </caption>
             <thead>
               <tr style={{ borderTop: '1px solid var(--line)' }}>
-                {['jeu de données', 'volume', 'lu par', 'écrit par', 'fichier'].map((h) => (
+                {['dataset', 'size', 'read by', 'written by', 'file'].map((h) => (
                   <th
                     key={h}
                     scope="col"
@@ -443,7 +442,7 @@ export function DonneesPanel({ surOutil }: { surOutil?: (n: number) => void }) {
                       </div>
                     </td>
                     <td className="t-data-sm px-[10px] py-[9px]" style={{ color: 'var(--ink-2)', whiteSpace: 'nowrap', verticalAlign: 'top' }}>
-                      {v ? taille(v.octets) : 'non lu'}
+                      {v ? taille(v.octets) : 'not read'}
                       {v && v.n !== null && v.unite ? (
                         <div style={{ color: 'var(--ink-2)' }}>
                           {v.n.toLocaleString('fr')} {v.unite}

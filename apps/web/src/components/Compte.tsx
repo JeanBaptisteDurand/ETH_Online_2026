@@ -115,7 +115,7 @@ function Dire({ r }: { r: Refus }) {
   if (!panne)
     return (
       <Absence
-        quoi="l’API du compte"
+        quoi="the account API"
         raison={r.message}
         cmd="cd apps/api && npm start"
       />
@@ -135,10 +135,10 @@ function Dire({ r }: { r: Refus }) {
 /* ---------------------------------------------------------------- l'historique */
 
 const NATURES: Record<string, string> = {
-  analyse: 'analyse',
+  analyse: 'analysis',
   verdict: 'verdict',
   substitution: 'substitution',
-  mesure: 'mesure',
+  mesure: 'measurement',
 }
 
 function LigneJournal({ e }: { e: Evenement }) {
@@ -157,11 +157,11 @@ function LigneJournal({ e }: { e: Evenement }) {
         {NATURES[e.quoi] ?? e.quoi}
       </td>
       <td className="t-data-xs px-[10px] py-[6px]" style={{ color: 'var(--ink-2)', wordBreak: 'break-all' }}>
-        {e.sujet ?? <NonLu quoi="sujet" />}
+        {e.sujet ?? <NonLu quoi="subject" />}
       </td>
       <td className="t-data-xs px-[10px] py-[6px] text-right" style={{ color: 'var(--ink)', whiteSpace: 'nowrap' }}>
         {/* Un bps absent n'est pas un zero : c'est une ligne qui n'en portait pas. */}
-        {bps === null ? <NonLu quoi="prelevement" /> : `${bps.toFixed(2)} bps`}
+        {bps === null ? <NonLu quoi="take" /> : `${bps.toFixed(2)} bps`}
         {verdict && <span className="t-label ml-[8px]" style={{ color: 'var(--ink-2)' }}>{verdict}</span>}
       </td>
     </tr>
@@ -187,7 +187,7 @@ function LigneJournal({ e }: { e: Evenement }) {
  */
 function CeQueLeCompteOuvre({ depot }: { depot: string }) {
   const conf = JSON.stringify(
-    { mcpServers: { tare: { command: 'node', args: ['<chemin-du-depot>/apps/mcp/dist/src/index.js'] } } },
+    { mcpServers: { tare: { command: 'node', args: ['<repo-path>/apps/mcp/dist/src/index.js'] } } },
     null,
     2,
   )
@@ -197,61 +197,60 @@ function CeQueLeCompteOuvre({ depot }: { depot: string }) {
         className="px-[16px] py-[10px]"
         style={{ borderTop: '1px solid var(--line-strong)', background: 'var(--surface-1)' }}
       >
-        <span className="t-label" style={{ color: 'var(--ink-2)' }}>ce que le compte ouvre</span>
+        <span className="t-label" style={{ color: 'var(--ink-2)' }}>what the account opens</span>
       </div>
 
       <L
-        k="cle « extension »"
+        k="the “extension” key"
         v={
           <>
-            pour que l'extension depose ses verdicts dans ton historique.{' '}
-            <strong style={{ color: 'var(--ink)' }}>Facultative</strong> : sans elle l'extension
-            marche, hors ligne, sans une requete — la table des mesures vit dans son service worker.
+            so the extension can drop its verdicts into your history.{' '}
+            <strong style={{ color: 'var(--ink)' }}>Optional</strong>: without it the extension
+            works, offline, without a single request — the measurement table lives in its service worker.
           </>
         }
       />
       <L
-        k="cle « mcp »"
+        k="the “mcp” key"
         v={
           <>
-            pour que le serveur MCP depose ses appels dans ton historique.{' '}
-            <strong style={{ color: 'var(--ink)' }}>Facultative</strong> aussi : sans elle il repond
-            depuis les mesures commitees et n'envoie rien a personne.
+            so the MCP server can drop its calls into your history.{' '}
+            <strong style={{ color: 'var(--ink)' }}>Optional</strong> too: without it, it answers
+            from the committed measurements and sends nothing to anyone.
           </>
         }
       />
       <L
-        k="ce qu'une cle NE peut pas"
+        k="what a key CANNOT do"
         v={
           <>
-            en creer une autre. Une cle s'authentifie par{' '}
-            <code style={{ fontFamily: 'var(--mono)' }}>x-tare-cle</code> et n'ouvre que l'ecriture
-            au journal ; la gestion des cles demande une session de portefeuille. Les deux
-            authentifications ne se melangent jamais.
+            create another one. A key authenticates through{' '}
+            <code style={{ fontFamily: 'var(--mono)' }}>x-tare-cle</code> and only opens writing to
+            the log; key management needs a wallet session. The two authentications never mix.
           </>
         }
       />
       <L
-        k="la cle n'est rendue qu'une fois"
-        v="la base n'en detient que le sha256. Une cle relisible n'est plus un secret."
+        k="a key is returned only once"
+        v="the database holds only its sha256. A key you can read again is no longer a secret."
       />
 
       <div className="px-[16px] py-[11px]" style={{ borderTop: '1px solid var(--line)' }}>
-        <div className="t-label" style={{ color: 'var(--ink-2)' }}>installer l'extension</div>
+        <div className="t-label" style={{ color: 'var(--ink-2)' }}>install the extension</div>
         <div className="t-data-xs mt-[5px]" style={{ color: 'var(--ink-2)', lineHeight: 1.6, maxWidth: '78ch' }}>
-          Telecharge <code style={{ fontFamily: 'var(--mono)' }}>extension.zip</code> (abonnement
-          actif requis), decompresse, puis <code style={{ fontFamily: 'var(--mono)' }}>chrome://extensions</code>{' '}
-          → mode developpeur → <strong style={{ color: 'var(--ink)' }}>Load unpacked</strong> → le
-          dossier. La cle d'API se regle dans sa page d'options, et elle est facultative.
+          Download <code style={{ fontFamily: 'var(--mono)' }}>extension.zip</code> (active
+          subscription required), unzip it, then <code style={{ fontFamily: 'var(--mono)' }}>chrome://extensions</code>{' '}
+          → developer mode → <strong style={{ color: 'var(--ink)' }}>Load unpacked</strong> → the
+          folder. The API key is set in its options page, and it is optional.
         </div>
       </div>
 
       <div className="px-[16px] py-[11px]" style={{ borderTop: '1px solid var(--line)' }}>
-        <div className="t-label" style={{ color: 'var(--ink-2)' }}>brancher le serveur MCP</div>
+        <div className="t-label" style={{ color: 'var(--ink-2)' }}>connect the MCP server</div>
         <div className="t-data-xs mt-[5px] mb-[7px]" style={{ color: 'var(--ink-2)', lineHeight: 1.6, maxWidth: '78ch' }}>
-          Dans Claude Desktop, ajoute ceci a{' '}
-          <code style={{ fontFamily: 'var(--mono)' }}>claude_desktop_config.json</code> et redemarre.
-          Ses quatre outils : <code style={{ fontFamily: 'var(--mono)' }}>tare_measure</code>,{' '}
+          In Claude Desktop, add this to{' '}
+          <code style={{ fontFamily: 'var(--mono)' }}>claude_desktop_config.json</code> and restart.
+          Its four tools: <code style={{ fontFamily: 'var(--mono)' }}>tare_measure</code>,{' '}
           <code style={{ fontFamily: 'var(--mono)' }}>tare_lookup</code>,{' '}
           <code style={{ fontFamily: 'var(--mono)' }}>tare_impact</code>,{' '}
           <code style={{ fontFamily: 'var(--mono)' }}>tare_twins</code>.
@@ -270,18 +269,18 @@ function CeQueLeCompteOuvre({ depot }: { depot: string }) {
           {conf}
         </pre>
         <div className="mt-[7px] flex flex-wrap items-center gap-[10px]">
-          <Copy text={conf} label="copier la configuration" />
+          <Copy text={conf} label="copy the configuration" />
           <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-            Claude Code, en une ligne :{' '}
+            Claude Code, in one line:{' '}
             <code style={{ fontFamily: 'var(--mono)' }}>
-              claude mcp add tare -- node &lt;chemin&gt;/apps/mcp/dist/src/index.js
+              claude mcp add tare -- node &lt;path&gt;/apps/mcp/dist/src/index.js
             </code>
           </span>
         </div>
         <div className="t-data-xs mt-[7px]" style={{ color: 'var(--ink-2)', lineHeight: 1.6, maxWidth: '78ch' }}>
-          Les deux paquets s'installent aussi depuis le depot, sans compte ni abonnement :{' '}
-          <a href={depot} style={{ color: 'var(--ink)' }}>{depot.replace('https://', '')}</a>. Le
-          compte ne fabrique aucune mesure — il ouvre des surfaces.
+          Both packages also install from the repository, with no account and no subscription:{' '}
+          <a href={depot} style={{ color: 'var(--ink)' }}>{depot.replace('https://', '')}</a>. The
+          account makes no measurement — it opens surfaces.
         </div>
       </div>
     </>
@@ -322,7 +321,7 @@ export function ComptePanel() {
 
   const rafraichir = useCallback(
     async (jeton: string) => {
-      setOccupe('lecture du compte')
+      setOccupe('reading the account')
       try {
         const c = await lireCompte(jeton)
         setCompte(c)
@@ -354,7 +353,7 @@ export function ComptePanel() {
    */
   const seConnecterRk = async () => {
     if (!rk.adresse) return
-    setOccupe('signature dans le portefeuille')
+    setOccupe('signing in the wallet')
     try {
       const s = await connecterAvecSigneur(rk.adresse, rk.signer)
       garderSession(s)
@@ -370,7 +369,7 @@ export function ComptePanel() {
 
   const seConnecter = async () => {
     if (!choisi) return
-    setOccupe('signature dans le portefeuille')
+    setOccupe('signing in the wallet')
     try {
       const s = await connecter(choisi.provider)
       garderSession(s)
@@ -397,7 +396,7 @@ export function ComptePanel() {
 
   const demanderPrix = async () => {
     if (!choisi) return
-    setOccupe('lecture du prix sur la chaine')
+    setOccupe('reading the price on-chain')
     try {
       setPrix(await lirePrixAbonnement(choisi.provider))
     } finally {
@@ -407,7 +406,7 @@ export function ComptePanel() {
 
   const payer = async () => {
     if (!choisi || !session || !prix || 'raison' in prix) return
-    setOccupe('paiement dans le portefeuille')
+    setOccupe('paying in the wallet')
     try {
       const hash = await payerAbonnement(choisi.provider, {
         depuis: session.adresse,
@@ -418,9 +417,9 @@ export function ComptePanel() {
       setRefus(
         new Refus(
           'indisponible',
-          `transaction envoyee (${hash.slice(0, 18)}…). Elle n'est pas encore incluse : ` +
-            "clique « relire l'abonnement » quand elle l'est. Le site ne dira « abonne » que " +
-            'quand le contrat le dira.',
+          `transaction sent (${hash.slice(0, 18)}…). It is not yet included: ` +
+            'click “re-read the subscription” when it is. The site will say “subscribed” only ' +
+            'when the contract says so.',
         ),
       )
     } catch (e) {
@@ -432,7 +431,7 @@ export function ComptePanel() {
 
   const relire = async () => {
     if (!session) return
-    setOccupe("relecture de l'abonnement sur la chaine")
+    setOccupe("re-reading the subscription on-chain")
     try {
       await relireAbonnement(session.jeton)
       await rafraichir(session.jeton)
@@ -449,9 +448,9 @@ export function ComptePanel() {
 
   const nouvelleCle = async (portee: Portee) => {
     if (!session) return
-    setOccupe(`creation d'une cle ${portee}`)
+    setOccupe(`creating a ${portee} key`)
     try {
-      const r = await creerCle(session.jeton, portee, portee === 'extension' ? 'navigateur' : 'agent')
+      const r = await creerCle(session.jeton, portee, portee === 'extension' ? 'browser' : 'agent')
       setCleNeuve({ cle: r.cle, portee })
       await rafraichir(session.jeton)
     } catch (e) {
@@ -463,7 +462,7 @@ export function ComptePanel() {
 
   const revoquer = async (id: string) => {
     if (!session) return
-    setOccupe('revocation')
+    setOccupe('revoking')
     try {
       await revoquerCle(session.jeton, id)
       await rafraichir(session.jeton)
@@ -479,14 +478,14 @@ export function ComptePanel() {
   return (
     <Panel
       index="15"
-      title="Le compte"
+      title="The account"
       right={
         <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
           {absente
-            ? 'aucune API publiee'
+            ? 'no API published'
             : session
               ? `${session.adresse.slice(0, 6)}…${session.adresse.slice(-4)}`
-              : 'un portefeuille, une signature, aucun mot de passe'}
+              : 'a wallet, a signature, no password'}
         </span>
       }
     >
@@ -494,11 +493,11 @@ export function ComptePanel() {
         className="m-0 px-[16px] py-[12px]"
         style={{ fontFamily: 'var(--prose)', fontSize: 15, lineHeight: 1.6, maxWidth: '78ch', color: 'var(--ink-2)' }}
       >
-        C'est la <strong style={{ color: 'var(--ink)' }}>seule</strong> partie de cet instrument qui
-        demande un serveur et un portefeuille. Tout le reste — le verdict, la table, la courbe, les
-        diodes — vient du paquet, sans une requete. Ici on signe un message, on lit son abonnement{' '}
-        <strong style={{ color: 'var(--ink)' }}>sur la chaine</strong>, on genere une cle d'API pour
-        l'extension ou le MCP, et on retrouve l'historique de ce qu'ils ont fait.
+        This is the <strong style={{ color: 'var(--ink)' }}>only</strong> part of this instrument
+        that needs a server and a wallet. Everything else — the verdict, the table, the curve, the
+        LEDs — comes from the bundle, without a single request. Here you sign a message, read your
+        subscription <strong style={{ color: 'var(--ink)' }}>on-chain</strong>, generate an API key
+        for the extension or the MCP, and find the history of what they have done.
       </p>
 
       <CeQueLeCompteOuvre depot="https://github.com/JeanBaptisteDurand/ETH_Online_2026" />
@@ -508,8 +507,8 @@ export function ComptePanel() {
           r={
             new Refus(
               'api_absente',
-              "aucune API n'est publiee pour cette version du site : le compte demande un serveur, " +
-                "et il n'y en a pas a joindre depuis ici. Ce n'est pas une panne.",
+              'no API is published for this build of the site: the account needs a server, ' +
+                'and there is none to reach from here. This is not a failure.',
             )
           }
         />
@@ -526,36 +525,36 @@ export function ComptePanel() {
             <ConnectButton chainStatus="none" showBalance={false} accountStatus="address" />
             {rk.connecte && (
               <Bouton onClick={seConnecterRk} actif={!occupe} fort>
-                signer pour entrer
+                sign to enter
               </Bouton>
             )}
             <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
               {occupe ??
                 (rk.connecte
-                  ? 'le texte signe est celui que le serveur rend — le client ne le reconstruit pas'
-                  : 'connecte un portefeuille, puis signe une fois pour ouvrir la session')}
+                  ? 'the signed text is the one the server returns — the client does not rebuild it'
+                  : 'connect a wallet, then sign once to open the session')}
             </span>
           </div>
           {!QR_DISPONIBLE && (
             <div className="px-[16px] py-[8px] t-data-xs" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-2)' }}>
-              le QR WalletConnect demande un <code style={{ fontFamily: 'var(--mono)' }}>projectId</code> public,
-              pose au build par <code style={{ fontFamily: 'var(--mono)' }}>VITE_WALLETCONNECT_ID</code>. Il n'est
-              pas pose sur cette version : les portefeuilles installes dans ce navigateur marchent, le
-              telephone non — et c'est dit plutot qu'un bouton qui echoue en silence.
+              the WalletConnect QR needs a public <code style={{ fontFamily: 'var(--mono)' }}>projectId</code>,
+              set at build time by <code style={{ fontFamily: 'var(--mono)' }}>VITE_WALLETCONNECT_ID</code>. It is
+              not set on this build: wallets installed in this browser work, a phone does not — and that
+              is said rather than a button that fails in silence.
             </div>
           )}
 
           {portefeuilles.length === 0 ? (
             <div className="px-[16px] py-[11px] t-data-xs" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-2)' }}>
-              aucun portefeuille annonce en EIP-6963. Installe MetaMask ou Rainbow, puis recharge —
-              la detection passe par EIP-6963, parce qu'avec deux portefeuilles installes{' '}
-              <code style={{ fontFamily: 'var(--mono)' }}>window.ethereum</code> n'en montre qu'un et
-              cache l'autre.
+              no wallet announced over EIP-6963. Install MetaMask or Rainbow, then reload —
+              detection goes through EIP-6963, because with two wallets installed{' '}
+              <code style={{ fontFamily: 'var(--mono)' }}>window.ethereum</code> shows one and hides
+              the other.
             </div>
           ) : (
             <>
               <L
-                k="portefeuille"
+                k="wallet"
                 v={
                   <span className="flex flex-wrap items-center gap-[8px]">
                     {portefeuilles.map((p) => (
@@ -580,10 +579,10 @@ export function ComptePanel() {
               />
               <div className="px-[16px] py-[11px] flex items-center gap-[10px]" style={{ borderTop: '1px solid var(--line)' }}>
                 <Bouton onClick={seConnecter} actif={Boolean(choisi) && !occupe} fort>
-                  signer pour entrer
+                  sign to enter
                 </Bouton>
                 <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                  {occupe ?? 'le texte signe est celui que le serveur rend — le client ne le reconstruit pas'}
+                  {occupe ?? 'the signed text is the one the server returns — the client does not rebuild it'}
                 </span>
               </div>
             </>
@@ -595,49 +594,49 @@ export function ComptePanel() {
 
       {compte && (
         <>
-          <L k="adresse" v={compte.compte.adresse} />
-          <L k="vu le" v={compte.compte.vu_le.slice(0, 19).replace('T', ' ')} />
+          <L k="address" v={compte.compte.adresse} />
+          <L k="seen on" v={compte.compte.vu_le.slice(0, 19).replace('T', ' ')} />
 
           {/* ------------------------------------------------------- l'abonnement */}
           <div className="px-[16px] pt-[13px] pb-[6px] t-label" style={{ borderTop: '1px solid var(--line-strong)', color: 'var(--ink-2)' }}>
-            l'abonnement, lu sur la chaine
+            the subscription, read on-chain
           </div>
           <L
-            k="etat"
+            k="state"
             v={
               <span style={{ color: ab?.actif ? 'var(--ink)' : 'var(--m-3)' }}>
-                {ab?.actif ? 'actif' : 'inactif'}
+                {ab?.actif ? 'active' : 'inactive'}
                 {ab?.raison && <span style={{ color: 'var(--ink-2)' }}> — {ab.raison}</span>}
               </span>
             }
           />
-          {ab?.actif_jusqu_au && <L k="jusqu'au" v={ab.actif_jusqu_au.slice(0, 19).replace('T', ' ')} />}
+          {ab?.actif_jusqu_au && <L k="until" v={ab.actif_jusqu_au.slice(0, 19).replace('T', ' ')} />}
           <L
-            k="contrat"
+            k="contract"
             v={
               ab?.contrat ?? CONTRAT_ABONNEMENT ?? (
                 <NonLu quoi="TARE_ABONNEMENT_CONTRAT / VITE_ABONNEMENT_CONTRAT" />
               )
             }
-            titre={`chaine ${ab?.chain_id ?? CHAINE_ABONNEMENT}`}
+            titre={`chain ${ab?.chain_id ?? CHAINE_ABONNEMENT}`}
           />
           <div className="px-[16px] py-[11px] flex flex-wrap items-center gap-[10px]" style={{ borderTop: '1px solid var(--line)' }}>
             <Bouton onClick={relire} actif={!occupe}>
-              relire l'abonnement
+              re-read the subscription
             </Bouton>
             {!ab?.actif && CONTRAT_ABONNEMENT && (
               <>
                 <Bouton onClick={demanderPrix} actif={!occupe && Boolean(choisi)}>
-                  lire le prix
+                  read the price
                 </Bouton>
                 {prix && 'prixWei' in prix && (
                   <>
                     <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                      {(Number(prix.prixWei) / 1e18).toFixed(4)} ETH pour{' '}
-                      {(Number(prix.dureeS) / 86400).toFixed(0)} jours
+                      {(Number(prix.prixWei) / 1e18).toFixed(4)} ETH for{' '}
+                      {(Number(prix.dureeS) / 86400).toFixed(0)} days
                     </span>
                     <Bouton onClick={payer} actif={!occupe} fort>
-                      payer
+                      pay
                     </Bouton>
                   </>
                 )}
@@ -647,18 +646,18 @@ export function ComptePanel() {
               </>
             )}
             <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-              {occupe ?? "le site ne dit « abonne » que quand le contrat le dit"}
+              {occupe ?? 'the site says “subscribed” only when the contract says so'}
             </span>
           </div>
 
           {/* ------------------------------------------------------------ les cles */}
           <div className="px-[16px] pt-[13px] pb-[6px] t-label" style={{ borderTop: '1px solid var(--line-strong)', color: 'var(--ink-2)' }}>
-            les cles d'API — une par surface
+            the API keys — one per surface
           </div>
           {compte.cles.length === 0 ? (
             <div className="px-[16px] py-[9px] t-data-xs" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-2)' }}>
-              aucune cle. L'extension et le MCP fonctionnent sans — ils analysent hors ligne ; une
-              cle ne sert qu'a deposer leurs actions dans l'historique ci-dessous.
+              no key. The extension and the MCP work without one — they analyse offline; a key
+              only serves to drop their actions into the history below.
             </div>
           ) : (
             compte.cles.map((c) => (
@@ -666,14 +665,14 @@ export function ComptePanel() {
                 <span className="t-label" style={{ color: 'var(--ink-2)', minWidth: 78 }}>{c.portee}</span>
                 <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>{c.prefixe}…</span>
                 <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                  {c.nom || '—'} · creee {c.cree_le.slice(0, 10)}
-                  {c.vue_le ? ` · vue ${c.vue_le.slice(0, 10)}` : ' · jamais utilisee'}
+                  {c.nom || '—'} · created {c.cree_le.slice(0, 10)}
+                  {c.vue_le ? ` · seen ${c.vue_le.slice(0, 10)}` : ' · never used'}
                 </span>
                 <span className="ml-auto">
                   {c.revoquee_le ? (
-                    <span className="t-label" style={{ color: 'var(--ink-2)' }}>revoquee</span>
+                    <span className="t-label" style={{ color: 'var(--ink-2)' }}>revoked</span>
                   ) : (
-                    <Bouton onClick={() => revoquer(c.id)} actif={!occupe}>revoquer</Bouton>
+                    <Bouton onClick={() => revoquer(c.id)} actif={!occupe}>revoke</Bouton>
                   )}
                 </span>
               </div>
@@ -690,16 +689,16 @@ export function ComptePanel() {
               <div key={portee} className="px-[16px] py-[12px] flex flex-col gap-[8px]" style={{ borderTop: '1px solid var(--line)' }}>
                 <div className="flex flex-wrap items-baseline gap-[10px]">
                   <span className="t-label" style={{ color: 'var(--ink)' }}>
-                    {portee === 'extension' ? "cle « extension »" : "cle « mcp »"}
+                    {portee === 'extension' ? 'the “extension” key' : 'the “mcp” key'}
                   </span>
                   <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                     {vivantes.length === 0
-                      ? 'aucune pour l’instant'
-                      : `${vivantes.length} active${vivantes.length > 1 ? 's' : ''}`}
+                      ? 'none yet'
+                      : `${vivantes.length} active`}
                   </span>
                   <span className="ml-auto">
                     <Bouton onClick={() => nouvelleCle(portee)} actif={!occupe} fort={vivantes.length === 0}>
-                      {vivantes.length === 0 ? 'generer la cle' : 'en generer une nouvelle'}
+                      {vivantes.length === 0 ? 'generate the key' : 'generate a new one'}
                     </Bouton>
                   </span>
                 </div>
@@ -707,25 +706,25 @@ export function ComptePanel() {
                 {neuveIci && (
                   <div className="flex flex-col gap-[7px] p-[12px]" style={{ border: '1px solid var(--m-5)', background: 'var(--bg-2)' }}>
                     <span className="t-label" style={{ color: 'var(--m-5)' }}>
-                      note-la maintenant — elle ne sera plus jamais affichee
+                      write it down now — it will never be shown again
                     </span>
                     <code className="t-data-sm" style={{ fontFamily: 'var(--mono)', color: 'var(--ink)', wordBreak: 'break-all' }}>
                       {neuveIci}
                     </code>
                     <div className="flex flex-wrap items-center gap-[10px]">
-                      <Copy text={neuveIci} label="copier la cle" />
+                      <Copy text={neuveIci} label="copy the key" />
                       <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                        la base n’en detient que le sha256, et aucune route ne la relit. Perdue, elle
-                        se revoque et se recree.
+                        the database holds only its sha256, and no route reads it back. Lost, it is
+                        revoked and created again.
                       </span>
                     </div>
                     <div className="t-data-xs" style={{ color: 'var(--ink-2)', lineHeight: 1.55 }}>
                       {portee === 'extension' ? (
-                        <>ou la coller : la <strong style={{ color: 'var(--ink)' }}>page d’options</strong> de
-                        l’extension, champ « cle d’API ».</>
+                        <>where to paste it: the extension’s <strong style={{ color: 'var(--ink)' }}>options
+                        page</strong>, field “API key”.</>
                       ) : (
-                        <>ou la coller : la variable <code style={{ fontFamily: 'var(--mono)' }}>TARE_CLE_API</code> du
-                        serveur MCP, dans son entree <code style={{ fontFamily: 'var(--mono)' }}>env</code> de{' '}
+                        <>where to paste it: the MCP server’s <code style={{ fontFamily: 'var(--mono)' }}>TARE_CLE_API</code> variable,
+                        in its <code style={{ fontFamily: 'var(--mono)' }}>env</code> entry in{' '}
                         <code style={{ fontFamily: 'var(--mono)' }}>claude_desktop_config.json</code>.</>
                       )}
                     </div>
@@ -734,16 +733,16 @@ export function ComptePanel() {
 
                 <div className="t-data-xs" style={{ color: 'var(--ink-2)', lineHeight: 1.55, maxWidth: '76ch' }}>
                   {portee === 'extension'
-                    ? "l’extension marche SANS : elle analyse hors ligne, la table des mesures vit dans son service worker. La cle ne sert qu’a deposer ses verdicts dans l’historique ci-dessous."
-                    : "le serveur MCP marche SANS : il repond depuis les mesures commitees, sans reseau. La cle ne sert qu’a deposer ses appels dans l’historique."}
+                    ? 'the extension works WITHOUT one: it analyses offline, the measurement table lives in its service worker. The key only serves to drop its verdicts into the history below.'
+                    : 'the MCP server works WITHOUT one: it answers from the committed measurements, with no network. The key only serves to drop its calls into the history.'}
                 </div>
 
                 {!ab?.actif && (
                   <div className="t-data-xs" style={{ color: 'var(--m-5)' }}>
-                    l’abonnement n’est pas verifie sur la chaine — le contrat n’est pas encore
-                    deploye. Le serveur delivre quand meme une cle si{' '}
-                    <code style={{ fontFamily: 'var(--mono)' }}>TARE_CLES_OUVERTES=1</code>, et il
-                    le dit dans sa reponse plutot que d’ouvrir la porte en silence.
+                    the subscription is not verified on-chain — the contract is not deployed yet.
+                    The server still issues a key if{' '}
+                    <code style={{ fontFamily: 'var(--mono)' }}>TARE_CLES_OUVERTES=1</code>, and it
+                    says so in its response rather than opening the door in silence.
                   </div>
                 )}
               </div>
@@ -752,7 +751,7 @@ export function ComptePanel() {
 
           {/* --------------------------------------------------- les telechargements */}
           <div className="px-[16px] pt-[13px] pb-[6px] t-label" style={{ borderTop: '1px solid var(--line-strong)', color: 'var(--ink-2)' }}>
-            les deux surfaces, a telecharger
+            the two surfaces, to download
           </div>
           {(['extension', 'mcp'] as const).map((quoi) => {
             const p = paquets?.[quoi]
@@ -764,13 +763,13 @@ export function ComptePanel() {
                 ) : p.disponible ? (
                   <>
                     <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                      {p.nom} · {((p.octets ?? 0) / 1024).toFixed(0)} Ko · v{p.version ?? '?'}
+                      {p.nom} · {((p.octets ?? 0) / 1024).toFixed(0)} kB · v{p.version ?? '?'}
                     </span>
                     <span className="t-data-xs" style={{ color: 'var(--ink-2)' }} title={p.sha256}>
                       sha256 {p.sha256?.slice(0, 12)}…
                     </span>
                     <span className="ml-auto flex items-center gap-[8px]">
-                      {p.sha256 && <Copy text={p.sha256} label="copier le sha256" />}
+                      {p.sha256 && <Copy text={p.sha256} label="copy the sha256" />}
                       {ab?.actif ? (
                         <a
                           className="t-label"
@@ -781,7 +780,7 @@ export function ComptePanel() {
                             // PAS le lien partir vers un 401 qui ressemblerait a une panne.
                             ev.preventDefault()
                             void (async () => {
-                              setOccupe(`telechargement de ${quoi}`)
+                              setOccupe(`downloading ${quoi}`)
                               try {
                                 const r = await fetch(`${API}/compte/${quoi === 'extension' ? 'extension.zip' : 'mcp.tgz'}`, {
                                   headers: { authorization: `Bearer ${session!.jeton}` },
@@ -807,10 +806,10 @@ export function ComptePanel() {
                           }}
                           style={{ color: 'var(--focus)', textDecoration: 'none', cursor: 'pointer' }}
                         >
-                          telecharger
+                          download
                         </a>
                       ) : (
-                        <span className="t-label" style={{ color: 'var(--ink-2)' }}>ferme</span>
+                        <span className="t-label" style={{ color: 'var(--ink-2)' }}>closed</span>
                       )}
                     </span>
                   </>
@@ -826,7 +825,7 @@ export function ComptePanel() {
 
           {/* -------------------------------------------------------- l'historique */}
           <div className="px-[16px] pt-[13px] pb-[6px] t-label" style={{ borderTop: '1px solid var(--line-strong)', color: 'var(--ink-2)' }}>
-            l'historique — ce que l'extension, le MCP et ce site ont fait
+            the history — what the extension, the MCP and this site have done
           </div>
           {journal === null ? (
             <div className="px-[16px] py-[9px]" style={{ borderTop: '1px solid var(--line)' }}>
@@ -834,15 +833,15 @@ export function ComptePanel() {
             </div>
           ) : journal.length === 0 ? (
             <div className="px-[16px] py-[9px] t-data-xs" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-2)' }}>
-              rien encore. L'extension y depose ses verdicts si tu lui donnes une cle ; sans cle elle
-              fonctionne pareil et n'envoie rien.
+              nothing yet. The extension drops its verdicts here if you give it a key; without a
+              key it works the same and sends nothing.
             </div>
           ) : (
-            <div tabIndex={0} role="region" aria-label="historique du compte" style={{ overflowX: 'auto', borderTop: '1px solid var(--line)' }}>
+            <div tabIndex={0} role="region" aria-label="account history" style={{ overflowX: 'auto', borderTop: '1px solid var(--line)' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr>
-                    {['quand', 'ou', 'quoi', 'sujet', 'prelevement'].map((h, i) => (
+                    {['when', 'where', 'what', 'subject', 'take'].map((h, i) => (
                       <th
                         key={h}
                         className="t-data-sm px-[10px] py-[6px]"
@@ -864,13 +863,13 @@ export function ComptePanel() {
 
           <div className="px-[16px] py-[11px] flex items-center gap-[10px]" style={{ borderTop: '1px solid var(--line-strong)' }}>
             <Bouton onClick={() => session && rafraichir(session.jeton)} actif={!occupe}>
-              rafraichir
+              refresh
             </Bouton>
             <Bouton onClick={seDeconnecter} actif={!occupe}>
-              se deconnecter
+              sign out
             </Bouton>
             <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-              {occupe ?? "le jeton vit dans sessionStorage : il s'efface a la fermeture de l'onglet"}
+              {occupe ?? 'the token lives in sessionStorage: it is wiped when the tab closes'}
             </span>
           </div>
         </>

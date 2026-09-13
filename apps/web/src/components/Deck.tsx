@@ -110,8 +110,8 @@ function Vitre({ route, titre }: { route: string; titre: string }) {
     <div className="deck-vitre">
       <div className="deck-vitre-barre">
         <span className="deck-pastille" style={{ background: 'var(--focus)' }} />
-        <span className="t-label" style={{ color: 'var(--ink-2)' }}>l’instrument, en vrai — {route}</span>
-        <a className="t-label ml-auto" href={`#${route}`} style={{ color: 'var(--ink-2)' }}>ouvrir ↗</a>
+        <span className="t-label" style={{ color: 'var(--ink-2)' }}>the instrument, for real — {route}</span>
+        <a className="t-label ml-auto" href={`#${route}`} style={{ color: 'var(--ink-2)' }}>open ↗</a>
       </div>
       <iframe src={`${base}#${route}`} title={titre} loading="lazy" />
     </div>
@@ -137,43 +137,43 @@ function useEchanges() {
     return [
       {
         cle: 'outils',
-        bouton: 'quels outils exposes-tu ?',
-        question: 'Quels outils MCP expose TARE, et lesquels coûtent quelque chose ?',
+        bouton: 'which tools do you expose?',
+        question: 'Which MCP tools does TARE expose, and which of them cost something?',
         appel: null as string | null,
         reponse: [
-          'TARE expose 4 outils, tous lisibles hors ligne.',
+          'TARE exposes 4 tools, all of them readable offline.',
           '',
-          '  • tare_lookup(hook)        tout ce qui est déjà mesuré, étiqueté',
-          '  • tare_impact(hook)        quels pools et quels jetons sont exposés',
-          '  • tare_twins(hook)         les hooks au bytecode identique',
-          '  • tare_measure(...)        une mesure NEUVE — 0,001 USDC en x402',
+          '  • tare_lookup(hook)        everything already measured, labeled',
+          '  • tare_impact(hook)        which pools and which tokens are exposed',
+          '  • tare_twins(hook)         the hooks with identical bytecode',
+          '  • tare_measure(...)        a FRESH measurement — 0.001 USDC in x402',
           '',
-          `Les trois premiers lisent ${nb(nMes)} mesures sur disque : aucune requête,`,
-          'aucune clé. Le quatrième a besoin du fork, et il le dit.',
+          `The first three read ${nb(nMes)} measurements from disk: no request,`,
+          'no key. The fourth one needs the fork, and it says so.',
           '',
-          "Et la règle que je ne peux pas contourner : je n'énonce jamais un",
-          "chiffre que l'outil n'a pas rendu.",
+          'And the rule I cannot get around: I never state a number',
+          'that the tool did not return.',
         ].join('\n'),
       },
       {
         cle: 'lookup',
-        bouton: `ce hook prend combien ? ${court(pire.hook)}`,
-        question: `Combien ce hook prend-il vraiment ? ${pire.hook}`,
+        bouton: `how much does this hook take? ${court(pire.hook)}`,
+        question: `How much does this hook really take? ${pire.hook}`,
         appel: `tare_lookup(hook: "${pire.hook}")`,
         reponse: [
-          `→ lu dans docs/dataset/measurements.jsonl (${nb(nMes)} lignes, ${nb(nHooks)} hooks)`,
+          `→ read from docs/dataset/measurements.jsonl (${nb(nMes)} rows, ${nb(nHooks)} hooks)`,
           '',
-          `  prélèvement   ${pire.bps!.toFixed(4)} bps`,
-          `  étiquette     ${pire.label}`,
-          `  taille        ${pire.amount_in}`,
-          `  sens          ${pire.zero_for_one ? '0 → 1' : '1 → 0'}`,
-          `  bloc          ${nb(pire.block_number)}`,
-          `  avec le hook  ${pire.out_with}`,
-          `  avec le talon ${pire.out_without}`,
+          `  take          ${pire.bps!.toFixed(4)} bps`,
+          `  label         ${pire.label}`,
+          `  size          ${pire.amount_in}`,
+          `  direction     ${pire.zero_for_one ? '0 → 1' : '1 → 0'}`,
+          `  block         ${nb(pire.block_number)}`,
+          `  with the hook ${pire.out_with}`,
+          `  with the stub ${pire.out_without}`,
           '',
-          "✓ mesuré par contrefactuel : le même swap coté deux fois, une fois",
-          "  contre un talon inerte de 89 octets à l'adresse du hook",
-          '✓ rejouable en une commande, elle est en dessous',
+          '✓ measured by counterfactual: the same swap quoted twice, once',
+          '  against an inert 89-byte stub at the address of the hook',
+          '✓ replayable in one command, it is right below',
         ].join('\n'),
         replay: [
           'python3 apps/api/scripts/measure_one.py --rpc $RPC',
@@ -190,7 +190,7 @@ function useEchanges() {
 function SceneMcp() {
   const echanges = useEchanges()
   const depart: Bulle[] = [
-    { role: 'agent', texte: 'Serveur MCP « tare » connecté en stdio. Choisis une question à droite →' },
+    { role: 'agent', texte: 'MCP server “tare” connected over stdio. Pick a question on the right →' },
   ]
   const [bulles, setBulles] = useState<Bulle[]>(depart)
   const [occupe, setOccupe] = useState(false)
@@ -220,7 +220,7 @@ function SceneMcp() {
   )
 
   const couleur = { humain: 'var(--ink-2)', outil: 'var(--focus)', agent: 'var(--m-6)' } as const
-  const etiquette = { humain: 'utilisateur', outil: 'appel d’outil · mcp', agent: 'tare · mcp' } as const
+  const etiquette = { humain: 'user', outil: 'tool call · mcp', agent: 'tare · mcp' } as const
 
   return (
     <div className="deck-grille deck-grille-12">
@@ -237,7 +237,7 @@ function SceneMcp() {
             style={{ cursor: 'pointer' }}
             onClick={() => { setBulles(depart); setReplay(null); setOccupe(false) }}
           >
-            ↻ reprendre
+            ↻ start over
           </button>
         </div>
         <div ref={zone} className="deck-mcp-zone" style={{ padding: '1.4cqi' }}>
@@ -252,34 +252,34 @@ function SceneMcp() {
           {occupe && (
             <div className="flex items-center gap-[0.8cqi]">
               <span className="deck-pastille" />
-              <span className="t-label" style={{ color: 'var(--ink-2)' }}>tare répond…</span>
+              <span className="t-label" style={{ color: 'var(--ink-2)' }}>tare is answering…</span>
             </div>
           )}
         </div>
       </div>
 
       <div className="deck-carte">
-        <div className="deck-carte-titre">questions prêtes — clique</div>
+        <div className="deck-carte-titre">questions ready — click one</div>
         {echanges.map((e, i) => (
           <button key={e.cle} type="button" disabled={occupe} onClick={() => void jouer(i)} className="deck-prompt">
             ▶ {e.bouton}
           </button>
         ))}
-        <div className="deck-carte-titre" style={{ marginTop: '0.6cqi' }}>4 outils · 3 gratuits · 1 payant</div>
+        <div className="deck-carte-titre" style={{ marginTop: '0.6cqi' }}>4 tools · 3 free · 1 paid</div>
         {[
-          ['tare_lookup', 'gratuit'],
-          ['tare_impact', 'gratuit'],
-          ['tare_twins', 'gratuit'],
-          ['tare_measure', '0,001 USDC'],
+          ['tare_lookup', 'free'],
+          ['tare_impact', 'free'],
+          ['tare_twins', 'free'],
+          ['tare_measure', '0.001 USDC'],
         ].map(([o, p]) => (
           <div key={o} className="flex items-baseline gap-[0.8cqi]">
             <code style={{ fontFamily: 'var(--mono)', color: 'var(--ink-2)' }}>{o}</code>
-            <span className="t-label ml-auto" style={{ color: p === 'gratuit' ? 'var(--ink-2)' : 'var(--m-4)' }}>{p}</span>
+            <span className="t-label ml-auto" style={{ color: p === 'free' ? 'var(--ink-2)' : 'var(--m-4)' }}>{p}</span>
           </div>
         ))}
         <div className="deck-prose" style={{ marginTop: 'auto' }}>
-          Le serveur ne tourne pas dans cet onglet : il vit à côté du modèle. Le déroulé est
-          <strong style={{ color: 'var(--m-5)' }}> rejoué</strong> ; les valeurs sortent du corpus.
+          The server does not run in this tab: it lives next to the model. The sequence is a
+          <strong style={{ color: 'var(--m-5)' }}> replay</strong>; the values come from the corpus.
         </div>
         {replay && <Replay cmd={replay} />}
       </div>
@@ -293,12 +293,12 @@ function SceneExtension({ actif }: { actif: boolean }) {
   const [issue, setIssue] = useState<'alternative' | 'unique'>('alternative')
   const chere = issue === 'alternative'
   const etapes = [
-    "un site d’échange prépare la transaction et appelle le portefeuille",
-    "la garde l’intercepte AVANT la signature et relit la PoolKey dans le calldata de l’Universal Router",
-    "elle interroge sa table embarquée — aucune requête, le service worker la porte",
+    'an exchange site prepares the transaction and calls the wallet',
+    'the guard intercepts it BEFORE the signature and reads the PoolKey back from the Universal Router calldata',
+    'it queries its embedded table — no request, the service worker carries it',
     chere
-      ? "ce hook prélève, et une porte moins chère existe sur la même paire"
-      : "ce hook prélève, et aucune autre porte mesurée n’existe sur cette paire",
+      ? 'this hook takes, and a cheaper door exists on the same pair'
+      : 'this hook takes, and no other measured door exists on this pair',
   ]
   const { etape, rejouer } = useSequence(etapes.length, [700, 900, 800, 900], actif)
   const g = facts.garde as Record<string, unknown> | undefined
@@ -307,7 +307,7 @@ function SceneExtension({ actif }: { actif: boolean }) {
     <div className="deck-grille deck-grille-12">
       <div className="deck-carte">
         <div className="flex flex-wrap items-center gap-[0.8cqi]">
-          <span className="deck-carte-titre">ce qu’elle fait, étape par étape</span>
+          <span className="deck-carte-titre">what it does, step by step</span>
           <span className="ml-auto flex gap-[0.6cqi]">
             {(['alternative', 'unique'] as const).map((k) => (
               <button
@@ -317,7 +317,7 @@ function SceneExtension({ actif }: { actif: boolean }) {
                 className="t-label deck-onglet"
                 aria-pressed={issue === k}
               >
-                {k === 'alternative' ? 'il y a mieux' : 'il n’y a qu’une porte'}
+                {k === 'alternative' ? 'there is better' : 'there is only one door'}
               </button>
             ))}
           </span>
@@ -335,9 +335,9 @@ function SceneExtension({ actif }: { actif: boolean }) {
         ))}
         {g && (
           <div className="deck-prose" style={{ marginTop: 'auto' }}>
-            décodé sur {String(g['transactions_reelles'] ?? '—')} transactions réelles de Base ·
-            12 ko de script · la table vit dans le service worker, donc elle répond{' '}
-            <strong style={{ color: 'var(--ink)' }}>même serveur éteint</strong>.
+            decoded on {String(g['transactions_reelles'] ?? '—')} real Base transactions ·
+            12 kB of script · the table lives in the service worker, so it answers{' '}
+            <strong style={{ color: 'var(--ink)' }}>even with our server off</strong>.
           </div>
         )}
       </div>
@@ -351,25 +351,25 @@ function SceneExtension({ actif }: { actif: boolean }) {
         }}
       >
         <div className="t-label" style={{ color: chere ? 'var(--m-4)' : 'var(--m-5)' }}>
-          {chere ? 'une porte moins chère existe' : 'il n’y a qu’une porte'}
+          {chere ? 'a cheaper door exists' : 'there is only one door'}
         </div>
         <div className="deck-prose" style={{ color: 'var(--ink)' }}>
           {chere ? (
             <>
-              Le même échange passe par un autre pool. La transaction de remplacement est{' '}
-              <strong>construite et signée par Permit2</strong> — une signature hors chaîne au lieu
-              d’une transaction d’approbation — et <strong>elle n’est jamais envoyée par nous</strong>.
+              The same swap goes through another pool. The replacement transaction is{' '}
+              <strong>built and signed through Permit2</strong> — an off-chain signature instead of
+              an approval transaction — and <strong>it is never sent by us</strong>.
             </>
           ) : (
             <>
-              Sur <strong>99,71 %</strong> des lignes du corpus, la réponse est « il n’y a qu’une
-              porte ». Alors l’extension ne propose rien : elle affiche ce que le hook prend et
-              demande une confirmation. <strong>Inventer une alternative serait pire que se taire.</strong>
+              On <strong>99.71%</strong> of the corpus rows, the answer is “there is only one
+              door”. So the extension proposes nothing: it displays what the hook takes and asks
+              for a confirmation. <strong>Inventing an alternative would be worse than staying silent.</strong>
             </>
           )}
         </div>
         <div className="flex flex-wrap gap-[0.7cqi]">
-          {(chere ? ['PRÊT — substituer', 'signer tel quel', 'annuler'] : ['confirmer en connaissance', 'annuler']).map(
+          {(chere ? ['READY — substitute', 'sign as is', 'cancel'] : ['confirm knowingly', 'cancel']).map(
             (b, i) => (
               <span key={b} className="t-label deck-bouton" data-fort={i === 0 ? 'oui' : undefined}>{b}</span>
             ),
@@ -377,8 +377,8 @@ function SceneExtension({ actif }: { actif: boolean }) {
         </div>
         {chere && (
           <div className="t-label" style={{ color: 'var(--ink-2)', marginTop: 'auto' }}>
-            liste de commandes <code style={{ fontFamily: 'var(--mono)' }}>0x0a10</code> — PERMIT2_PERMIT
-            puis V4_SWAP, dans cet ordre
+            command list <code style={{ fontFamily: 'var(--mono)' }}>0x0a10</code> — PERMIT2_PERMIT
+            then V4_SWAP, in that order
           </div>
         )}
       </div>
@@ -392,12 +392,12 @@ function SceneLedger({ actif }: { actif: boolean }) {
   const l = facts.ledger as Record<string, unknown> | undefined
   const ecrans: [string, string][] = [
     ['Review', 'TareGuardApproval'],
-    ['verdict', 'PRÉLÈVEMENT MESURÉ'],
+    ['verdict', 'MEASURED TAKE'],
     ['hook', '0xb429d62f…ba28cc'],
     ['pool', '0x010d0023…6c538'],
-    ['prélèvement', '9 999,53 bps'],
-    ['taille', '1 000 000 000 000'],
-    ['bloc', '50 614 000'],
+    ['take', '9 999.53 bps'],
+    ['size', '1 000 000 000 000'],
+    ['block', '50 614 000'],
     ['Approve ?', 'Approve / Reject'],
   ]
   const { etape, rejouer } = useSequence(ecrans.length, ecrans.map(() => 520), actif)
@@ -421,15 +421,15 @@ function SceneLedger({ actif }: { actif: boolean }) {
         ))}
       </div>
       <div className="deck-prose" style={{ gridColumn: '1 / -1', marginTop: '-0.6cqi' }}>
-        Le rapport est encodé en <strong style={{ color: 'var(--ink)' }}>EIP-712</strong> et rendu{' '}
-        <strong style={{ color: 'var(--ink)' }}>champ par champ</strong> : on ne signe pas un haché
-        opaque, on lit ce qu’on signe. Une annulation rend le code{' '}
-        <strong style={{ color: 'var(--ink)' }}>4001</strong>, et aucun appel ne part.
-        {l ? ` ${String(l['ecrans'] ?? '—')} écrans rendus, type ${String(l['type_712'] ?? '—')}.` : ''}
-        {' '}Le déroulé est <strong style={{ color: 'var(--m-5)' }}>rejoué</strong> ; les écrans sont
-        ceux qu’a rendus Speculos, et le dépôt publie leur trace.{' '}
+        The report is encoded as <strong style={{ color: 'var(--ink)' }}>EIP-712</strong> and
+        rendered <strong style={{ color: 'var(--ink)' }}>field by field</strong>: you do not sign an
+        opaque hash, you read what you sign. A cancellation returns code{' '}
+        <strong style={{ color: 'var(--ink)' }}>4001</strong>, and no call goes out.
+        {l ? ` ${String(l['ecrans'] ?? '—')} screens rendered, type ${String(l['type_712'] ?? '—')}.` : ''}
+        {' '}The sequence is a <strong style={{ color: 'var(--m-5)' }}>replay</strong>; the screens
+        are the ones Speculos rendered, and the repository publishes their trace.{' '}
         <button type="button" onClick={rejouer} className="bouton-ghost t-label" style={{ cursor: 'pointer' }}>
-          rejouer
+          replay
         </button>
       </div>
     </div>
@@ -485,26 +485,26 @@ export function DeckPage({ surOutil }: { surOutil?: (n: number) => void }) {
     () => [
       {
         id: 'probleme',
-        marqueur: '01 · le problème',
-        titre: 'Un hook Uniswap v4 peut prélever sur votre swap. Personne ne publie combien.',
-        sous: 'Ni le registre officiel, ni les hooks eux-mêmes.',
+        marqueur: '01 · the problem',
+        titre: 'A Uniswap v4 hook can take from your swap. Nobody publishes how much.',
+        sous: 'Neither the official registry, nor the hooks themselves.',
         rendu: () => (
           <>
             <div className="deck-grille deck-grille-3">
               <Chiffre
                 v="9 / 1 559"
-                k="hooks qui déclarent ce qu’ils prennent"
-                source="docs/dataset/declarations.json · 200 000 blocs Base"
+                k="hooks that declare what they take"
+                source="docs/dataset/declarations.json · 200 000 Base blocks"
                 accent="orange"
               />
               <Chiffre
                 v="0"
-                k="champ quantitatif dans le registre officiel, sur 27"
-                source="son schéma interdit d’en ajouter un"
+                k="quantitative field in the official registry, out of 27"
+                source="its schema forbids adding one"
               />
               <Chiffre
                 v={reg?.epingle ? `${String(reg.epingle['absents'])} / 112` : '—'}
-                k="hooks mesurés que le registre ne connaît pas"
+                k="measured hooks that the registry does not know"
                 source="docs/dataset/registre-couverture.json"
                 accent="bleu"
               />
@@ -514,18 +514,18 @@ export function DeckPage({ surOutil }: { surOutil?: (n: number) => void }) {
       },
       {
         id: 'methode',
-        marqueur: '02 · la méthode',
-        titre: 'On ne peut pas retirer le hook d’un pool. Alors on change son code.',
-        sous: 'La clé d’un pool v4 contient l’adresse du hook : « le même pool sans son hook » n’existe pas.',
+        marqueur: '02 · the method',
+        titre: 'You cannot take the hook out of a pool. So we change its code.',
+        sous: 'The key of a v4 pool contains the hook address: “the same pool without its hook” does not exist.',
         rendu: () => (
           <div className="deck-grille deck-grille-12">
             <div className="deck-carte">
-              <div className="deck-carte-titre">le contrefactuel, en quatre gestes</div>
+              <div className="deck-carte-titre">the counterfactual, in four moves</div>
               {[
-                'on épingle un fork au bloc 50 614 000',
-                'on cote le swap, hook en place',
-                'anvil_setCode remplace le bytecode du hook par 89 octets inertes',
-                'on cote le MÊME swap contre le talon — l’écart est le prélèvement',
+                'we pin a fork at block 50 614 000',
+                'we quote the swap, hook in place',
+                'anvil_setCode replaces the hook bytecode with 89 inert bytes',
+                'we quote the SAME swap against the stub — the gap is the take',
               ].map((l, i) => (
                 <div key={l} className="deck-etape" style={{ opacity: 1 }}>
                   <span className="t-label" style={{ color: 'var(--m-6)', minWidth: '1.6cqi' }}>{i + 1}</span>
@@ -533,16 +533,16 @@ export function DeckPage({ surOutil }: { surOutil?: (n: number) => void }) {
                 </div>
               ))}
               <div className="deck-prose" style={{ marginTop: 'auto', color: 'var(--ink)' }}>
-                Le <code>poolId</code>, la liquidité, <code>slot0</code> et les réserves restent
-                identiques au bit près. La seule chose qui change est le code qui s’exécute
-                pendant le swap.
+                The <code>poolId</code>, the liquidity, <code>slot0</code> and the reserves stay
+                identical down to the bit. The only thing that changes is the code that runs
+                during the swap.
               </div>
             </div>
             <div className="deck-grille deck-grille-2" style={{ margin: 0, gridTemplateRows: 'auto 1fr' }}>
-              <Chiffre v={nb(t.rows)} k="mesures publiées" />
-              <Chiffre v="89" k="octets de talon inerte" accent="orange" />
+              <Chiffre v={nb(t.rows)} k="published measurements" />
+              <Chiffre v="89" k="bytes of inert stub" accent="orange" />
               <div style={{ gridColumn: '1 / -1', minHeight: 0 }}>
-                <Vitre route="/outil/1" titre="la page de l’outil Mesurer, en vrai" />
+                <Vitre route="/outil/1" titre="the page of the Measure tool, for real" />
               </div>
             </div>
           </div>
@@ -550,37 +550,37 @@ export function DeckPage({ surOutil }: { surOutil?: (n: number) => void }) {
       },
       {
         id: 'preuve',
-        marqueur: '03 · la preuve',
-        titre: 'Et quand on l’exécute vraiment, la cotation tient au wei près.',
-        sous: 'La porte A4 : un swap réellement passé, reconfronté à ce que la cotation annonçait.',
+        marqueur: '03 · the proof',
+        titre: 'And when we actually execute it, the quote holds to the wei.',
+        sous: 'Gate A4: a swap really sent, put back against what the quote announced.',
         rendu: () => (
           <div className="deck-grille deck-grille-12">
             <div className="deck-grille deck-grille-2" style={{ margin: 0 }}>
               <Chiffre
                 v={ex ? `${Number(ex['bps_executes']).toFixed(2)}` : '—'}
-                k="bps réellement exécutés"
+                k="bps actually executed"
                 accent="orange"
               />
               <Chiffre
                 v={ex ? `${Number(ex['bps_publies']).toFixed(2)}` : '—'}
-                k="bps annoncés par la cotation"
+                k="bps announced by the quote"
               />
             </div>
             <div className="deck-carte">
-              <div className="deck-carte-titre">l’objection, et la réponse</div>
+              <div className="deck-carte-titre">the objection, and the answer</div>
               <div className="deck-prose">
-                « Une cotation sur un fork, ça vaut quoi ? » On a donc <strong style={{ color: 'var(--ink)' }}>exécuté
-                le swap</strong> et recollé le résultat à ce que la cotation annonçait.{' '}
-                <strong style={{ color: 'var(--ink)' }}>Au wei près.</strong>
+                “A quote on a fork, what is that worth?” So we <strong style={{ color: 'var(--ink)' }}>executed
+                the swap</strong> and put the result back against what the quote announced.{' '}
+                <strong style={{ color: 'var(--ink)' }}>To the wei.</strong>
               </div>
               <div className="deck-prose">
-                Et on publie aussi le pool où ça <strong style={{ color: 'var(--ink)' }}>ne</strong>{' '}
-                concorde pas — un sur trois.
+                And we also publish the pool where it does <strong style={{ color: 'var(--ink)' }}>not</strong>{' '}
+                agree — one in three.
               </div>
               <div className="deck-prose" style={{ marginTop: 'auto' }}>
-                La chaîne complète tourne bout en bout : <strong style={{ color: 'var(--ink)' }}>6 étapes
-                sur 6, en 13,7 secondes</strong> — transaction réelle, verdict, recherche de porte,
-                mesure payée en x402, ancrage HCS, signature sur l’appareil.
+                The complete chain runs end to end: <strong style={{ color: 'var(--ink)' }}>6 steps
+                out of 6, in 13.7 seconds</strong> — real transaction, verdict, door search,
+                measurement paid in x402, HCS anchoring, signature on the device.
               </div>
             </div>
           </div>
@@ -588,51 +588,51 @@ export function DeckPage({ surOutil }: { surOutil?: (n: number) => void }) {
       },
       {
         id: 'mcp',
-        marqueur: '04 · pour les agents',
-        titre: 'Un modèle à qui on demande « ce hook prend combien ? » invente un nombre plausible.',
-        sous: 'Les quatre outils MCP portent, dans leur propre description, l’interdiction d’en énoncer un.',
+        marqueur: '04 · for agents',
+        titre: 'A model asked “how much does this hook take?” invents a plausible number.',
+        sous: 'The four MCP tools carry, in their own descriptions, the ban on stating one.',
         rendu: () => <SceneMcp />,
       },
       {
         id: 'extension',
-        marqueur: '05 · au bon moment',
-        titre: 'Le bon moment n’est pas quand on cherche. C’est trois secondes avant de signer.',
-        sous: 'L’extension se place entre le site d’échange et le portefeuille.',
+        marqueur: '05 · at the right moment',
+        titre: 'The right moment is not while you search. It is three seconds before signing.',
+        sous: 'The extension sits between the exchange site and the wallet.',
         rendu: (a: boolean) => <SceneExtension actif={a} />,
       },
       {
         id: 'ledger',
-        marqueur: '06 · on lit ce qu’on signe',
-        titre: 'Le verdict est rendu champ par champ sur l’appareil.',
-        sous: 'EIP-712, huit écrans, et annuler ne laisse rien partir.',
+        marqueur: '06 · you read what you sign',
+        titre: 'The verdict is rendered field by field on the device.',
+        sous: 'EIP-712, eight screens, and canceling lets nothing go out.',
         rendu: (a: boolean) => <SceneLedger actif={a} />,
       },
       {
         id: 'honnetete',
-        marqueur: '07 · ce qu’on ne sait pas',
-        titre: 'Sur 125 072 mesures, 61 916 ne sont pas des valeurs. On les garde quand même.',
-        sous: 'Une lecture qui échoue est NON_MESURABLE — jamais un zéro, jamais un blanc.',
+        marqueur: '07 · what we do not know',
+        titre: 'Out of 125 072 measurements, 61 916 are not values. We keep them anyway.',
+        sous: 'A read that fails is NON_MESURABLE — never a zero, never a blank.',
         rendu: () => (
           <div className="deck-grille deck-grille-12">
             <div className="deck-grille deck-grille-2" style={{ margin: 0 }}>
-              <Chiffre v="63 156" k="MESURE — des valeurs" />
+              <Chiffre v="63 156" k="MESURE — actual values" />
               <Chiffre v="61 466" k="NON_COTABLE" accent="orange" />
               <Chiffre v="450" k="NON_MESURABLE" accent="orange" />
-              <Chiffre v="0" k="INTERPOLE — l’étiquette existe et ne sert pas" accent="bleu" />
+              <Chiffre v="0" k="INTERPOLE — the label exists and is unused" accent="bleu" />
             </div>
             <div className="deck-carte">
-              <div className="deck-carte-titre">pourquoi on les garde</div>
+              <div className="deck-carte-titre">why we keep them</div>
               <div className="deck-prose">
-                Un blanc se lit « rien », et « rien » se lit « zéro ». Chaque ligne qu’on n’a pas
-                pu mesurer garde donc <strong style={{ color: 'var(--ink)' }}>sa raison</strong>.
+                A blank reads as “nothing”, and “nothing” reads as “zero”. So every row we could
+                not measure keeps <strong style={{ color: 'var(--ink)' }}>its reason</strong>.
               </div>
               <div className="deck-prose">
-                <strong style={{ color: 'var(--ink)' }}>16 attestations écrites on-chain sur 99
-                calculées.</strong> C’est l’écart qu’on publie, pas le chiffre flatteur.
+                <strong style={{ color: 'var(--ink)' }}>16 attestations written on-chain out of 99
+                computed.</strong> That gap is what we publish, not the flattering number.
               </div>
               <div className="deck-prose" style={{ marginTop: 'auto' }}>
-                Deux erreurs passées du projet sont publiées avec leur correction. C’est ce qui
-                rend le reste croyable.
+                Two past mistakes of this project are published along with their fix. That is what
+                makes the rest believable.
               </div>
             </div>
           </div>
@@ -640,20 +640,20 @@ export function DeckPage({ surOutil }: { surOutil?: (n: number) => void }) {
       },
       {
         id: 'surfaces',
-        marqueur: '08 · essayez',
-        titre: 'Cinq façons d’y accéder. Le corpus, lui, est entier dans la page.',
+        marqueur: '08 · try it',
+        titre: 'Five ways in. The corpus itself sits whole inside the page.',
         rendu: () => (
           <div className="deck-grille deck-grille-12">
             <div className="deck-grille deck-grille-3" style={{ margin: 0 }}>
-              <Chiffre v={String(OUTILS.length)} k="outils nommés" />
-              <Chiffre v={String(DONNEES.length)} k="jeux de données publiés" accent="bleu" />
-              <Chiffre v="5" k="façons d’y accéder" accent="orange" />
+              <Chiffre v={String(OUTILS.length)} k="named tools" />
+              <Chiffre v={String(DONNEES.length)} k="published datasets" accent="bleu" />
+              <Chiffre v="5" k="ways in" accent="orange" />
             </div>
             <div style={{ minHeight: 0 }}>
-              <Vitre route="/" titre="l’opération : coller un jeton, lire par où l’acheter" />
+              <Vitre route="/" titre="the operation: paste a token, read where to buy it" />
             </div>
             <div className="deck-carte">
-              <div className="deck-carte-titre">les quatorze outils</div>
+              <div className="deck-carte-titre">the fourteen tools</div>
               <div className="flex flex-wrap gap-[0.7cqi]" style={{ overflowY: 'auto', minHeight: 0 }}>
                 {OUTILS.map((o) => (
                   <button
@@ -669,12 +669,12 @@ export function DeckPage({ surOutil }: { surOutil?: (n: number) => void }) {
                 ))}
               </div>
               <div className="deck-prose" style={{ marginTop: 'auto' }}>
-                Le site, l’extension, le serveur MCP, le péage x402 sur Hedera, le compte. Tout est
-                publié — le corpus, les commandes de rejeu, et ce qu’on ne sait pas.
+                The site, the extension, the MCP server, the x402 toll on Hedera, the account.
+                Everything is published — the corpus, the replay commands, and what we do not know.
               </div>
               <div className="flex flex-wrap items-center gap-[1.2cqi]">
-                <Copy text="https://github.com/JeanBaptisteDurand/ETH_Online_2026" label="copier le dépôt" />
-                <a className="deck-prose" href="#/" style={{ color: 'var(--ink)' }}>ouvrir l’instrument →</a>
+                <Copy text="https://github.com/JeanBaptisteDurand/ETH_Online_2026" label="copy the repository" />
+                <a className="deck-prose" href="#/" style={{ color: 'var(--ink)' }}>open the instrument →</a>
               </div>
             </div>
           </div>
@@ -762,7 +762,7 @@ export function DeckPage({ surOutil }: { surOutil?: (n: number) => void }) {
 
             <footer className="deck-pied">
               <span className="t-label" style={{ color: 'var(--ink-2)' }}>
-                mesuré sur Base, bloc 50 614 000 — chaque nombre se rejoue en une commande
+                measured on Base, block 50 614 000 — every number replays in one command
               </span>
               <span className="t-label ml-auto" style={{ color: 'var(--ink-2)' }}>
                 {String(i + 1).padStart(2, '0')} / {String(beats.length).padStart(2, '0')}
@@ -784,7 +784,7 @@ export function DeckPage({ surOutil }: { surOutil?: (n: number) => void }) {
                 <i key={b.id} data-etat={i < actif ? 'passe' : i === actif ? 'courant' : 'a-venir'} />
               ))}
             </span>
-            <span className="t-label" style={{ color: 'var(--ink-2)' }}>espace · ← → · f · r</span>
+            <span className="t-label" style={{ color: 'var(--ink-2)' }}>space · ← → · f · r</span>
           </div>
           <div className="deck-hud deck-hud-droite" data-fini={restant === 0 ? 'oui' : undefined}>
             {court_ && <span className="deck-pastille" />}

@@ -18,7 +18,7 @@
  */
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
-import { OUTILS, type Famille, type Outil } from '../lib/outils'
+import { OUTILS, FAMILLES, type Famille, type Outil } from '../lib/outils'
 import { DONNEES, luPar } from '../lib/donnees'
 import { dataset } from '../lib/dataset'
 import symboles from '../data/symboles.json'
@@ -39,9 +39,9 @@ const COULEUR: Record<Famille, string> = {
 }
 
 const QUOI: Record<Famille, string> = {
-  collecte: 'va chercher une donnée',
-  analyse: 'interprète',
-  action: 'change quelque chose',
+  collecte: 'fetches a piece of data',
+  analyse: 'interprets',
+  action: 'changes something',
 }
 
 const ORDRE: Famille[] = ['collecte', 'analyse', 'action']
@@ -53,10 +53,10 @@ const msFr = (ms: number | null): string => (ms === null ? '—' : `${ms.toLocal
 /** Une seule ligne de métadonnée par nœud — l'anatomie de la référence, rien de plus. */
 function meta(o: Outil): string {
   const n = luPar(o.n).length
-  const jeux = n === 0 ? 'aucun jeu lu' : n === 1 ? '1 jeu lu' : `${n} jeux lus`
+  const jeux = n === 0 ? 'no dataset read' : n === 1 ? '1 dataset read' : `${n} datasets read`
   if (o.etat === 'pret') return jeux
-  if (o.etat === 'hors_ligne') return `${jeux}, hors ligne`
-  return `${jeux}, en attente`
+  if (o.etat === 'hors_ligne') return `${jeux}, offline`
+  return `${jeux}, pending`
 }
 
 interface Trace {
@@ -306,7 +306,7 @@ export function Carte({
     if (g) {
       return {
         quoi: 'ecart' as const,
-        ecart: g.ecart_bps!.toLocaleString('fr', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        ecart: g.ecart_bps!.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
         bas: g.classees[0]!.totalBps!.toFixed(2),
         haut: g.classees[g.classees.length - 1]!.totalBps!.toFixed(2),
         portes: g.classees.length,
@@ -349,9 +349,9 @@ export function Carte({
     if (sans === 0n) return null
     const sur100 = Number((avec * 1000000n) / sans) / 10000
     return {
-      avec: `${sur100.toLocaleString('fr', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      sans: '100,00',
-      bps: (e.bps_publies ?? 0).toLocaleString('fr', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      avec: `${sur100.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      sans: '100.00',
+      bps: (e.bps_publies ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
       avecWei: groupDigits(e.avec_hook.cote),
       sansWei: groupDigits(e.avec_talon.cote),
     }
@@ -370,7 +370,7 @@ export function Carte({
                   et c'est elle qui ne se reduit pas. La glose qui suivait le titre disait ce que
                   la mesure, a droite, montre deja. */}
               <h1 id="carte-titre" className="t-display m-0" style={{ maxWidth: '21ch' }}>
-                Ce qu’un hook prend vraiment sur un swap.
+                What a hook really takes on a swap.
               </h1>
 
               {/* PREMIÈRE INTERACTION : coller une adresse. C'est l'action primaire de la page,
@@ -391,7 +391,7 @@ export function Carte({
               >
                 <div className="flex flex-col grow" style={{ gap: 6, minWidth: 0, flexBasis: 320 }}>
                   <label className="t-body t-body-muted" htmlFor="jeton-hero" style={{ fontSize: 14 }}>
-                    colle l’adresse d’un jeton, lis ce qu’elle coûte
+                    paste a token address, read what it costs
                   </label>
                   <input
                     id="jeton-hero"
@@ -405,12 +405,12 @@ export function Carte({
                     aria-describedby="jeton-hero-aide"
                     aria-invalid={saisie.length > 0 && !valide}
                     ref={champ}
-                    placeholder="0x2eb2… 40 caractères après 0x"
+                    placeholder="0x2eb2… 40 characters after 0x"
                     className="t-data hex champ"
                   />
                 </div>
                 <button type="submit" className="bouton-primaire">
-                  {saisie ? 'recommencer' : 'voir ce qu’elle coûte'}
+                  {saisie ? 'start over' : 'see what it costs'}
                 </button>
                 {/* L'aide et les jetons de demonstration partagent la ligne du dessous : la
                     barre remplace la section d'operation, il faut donc pouvoir essayer sans
@@ -418,10 +418,10 @@ export function Carte({
                 <span className="hero-aide flex flex-wrap items-center" style={{ gap: 10, flexBasis: '100%' }}>
                   <span id="jeton-hero-aide" className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
                     {saisie.length > 0 && !valide
-                      ? 'une adresse de contrat ERC-20 sur Base : 0x suivi de 40 caractères hexadécimaux'
+                      ? 'an ERC-20 contract address on Base: 0x followed by 40 hexadecimal characters'
                       : valide
-                        ? 'calculé ici, sur le corpus embarqué — aucune requête'
-                        : 'rien n’est envoyé, le corpus est dans la page — ou essaie un de ces trois jetons mesurés'}
+                        ? 'computed here, on the embedded corpus — no request'
+                        : 'nothing is sent, the corpus is in the page — or try one of these three measured tokens'}
                   </span>
                   {!saisie &&
                     demos.map((d) => (
@@ -430,7 +430,7 @@ export function Carte({
                         type="button"
                         className="jeton-demo t-data-sm"
                         onClick={() => setSaisie(d.adresse)}
-                        title={`${d.adresse} — ${d.ecart.toFixed(2)} bps entre sa porte la moins chère et la plus chère`}
+                        title={`${d.adresse} — ${d.ecart.toFixed(2)} bps between its cheapest and its most expensive door`}
                       >
                         {/* L'ADRESSE SEULE NE DIT PAS QUOI CLIQUER. Le depot n'a aucune table de
                             symboles : ecrire « USDC » serait invente. On affiche donc ce qu'on
@@ -442,7 +442,7 @@ export function Carte({
                           <span className="hex">{court(d.adresse)}</span>
                         )}
                         <span style={{ color: 'var(--m-6)', marginLeft: 6 }}>
-                          {d.ecart.toFixed(0)} bps d’écart
+                          {d.ecart.toFixed(0)} bps gap
                         </span>
                       </button>
                     ))}
@@ -469,9 +469,9 @@ export function Carte({
                     {reponse.ecart}
                   </output>
                   <p className="t-body m-0 t-body-muted" style={{ maxWidth: '34ch' }}>
-                    bps entre ses {reponse.portes} portes, payé en {reponse.monnaie}&nbsp;: de{' '}
-                    <span className="t-data" style={{ color: 'var(--ink)' }}>{reponse.bas}</span> à{' '}
-                    <span className="t-data">{reponse.haut}</span> bps selon celle qu’on prend.
+                    bps between its {reponse.portes} doors, paid in {reponse.monnaie}: from{' '}
+                    <span className="t-data" style={{ color: 'var(--ink)' }}>{reponse.bas}</span> to{' '}
+                    <span className="t-data">{reponse.haut}</span> bps depending on which one you take.
                   </p>
                 </>
               ) : (
@@ -481,9 +481,9 @@ export function Carte({
                       {paire.bps}
                     </output>
                     <p className="t-body m-0 t-body-muted" style={{ maxWidth: '34ch' }}>
-                      bps pris sur un swap réellement exécuté&nbsp;: il en reste{' '}
-                      <span className="t-data" style={{ color: 'var(--ink)' }}>{paire.avec}</span> au
-                      lieu de <span className="t-data">{paire.sans}</span>, à 89 octets inertes près.
+                      bps taken on a swap that really ran: {' '}
+                      <span className="t-data" style={{ color: 'var(--ink)' }}>{paire.avec}</span> is
+                      left instead of <span className="t-data">{paire.sans}</span>, to within 89 inert bytes.
                     </p>
                   </>
                 )
@@ -498,18 +498,18 @@ export function Carte({
         <div className="flex flex-wrap items-baseline justify-between gap-x-[24px] gap-y-[6px] pb-[14px]">
           <div className="flex flex-wrap items-baseline" style={{ gap: 12 }}>
             <h2 className="t-headline m-0" style={{ fontSize: '1.25rem' }}>
-              La chaîne et ses {OUTILS.length} outils
+              The chain and its {OUTILS.length} tools
             </h2>
             {/* DEUXIÈME INTERACTION, écrite : un nœud s'ouvre. */}
             <span className="t-body t-body-muted" style={{ fontSize: 13 }}>
-              cliquer un outil ouvre sa page, le survoler allume son chemin
+              clicking a tool opens its page, hovering lights its path
             </span>
           </div>
           <dl className="legende m-0 p-0 flex flex-wrap items-baseline" style={{ gap: 16 }}>
             {ORDRE.map((f) => (
               <div key={f} className="flex items-baseline" style={{ gap: 8 }}>
                 <span aria-hidden="true" className="nuancier" style={{ background: COULEUR[f], height: 6 }} />
-                <dt className="legende-nom m-0" style={{ fontSize: 14 }}>{f}</dt>
+                <dt className="legende-nom m-0" style={{ fontSize: 14 }}>{FAMILLES[f].nom}</dt>
                 <dd className="legende-glose m-0 t-body-muted" style={{ fontSize: 13 }}>
                   {QUOI[f]}
                 </dd>
@@ -578,7 +578,7 @@ export function Carte({
             {/* LA SOURCE : les jeux de données, comptés, tronqués en le disant. */}
             <div ref={rail} className="flex flex-col carte-source">
               <p className="t-data-sm m-0 pb-[8px]" style={{ color: 'var(--ink-2)' }}>
-                {nJeux} jeux de données
+                {nJeux} datasets
               </p>
               <ul className="m-0 p-0 flex flex-col" style={{ listStyle: 'none', borderTop: '1px solid var(--line)' }}>
                 {DONNEES.slice(0, empile ? 3 : 6).map((j) => (
@@ -593,7 +593,7 @@ export function Carte({
                   </li>
                 ))}
                 <li className="t-data-sm py-[6px]" style={{ color: 'var(--ink-2)' }}>
-                  et {nJeux - (empile ? 3 : 6)} autres, plus bas
+                  and {nJeux - (empile ? 3 : 6)} more, further down
                 </li>
               </ul>
             </div>
@@ -614,13 +614,13 @@ export function Carte({
               ))}
               <div className="px-[16px] pt-[14px]">
                 <p className="t-headline m-0" style={{ fontSize: '1.25rem' }}>
-                  La chaîne
+                  The chain
                 </p>
                 <p className="t-data m-0 pt-[6px]" style={{ color: 'var(--ink)' }}>
-                  {ch ? `${ch.n_ok}/${ch.n_total} étapes en ${msFr(ch.duree_ms)}` : '—'}
+                  {ch ? `${ch.n_ok}/${ch.n_total} steps in ${msFr(ch.duree_ms)}` : '—'}
                 </p>
                 <p className="m-0 pt-[2px] t-body-muted" style={{ fontSize: 13, lineHeight: 1.4 }}>
-                  {ch?.complete ? 'bout en bout, sous une seule horloge' : 'une étape n’a pas tourné'}
+                  {ch?.complete ? 'end to end, under a single clock' : 'one step did not run'}
                 </p>
               </div>
               <ul
@@ -644,7 +644,7 @@ export function Carte({
             {/* Empilé, le rail descend sous les outils : un compteur prend sa place. */}
             <a href="#donnees" className="carte-compteur t-data-sm no-underline px-[10px] py-[8px]"
                style={{ color: 'var(--ink-2)', border: '1px solid var(--line)', minHeight: 44, display: 'none', alignItems: 'center' }}>
-              {nJeux} jeux de données, en amont
+              {nJeux} datasets, upstream
             </a>
 
             {/* LES QUATORZE PLAQUES, trois colonnes de famille. */}
@@ -707,7 +707,7 @@ export function Carte({
               <span className="scroll-cue-pion" />
             </span>
             <span className="t-data-sm">
-              plus bas&nbsp;: pourquoi TARE existe, les cinq accès, et quelle donnée sert quel outil
+              further down: why TARE exists, the five ways in, and which data serves which tool
             </span>
           </button>
         </div>

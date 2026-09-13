@@ -41,265 +41,266 @@ export interface Jeu {
 export const DONNEES: Jeu[] = [
   {
     cle: 'corpus',
-    nom: 'le corpus de mesures',
+    nom: 'the measurement corpus',
     quoi:
-      "une ligne par swap contrefactuel : le pool, le hook, la taille, le sens, les deux " +
-      "cotations, l'écart en points de base, et l'étiquette qui dit si c'est mesuré, interpolé " +
-      "ou non mesurable",
-    produit: 'python3 -m tare.sweep (engine/tare/measure.py), sur un fork anvil épinglé',
+      'one row per counterfactual swap: the pool, the hook, the size, the direction, both ' +
+      'quotes, the gap in basis points, and the label that says whether it is measured, ' +
+      'interpolated or not measurable',
+    produit: 'python3 -m tare.sweep (engine/tare/measure.py), on a pinned anvil fork',
     lu_par: [2, 3, 5, 6, 7, 14],
     ecrit_par: [1],
   },
   {
     cle: 'corpus_resume',
-    nom: 'le résumé du corpus',
+    nom: 'the corpus summary',
     quoi:
-      "les seuils, les tailles, les sens, le hash du talon, le bloc, et le décompte par " +
-      "étiquette — de quoi vérifier qu'un chiffre publié vient bien de ce corpus-là",
+      'the thresholds, the sizes, the directions, the stub hash, the block, and the count per ' +
+      'label — enough to check that a published number really comes from that corpus',
     produit: 'python3 -m tare.cli summary',
     lu_par: [2, 4],
     ecrit_par: [1],
   },
   {
     cle: 'corpus_encode',
-    nom: 'le corpus encodé par colonnes',
+    nom: 'the column-encoded corpus',
     quoi:
-      "le même corpus, colonne par colonne, pour tenir dans une page web : c'est LUI que le " +
-      "site charge, et c'est pour ça que le site répond sans une seule requête réseau",
+      'the same corpus, column by column, so it fits inside a web page: this is the one the ' +
+      'site loads, and it is why the site answers without a single network request',
     produit: 'node apps/web/scripts/build-dataset.mjs',
     lu_par: [2, 3, 5, 6],
     ecrit_par: [],
   },
   {
     cle: 'table_garde',
-    nom: 'la table de la garde',
+    nom: 'the guard table',
     quoi:
-      "le corpus remis à plat pour être interrogé par clé de pool, embarqué tel quel dans " +
-      "l'extension et dans le serveur MCP — c'est ce qui leur permet de répondre hors ligne",
+      'the corpus flattened so it can be queried by pool key, shipped as it is inside the ' +
+      'extension and inside the MCP server — this is what lets them answer offline',
     produit: 'node packages/guard/scripts/build-table.mjs',
     lu_par: [2, 6, 7, 8],
     ecrit_par: [],
   },
   {
     cle: 'chiffres_alternative',
-    nom: 'les chiffres de la porte de remplacement',
+    nom: 'the replacement door numbers',
     quoi:
-      "le poids réel de chaque état de la recherche d'alternative, dont la part de cas où la " +
-      "réponse est « il n'y a qu'une porte » — le chiffre qu'on ne voulait pas écrire à la main",
+      'the real weight of every state of the alternative search, including the share of cases ' +
+      'where the answer is “there is only one door” — the number we refused to write by hand',
     produit: 'node packages/guard/scripts/chiffres-alternative.mjs',
     lu_par: [6, 7],
     ecrit_par: [],
   },
   {
     cle: 'sens_unique',
-    nom: 'les pools à sens unique',
+    nom: 'the one-way pools',
     quoi:
-      "les pools qui laissent entrer gratuitement et ne laissent pas ressortir : zéro point de " +
-      "base à l'aller, jusqu'à 9 999 au retour — le cas que seul un aller-retour révèle",
-    produit: 'python3 -m tare.oneway, à partir du corpus',
+      'the pools that let you in for free and do not let you back out: zero basis points on ' +
+      'the way in, up to 9 999 on the way back — the case only a round trip reveals',
+    produit: 'python3 -m tare.oneway, from the corpus',
     lu_par: [3, 6],
     ecrit_par: [1],
   },
   {
     cle: 'porte_a4',
-    nom: 'la porte A4 — le swap réellement exécuté',
+    nom: 'gate A4 — the swap actually executed',
     quoi:
-      "des swaps vraiment passés sur un fork, confrontés à ce que la cotation annonçait : la " +
-      "seule preuve que le contrefactuel ne ment pas, divergence comprise",
+      'swaps really sent on a fork, put against what the quote announced: the only proof that ' +
+      'the counterfactual does not lie, divergence included',
     produit: 'python3 -m tare.gates.a4 --write',
     lu_par: [1, 5],
     ecrit_par: [1],
   },
   {
     cle: 'porte_a4_journal',
-    nom: 'le journal de la porte A4',
-    quoi: "la trace brute de chaque sonde, avec sa commande de rejeu",
+    nom: 'the gate A4 log',
+    quoi: 'the raw trace of every probe, together with its replay command',
     produit: 'python3 -m tare.gates.a4 --write',
     lu_par: [1],
     ecrit_par: [1],
   },
   {
     cle: 'contestes_mesures',
-    nom: 'les mesures contestées',
+    nom: 'the disputed measurements',
     quoi:
-      "les pools où notre mesure et la source externe ne disent pas la même chose, remesurés " +
-      "un par un au lieu d'être écartés",
-    produit: 'python3 -m tare.sweep sur la liste des divergences',
+      'the pools where our measurement and the external source disagree, measured again one ' +
+      'by one instead of being set aside',
+    produit: 'python3 -m tare.sweep on the list of divergences',
     lu_par: [2, 4],
     ecrit_par: [1],
   },
   {
     cle: 'contestes_resume',
-    nom: 'le résumé des contestées',
-    quoi: "le même résumé que pour le corpus, restreint aux pools contestés",
+    nom: 'the summary of the disputed ones',
+    quoi: 'the same summary as for the corpus, restricted to the disputed pools',
     produit: 'python3 -m tare.cli summary',
     lu_par: [4],
     ecrit_par: [1],
   },
   {
     cle: 'contestes_pools',
-    nom: 'la liste des pools contestés',
-    quoi: "les pools retenus pour la remesure, et pourquoi chacun l'a été",
-    produit: 'engine/tare/source/, confronté au corpus',
+    nom: 'the list of disputed pools',
+    quoi: 'the pools kept for re-measurement, and why each one of them was kept',
+    produit: 'engine/tare/source/, put against the corpus',
     lu_par: [4],
     ecrit_par: [],
   },
   {
     cle: 'recensement',
-    nom: 'le recensement des pools',
+    nom: 'the pool census',
     quoi:
-      "tous les événements Initialize du PoolManager sur 200 000 blocs de Base : c'est " +
-      "l'univers de départ, celui dont tout le reste est un sous-ensemble",
-    produit: 'python3 -m tare.collect 50614000 200000 docs/dataset/init-logs-200k.json, par tranches, avec ses échecs déclarés',
+      'every Initialize event of the PoolManager over 200 000 blocks of Base: this is the ' +
+      'starting universe, the one everything else is a subset of',
+    produit: 'python3 -m tare.collect 50614000 200000 docs/dataset/init-logs-200k.json, in slices, with its failures declared',
     lu_par: [4, 5],
     ecrit_par: [],
   },
   {
     cle: 'recensement_manifeste',
-    nom: 'le manifeste du recensement',
+    nom: 'the census manifest',
     quoi:
-      "la couverture du balayage : les tranches demandées, celles qui ont échoué, et le " +
-      "nombre de hooks distincts trouvés — sans quoi « 1 559 hooks » ne serait pas vérifiable",
-    produit: 'python3 -m tare.collect — le manifeste est écrit avec le fichier',
+      'the coverage of the sweep: the slices requested, the ones that failed, and the number ' +
+      'of distinct hooks found — without which “1 559 hooks” would not be verifiable',
+    produit: 'python3 -m tare.collect — the manifest is written along with the file',
     lu_par: [4],
     ecrit_par: [],
   },
   {
     cle: 'pools_liquides',
-    nom: 'les pools liquides',
+    nom: 'the liquid pools',
     quoi:
-      "les pools du recensement qui ont vraiment de la liquidité, avec leur PoolKey complète — " +
-      "mesurer un pool vide rendrait un chiffre propre et faux",
+      'the pools of the census that really hold liquidity, with their complete PoolKey — ' +
+      'measuring an empty pool would return a clean number that is false',
     produit: 'python3 -m tare.rescan',
     lu_par: [1, 5],
     ecrit_par: [],
   },
   {
     cle: 'pools_liquides_scan',
-    nom: 'le scan de liquidité',
+    nom: 'the liquidity scan',
     quoi:
-      "le décompte du tri : combien lisibles, combien liquides, combien à zéro, combien " +
-      "inconnus et pour quelle cause",
+      'the tally of the sorting: how many readable, how many liquid, how many at zero, how ' +
+      'many unknown and for which reason',
     produit: 'python3 -m tare.rescan',
     lu_par: [5],
     ecrit_par: [],
   },
   {
     cle: 'declarations',
-    nom: 'les déclarations des hooks',
+    nom: 'the declarations of the hooks',
     quoi:
-      "le balayage des événements que les hooks émettent eux-mêmes : sur 1 559 hooks, 9 " +
-      "annoncent ce qu'ils prennent. C'est la mesure de ce que l'auto-déclaration vaut",
+      'the sweep of the events the hooks emit themselves: out of 1 559 hooks, 9 announce ' +
+      'what they take. This is the measure of what self-declaration is worth',
     produit: 'python3 -m tare.declare --scan --write',
     lu_par: [4],
     ecrit_par: [],
   },
   {
     cle: 'registre_couverture',
-    nom: 'la couverture du registre',
+    nom: 'the registry coverage',
     quoi:
-      "ce que le registre officiel des hooks contient, confronté aux hooks qu'on a vus " +
-      "vraiment tourner : la part des absents est le chiffre du jour",
+      'what the official hook registry holds, put against the hooks we have actually seen ' +
+      'running: the share of missing ones is the number of the day',
     produit: 'python3 -m tare.registre',
     lu_par: [4],
     ecrit_par: [],
   },
   {
     cle: 'registre_epingle',
-    nom: 'le registre épinglé',
+    nom: 'the pinned registry',
     quoi:
-      "la copie datée du registre officiel, figée dans le dépôt pour que le chiffre publié " +
-      "reste vérifiable même si la liste bouge demain",
+      'the dated copy of the official registry, frozen in the repository so the published ' +
+      'number stays verifiable even if the list moves tomorrow',
     produit: 'node apps/web/scripts/fetch-registry.mjs',
     lu_par: [4],
     ecrit_par: [],
   },
   {
     cle: 'registre_vivant',
-    nom: 'le registre du jour',
-    quoi: "la même liste relue plus tard : l'écart avec la copie épinglée se voit",
+    nom: 'the registry of the day',
+    quoi: 'the same list read again later: the gap with the pinned copy is visible',
     produit: 'node apps/web/scripts/fetch-registry.mjs',
     lu_par: [4],
     ecrit_par: [],
   },
   {
     cle: 'volume',
-    nom: 'le volume confronté à une source indépendante',
+    nom: 'volume put against an independent source',
     quoi:
-      "le volume et la TVL des pools du recensement, lus chez The Graph : une source qu'on ne " +
-      "contrôle pas, utilisée pour se contredire et non pour se confirmer",
+      'the volume and the TVL of the census pools, read from The Graph: a source we do not ' +
+      'control, used to contradict ourselves and not to confirm ourselves',
     produit: 'python3 -m tare.volume',
     lu_par: [4],
     ecrit_par: [],
   },
   {
     cle: 'reglements',
-    nom: 'les règlements x402',
+    nom: 'the x402 settlements',
     quoi:
-      "chaque paiement de mesure : le montant, le hash, et sa relecture sur le mirror node " +
-      "Hedera — un règlement n'est compté que si le mirror node le rend",
-    produit: 'apps/api/src/x402.ts, à chaque mesure payée',
+      'every measurement payment: the amount, the hash, and the read-back on the Hedera ' +
+      'mirror node — a settlement is only counted if the mirror node returns it',
+    produit: 'apps/api/src/x402.ts, on every paid measurement',
     lu_par: [13],
     ecrit_par: [10],
   },
   {
     cle: 'identite',
-    nom: "l'identité de l'agent",
+    nom: 'the identity of the agent',
     quoi:
-      "l'UAID HCS-14, les six champs canoniques dont il est le haché, et le message publié sur " +
-      "le topic Hedera — l'appelant peut recalculer l'identité avant de payer",
-    produit: 'npx tsx apps/api/src/agent/cli.ts export, publié sur le topic HCS',
+      'the HCS-14 UAID, the six canonical fields it is the hash of, and the message published ' +
+      'on the Hedera topic — the caller can recompute the identity before paying',
+    produit: 'npx tsx apps/api/src/agent/cli.ts export, published on the HCS topic',
     lu_par: [10, 13],
     ecrit_par: [13],
   },
   {
     cle: 'attestations',
-    nom: 'les attestations on-chain',
+    nom: 'the on-chain attestations',
     quoi:
-      "le prélèvement médian et maximum par hook, calculés sur le corpus, et l'état réel de " +
-      "leur écriture : calculées, écartées faute de mesure, ou vraiment écrites",
-    produit: 'python3 -m tare.attest, à partir du corpus',
+      'the median and maximum take per hook, computed over the corpus, and the real state of ' +
+      'their writing: computed, set aside for lack of measurements, or actually written',
+    produit: 'python3 -m tare.attest, from the corpus',
     lu_par: [2],
     ecrit_par: [14],
   },
   {
     cle: 'chaine',
-    nom: 'la chaîne complète',
+    nom: 'the complete chain',
     quoi:
-      "les six étapes bout en bout — transaction réelle, verdict, recherche de porte, mesure " +
-      "payée, ancrage HCS, signature sur l'appareil — avec leur durée et leur état",
+      'the six steps end to end — real transaction, verdict, door search, paid measurement, ' +
+      'HCS anchoring, signature on the device — with their duration and their state',
     produit: 'apps/api/src/chaine/run.ts',
     lu_par: [8, 13],
     ecrit_par: [],
   },
   {
     cle: 'concordance',
-    nom: 'la concordance source ↔ mesure',
+    nom: 'the source ↔ measurement agreement',
     quoi:
-      "les 112 hooks confrontés à leur propre code source, quand il est public : là où le code " +
-      "annonce un taux, la mesure le confirme — et les 94 cas où elle ne le confirme pas sont " +
-      "publiés, jusqu'à 9 979 bps d'écart",
+      'the 112 hooks put against their own source code, when it is public: where the code ' +
+      'announces a rate, the measurement confirms it — and the 94 cases where it does not are ' +
+      'published, up to 9 979 bps of gap',
     produit: 'python3 -m tare.source.cli analyze',
     lu_par: [4],
     ecrit_par: [],
   },
   {
     cle: 'graphe_cache',
-    nom: 'le cache du graphe de bytecode',
+    nom: 'the bytecode graph cache',
     quoi:
-      "ce que la reconstruction du graphe garde de la chaîne : le graphe complet pèse 198 Mo et " +
-      "n'est pas livré, il se reconstruit — ce cache est ce qui permet de le refaire sans tout relire",
+      'what the graph rebuild keeps from the chain: the complete graph weighs 198 MB and is ' +
+      'not shipped, it is rebuilt — this cache is what makes redoing it possible without ' +
+      'reading everything again',
     produit: 'python3 -m tare.graph.cli build',
     lu_par: [4],
     ecrit_par: [],
   },
   {
     cle: 'ledger',
-    nom: "les écrans de l'appareil",
+    nom: 'the screens of the device',
     quoi:
-      "le rapport encodé en EIP-712 tel qu'il s'affiche, écran par écran, sur le Ledger — on " +
-      "ne signe pas un haché opaque, on lit ce qu'on signe",
-    produit: 'packages/keyring, contre un Speculos',
+      'the EIP-712 encoded report as it is displayed, screen by screen, on the Ledger — you ' +
+      'do not sign an opaque hash, you read what you sign',
+    produit: 'packages/keyring, against a Speculos',
     lu_par: [9],
     ecrit_par: [9],
   },
@@ -323,8 +324,8 @@ export interface Volume {
 
 /** « 90,4 Mo », « 8,3 Mo », « 957 o » — jamais un nombre brut d'octets dans la page. */
 export const taille = (octets: number | null): string => {
-  if (octets === null) return 'non lu'
-  if (octets >= 1_000_000) return `${(octets / 1_000_000).toFixed(1).replace('.', ',')} Mo`
-  if (octets >= 1_000) return `${Math.round(octets / 1_000)} ko`
-  return `${octets} o`
+  if (octets === null) return 'not read'
+  if (octets >= 1_000_000) return `${(octets / 1_000_000).toFixed(1)} MB`
+  if (octets >= 1_000) return `${Math.round(octets / 1_000)} kB`
+  return `${octets} B`
 }

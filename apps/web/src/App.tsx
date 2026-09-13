@@ -20,7 +20,7 @@ import { ReglagesPage } from './components/Reglages'
 import { DeckPage } from './components/Deck'
 import { DeveloppeursPage } from './components/Developpeurs'
 import { FeuillePage } from './components/Feuille'
-import { OUTILS } from './lib/outils'
+import { OUTILS, FAMILLES } from './lib/outils'
 import { COULEUR as COULEUR_FAM, ORDRE as ORDRE_FAM } from './components/familles'
 import { Reveal, Route as RouteMotion } from './components/Motion'
 import FA from './data/facts.json'
@@ -86,7 +86,7 @@ function Evitement() {
         e.currentTarget.style.top = '-60px'
       }}
     >
-      aller au contenu
+      skip to content
     </a>
   )
 }
@@ -120,15 +120,15 @@ function MenuOutils({ n, aller }: { n: number | null; aller: (n: number) => void
   return (
     <details ref={ref} className="relative menu-outils">
       <summary className="nav-lien cursor-pointer list-none inline-flex items-center" style={{ gap: 7 }}>
-        les outils
+        the tools
         <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>{OUTILS.length}</span>
       </summary>
-      <div className="menu-panneau" role="group" aria-label="les quatorze outils">
+      <div className="menu-panneau" role="group" aria-label="the fourteen tools">
         {ORDRE_FAM.map((f) => (
           <div key={f} className="flex flex-col" style={{ gap: 2 }}>
             <span className="t-data-sm flex items-center" style={{ gap: 8, color: 'var(--ink-2)', padding: '2px 0 6px' }}>
               <span aria-hidden="true" style={{ width: 10, height: 3, background: COULEUR_FAM[f], display: 'inline-block' }} />
-              {f}
+              {FAMILLES[f].nom}
             </span>
             {OUTILS.filter((o) => o.famille === f).map((o) => (
               <a
@@ -168,19 +168,19 @@ function Head({
   versOutil: (n: number) => void
 }) {
   const paires: [string, string][] = [
-    ['chaîne', `base, chainid ${P.measurements.chain_ids.join(', ')}`],
-    ['bloc épinglé', P.measurements.blocks.map(fmtBlock).join(', ')],
-    ['moteur', P.measurements.engine_ver],
-    ['talon', P.measurements.stub_hash],
-    ['registre', `${P.registry.commit.slice(0, 7)}, ${P.registry.entries} fiches`],
+    ['chain', `base, chainid ${P.measurements.chain_ids.join(', ')}`],
+    ['pinned block', P.measurements.blocks.map(fmtBlock).join(', ')],
+    ['engine', P.measurements.engine_ver],
+    ['stub', P.measurements.stub_hash],
+    ['registry', `${P.registry.commit.slice(0, 7)}, ${P.registry.entries} entries`],
   ]
   const routes = [
-    { h: '/', t: 'la carte', actif: vue.quoi === 'accueil' || vue.quoi === 'outil' },
-    { h: '/instrument', t: "l'instrument", actif: vue.quoi === 'instrument' },
-    { h: '/deck', t: 'le deck', actif: vue.quoi === 'deck' },
-    { h: '/developpeurs', t: 'développeurs', actif: vue.quoi === 'developpeurs' },
-    { h: '/roadmap', t: 'feuille de route', actif: vue.quoi === 'feuille' },
-    { h: '/reglages', t: 'réglages', actif: vue.quoi === 'reglages' },
+    { h: '/', t: 'the map', actif: vue.quoi === 'accueil' || vue.quoi === 'outil' },
+    { h: '/instrument', t: 'the instrument', actif: vue.quoi === 'instrument' },
+    { h: '/deck', t: 'the deck', actif: vue.quoi === 'deck' },
+    { h: '/developpeurs', t: 'developers', actif: vue.quoi === 'developpeurs' },
+    { h: '/roadmap', t: 'roadmap', actif: vue.quoi === 'feuille' },
+    { h: '/reglages', t: 'settings', actif: vue.quoi === 'reglages' },
   ]
   return (
     <header
@@ -195,7 +195,7 @@ function Head({
         {/* La barre porte une entree de plus depuis le deck : sous 400 px elle depassait la
             page. Elle defile donc DANS elle-meme, comme le bandeau d'onglets, au lieu de
             pousser la fenetre. */}
-        <nav className="flex items-center gap-[2px] ml-[12px] nav-routes" aria-label="les vues">
+        <nav className="flex items-center gap-[2px] ml-[12px] nav-routes" aria-label="the views">
           <MenuOutils n={vue.quoi === 'outil' ? vue.n : null} aller={versOutil} />
           {routes.map((x) => (
             <a
@@ -236,7 +236,7 @@ function Head({
           className="bouton-ghost nav-theme"
           style={{ minHeight: 32, flexShrink: 0 }}
         >
-          {theme === 'dark' ? 'clair' : 'sombre'}
+          {theme === 'dark' ? 'light' : 'dark'}
         </button>
         {/* LE PORTEFEUILLE, tout a droite. Le bouton officiel de RainbowKit : un juge le
             reconnait sans le lire. Il est reduit a sa plus petite forme — pas de chaine, pas
@@ -277,11 +277,11 @@ function Head({
 /** Le verdict. Aucun de ces nombres n'est anime : ils sont ecrits, pas calcules a l'ecran. */
 function Verdict() {
   const items: [string, string, string][] = [
-    [String(T.over1bpsWithZeroStoredFee), 'mesures au-dessus de 1 bps', 'sur des pools dont la commission LP lue on-chain vaut ZERO'],
+    [String(T.over1bpsWithZeroStoredFee), 'measurements above 1 bps', 'on pools whose LP fee, read on-chain, is ZERO'],
     [
       String(T.hooks),
-      'hooks mesurés',
-      `${T.pools.toLocaleString('fr')} pools, ${T.rows.toLocaleString('fr')} mesures, dont ${T.measured.toLocaleString('fr')} étiquetées MESURE`,
+      'hooks measured',
+      `${T.pools.toLocaleString('fr')} pools, ${T.rows.toLocaleString('fr')} measurements, ${T.measured.toLocaleString('fr')} of them labelled MESURE`,
     ],
     // Ce nombre est calcule contre l'instantane EPINGLE du registre. Contre un tirage plus
     // recent il en vaut un autre, et le taire reviendrait a publier le plus flatteur des deux :
@@ -289,15 +289,15 @@ function Verdict() {
     // jour n'est pas un fond stable, et c'est un fait sur le registre.
     [
       String(T.hooksAbsentFromRegistry),
-      'de ces hooks sont absents du registre',
+      'of these hooks are absent from the registry',
       FA.registre
-        ? `${FA.registre.epingle.adresses} adresses au commit épinglé du ${FA.registre.epingle.le?.slice(0, 10)}. Contre le tirage du ${FA.registre.plus_recent.le} (${FA.registre.plus_recent.adresses} adresses), ils sont ${FA.registre.plus_recent.absents} : le registre en a inscrit ${FA.registre.gagnes.length} entre les deux.`
-        : `${P.registry.entries} fiches, aucun champ numérique`,
+        ? `${FA.registre.epingle.adresses} addresses at the pinned commit of ${FA.registre.epingle.le?.slice(0, 10)}. Against the ${FA.registre.plus_recent.le} pull (${FA.registre.plus_recent.adresses} addresses), ${FA.registre.plus_recent.absents} are: the registry added ${FA.registre.gagnes.length} between the two.`
+        : `${P.registry.entries} entries, no numeric field`,
     ],
     [
       String(P.registry.field_census.quantitative_fields.length),
-      'champ quantitatif dans le registre',
-      `${P.registry.field_census.leaf_fields} champs, ${P.registry.field_census.boolean_fields} booléens, 1 numérique (chainId, un identifiant de réseau)`,
+      'quantitative field in the registry',
+      `${P.registry.field_census.leaf_fields} fields, ${P.registry.field_census.boolean_fields} booleans, 1 numeric (chainId, a network identifier)`,
     ],
   ]
   return (
@@ -329,7 +329,7 @@ function Legend() {
       style={{ borderTop: '1px solid var(--line)' }}
     >
       <span className="t-label" style={{ color: 'var(--ink-2)' }}>
-        rampe · inferno [0,18 ; 0,90] · 7 paliers · encode bps et rien d'autre
+        ramp · inferno [0.18 ; 0.90] · 7 steps · encodes bps and nothing else
       </span>
       {PALIERS.map((p) => (
         <span key={p.palier} className="t-data-xs inline-flex items-center gap-[5px]" style={{ color: 'var(--ink-2)' }}>
@@ -346,9 +346,9 @@ function Legend() {
         </span>
       ))}
       <span className="t-data-xs w-full" style={{ color: 'var(--ink-2)' }}>
-        ≠ — le registre est qualitatif&nbsp;: {P.registry.field_census.leaf_fields} champs,{' '}
-        {P.registry.field_census.boolean_fields} booleens, un seul numerique (chainId). Aucun champ
-        ne peut contredire la colonne de droite, parce qu'aucun champ ne chiffre quoi que ce soit.
+        ≠ — the registry is qualitative: {P.registry.field_census.leaf_fields} fields,{' '}
+        {P.registry.field_census.boolean_fields} booleans, one numeric (chainId). No field can
+        contradict the right-hand column, because no field quantifies anything.
       </span>
     </div>
   )
@@ -537,14 +537,14 @@ function AppInterne() {
       <main id="contenu" className="px-[24px] pt-[24px] pb-[24px] mx-auto w-full" style={{ maxWidth: 1360 }}>
         <div className="flex flex-wrap items-end justify-between gap-x-[40px] gap-y-[12px] pb-[28px]">
           <div className="flex flex-col" style={{ gap: 12, maxWidth: '52ch' }}>
-            <h1 className="t-display m-0">L’instrument</h1>
+            <h1 className="t-display m-0">The instrument</h1>
             <p className="t-body t-body-muted m-0">
-              Le corpus en entier, panneau par panneau&nbsp;: ce que le registre déclare, ce que
-              la mesure trouve, et tout ce qui sert à le vérifier. Le sommaire suit la lecture.
+              The whole corpus, panel by panel: what the registry declares, what the measurement
+              finds, and everything it takes to check it. The contents follow your reading.
             </p>
           </div>
           <span className="flex flex-wrap items-baseline t-data-sm" style={{ gap: 14, color: 'var(--ink-2)' }}>
-            <span>{T.rows.toLocaleString('fr')} mesures</span>
+            <span>{T.rows.toLocaleString('fr')} measurements</span>
             <span className="meta-filet">{T.hooks} hooks</span>
             <span className="meta-filet">{T.pools.toLocaleString('fr')} pools</span>
           </span>
@@ -559,42 +559,42 @@ function AppInterne() {
 
         <Panel
           index="01"
-          title="Le même swap, coté deux fois"
-          meta={['lecture immédiate', 'aucun portefeuille', 'aucune requête']}
+          title="The same swap, quoted twice"
+          meta={['immediate read', 'no wallet', 'no request']}
         >
           <Verdict />
           <p
             className="t-body t-body-muted m-0 px-[16px] py-[14px]"
             style={{ maxWidth: '74ch', borderTop: '1px solid var(--line)' }}
           >
-            La PoolKey contient l’adresse du hook&nbsp;: le même pool sans son hook n’existe pas. Sur un
-            fork épinglé, on ne change pas le pool, <strong style={{ color: 'var(--ink)' }}>on change le hook</strong> :
-            <code style={{ fontFamily: 'var(--mono)' }}> anvil_setCode</code> remplace son bytecode par un
-            talon inerte de 89 octets conforme à <code style={{ fontFamily: 'var(--mono)' }}>Hooks.sol</code>.
-            On cote le même swap deux fois via V4Quoter. <strong style={{ color: 'var(--ink)' }}>L’écart est ce que le hook a pris.</strong>{' '}
-            Chaque valeur affichée porte son bloc, sa taille et son sens, et se rejoue en une commande.
+            The PoolKey contains the hook’s address: the same pool without its hook does not exist. On
+            a pinned fork we do not change the pool, <strong style={{ color: 'var(--ink)' }}>we change the hook</strong>:
+            <code style={{ fontFamily: 'var(--mono)' }}> anvil_setCode</code> replaces its bytecode with an
+            89-byte inert stub that conforms to <code style={{ fontFamily: 'var(--mono)' }}>Hooks.sol</code>.
+            We quote the same swap twice through V4Quoter. <strong style={{ color: 'var(--ink)' }}>The gap is what the hook took.</strong>{' '}
+            Every value shown carries its block, its size and its direction, and replays in one command.
           </p>
         </Panel>
 
         <Panel
           index="02"
-          title="Le registre contre la mesure"
+          title="The registry against the measurement"
           right={
             view.filter || view.columns || view.highlight.length ? (
               <span className="t-data-xs flex items-center gap-[8px]" style={{ color: 'var(--ink-2)' }}>
-                assistant&nbsp;: {rows.length}/{dataset.hooks.length} lignes
+                assistant: {rows.length}/{dataset.hooks.length} rows
                 <button
                   type="button"
                   onClick={() => setView(EMPTY_VIEW)}
                   className="t-label px-[6px] py-[2px] cursor-pointer"
                   style={{ border: '1px solid var(--line-strong)', background: 'var(--bg-1)', color: 'var(--ink-2)' }}
                 >
-                  retirer
+                  clear
                 </button>
               </span>
             ) : (
               <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                cliquer une ligne pour ouvrir sa fiche
+                click a row to open its record
               </span>
             )
           }
@@ -646,28 +646,28 @@ function AppInterne() {
           style={{ color: 'var(--ink-2)', borderTop: '1px solid var(--line)' }}
         >
           <span>
-            mesures&nbsp;: {P.measurements.path} · {P.measurements.engine_ver} · relevees le{' '}
+            measurements: {P.measurements.path} · {P.measurements.engine_ver} · taken on{' '}
             {P.measurements.observed_at} · stub <span className="hex">{P.measurements.stub_hash}</span>
           </span>
           <span>
-            registre&nbsp;: {P.registry.source} · {P.registry.file} · commit{' '}
-            <span className="hex">{P.registry.commit}</span> · instantane du {P.registry.fetched_at} ·{' '}
-            {P.registry.entries} fiches
+            registry: {P.registry.source} · {P.registry.file} · commit{' '}
+            <span className="hex">{P.registry.commit}</span> · snapshot of {P.registry.fetched_at} ·{' '}
+            {P.registry.entries} entries
           </span>
           <span>
-            controle des bits de permission&nbsp;: {P.registry.flag_bit_check.entries_matching_low14bits}/
-            {P.registry.flag_bit_check.entries} fiches, {P.registry.flag_bit_check.comparisons} comparaisons,
-            zero ecart · recensement des champs&nbsp;: {P.registry.field_census.leaf_fields} feuilles,{' '}
-            {P.registry.field_census.boolean_fields} booleens, numeriques [
-            {P.registry.field_census.numeric_fields.join(', ')}], quantitatifs{' '}
+            permission-bit check: {P.registry.flag_bit_check.entries_matching_low14bits}/
+            {P.registry.flag_bit_check.entries} entries, {P.registry.flag_bit_check.comparisons} comparisons,
+            zero mismatch · field census: {P.registry.field_census.leaf_fields} leaves,{' '}
+            {P.registry.field_census.boolean_fields} booleans, numeric [
+            {P.registry.field_census.numeric_fields.join(', ')}], quantitative{' '}
             {P.registry.field_census.quantitative_fields.length}
           </span>
           <span>
-            etiquettes&nbsp;: MESURE {T.labelCounts.MESURE ?? 0} · INTERPOLE {T.labelCounts.INTERPOLE ?? 0} ·
+            labels: MESURE {T.labelCounts.MESURE ?? 0} · INTERPOLE {T.labelCounts.INTERPOLE ?? 0} ·
             NON_MESURABLE {T.labelCounts.NON_MESURABLE ?? 0} · NON_COTABLE {T.labelCounts.NON_COTABLE ?? 0}.
-            Une lecture bornee est un NON_MESURABLE, jamais une valeur.
+            A bounded read is a NON_MESURABLE, never a value.
           </span>
-          <span>jeu de donnees compile le {P.built_at}</span>
+          <span>dataset compiled on {P.built_at}</span>
         </footer>
         </div>
       </div>

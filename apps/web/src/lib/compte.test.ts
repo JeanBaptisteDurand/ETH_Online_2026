@@ -122,8 +122,8 @@ test('le panneau ne dit jamais « abonne » parce qu_une transaction est partie'
   // le fichier ENTIER : la phrase rendue a l'utilisateur est une chaine, pas un commentaire.
   const panneau = readFileSync(resolve(import.meta.dirname, '../components/Compte.tsx'), 'utf8')
   const apres = panneau.slice(panneau.indexOf('const payer ='), panneau.indexOf('const relire ='))
-  assert.match(apres, /n'est pas encore incluse/)
-  assert.match(apres, /relire l'abonnement/)
+  assert.match(apres, /not yet included/)
+  assert.match(apres, /re-read the subscription/)
   // et il ne pose pas l'abonnement a actif de sa propre initiative
   assert.equal(/setCompte\([^)]*actif:\s*true/.test(PANNEAU), false)
 })

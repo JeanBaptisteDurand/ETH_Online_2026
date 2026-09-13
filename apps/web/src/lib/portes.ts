@@ -220,8 +220,8 @@ export function ouAcheter(rows: Row[], jetonBrut: string, taille?: string): Rech
       ...vide,
       etat: 'MONNAIE_DE_COTATION',
       raison:
-        `${MONNAIES_DE_COTATION[jeton]} est la monnaie qu'on DÉPENSE, pas celle qu'on achète. ` +
-        `Colle l'adresse du jeton que tu veux obtenir.`,
+        `${MONNAIES_DE_COTATION[jeton]} is the currency you SPEND, not the one you buy. ` +
+        `Paste the address of the token you want to get.`,
     }
   }
 
@@ -233,8 +233,8 @@ export function ouAcheter(rows: Row[], jetonBrut: string, taille?: string): Rech
       ...vide,
       etat: 'JETON_INCONNU',
       raison:
-        "ce jeton n'est dans aucun pool du corpus. Le corpus est épinglé à un bloc : un pool " +
-        'créé depuis n\'y figure pas, et son absence ici ne dit rien de son existence.',
+        'this token is in no pool of the corpus. The corpus is pinned to a block: a pool ' +
+        'created since then is not in it, and its absence here says nothing about its existence.',
     }
   }
 
@@ -313,9 +313,9 @@ export function ouAcheter(rows: Row[], jetonBrut: string, taille?: string): Rech
       ...base,
       etat: 'PORTE_UNIQUE',
       raison:
-        "ce jeton n'existe que dans un seul pool du corpus : il n'y a nulle part ailleurs où " +
-        "aller. C'est le cas de 97,2 % des 8 583 jetons mesurés, et la seule décision qui " +
-        'reste est la taille.',
+        'this token exists in a single pool of the corpus: there is nowhere else to go. ' +
+        'That is the case for 97.2% of the 8 583 measured tokens, and the only decision ' +
+        'left is the size.',
     }
   }
 
@@ -324,8 +324,8 @@ export function ouAcheter(rows: Row[], jetonBrut: string, taille?: string): Rech
       ...base,
       etat: 'AUCUNE_MESUREE',
       raison:
-        `${poolsDuJeton.size} portes existent pour ce jeton, mais aucune n'est mesurée à ` +
-        `${t}. Une porte non mesurée n'est pas une porte moins chère : elle est inconnue.`,
+        `${poolsDuJeton.size} doors exist for this token, but none of them is measured at ` +
+        `${t}. A door that is not measured is not a cheaper door: it is unknown.`,
     }
   }
 
@@ -337,14 +337,14 @@ export function ouAcheter(rows: Row[], jetonBrut: string, taille?: string): Rech
       ...base,
       etat: 'AUCUNE_MESUREE',
       raison:
-        `${poolsDuJeton.size} portes existent pour ce jeton, mais aucune monnaie n'en a deux ` +
-        `mesurées à ${t}. ` +
+        `${poolsDuJeton.size} doors exist for this token, but no currency has two of them ` +
+        `measured at ${t}. ` +
         (mesurees.length === 1
-          ? 'Une seule est mesurée : comparer une mesure à une inconnue ne donne pas un classement.'
+          ? 'Only one is measured: comparing a measurement with an unknown does not make a ranking.'
           : mesurees.length > 1
-            ? 'Celles qui le sont paient dans des monnaies différentes, et deux montants ' +
-              'nominaux égaux dans deux monnaies ne sont pas le même montant.'
-            : 'Une porte non mesurée n\'est pas une porte moins chère : elle est inconnue.'),
+            ? 'The ones that are measured pay in different currencies, and two equal nominal ' +
+              'amounts in two currencies are not the same amount.'
+            : 'A door that is not measured is not a cheaper door: it is unknown.'),
     }
   }
 
@@ -354,12 +354,12 @@ export function ouAcheter(rows: Row[], jetonBrut: string, taille?: string): Rech
     ...base,
     etat: 'PLUSIEURS_PORTES',
     raison:
-      `${meilleur.classees.length} portes mesurées à la même taille, au même bloc et dans la ` +
-      `même monnaie (${meilleur.paieAvecNom ?? meilleur.paieAvec.slice(0, 10) + '…'}). ` +
+      `${meilleur.classees.length} doors measured at the same size, at the same block and in ` +
+      `the same currency (${meilleur.paieAvecNom ?? meilleur.paieAvec.slice(0, 10) + '…'}). ` +
       (ec < 1
-        ? `Elles coûtent la même chose à ${ec.toFixed(4)} bps près : le choix de la porte ne ` +
-          'change rien ici, et la variable qui reste est la taille.'
-        : `${ec.toFixed(2)} bps séparent la moins chère de la plus chère.`),
+        ? `They cost the same to within ${ec.toFixed(4)} bps: the choice of door changes ` +
+          'nothing here, and the variable that remains is the size.'
+        : `${ec.toFixed(2)} bps separate the cheapest from the most expensive.`),
   }
 }
 

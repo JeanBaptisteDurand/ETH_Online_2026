@@ -16,6 +16,7 @@ import { IndexPanneaux } from './components/Index'
 import { Carte } from './components/Carte'
 import { OutilPanel } from './components/Outil'
 import { Portefeuilles } from './compte/wallet'
+import { DeckPage } from './components/Deck'
 import { OUTILS } from './lib/outils'
 import { COULEUR as COULEUR_FAM, ORDRE as ORDRE_FAM } from './components/familles'
 import { Reveal, Route as RouteMotion } from './components/Motion'
@@ -173,6 +174,7 @@ function Head({
   const routes = [
     { h: '/', t: 'la carte', actif: vue.quoi === 'accueil' || vue.quoi === 'outil' },
     { h: '/instrument', t: "l'instrument", actif: vue.quoi === 'instrument' },
+    { h: '/deck', t: 'le deck', actif: vue.quoi === 'deck' },
   ]
   return (
     <header
@@ -322,7 +324,7 @@ function Legend() {
  * Le fragment porte déjà l'état de l'assistant, encodé sous `tare=` (voir chat/engine.ts).
  * Les chemins commencent donc par `/`, que ce décodeur-là ne peut pas confondre avec le sien.
  */
-type Vue = { quoi: 'accueil' } | { quoi: 'instrument' } | { quoi: 'outil'; n: number }
+type Vue = { quoi: 'accueil' } | { quoi: 'instrument' } | { quoi: 'deck' } | { quoi: 'outil'; n: number }
 
 function lireVue(hash: string): Vue {
   const m = /^#\/outil\/(\d+)/.exec(hash)
@@ -331,6 +333,7 @@ function lireVue(hash: string): Vue {
     if (OUTILS.some((o) => o.n === n)) return { quoi: 'outil', n }
   }
   if (hash.startsWith('#/instrument')) return { quoi: 'instrument' }
+  if (hash.startsWith('#/deck')) return { quoi: 'deck' }
   return { quoi: 'accueil' }
 }
 
@@ -420,6 +423,18 @@ function AppInterne() {
             </Reveal>
           </main>
         </RouteMotion>
+      </div>
+    )
+  }
+
+  if (vue.quoi === 'deck') {
+    return (
+      <div className="min-h-full">
+        <Evitement />
+        <Head theme={theme} setTheme={setTheme} vue={vue} versOutil={versOutil} />
+        <main id="contenu" className="flex flex-col gap-[16px] p-[16px] mx-auto" style={{ maxWidth: 1360 }}>
+          <DeckPage surOutil={versOutil} />
+        </main>
       </div>
     )
   }

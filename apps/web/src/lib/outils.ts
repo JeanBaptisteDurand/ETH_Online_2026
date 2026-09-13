@@ -548,9 +548,10 @@ export const ACCES: AccesDesc[] = [
     pour: 'quelqu\'un qui veut une réponse maintenant, sans rien installer',
     pourquoi:
       "parce que le corpus entier est dans la page : 125 072 mesures encodées par colonnes, " +
-      "7,9 Mo. On colle une adresse et on lit le résultat — pas de portefeuille, pas de compte, " +
+      "8,3 Mo. On colle une adresse et on lit le résultat — pas de portefeuille, pas de compte, " +
       "pas une seule requête réseau. Un jugement asynchrone se fait sur pièces : les 27 projets " +
-      "primés en asynchrone avaient TOUS une URL de démo vivante, 27 sur 27. C'est celle-là, et " +
+      "primés en asynchrone, 26 sur 27 avaient une URL de démo VIVANTE dans leur soumission. " +
+      "C'est celle-là, et " +
       "elle s'ouvre en cinq secondes.",
     prerequis: 'rien',
     outils: [2, 3, 4, 5, 6, 7, 9, 13, 14],

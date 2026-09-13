@@ -16,12 +16,17 @@
 > at the moment it is spoken. It is the project's own argument, and it is what makes the video
 > impossible to contradict.
 >
-> **Length — read this before recording.** The target is **4:00**. The spoken lines below
-> currently count **834 words**. Four minutes of normal speech is about 600 words; 834 words is
-> closer to **5:30**, and the deck's own presenter clock counts down from **5:00**. So one of
-> three things has to happen before the take: cut roughly 250 words, accept a 5:00 target and
-> retitle the scenes, or speak faster than is good for you. The last one is not a plan. The
-> **Plan B** table at the end says which paragraphs are the ones to drop.
+> **Length — read this before recording.** ETHGlobal's ceiling is **4:00, hard** — speeding a
+> video up disqualifies the submission, and it is checked by hand. The spoken lines below count
+> **694 words**. That is **173 words a minute**: brisk, but intelligible when the script is
+> rehearsed. It leaves no room for a pause that is not planned. The deck's presenter clock counts
+> down from **5:00** — treat it as a ceiling, not as the target.
+>
+> If a take lands over 4:00, the Plan B table at the end names the paragraph to drop first.
+>
+> **The script is spoken in English.** The site, the deck and the repository are in English; a
+> French narration over English boards is the one flaw in this project a judge cannot work
+> around.
 >
 > Recount it any time — this reads the eleven spoken blocks and nothing else:
 >
@@ -29,8 +34,8 @@
 > python3 -c "import re; b=re.findall(r'as it will be spoken:\n\n((?:>.*\n)+)', open('docs/VOD.md').read()); print(len(b),'blocks;',len(re.sub(r'^> ?','',''.join(b),flags=re.M).split()),'words')"
 > ```
 >
-> It prints `11 blocks; 870 words` today — 870 raw tokens, **834** once the lone dashes and
-> middots are dropped. Either way the script is long for four minutes.
+> It prints `11 blocks; 694 words` today. Recount after every edit: the figure above is the only
+> thing standing between a rehearsed take and a disqualified one.
 
 ---
 
@@ -54,17 +59,14 @@
 
 **What you say** — in French, as it will be spoken:
 
-> Michel dirige une petite boîte. Il a de la trésorerie en jetons, et aujourd'hui il veut en
-> échanger une partie contre de l'ETH. Il ouvre son interface, il voit un prix, il signe.
-> Ce que Michel ne voit pas, c'est le **hook** : un petit programme attaché au pool, qui
-> s'exécute pendant son swap, et qui peut prélever. Sur certains pools, ça se compte en
-> dixièmes de pour cent. Sur d'autres — et on va vous les montrer — **ça prend presque tout**.
-> Michel n'a aucun moyen de le savoir avant de signer. Personne ne l'a.
+> Michel runs a small company. He holds treasury in tokens, and today he wants to swap some for
+> ETH. He opens an exchange, sees a price, signs.
+> What he cannot see is the **hook**: a program attached to the pool, which runs during his swap
+> and can take a cut. On some pools, tenths of a percent. On others — and we will show you —
+> **almost everything.** He cannot know before he signs. Nobody can.
 >
-> **TARE mesure ce que les hooks prennent vraiment, et le publie.** Cent vingt-cinq mille
-> mesures, sept mille huit cents pools, cent douze hooks — obtenues par un rejeu de machine
-> virtuelle qu'on a écrit pour ça. Et un agent de quatorze outils qui s'en sert pour répondre
-> à la seule question qui compte : **par quelle porte passer, et ce qu'elle coûte.**
+> **TARE measures what hooks actually take, and publishes it.** A hundred and twenty-five
+> thousand measurements, seven thousand eight hundred pools, a hundred and twelve hooks.
 
 **Cue** — on « et le publie », space → the deck, beat 1.
 
@@ -78,8 +80,8 @@
 
 **What you say** — in French, as it will be spoken:
 
-> Parce qu'Uniswap demande à ces hooks de déclarer ce qu'ils facturent. Sur mille cinq cent
-> cinquante-neuf hooks vus en deux cent mille blocs, **neuf** le font. Neuf.
+> Uniswap asks these hooks to declare what they charge. Out of one thousand five hundred and
+> fifty-nine hooks seen across two hundred thousand blocks, **nine** do. Nine.
 
 **Cue** — nothing. Let the three numbers breathe for two seconds.
 
@@ -91,11 +93,10 @@
 
 **What you say** — in French, as it will be spoken:
 
-> Il existe un registre officiel des hooks. Vingt-sept champs par entrée, dix-neuf booléens.
-> **Pas un seul n'est une quantité.** Et son schéma est fermé : il n'interdit pas seulement de
-> publier un taux, il **interdit d'ajouter le champ** qui le porterait. Pire : sur les cent
-> douze hooks qu'on a mesurés, **soixante-dix-huit sont absents de ce registre**. Il ne voit
-> pas les deux tiers de ce qui tourne.
+> There is an official hook registry. Twenty-seven fields per entry, nineteen booleans.
+> **Not one is a quantity.** And the schema is closed: it does not merely omit a rate, it
+> **forbids adding the field** that would carry one. Worse: of the hundred and twelve hooks we
+> measured, **seventy-eight are absent from it.**
 
 **Cue** — space → beat 2.
 
@@ -107,14 +108,13 @@
 
 **What you say** — in French, as it will be spoken:
 
-> Alors on l'a mesuré. Et c'est là que ça devient intéressant, parce que la mesure évidente est
-> **impossible**. L'identité d'un pool v4 — sa `PoolKey` — **contient l'adresse du hook**. « Le
-> même pool sans son hook » n'existe pas, on ne peut pas le comparer à lui-même.
-> Donc on ne change pas le pool. **On change le code du hook.** Sur un fork épinglé à un bloc,
-> on remplace son bytecode par un talon inerte de **quatre-vingt-neuf octets**. Le `poolId`, la
-> liquidité, le `slot0`, les réserves : identiques au bit près. La seule chose qui a changé dans
-> l'univers observable, c'est le code qui s'exécute pendant le swap. On cote le même swap deux
-> fois — **et l'écart, c'est ce que le hook a pris.**
+> So we measured it. And the obvious measurement is **impossible**: a v4 pool's identity — its
+> `PoolKey` — **contains the hook's address.** "The same pool without its hook" cannot be
+> addressed.
+> So we do not change the pool. **We change the hook's code.** On a fork pinned to one block, we
+> swap its bytecode for an inert **eighty-nine byte** stub. The `poolId`, the liquidity, the
+> `slot0`: identical to the bit. The only thing that changed is the code that runs during the
+> swap. Quote the same swap twice — **the gap is what the hook took.**
 
 **Cue** — on « l'écart, c'est ce que le hook a pris », space → beat 3.
 
@@ -126,10 +126,10 @@
 
 **What you say** — in French, as it will be spoken:
 
-> L'objection arrive tout de suite : une cotation sur un fork, ça vaut quoi ? On a donc
-> **exécuté le swap pour de vrai**, et recollé le résultat à ce que la cotation annonçait.
-> **Au wei près.** Et on publie aussi le pool où ça **ne** concorde pas — un sur trois. Chaque
-> ligne se rejoue chez vous en une commande.
+> The objection comes immediately: what is a quote on a fork worth? So we **executed the swap
+> for real**, and matched the result against what the quote announced. **To the wei.** And we
+> also publish the pool where it does **not** match — one in three. Every row replays on your
+> machine in one command.
 
 **Cue** — switch to the `#/` tab of the instrument.
 
@@ -143,11 +143,10 @@ Beat 4 of the deck now runs the real app inside the board, so this cut is a choi
 
 **What you say** — in French, as it will be spoken:
 
-> Revenons à Michel. Je colle l'adresse de son jeton…
-> et j'ai les portes par lesquelles je peux l'acheter, classées : les frais du pool, **plus** le
-> prélèvement du hook mesuré, et ce qu'il me reste sur cent. Tout est calculé **dans la page** :
-> cent vingt-cinq mille mesures embarquées, **zéro requête réseau**. Et quand une porte n'est pas
-> mesurée, l'écran ne dit pas zéro — il dit **inconnue**.
+> Back to Michel. I paste his token's address…
+> and I get the doors I can buy it through, ranked: the pool fee, **plus** the measured hook take,
+> and what is left of a hundred. Computed **inside the page** — **zero network requests.** And
+> when a door is not measured, the screen does not say zero. It says **unknown.**
 
 **Cue** — back to the deck, **beat 6** (the extension). Click it in the rail: you are deliberately skipping beat 4 (the instrument board, just shown live) and beat 5 (MCP), which comes next.
 
@@ -159,14 +158,12 @@ Beat 4 of the deck now runs the real app inside the board, so this cut is a choi
 
 **What you say** — in French, as it will be spoken:
 
-> Mais le bon moment pour savoir ce qu'un hook prend, ce n'est pas quand on cherche. C'est
-> **trois secondes avant de signer**. L'extension se place entre le site d'échange et le
-> portefeuille, lit le calldata, et rend son verdict avant la signature. S'il existe une porte
-> moins chère, elle construit la transaction de remplacement et la fait signer par **Permit2** —
-> une signature hors chaîne au lieu d'une transaction d'approbation. Et **elle ne l'envoie
-> jamais** : elle la rend au portefeuille. S'il n'y a rien de mieux — et c'est le cas
-> **quatre-vingt-dix-neuf fois sur cent** — elle le dit. Inventer une alternative serait pire
-> que se taire.
+> But the right moment to know what a hook takes is not when you search. It is **three seconds
+> before you sign.** The extension sits between the exchange and the wallet, reads the calldata,
+> and returns its verdict before the signature. If a cheaper door exists, it builds the
+> replacement and has it signed through **Permit2** — one off-chain signature, not an approval
+> transaction. And **it never sends it.** If there is nothing better — **ninety-nine times out of
+> a hundred** — it says so. Inventing an alternative would be worse than silence.
 
 **Cue** — ← once, back to beat 5.
 
@@ -178,10 +175,10 @@ Beat 4 of the deck now runs the real app inside the board, so this cut is a choi
 
 **What you say** — in French, as it will be spoken:
 
-> Et pour les agents. Si vous demandez à un modèle ce qu'un hook prend, il **invente un nombre
-> plausible**. Nos quatre outils MCP portent, dans leur propre description, l'interdiction d'en
-> énoncer un. Là, le modèle n'invente pas : il appelle l'outil, et l'outil répond avec son
-> bloc, sa taille, son étiquette — et la commande qui le rejoue.
+> And for agents. Ask a model what a hook takes, and it **invents a plausible number.** Our four
+> MCP tools carry, in their own description, the ban on stating one. Here the model does not
+> invent: it calls the tool, and the tool answers with its block, its size, its label — and the
+> command that replays it.
 
 **Cue** — jump to **beat 7** while the typing finishes (click it in the rail: → alone would land back on the extension).
 
@@ -195,11 +192,10 @@ Beat 4 of the deck now runs the real app inside the board, so this cut is a choi
 
 **What you say** — in French, as it will be spoken:
 
-> Le verdict est rendu **champ par champ** sur un Ledger : on ne signe pas un haché opaque, on
-> lit ce qu'on signe, et annuler ne laisse rien partir. Une mesure neuve se paie **un millième
-> de dollar en x402 sur Hedera**, relu sur le mirror node — pas sur notre parole. L'agent qui
-> répond a une identité **HCS-14** que l'appelant recalcule avant de payer. Et seize
-> attestations sont écrites on-chain, lisibles par un autre contrat.
+> The verdict is rendered **field by field** on a Ledger: you do not sign an opaque digest, you
+> read what you sign, and declining sends nothing. A fresh measurement costs **one thousandth of
+> a dollar in x402 on Hedera**, read back on the mirror node — not on our word. The answering
+> agent carries an **HCS-14** identity the caller recomputes.
 
 **Cue** — space → beat 8.
 
@@ -213,11 +209,11 @@ Beat 4 of the deck now runs the real app inside the board, so this cut is a choi
 
 **What you say** — in French, as it will be spoken:
 
-> Et puis il y a ça, qu'on affiche aussi grand que le reste. Sur cent vingt-cinq mille mesures,
-> **soixante et un mille neuf cent seize ne sont pas des valeurs**. On les garde, avec leur
-> raison. Parce qu'un blanc se lit « rien », et « rien » se lit « zéro ». Seize attestations
-> écrites sur **quatre-vingt-dix-neuf calculées** — et c'est l'écart qu'on publie, pas le
-> chiffre flatteur. Deux erreurs passées du projet sont publiées avec leur correction.
+> And then there is this, displayed as large as everything else. Out of a hundred and twenty-five
+> thousand measurements, **sixty-one thousand four hundred and sixty-six are not values.** We keep
+> them, with their reason — because a blank reads as "nothing", and "nothing" reads as "zero".
+> Sixteen attestations out of **ninety-nine computed**: we publish the gap, not the flattering
+> figure. And **nine** past mistakes of our own, with their correction.
 
 **Cue** — space → beat 9.
 
@@ -229,9 +225,9 @@ Beat 4 of the deck now runs the real app inside the board, so this cut is a choi
 
 **What you say** — in French, as it will be spoken:
 
-> Quatorze outils, vingt-sept jeux de données, cinq façons d'y accéder : le site, l'extension,
-> le serveur MCP, le péage x402, le compte. Tout est publié — le corpus, les commandes de rejeu,
-> et ce qu'on ne sait pas. **Allez le contredire.**
+> Fourteen tools, twenty-seven datasets, five ways in: the site, the extension, the MCP server,
+> the x402 toll, the account. Everything is published — the corpus, the replay commands, and what
+> we do not know. **Go and contradict it.**
 
 **Cue** — hold the last screen for a full second before cutting.
 

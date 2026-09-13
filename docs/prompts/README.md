@@ -27,6 +27,11 @@ is about:
 
 ## The planning record
 
+`../internal/` holds the working documents that came after the waves: the brief and the literal
+prompt handed to the agent that redesigned the front-end, the audit it was written against, and a
+dated state-of-the-project snapshot. They are in French, they are not maintained, and each one says
+so at the top.
+
 `../planning/` holds the documents the work was planned against, including
 `01-adversarial-audit.md` — the record of a previous project direction being killed after its own
 figures failed review. It is included deliberately: it is the clearest evidence of how claims in

@@ -16,7 +16,9 @@
 
   --ink: #e8eaed;
   --ink-2: #a2a9b0;
-  --ink-3: #6b7178;
+  /* DESIGN.md -> Colors : #6b7178 mesurait 4,04:1 sur le fond et 3,28:1 sur bg-3, sous AA,
+     sur des legendes qui sont du texte courant. La valeur de la landing passe partout. */
+  --ink-3: #868d96;
   --ink-4: #454a50;
 
   /* inferno tronquee [0,18 ; 0,90], 7 paliers logarithmiques */
@@ -42,13 +44,15 @@
   --fam-analyse: #dfc24d;
   --fam-action: #eb6628;
 
-  /* LA PLAQUE (design/DESIGN.md, direction A) : quatre surfaces et un liseré, aucune ombre.
-     surface-1 l'enceinte de la carte, surface-2 la plaque, surface-3 la plaque survolée,
-     highlight le liseré haut de 1 px qui fait la plaque usinée. */
-  --surface-1: #0e1013;
-  --surface-2: #161a1e;
-  --surface-3: #1c2126;
-  --highlight: #2a3037;
+  /* LA PLAQUE EST DEPOSEE (design/DESIGN.md, direction A « la mesure deja faite »).
+     Elle fabriquait une SECONDE echelle de profondeur a cote de --bg-1..3 : deux echelles
+     pour une page, dont une qui n'encodait rien. Les jetons restent, parce que sept fichiers
+     les nomment, mais ils pointent desormais sur l'echelle unique. La profondeur est un
+     palier de surface plus un filet de 1 px, et rien d'autre. */
+  --surface-1: var(--bg-1);
+  --surface-2: var(--bg-2);
+  --surface-3: var(--bg-3);
+  --highlight: var(--line-strong);
 
   --mix: 22%;
 
@@ -60,9 +64,11 @@
 
   --mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
   --prose: 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;
-  /* LES TITRES. Archivo est plus large et plus affirmee qu'Instrument Sans : a 64 px elle
-     tient le premier ecran, la ou une grotesque neutre se contente de le remplir. */
-  --titre: 'Archivo Variable', 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;
+  /* PLUS DE POLICE D'AFFICHAGE. Le titre est mis dans la police du TABLEAU, a douze fois la
+     taille de l'etiquette : une chasse fixe a 132 px produit la plaque gravee d'un appareil
+     de mesure, ce qu'aucune grotesque ne fait. Le jeton reste, alias du mono, pour les sept
+     regles qui le nomment. */
+  --titre: var(--mono);
 
   color-scheme: dark;
 }
@@ -76,7 +82,9 @@
   --line-strong: #b4b4ae;
   --ink: #14171a;
   --ink-2: #4a4f55;
-  --ink-3: #767c83;
+  /* Meme correction qu'en sombre : #767c83 mesurait 3,93:1 sur le fond et 3,40:1 sur bg-3,
+     sous AA. #5f656c passe partout (5,49 / 5,89 / 5,16 / 4,75). */
+  --ink-3: #5f656c;
   --ink-4: #a8adb3;
   /* YlOrRd [0,05 ; 0,80] — inferno inversee serait illisible sur papier */
   --m-0: #fff8bb;
@@ -87,17 +95,19 @@
   --m-5: #f23924;
   --m-6: #d41020;
   --focus: #1b4fc4;
-  --baseline: #767c83;
+  --baseline: #5f656c;
   --mix: 30%;
 
   /* Meme ecart entre les trois familles, sur un fond clair. */
   --fam-collecte: #1b4fc4;
   --fam-analyse: #9a7b00;
   --fam-action: #c2410c;
-  --surface-1: #f0f0ed;
-  --surface-2: #ffffff;
-  --surface-3: #f7f7f5;
-  --highlight: #ffffff;
+  /* Meme echelle unique qu'en sombre : le panneau est un cran PLUS CLAIR que la page, ce qui
+     est la bonne polarite sur papier. */
+  --surface-1: var(--bg-1);
+  --surface-2: var(--bg-2);
+  --surface-3: var(--bg-3);
+  --highlight: var(--line-strong);
 
   color-scheme: light;
 }
@@ -135,6 +145,66 @@ body {
   line-height: 1.55;
   font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
+}
+
+/* LE DAMIER — la matiere de la page, reprise telle quelle de apps/landing (DESIGN.md ->
+   Elevation & Depth). Deux couches `linear-gradient` utilisees en trame 1 bit DURE, pas en
+   fondu : un degrade sur une surface serait un encodage fantome, et la seule chose qui a le
+   droit d'encoder ici est la rampe. Sur un pseudo-element FIXE et sans pointeur, jamais dans
+   un conteneur qui defile — sinon c'est un repeint GPU continu.
+
+   IL NE BOUGE PLUS. C'est la TEXTURE (couche 3 de /make-background), pas le champ : le champ
+   est le shader ci-dessous. Un fond ou deux couches bougent est un fond ou l'on ne lit plus
+   rien. C'est aussi le repli : si WebGL2 manque ou si le GLSL ne compile pas, le canevas
+   reste invisible et cette trame tient la page toute seule. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image:
+    linear-gradient(45deg, var(--line) 25%, transparent 25%, transparent 75%, var(--line) 75%),
+    linear-gradient(45deg, var(--line) 25%, transparent 25%, transparent 75%, var(--line) 75%);
+  background-size: 6px 6px;
+  background-position:
+    0 0,
+    3px 3px;
+}
+
+/* LE CHAMP (couche 2) — le canevas du shader `releve`.
+
+   z-index: -1, ET C'EST LA TOUT LE SUJET. A 0, un element POSITIONNE se peint au-dessus du
+   contenu en flux normal, qui n'a pas de z-index du tout : le canevas passait donc devant les
+   panneaux de l'instrument et devant les titres, qui etaient bien dans le DOM et invisibles a
+   l'ecran. A -1 il passe derriere le contenu, tout en restant DANS #root, donc toujours
+   au-dessus du damier de body::before. Les trois couches sont alors dans le bon ordre :
+   damier, champ, page.
+
+   `opacity` est mise a 1 par le composant une fois le programme lie ; tant qu'il ne l'est pas,
+   il n'y a rien a voir et rien de casse. */
+.fond-shader {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+  display: block;
+  transition: opacity var(--t-view, 280ms) linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Le composant ne monte meme pas le contexte WebGL dans ce cas ; la regle est la ceinture. */
+  .fond-shader {
+    display: none;
+  }
+}
+
+#root {
+  position: relative;
+  z-index: 1;
 }
 
 .t-data-xs,
@@ -255,17 +325,8 @@ summary::-webkit-details-marker {
   font-weight: 700;
 }
 
-/* L'ECART, et lui seul, une fois par ecran.
-   L'echelle de l'instrument plafonnait a 44 px contre 13 px de base, soit 3,4:1. La charte
-   mesure elle-meme 17:1 a 22:1 sur six sites primes ; 10,5:1 est le palier qu'un instrument
-   dense supporte sans devenir une affiche. Interlettrage 0 : c'est une monospace. */
-.t-display {
-  font-family: var(--mono);
-  font-size: clamp(3.5rem, 8vw, 8.5rem);
-  line-height: 0.92;
-  letter-spacing: 0;
-  font-weight: 500;
-}
+/* (Le role `display` est defini plus bas, avec le reste de l'echelle : une seule declaration
+   par role, sinon la derniere gagne en silence — c'est ce qui se passait ici.) */
 
 /* LA PISTE — une arete de graphe sans canevas.
    Orthogonale, 1 px, jamais une courbe : a quarante et un noeuds les Bezier font des
@@ -393,53 +454,111 @@ summary::-webkit-details-marker {
   }
 }
 
-/* Le titre de la page. L'echelle de l'instrument plafonnait a 28 px pour un titre de section :
-   la carte est le premier ecran, elle a droit a une presence. Le role `display` (mono, 136 px)
-   reste reserve a l'ecart en bps, une fois par ecran. */
-.t-hero {
-  font-family: var(--titre);
-  font-weight: 700;
-  font-size: clamp(2.25rem, 4.6vw, 3.5rem);
-  line-height: 1.02;
-  letter-spacing: -0.03em;
-  font-weight: 600;
-  text-wrap: balance; /* pas de mot orphelin sur la derniere ligne */
+/* L'ECHELLE, refaite depuis design/DESIGN.md -> Typography.
+   Elle plafonnait a 56 px de titre contre 11 px d'etiquette, soit 3,5:1 ; les six sites primes
+   mesures par la charte tiennent 17:1 et 22:1. Elle monte a 132/11 = 12:1, ce qu'un instrument
+   dense supporte sans devenir une affiche. Deux familles et non trois : Archivo est partie.
+   Interlettrage negatif sur la plaque, 0 sur les donnees — une chasse fixe espace deja.
+
+   L'EYEBROW — un filet de 32 px, puis l'etiquette. Dispositif repris de sstr.tech par
+   apps/landing (son DESIGN.md §1.1) : il DIT ou commence une section sans ajouter un titre de
+   plus, ce qui est la seule raison d'exister d'une etiquette au-dessus d'un contenu. */
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--ink-3);
+}
+.eyebrow::before {
+  content: '';
+  width: 32px;
+  height: 1px;
+  background: var(--line-strong);
+  flex: none;
 }
 
-/* design/DESIGN.md → Typography : display (le titre de route), number (l'écart, une fois par
-   écran), headline (titre de section), title (nom d'un outil sur sa plaque), body. */
+/* UN BADGE D'ETAT — un rectangle au filet, jamais une pilule. Seul « mesuré » prend le fond de
+   la rampe : l'etat mesure est la seule chose qui s'allume (DESIGN.md -> Colors, 3 usages). */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border: 1px solid var(--line-strong);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.badge-mesure {
+  background: var(--m-4);
+  border-color: var(--m-4);
+  color: var(--bg);
+}
+
+/* LA PLAQUE — le verdict du premier ecran, une fois par page. C'est la police du TABLEAU a
+   plusieurs fois la taille de l'etiquette : la chasse fixe grave au lieu d'ecrire.
+
+   ELLE NE MONTE PAS A 132 PX comme celle de apps/landing, et c'est un arbitrage, pas un
+   renoncement. La landing ne porte que le verdict et sa prose dans le premier ecran ; celui
+   de l'instrument porte AUSSI le champ, la mesure et la carte des 14 outils — le verrou
+   ecrit plus bas sur `.hero-cadre`. A 132 px la plaque faisait cinq lignes et poussait la
+   carte hors de l'ecran. A 72 px elle en fait trois, l'ecart avec l'etiquette reste de
+   6,5:1 (contre 3,5:1 avant), et les trois choses tiennent ensemble. */
+.t-hero {
+  font-family: var(--mono);
+  font-weight: 800;
+  font-size: clamp(2rem, 8vw, 3.5rem);
+  line-height: 0.86;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  text-wrap: balance; /* pas de mot orphelin sur la derniere ligne de la plaque */
+}
+
+/* LES TITRES PRENNENT L'ACCENT (lock 29). C'est un elargissement assume de la regle des trois
+   usages ecrite dans DESIGN.md -> Colors (valeur mesuree, action primaire, badge « mesuré ») :
+   les titres de route et de section deviennent le quatrieme.
+   LA PLAQUE DU HERO RESTE A L'ENCRE, elle. Trois lignes de 56 px en orange ecraseraient la
+   valeur mesuree, qui est la seule chose que l'accent est cense vouloir dire — et la reference
+   choisie, apps/landing, met elle aussi sa hero en blanc et son « 100.00 » en orange. */
+
+/* LE TITRE DE ROUTE — l'instrument, le deck, un outil. Meme police, un cran sous la plaque. */
 .t-display {
-  font-family: var(--titre);
-  font-size: clamp(2rem, 3.1vw, 2.75rem);
+  color: var(--m-4);
+  font-family: var(--mono);
+  font-size: clamp(1.75rem, 4.2vw, 3.5rem);
   line-height: 1;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.03em;
   font-weight: 700;
+  text-transform: uppercase;
   text-wrap: balance;
 }
+
+/* LA VALEUR MESUREE, une fois par ecran. Seul endroit de la page ou la rampe a le droit
+   d'etre une couleur de TEXTE (DESIGN.md -> Colors, trois usages). */
 .t-number {
   font-family: var(--mono);
-  font-size: clamp(2.5rem, 4.4vw, 4rem);
-  line-height: 1;
-  letter-spacing: -0.02em;
-  font-weight: 500;
+  font-size: clamp(3rem, 7vw, 6rem);
+  line-height: 0.82;
+  letter-spacing: -0.05em;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 .t-headline {
-  font-family: var(--titre);
+  color: var(--m-4);
+  font-family: var(--mono);
   font-weight: 700;
-  font-size: 2rem;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  font-weight: 600;
+  font-size: clamp(1.25rem, 2.2vw, 1.75rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
 }
 .t-title {
-  font-family: var(--titre);
+  font-family: var(--mono);
   font-weight: 600;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.01em;
 }
 .t-body {
   font-family: var(--prose);
   font-size: 1rem;
-  line-height: 1.55;
+  line-height: 1.6;
 }
 .t-body-muted {
   color: var(--ink-2);
@@ -450,7 +569,8 @@ summary::-webkit-details-marker {
 .enceinte {
   background: var(--surface-1);
   border: 1px solid var(--line);
-  padding: 14px 20px 16px;
+  /* Resserree pour le budget du pli (lock 22) : le schema doit tenir ENTIER sous le hero. */
+  padding: 10px 16px 8px;
 }
 @media (max-width: 639px) {
   .enceinte {
@@ -538,8 +658,11 @@ summary::-webkit-details-marker {
 }
 .menu-panneau {
   position: absolute;
-  left: 0;
-  right: auto;
+  /* ANCRE A DROITE depuis que « les outils » est la derniere entree de la barre (lock 31) :
+     ancre a gauche, le panneau de 536 px sortait par la droite de la fenetre et sa troisieme
+     colonne etait coupee. */
+  left: auto;
+  right: 0;
   top: calc(100% + 6px);
   z-index: 20;
   display: grid;
@@ -653,7 +776,9 @@ summary::-webkit-details-marker {
   border-color: var(--ink-3);
 }
 .champ::placeholder {
-  /* Une invite EST du texte : `--ink-3` donne 4,04:1 sur le fond de page, sous le seuil. */
+  /* Une invite EST du texte. `--ink-3` valait 4,04:1 et ne passait pas ; il vaut maintenant
+     5,94:1 (DESIGN.md -> Colors), mais l'invite reste en --ink-2 : elle porte un exemple
+     d'adresse, qui se lit. */
   color: var(--ink-2);
 }
 
@@ -756,19 +881,23 @@ summary::-webkit-details-marker {
   font-family: var(--prose);
   font-size: 0.9375rem;
   font-weight: 500;
-  background: var(--fam-action);
+  background: var(--m-4);
   color: var(--bg);
-  border: 1px solid var(--fam-action);
+  border: 1px solid var(--m-4);
   min-height: 44px;
   padding: 0 18px;
   cursor: pointer;
+  /* LE SEUL ELEMENT FACONNE DE TOUT LE PRODUIT, et c'est un chanfrein, pas un rayon : les
+     aretes restent vives. `border-radius: 0 !important` est global (§4.5), donc la forme ne
+     peut pas venir d'un rayon de toute facon — elle vient d'un clip-path. */
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
   transition:
     background var(--t-feedback) var(--e-out),
     border-color var(--t-feedback) var(--e-out);
 }
 .bouton-primaire:hover {
-  background: #f27d45;
-  border-color: #f27d45;
+  background: var(--m-5);
+  border-color: var(--m-5);
 }
 .bouton-primaire:active {
   transform: translateY(1px);
@@ -866,6 +995,168 @@ summary::-webkit-details-marker {
     grid-template-columns: 7fr 5fr;
     gap: 56px;
   }
+}
+
+/* LE VOILE (lock 32) — un verre tres leger derriere les blocs de section et de texte, pour
+   qu'ils se lisent par-dessus le champ de courbes.
+
+   C'est une TROISIEME matiere, et DESIGN.md -> Elevation & Depth n'en connaissait que deux :
+   un palier de surface et un filet de 1 px, sans exception. Elle est donc assumee, et tenue
+   courte pour ne pas defaire la charte :
+     - pas de degrade : un aplat translucide, une seule valeur ;
+     - pas d'ombre, pas de rayon, pas de liserer clair — rien de la panoplie « glassmorphism » ;
+     - le flou est faible (8 px) et il ne sert qu'a casser le trait des courbes sous le texte,
+       pas a faire un effet.
+   `color-mix` garde la teinte du fond du theme : en clair le voile eclaircit, il ne grise pas.
+
+   LA HERO N'EN PORTE PAS : le champ y est a nu, c'est la seule page ou on le voit en entier.
+
+   `backdrop-filter` n'est pas partout : sans lui il reste l'aplat translucide, qui fait deja
+   l'essentiel du travail. Le repli est donc le voile lui-meme, pas un trou. */
+.voile {
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+/* Sur un bloc qui touche les bords de la colonne, le voile deborde un peu pour ne pas couper
+   le texte au ras : c'est un fond, pas un cadre. */
+.voile-air {
+  padding: 20px 20px 24px;
+  margin: 0 -20px;
+}
+@media (max-width: 639px) {
+  .voile-air {
+    padding: 14px;
+    margin: 0 -14px;
+  }
+}
+
+/* LE PANNEAU DE MESURE — l'outil reel, a droite du verdict. Un palier de surface et un filet
+   de 1 px : c'est toute la profondeur du produit, il n'y a ni ombre ni rayon (DESIGN.md ->
+   Elevation & Depth, niveau 1). */
+.panneau-mesure {
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+}
+
+/* LES TROIS CHIFFRES DU CORPUS — une ligne, separee au filet VERTICAL. Le lock 22 fait du pli
+   un budget : les blocs cadres coutaient 90 px de haut pour trois nombres, le schema de la
+   chaine en reclame 330, et il reste 844 px sous la barre a 1440x900. En dessous de 700 px la
+   ligne se replie en colonne et les filets redeviennent horizontaux. */
+.hero-chiffres {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  border-top: 1px solid var(--line);
+}
+.hero-chiffres > div {
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+}
+.hero-chiffres > div:first-child {
+  border-top: 0;
+}
+.hero-chiffres dt {
+  display: inline;
+}
+.hero-chiffres dd {
+  display: inline;
+  margin-left: 8px;
+}
+@media (min-width: 700px) {
+  .hero-chiffres {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .hero-chiffres > div {
+    padding: 8px 14px;
+    border-top: 0;
+    border-left: 1px solid var(--line);
+  }
+  .hero-chiffres > div:first-child {
+    padding-left: 0;
+    border-left: 0;
+  }
+  .hero-chiffres dt,
+  .hero-chiffres dd {
+    display: block;
+    margin-left: 0;
+  }
+  .hero-chiffres dd {
+    margin-top: 2px;
+  }
+}
+
+/* LE TABLEAU CLE / VALEUR du panneau de mesure. A partir de 1200 px il passe en DEUX colonnes :
+   cinq lignes empilees coutaient 240 px de hauteur au panneau, et le pli n'en a pas les moyens.
+   Les valeurs les plus longues sont des entiers de 26 chiffres — a 13 px de mono elles tiennent
+   dans une demi-largeur de panneau, verifie a 1440. */
+.kv {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+.kv > div {
+  padding: 6px 0;
+  border-top: 1px solid var(--line);
+}
+.kv > div:first-child {
+  border-top: 1px solid var(--line-strong);
+  margin-top: 6px;
+}
+.kv dd {
+  word-break: break-all;
+  margin-top: 2px;
+}
+@media (min-width: 1200px) {
+  .kv {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 16px;
+  }
+  .kv > div:nth-child(2) {
+    border-top: 1px solid var(--line-strong);
+    margin-top: 6px;
+  }
+}
+
+/* LA COMMANDE QUI REJOUE la ligne qu'on vient de lire — un depliant, ferme par defaut. Elle
+   n'est pas cachee par honte : elle est la preuve, et une preuve se demande. Ouverte en
+   permanence elle prenait 75 px du pli pour deux lignes qu'on lit une fois. */
+.rejouer {
+  margin-top: 10px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+}
+.rejouer > summary {
+  padding: 8px 12px;
+  cursor: pointer;
+  list-style: none;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: color var(--t-feedback) var(--e-out);
+}
+.rejouer > summary::-webkit-details-marker {
+  display: none;
+}
+/* Le chevron DIT l'etat : ferme il pointe a droite, ouvert il pointe en bas. */
+.rejouer > summary::before {
+  content: '';
+  width: 0;
+  height: 0;
+  flex: none;
+  border-left: 5px solid currentColor;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  transition: transform var(--t-element) var(--e-out);
+}
+.rejouer[open] > summary::before {
+  transform: rotate(90deg);
+}
+.rejouer > summary:hover {
+  color: var(--ink) !important;
+}
+.rejouer > code {
+  display: block;
+  padding: 0 12px 10px;
 }
 
 /* La barre haute : 56 px, la voix en sans, les routes en liens texte. */
@@ -1109,6 +1400,21 @@ summary::-webkit-details-marker {
   .carte-grille {
     gap: 14px !important;
   }
+  /* UNE SEULE COLONNE DE NOEUDS a cette largeur. `auto-fit, minmax(174px, 1fr)` en tirait
+     deux, qui debordaient la page de 7 px : une largeur minimale en pixels ne sait pas ce que
+     la page a de place. Le lock 13 dit que rien ne deborde a 390 ; c'est ici que ca se joue. */
+  .carte-outils {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  /* Un enfant de grille ou de flex a `min-width: auto` : il refuse de descendre sous la
+     largeur de son contenu, et il deborde la page au lieu de se serrer. C'est ce qui faisait
+     depasser la carte de 7 px a 390. Le lock 13 dit que rien ne deborde a cette largeur. */
+  .carte-outils,
+  .carte-outils > *,
+  .carte-outils > * > *,
+  .noeud {
+    min-width: 0 !important;
+  }
   .carte-outils > * {
     gap: 6px !important;
   }
@@ -1304,305 +1610,163 @@ span a[href] {
 }
 
 /* ============================================================ LE DECK
+   LA MECANIQUE vient d'un deck etudie ailleurs ; LA CHARTE est celle de ce site, sans
+   exception : pas d'arrondi, les jetons `--ink`/`--line`/`--m-*` et rien d'autre, Archivo pour
+   les titres et JetBrains Mono pour les nombres. Aucune couleur nouvelle n'est introduite ici.
 
-   UNE DIAPOSITIVE EST UNE SURFACE 16:9 QUI REMPLIT L'ECRAN — pas une carte qui defile.
-   C'est la difference entre un deck et une page web, et c'est ce qui manquait : le contenu
-   flottait dans une colonne etroite avec du vide autour.
-
-   LE DIMENSIONNEMENT. Le cadre est un CONTENEUR de requete (`container-type: size`), et tout
-   ce qu'il porte se mesure en `cqi` — pour cent de sa largeur. Une diapositive se comporte
-   donc comme une vraie planche : elle grandit et retrecit d'un bloc, les proportions ne
-   bougent jamais, et il n'y a aucun point de rupture a maintenir. Un titre a 4,4cqi fait
-   56 px sur un cadre de 1280 et reste lisible sur un cadre de 900.
-
-   LA CHARTE reste celle de ce site : pas d'arrondi, pas d'ombre portee, les jetons existants.
-   On reprend la MECANIQUE d'un deck etudie, jamais son apparence. */
+   Le conteneur de defilement est `.deck` — PAS la fenetre. C'est important : le deck qu'on a
+   etudie ecoutait `scroll` sur `window` et appelait `window.scrollTo` alors que son conteneur
+   etait un `<main>` ; sa navigation clavier ne bougeait rien et son compteur restait fige sur
+   « 01 ». Ici tout passe par `scrollIntoView` et un IntersectionObserver dont la racine est ce
+   conteneur. */
 .deck {
   height: calc(100dvh - 56px);
   overflow-y: auto;
   scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
   overscroll-behavior-y: contain;
-  background: var(--bg);
+  /* TRANSPARENT, pour que le champ passe derriere le deck comme derriere le reste (lock 28).
+     Un fond opaque ici faisait du deck la seule page sans fond. La lisibilite est portee par
+     `.deck-cadre`, qui est opaque, lui. */
+  background: transparent;
 }
 .deck-beat {
-  height: calc(100dvh - 56px);
+  min-height: calc(100dvh - 56px);
   scroll-snap-align: start;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: min(2vh, 20px);
+  padding: 16px;
 }
-/* LE CADRE : 16:9, aussi grand que l'ecran le permet. `min()` prend la plus contraignante des
-   deux limites — la largeur disponible, ou la hauteur convertie en largeur par le ratio. */
+/* Le cadre : un filet et de l'air, pas une ombre portee. La profondeur n'est pas dans la
+   charte de ce site — la hierarchie s'y fait par le filet et le vide. */
 .deck-cadre {
-  width: min(98vw, calc((100dvh - 96px) * 16 / 9));
-  aspect-ratio: 16 / 9;
-  container-type: size;
-  container-name: planche;
+  width: min(1280px, 100%);
+  max-height: calc(100dvh - 88px);
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--line);
   background: var(--bg-1);
   overflow: hidden;
-  position: relative;
 }
-/* Sous 900 px, le 16:9 devient illisible : on rend la hauteur au contenu. */
-@media (max-width: 900px) {
-  .deck-beat {
-    height: auto;
-    min-height: calc(100dvh - 56px);
-    padding: 12px;
-  }
-  .deck-cadre {
-    width: 100%;
-    aspect-ratio: auto;
-    min-height: calc(100dvh - 80px);
-    container-type: inline-size;
-  }
-}
-
 .deck-tete,
 .deck-pied {
   display: flex;
-  align-items: center;
-  gap: 1.2cqi;
-  padding: 1.9cqi 2.8cqi;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 20px;
   flex: 0 0 auto;
 }
+.deck-tete {
+  border-bottom: 1px solid var(--line);
+}
 .deck-pied {
-  padding-top: 0;
+  border-top: 1px solid var(--line);
 }
 .deck-corps {
+  padding: 26px 20px 24px;
+  overflow-y: auto;
   flex: 1 1 auto;
   min-height: 0;
-  display: flex;
-  flex-direction: column;
-  padding: 0.6cqi 2.8cqi 1.4cqi;
-  overflow: hidden;
-}
-@container planche (max-width: 0px) {
-  /* garde-fou : si le conteneur n'est pas supporte, rien ne casse */
-  .deck-corps {
-    overflow: auto;
-  }
-}
-
-.deck-eyebrow {
-  font-family: var(--mono);
-  font-size: 1.05cqi;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--m-5);
-  margin-bottom: 1.4cqi;
 }
 .deck-titre {
-  font-family: var(--titre);
+  font-family: var(--mono);
   font-weight: 700;
-  font-size: 4.1cqi;
-  line-height: 1.06;
+  font-size: clamp(1.35rem, 2.6vw, 2.1rem);
+  line-height: 1.16;
   letter-spacing: -0.025em;
-  color: var(--ink);
-  margin: 0;
-  max-width: 24ch;
+  /* Le titre d'un temps du deck est un titre : il prend l'accent comme les autres (lock 29). */
+  color: var(--m-4);
+  margin: 0 0 10px;
+  max-width: 30ch;
   text-wrap: balance;
 }
 .deck-sous {
   font-family: var(--prose);
-  font-size: 1.45cqi;
-  line-height: 1.45;
+  font-size: 15px;
+  line-height: 1.55;
   color: var(--ink-2);
-  margin: 1.3cqi 0 0;
-  max-width: 62ch;
+  margin: 0 0 22px;
+  max-width: 72ch;
 }
 .deck-prose {
   font-family: var(--prose);
-  font-size: 1.42cqi;
-  line-height: 1.55;
+  font-size: 15px;
+  line-height: 1.65;
   color: var(--ink-2);
   margin: 0;
-  max-width: 66ch;
+  max-width: 76ch;
 }
-.deck-corps .t-label {
-  font-size: 1.02cqi;
-}
-.deck-corps .t-data-sm,
-.deck-corps code {
-  font-size: 1.16cqi;
-}
-
-/* LA GRILLE DU CORPS : ce qui suit le titre occupe tout le reste, toujours. */
-/* LA GRILLE remplit le reste de la planche, et ses rangees se PARTAGENT la hauteur : sans
-   `grid-auto-rows: 1fr`, une grille 2x2 de chiffres deborde par le bas et perd ses legendes. */
-.deck-grille {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: grid;
-  grid-auto-rows: 1fr;
-  gap: 1.6cqi;
-  margin-top: 1.8cqi;
-}
-.deck-grille > * {
-  min-height: 0;
-  min-width: 0;
-}
-.deck-grille-2 {
-  grid-template-columns: 1fr 1fr;
-}
-.deck-grille-3 {
-  grid-template-columns: repeat(3, 1fr);
-}
-.deck-grille-12 {
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-}
-@media (max-width: 900px) {
-  .deck-grille-2,
-  .deck-grille-3,
-  .deck-grille-12 {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-/* LE PANNEAU DE CHIFFRE — l'objet qui remplit une planche. Le nombre est enorme parce que
-   c'est LUI le message ; le reste l'explique. */
-/* Le panneau est son PROPRE conteneur de requete : le corps du nombre se mesure sur la
-   largeur de la case, pas sur celle de la planche. Sans ca, « 125 072 » dans une colonne
-   etroite depasse et se fait couper — mesure faite, il debordait de 40 px. */
-.deck-stat {
-  container-type: inline-size;
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--m-6);
-  background: var(--surface-1);
-  padding: 2.4cqi 2.2cqi;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-width: 0;
-}
-.deck-stat[data-accent='orange'] {
-  border-left-color: var(--m-4);
-}
-.deck-stat[data-accent='bleu'] {
-  border-left-color: var(--focus);
-}
-/* Le nombre ne se casse JAMAIS en deux lignes : « 9 / 1 559 » coupe apres le slash se lit
-   comme deux nombres. Il retrecit plutot que de se plier — `data-long` le dit. */
-.deck-stat b {
+.deck-metric {
   font-family: var(--mono);
+  font-size: clamp(30px, 4.4vw, 52px);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
   font-weight: 700;
-  white-space: nowrap;
-  font-size: 34cqi;
-  line-height: 0.98;
-  letter-spacing: -0.04em;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
-.deck-stat[data-accent='orange'] b {
-  color: var(--m-4);
-}
-.deck-stat[data-accent='jaune'] b {
-  color: var(--m-6);
-}
-.deck-stat[data-long='oui'] b {
-  font-size: 15cqi;
-}
-/* Quatre chiffres dans la meme colonne : chacun a moitie moins de hauteur, donc moitie moins
-   de corps. Sinon le nombre mange sa propre legende. */
 
-.deck-stat {
-  overflow: hidden;
+/* LA SCENE MCP — deux colonnes, le transcript et les questions pretes. Sous 900 px elles
+   s'empilent : une colonne de 180 px ne rend pas un bouton cliquable, elle le miniaturise. */
+.deck-mcp {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+  gap: 12px;
 }
-.deck-stat span {
-  margin-top: 1.3cqi;
-  font-family: var(--prose);
-  font-size: 1.35cqi;
-  line-height: 1.35;
-  color: var(--ink);
+@media (max-width: 900px) {
+  .deck-mcp {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
-.deck-stat i {
-  margin-top: 0.8cqi;
-  font-style: normal;
-  font-family: var(--mono);
-  font-size: 1.02cqi;
-  color: var(--ink-2);
-}
-
-/* LA CARTE : un bloc de contenu qui remplit sa case de grille. */
-.deck-carte {
+.deck-mcp-transcript {
   border: 1px solid var(--line);
   background: var(--surface-1);
-  padding: 1.8cqi;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 1cqi;
-  min-width: 0;
-  min-height: 0;
-  /* `auto` et non `hidden` : une planche trop pleine doit pouvoir se lire en defilant, pas
-     perdre sa derniere phrase en silence. */
-  overflow-y: auto;
 }
-.deck-carte > .deck-carte-titre {
-  font-family: var(--mono);
-  font-size: 1.05cqi;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--ink-2);
-}
-
-/* LA SCENE MCP */
 .deck-mcp-zone {
   display: flex;
   flex-direction: column;
-  gap: 1.1cqi;
+  gap: 13px;
+  padding: 13px;
+  max-height: 42dvh;
   overflow-y: auto;
-  flex: 1 1 auto;
-  min-height: 0;
-  padding-right: 0.6cqi;
+  min-width: 0;
 }
-.deck-bulle {
+.deck-mcp-cote {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 13px;
   border: 1px solid var(--line);
-  padding: 1cqi 1.2cqi;
-  font-family: var(--mono);
-  font-size: 1.16cqi;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  overflow-x: auto;
-  color: var(--ink-2);
-}
-.deck-bulle[data-role='humain'] {
-  border-color: var(--line-strong);
-  color: var(--ink);
-  background: var(--bg-2);
-}
-.deck-bulle[data-role='outil'] {
-  border-color: var(--focus);
-  color: var(--focus);
+  background: var(--surface-1);
+  min-width: 0;
 }
 .deck-prompt {
   text-align: left;
-  padding: 1.1cqi 1.2cqi;
+  padding: 9px 11px;
   border: 1px solid var(--line-strong);
   background: var(--bg-2);
   color: var(--ink);
   cursor: pointer;
   font-family: var(--mono);
-  font-size: 1.16cqi;
-  line-height: 1.35;
-  transition: border-color 120ms linear;
+  transition: border-color var(--t-feedback, 120ms) linear;
 }
 .deck-prompt:hover:not(:disabled) {
   border-color: var(--m-6);
 }
 .deck-prompt:disabled {
-  opacity: 0.5;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
+/* LA PASTILLE qui bat pendant qu'une reponse arrive. Le seul mouvement continu du deck, et il
+   dit quelque chose : ca travaille. */
 .deck-pastille {
-  width: 0.7cqi;
-  height: 0.7cqi;
-  min-width: 6px;
-  min-height: 6px;
+  width: 7px;
+  height: 7px;
   background: var(--m-6);
   display: inline-block;
   flex: 0 0 auto;
@@ -1614,104 +1778,89 @@ span a[href] {
     opacity: 1;
   }
   50% {
-    opacity: 0.25;
+    opacity: 0.28;
   }
 }
 .deck-curseur {
   color: var(--m-6);
   animation: deck-bat 1s steps(2) infinite;
 }
-@keyframes deck-entre {
-  from {
-    opacity: 0;
-    transform: translateY(0.6cqi);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
 
 /* L'EXTENSION */
-.deck-etape {
-  display: flex;
-  gap: 1cqi;
-  align-items: baseline;
-  transition: opacity 240ms linear;
+.deck-ext {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 14px;
+  align-items: start;
 }
-.deck-verdict {
-  border: 1px solid var(--m-4);
-  background: var(--bg-2);
-  padding: 1.8cqi;
+@media (max-width: 900px) {
+  .deck-ext {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.deck-ext-flux {
   display: flex;
   flex-direction: column;
-  gap: 1.1cqi;
-  transition: opacity 280ms ease-out, transform 280ms ease-out;
+  gap: 11px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  background: var(--surface-1);
 }
-.deck-verdict[data-issue='unique'] {
-  border-color: var(--line-strong);
+.deck-ext-verdict {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 15px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg-2);
 }
 .deck-bouton {
-  padding: 0.8cqi 1.2cqi;
+  padding: 6px 11px;
   border: 1px solid var(--line);
   color: var(--ink-2);
-  font-size: 1.02cqi;
 }
 .deck-bouton[data-fort='oui'] {
-  border-color: var(--m-4);
+  border-color: var(--line-strong);
   background: var(--bg-3);
   color: var(--ink);
 }
 .deck-onglet {
-  padding: 0.6cqi 1cqi;
+  padding: 4px 9px;
   border: 1px solid var(--line);
   background: transparent;
   color: var(--ink-2);
   cursor: pointer;
-  font-size: 1.02cqi;
 }
 .deck-onglet[aria-pressed='true'] {
-  border-color: var(--m-6);
+  border-color: var(--line-strong);
   background: var(--bg-3);
   color: var(--ink);
 }
-
-/* SPECULOS — les ecrans de l'appareil */
-.deck-ecrans {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-auto-rows: 1fr;
-  gap: 1.1cqi;
-}
-.deck-ecran {
-  border: 1px solid var(--line);
-  background: var(--bg-2);
-  padding: 1.3cqi;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 0.6cqi;
-  min-width: 0;
-  transition: opacity 220ms linear, transform 220ms ease-out, border-color 220ms linear;
-}
-.deck-ecran b {
-  font-family: var(--mono);
-  font-size: 1.5cqi;
-  font-weight: 600;
-  color: var(--ink);
-  word-break: break-all;
-}
 .deck-puce {
-  padding: 0.7cqi 1cqi;
+  padding: 5px 9px;
   border: 1px solid var(--line);
   background: transparent;
   cursor: pointer;
-  font-size: 1.02cqi;
 }
 
-/* LE MODE PRESENTATEUR, derriere `?presenter=1`. */
+/* SPECULOS — les ecrans de l'appareil, dans l'ordre ou ils s'affichent. */
+.deck-ecrans {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.deck-ecran {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  min-width: 158px;
+}
+
+/* LE MODE PRESENTATEUR, derriere `?presenter=1`. Il n'existe pas sur l'URL publique : un juge
+   qui ouvre le lien ne voit ni chrono ni raccourcis. */
 .deck-hud {
   position: fixed;
   top: 66px;
@@ -1759,17 +1908,15 @@ span a[href] {
   .deck-curseur {
     animation: none;
   }
-  .deck-tirets i,
-  .deck-etape,
-  .deck-verdict,
-  .deck-ecran {
+  .deck-tirets i {
     transition: none;
   }
 }
 
-/* LA BARRE DE NAVIGATION porte une entree de plus depuis le deck : sous 400 px elle poussait
-   la PAGE de cote. Elle defile dans elle-meme, sans reprendre le `position: sticky` du
-   bandeau d'onglets, qui n'a rien a faire ici. */
+/* LA BARRE DE NAVIGATION porte une entree de plus depuis le deck. Sous 400 px, marque + menu
+   + trois routes + bouton de theme ne tiennent plus dans 342 px utiles : la barre poussait la
+   PAGE de cote. Elle defile donc dans elle-meme — comme le bandeau d'onglets, et sans reprendre
+   son `position: sticky`, qui n'a rien a faire ici. */
 .nav-routes {
   flex: 1 1 auto;
   min-width: 0;
@@ -1781,68 +1928,3 @@ span a[href] {
   display: none;
 }
 
-/* LA VITRE — notre propre application, vivante, dans la planche.
-   Le deck voisin met cinq de ses onze temps en `<iframe>` de l'app reelle, et c'est ce qui
-   fait la difference avec une capture : ce qui bouge dans le cadre EST le produit. On peut se
-   le permettre sans reserve ici parce que l'instrument est statique et porte son corpus :
-   l'iframe ne demande rien au reseau, et il n'y a aucun serveur a tenir pendant la demo. */
-.deck-vitre {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--line-strong);
-  background: var(--bg);
-  min-height: 0;
-  height: 100%;
-  overflow: hidden;
-}
-.deck-vitre-barre {
-  display: flex;
-  align-items: center;
-  gap: 0.9cqi;
-  padding: 0.9cqi 1.2cqi;
-  border-bottom: 1px solid var(--line);
-  background: var(--bg-2);
-  flex: 0 0 auto;
-}
-.deck-vitre iframe {
-  flex: 1 1 auto;
-  width: 100%;
-  min-height: 0;
-  border: 0;
-  display: block;
-  background: var(--bg);
-}
-
-/* DEUX CORRECTIONS DE LA PLANCHE, mesurees sur capture.
-
-   1. FAIRE DU PANNEAU UN CONTENEUR DE REQUETE A CHANGE LA REFERENCE DE SES ENFANTS.
-      `cqi` ne se mesure plus sur la planche mais sur la case, et la legende — ecrite en
-      1,35cqi pour la planche — est devenue illisible : 3 px au lieu de 19. Le nombre, lui,
-      etait bien reglé. On redonne donc aux deux lignes de texte une taille exprimee sur LEUR
-      conteneur, avec un plancher en pixels pour les cases etroites. */
-.deck-stat span {
-  font-size: max(12px, 5.4cqi);
-  margin-top: 0.5em;
-}
-.deck-stat i {
-  font-size: max(10px, 4cqi);
-  margin-top: 0.35em;
-}
-
-/* 2. LA VITRE ETAIT TROP PETITE POUR QU'ON VOIE LE PRODUIT TOURNER.
-      Une iframe qui montre l'application doit dominer la planche, sinon autant mettre une
-      capture. La rangee qui la porte prend donc deux fois la hauteur des chiffres.
-      `!important` est ici volontaire : la hauteur de rangee est posee en style en ligne dans
-      le composant, et c'est la mise en page — pas le composant — qui doit en decider. */
-/* `auto` laissait la rangee des chiffres prendre toute la hauteur de son contenu, et la vitre
-   heritait du reste — mesure : 160 px contre 195. Les deux rangees sont donc BORNEES, et le
-   rapport devient celui qu'on demande. */
-.deck-grille-2:has(.deck-vitre) {
-  grid-template-rows: minmax(0, 1fr) minmax(0, 2.2fr) !important;
-}
-.deck-grille-2:has(.deck-vitre) .deck-stat {
-  padding: 1.4cqi 1.6cqi;
-}
-.deck-grille-12:has(> div > .deck-vitre) {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
-}

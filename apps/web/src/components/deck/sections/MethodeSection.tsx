@@ -82,8 +82,7 @@ export function MethodeSection({ actif, mesures, pools, hooks, stubHash }: Metho
                 {stubHash}
               </Mono>
               <span className="dk-prose">
-                The same stub for all {nb(mesures)} rows: a measurement that does not carry this
-                hash was not taken against that code.
+                One stub for all {nb(mesures)} rows. Another hash, another code.
               </span>
             </Carte>
           </div>

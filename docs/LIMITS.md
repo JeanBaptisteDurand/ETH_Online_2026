@@ -328,8 +328,9 @@ numbers instead of one: `amount_usd` (what is **owed**), `amount_settled_usd` (w
 engine then calls unmeasurable is a **credit**, never a zero.
 
 **What is still not true.** The service is **not hosted** — the image is built and has itself
-served a paid request, but no domain answers, so the track's *live service* requirement is not
-met ([`DEPLOY.md`](../DEPLOY.md)). And nothing has settled on mainnet.
+served a paid request, but no domain answers *it*. <https://tare-hooks.tech> is live and serves
+the two static surfaces only: every API path falls through to the page. So the track's *live
+service* requirement is not met ([`DEPLOY.md`](../DEPLOY.md)). And nothing has settled on mainnet.
 
 ## 10b. A quote is not an execution, and on one pool in nine it showed
 

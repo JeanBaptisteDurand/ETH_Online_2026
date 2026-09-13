@@ -26,7 +26,7 @@ Le reste du produit lit ça, ou agit dessus.
 **Commence par ça, dans cet ordre :**
 
 1. `git pull origin main`
-2. Lis **`docs/FRONT-BRIEF.md`** en entier. Sa **section 0** dit ce qui est figé, ce qui est à
+2. Lis **`docs/internal/FRONT-BRIEF.md`** en entier. Sa **section 0** dit ce qui est figé, ce qui est à
    toi, et ce à quoi il ne faut pas toucher. Le reste contient : les 14 outils rangés en
    3 familles colorées, **deux tableaux de priorité** (quel outil et quelle donnée présenter en
    premier à un jury), l'anatomie d'une page outil, ce qui existe déjà, et les six règles

@@ -70,7 +70,7 @@ to check that quoting matches doing, and it published the one pool where it does
 
 **`sourceCode`** — `https://github.com/JeanBaptisteDurand/ETH_Online_2026`, public.
 
-**`demo`** — **NOT SET AT GENERATION TIME.** Activate GitHub Pages (Settings -> Pages -> Source: GitHub Actions), then regenerate with `TARE_DEMO_URL=https://... python3 -m tare.submission.build --write`
+**`demo`** — `https://tare-hooks.tech`
 
 > **26 of the 27 async finalists put a LIVE URL in this field. The one exception was LPLens,
 > which put a GitHub link there — while `lplens.xyz` existed, ran, and still runs.** It won

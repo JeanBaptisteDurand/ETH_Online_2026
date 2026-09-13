@@ -1,38 +1,58 @@
-# La vidéo — 4 minutes, scène par scène
+# The demo video — shooting script, beat by beat
 
-> **Comment ce script est construit.** Quatre minutes, c'est **environ 600 mots dits** à un
-> rythme normal. Tout ce qui est écrit ci-dessous sous « ce que tu dis » a été compté : **584
-> mots**. Si tu ajoutes une phrase, enlèves-en une.
+> **What this file is, and why half of it is in French.**
 >
-> **Le parcours est celui du deck**, dans l'ordre : `#/deck` en mode présentateur
-> (`?presenter=1`), avec deux sorties vers l'instrument pour montrer que ça tourne vraiment.
-> Le deck porte un chrono de 4:00 : il est là exactement pour cet enregistrement.
+> It is the shot list for the demo video: what is on screen, what is said, and when to move.
+> Everything you *do* is in English — the headings, the timings, the stage directions, the
+> checks. The lines inside the quoted blocks are what is **spoken on camera**, and the recording
+> is in French, so they are kept in the language they will be said in. Translating them would
+> mean rehearsing one text and speaking another.
 >
-> **La règle qui tient tout le script** : on ne dit aucun chiffre qui ne soit pas à l'écran au
-> moment où on le dit. C'est l'argument du projet, et c'est aussi ce qui rend la vidéo
-> impossible à contredire.
+> **The route it follows is the deck**, in order: `#/deck` in presenter mode (`?presenter=1`),
+> with two cuts out to the live instrument to show it really runs. The deck carries **nine
+> beats**; every stage direction below names the beat by its number in that sequence.
+>
+> **The rule that holds the whole script together:** no figure is spoken that is not on screen
+> at the moment it is spoken. It is the project's own argument, and it is what makes the video
+> impossible to contradict.
+>
+> **Length — read this before recording.** The target is **4:00**. The spoken lines below
+> currently count **834 words**. Four minutes of normal speech is about 600 words; 834 words is
+> closer to **5:30**, and the deck's own presenter clock counts down from **5:00**. So one of
+> three things has to happen before the take: cut roughly 250 words, accept a 5:00 target and
+> retitle the scenes, or speak faster than is good for you. The last one is not a plan. The
+> **Plan B** table at the end says which paragraphs are the ones to drop.
+>
+> Recount it any time — this reads the eleven spoken blocks and nothing else:
+>
+> ```bash
+> python3 -c "import re; b=re.findall(r'as it will be spoken:\n\n((?:>.*\n)+)', open('docs/VOD.md').read()); print(len(b),'blocks;',len(re.sub(r'^> ?','',''.join(b),flags=re.M).split()),'words')"
+> ```
+>
+> It prints `11 blocks; 870 words` today — 870 raw tokens, **834** once the lone dashes and
+> middots are dropped. Either way the script is long for four minutes.
 
 ---
 
-## Avant d'enregistrer
+## Before you record
 
 | | |
 |---|---|
-| URL | `…/hooks/#/deck?presenter=1` — le chrono, le compteur et les raccourcis n'apparaissent qu'avec ce paramètre |
-| Navigation | **espace** ou **→** pour avancer, **←** pour revenir, **f** plein écran, **r** remet le chrono à zéro |
-| Fenêtre | 1440 × 900, thème sombre, zoom 100 % |
-| À préparer | un onglet sur `#/` avec l'adresse d'un jeton **déjà collée** mais pas validée — on gagne huit secondes |
-| À couper | notifications, curseur qui tremble, et le son de frappe du clavier |
-| Prise de son | une seule prise si possible. Le montage se voit, et ce projet se vend sur la confiance |
+| URL | `https://tare-hooks.tech/#/deck?presenter=1` — the clock, the beat counter and the shortcuts exist only with that parameter |
+| Keys | **space**, **→**, **↓** or **PageDown** to advance · **←**, **↑** or **PageUp** to go back · **f** fullscreen · **r** resets the clock · **p** pauses it. There are no number keys: to jump to a beat, click it in the rail |
+| Clock | counts **down from 5:00**. It is not the 4:00 target — see the note above |
+| Window | 1440 × 900, dark theme, zoom 100 % |
+| Have ready | a second tab on `#/` with a token address **already pasted** but not submitted — it saves eight seconds |
+| Turn off | notifications, a shaky cursor, and the sound of the keyboard |
+| Sound | one take if you can. Editing shows, and this project is sold on trust |
 
 ---
 
-## 00:00 → 00:28 · L'accroche — quelqu'un, un problème, nous
+## 00:00 → 00:28 · The hook — someone, a problem, us
 
-**À l'écran** — le deck, temps **01**, mais tu parles AVANT de montrer les chiffres. On ouvre
-sur l'instrument `#/` avec une adresse déjà collée, curseur dans le champ, rien de validé.
+**On screen** — the deck, **beat 1**, but you speak *before* showing the figures. Open on the instrument at `#/` with an address already pasted, cursor in the field, nothing submitted.
 
-**Ce que tu dis :**
+**What you say** — in French, as it will be spoken:
 
 > Michel dirige une petite boîte. Il a de la trésorerie en jetons, et aujourd'hui il veut en
 > échanger une partie contre de l'ETH. Il ouvre son interface, il voit un prix, il signe.
@@ -46,33 +66,30 @@ sur l'instrument `#/` avec une adresse déjà collée, curseur dans le champ, ri
 > virtuelle qu'on a écrit pour ça. Et un agent de quatorze outils qui s'en sert pour répondre
 > à la seule question qui compte : **par quelle porte passer, et ce qu'elle coûte.**
 
-**Geste** : à « et le publie », espace → le deck, temps 01.
+**Cue** — on « et le publie », space → the deck, beat 1.
 
-**Note de ton** : Michel est là pour une raison, pas pour faire rire. Il rend concret un
-problème qui est sinon une abstraction de protocole. Dis son nom une fois, puis oublie-le —
-la suite parle de mesure, pas de personnage.
+**Tone** — Michel is there for a reason, not for a laugh. He makes concrete a problem that is otherwise a protocol abstraction. Say his name once, then forget him: the rest is about measurement, not about a character.
 
 ---
 
-## 00:28 → 00:48 · Le problème, en un chiffre
+## 00:28 → 00:48 · The problem, in one figure
 
-**À l'écran** — deck, temps **01**. Les trois chiffres en grand : `9 / 1 559`, `0`, `78 / 112`.
+**On screen** — deck, **beat 1**. The three large figures: `9 / 1 559`, `0`, `78 / 112`.
 
-**Ce que tu dis :**
+**What you say** — in French, as it will be spoken:
 
 > Parce qu'Uniswap demande à ces hooks de déclarer ce qu'ils facturent. Sur mille cinq cent
 > cinquante-neuf hooks vus en deux cent mille blocs, **neuf** le font. Neuf.
 
-**Geste** : rien. On laisse les trois nombres respirer deux secondes.
+**Cue** — nothing. Let the three numbers breathe for two seconds.
 
 ---
 
-## 00:48 → 01:10 · Le registre ne peut pas répondre
+## 00:48 → 01:10 · The registry cannot answer
 
-**À l'écran** — même temps **01**, on descend sur le paragraphe. Le `"additionalProperties": false`
-est visible.
+**On screen** — still **beat 1**, scrolled down to the paragraph. `"additionalProperties": false` is visible.
 
-**Ce que tu dis :**
+**What you say** — in French, as it will be spoken:
 
 > Il existe un registre officiel des hooks. Vingt-sept champs par entrée, dix-neuf booléens.
 > **Pas un seul n'est une quantité.** Et son schéma est fermé : il n'interdit pas seulement de
@@ -80,15 +97,15 @@ est visible.
 > douze hooks qu'on a mesurés, **soixante-dix-huit sont absents de ce registre**. Il ne voit
 > pas les deux tiers de ce qui tourne.
 
-**Geste** : espace → temps 02.
+**Cue** — space → beat 2.
 
 ---
 
-## 01:10 → 01:45 · La méthode — le cœur technique
+## 01:10 → 01:45 · The method — the technical core
 
-**À l'écran** — deck, temps **02**. `125 072` · `7 817` · `112` · `89`.
+**On screen** — deck, **beat 2**. `125 072` · `7 817` · `112` · `89`.
 
-**Ce que tu dis :**
+**What you say** — in French, as it will be spoken:
 
 > Alors on l'a mesuré. Et c'est là que ça devient intéressant, parce que la mesure évidente est
 > **impossible**. L'identité d'un pool v4 — sa `PoolKey` — **contient l'adresse du hook**. « Le
@@ -99,30 +116,32 @@ est visible.
 > l'univers observable, c'est le code qui s'exécute pendant le swap. On cote le même swap deux
 > fois — **et l'écart, c'est ce que le hook a pris.**
 
-**Geste** : à « l'écart, c'est ce que le hook a pris », espace → temps 03.
+**Cue** — on « l'écart, c'est ce que le hook a pris », space → beat 3.
 
 ---
 
-## 01:45 → 02:05 · La preuve
+## 01:45 → 02:05 · The proof
 
-**À l'écran** — deck, temps **03**. `96,74` exécutés contre `96,74` annoncés.
+**On screen** — deck, **beat 3**. `96,74` executed against `96,74` announced.
 
-**Ce que tu dis :**
+**What you say** — in French, as it will be spoken:
 
 > L'objection arrive tout de suite : une cotation sur un fork, ça vaut quoi ? On a donc
 > **exécuté le swap pour de vrai**, et recollé le résultat à ce que la cotation annonçait.
 > **Au wei près.** Et on publie aussi le pool où ça **ne** concorde pas — un sur trois. Chaque
 > ligne se rejoue chez vous en une commande.
 
-**Geste** : basculer sur l'onglet `#/` de l'instrument.
+**Cue** — switch to the `#/` tab of the instrument.
 
 ---
 
-## 02:05 → 02:28 · L'instrument — la réponse de Michel
+## 02:05 → 02:28 · The instrument — Michel's answer
 
-**À l'écran** — `#/`, l'adresse déjà collée. On valide **pendant** la phrase.
+**On screen** — `#/`, the address already pasted. You submit it **during** the sentence.
 
-**Ce que tu dis :**
+Beat 4 of the deck now runs the real app inside the board, so this cut is a choice, not a necessity: a live tab is more convincing, beat 4 is safer if the machine is slow.
+
+**What you say** — in French, as it will be spoken:
 
 > Revenons à Michel. Je colle l'adresse de son jeton…
 > et j'ai les portes par lesquelles je peux l'acheter, classées : les frais du pool, **plus** le
@@ -130,17 +149,15 @@ est visible.
 > cent vingt-cinq mille mesures embarquées, **zéro requête réseau**. Et quand une porte n'est pas
 > mesurée, l'écran ne dit pas zéro — il dit **inconnue**.
 
-**Geste** : retour au deck, temps 05 (l'extension) — on saute volontairement le MCP pour le
-garder après.
+**Cue** — back to the deck, **beat 6** (the extension). Click it in the rail: you are deliberately skipping beat 4 (the instrument board, just shown live) and beat 5 (MCP), which comes next.
 
 ---
 
-## 02:28 → 02:52 · L'extension — le bon moment
+## 02:28 → 02:52 · The extension — the right moment
 
-**À l'écran** — deck, temps **05**. Cliquer « il y a mieux », laisser jouer, puis cliquer
-« il n'y a qu'une porte ».
+**On screen** — deck, **beat 6**. Click **there is a better one**, let it play, then click **there is only one door** — the deck's own two outcomes, in its own words.
 
-**Ce que tu dis :**
+**What you say** — in French, as it will be spoken:
 
 > Mais le bon moment pour savoir ce qu'un hook prend, ce n'est pas quand on cherche. C'est
 > **trois secondes avant de signer**. L'extension se place entre le site d'échange et le
@@ -151,30 +168,32 @@ garder après.
 > **quatre-vingt-dix-neuf fois sur cent** — elle le dit. Inventer une alternative serait pire
 > que se taire.
 
-**Geste** : espace ← pour revenir au temps 04.
+**Cue** — ← once, back to beat 5.
 
 ---
 
-## 02:52 → 03:12 · Le MCP — pour les agents
+## 02:52 → 03:12 · MCP — for agents
 
-**À l'écran** — deck, temps **04**. Cliquer la seconde question prête.
+**On screen** — deck, **beat 5**. Click the second ready-made question.
 
-**Ce que tu dis :**
+**What you say** — in French, as it will be spoken:
 
 > Et pour les agents. Si vous demandez à un modèle ce qu'un hook prend, il **invente un nombre
 > plausible**. Nos quatre outils MCP portent, dans leur propre description, l'interdiction d'en
 > énoncer un. Là, le modèle n'invente pas : il appelle l'outil, et l'outil répond avec son
 > bloc, sa taille, son étiquette — et la commande qui le rejoue.
 
-**Geste** : espace → temps 06 pendant que la frappe finit.
+**Cue** — jump to **beat 7** while the typing finishes (click it in the rail: → alone would land back on the extension).
 
 ---
 
-## 03:12 → 03:30 · L'appareil, le péage, la preuve
+## 03:12 → 03:30 · The device, the toll, the proof
 
-**À l'écran** — deck, temps **06**, les écrans Speculos qui s'allument un par un.
+**On screen** — deck, **beat 7**, the Speculos screens lighting up one by one.
 
-**Ce que tu dis :**
+> **Careful, this is the one place the script breaks its own rule.** The line ends on « seize attestations », and 16 / 99 is displayed on **beat 8**, not on beat 7. Either advance before saying it, or move the sentence into the next scene.
+
+**What you say** — in French, as it will be spoken:
 
 > Le verdict est rendu **champ par champ** sur un Ledger : on ne signe pas un haché opaque, on
 > lit ce qu'on signe, et annuler ne laisse rien partir. Une mesure neuve se paie **un millième
@@ -182,15 +201,17 @@ garder après.
 > répond a une identité **HCS-14** que l'appelant recalcule avant de payer. Et seize
 > attestations sont écrites on-chain, lisibles par un autre contrat.
 
-**Geste** : espace → temps 07.
+**Cue** — space → beat 8.
 
 ---
 
-## 03:30 → 03:48 · Ce qu'on ne sait pas
+## 03:30 → 03:48 · What we do not know
 
-**À l'écran** — deck, temps **07**. `63 156` · `61 466` · `450` · `0`.
+**On screen** — deck, **beat 8**. `63 156` · `61 466` · `450` · `0`.
 
-**Ce que tu dis :**
+> The line says « deux erreurs passées ». [`docs/HONESTY.md`](HONESTY.md) documents **nine**, and the README says nine. Say two only if the screen is showing two; otherwise say nine, which is the stronger number anyway.
+
+**What you say** — in French, as it will be spoken:
 
 > Et puis il y a ça, qu'on affiche aussi grand que le reste. Sur cent vingt-cinq mille mesures,
 > **soixante et un mille neuf cent seize ne sont pas des valeurs**. On les garde, avec leur
@@ -198,70 +219,70 @@ garder après.
 > écrites sur **quatre-vingt-dix-neuf calculées** — et c'est l'écart qu'on publie, pas le
 > chiffre flatteur. Deux erreurs passées du projet sont publiées avec leur correction.
 
-**Geste** : espace → temps 08.
+**Cue** — space → beat 9.
 
 ---
 
-## 03:48 → 04:00 · La sortie
+## 03:48 → 04:00 · The close
 
-**À l'écran** — deck, temps **08**. Les quatorze outils, les cinq accès.
+**On screen** — deck, **beat 9**. The fourteen tools, the five ways in.
 
-**Ce que tu dis :**
+**What you say** — in French, as it will be spoken:
 
 > Quatorze outils, vingt-sept jeux de données, cinq façons d'y accéder : le site, l'extension,
 > le serveur MCP, le péage x402, le compte. Tout est publié — le corpus, les commandes de rejeu,
 > et ce qu'on ne sait pas. **Allez le contredire.**
 
-**Geste** : laisser le dernier écran une seconde pleine avant de couper.
+**Cue** — hold the last screen for a full second before cutting.
 
 ---
 
-## Le plan B, si une chose casse
+## Plan B, if something breaks
 
-| ce qui casse | ce que tu fais |
+| what breaks | what you do |
 |---|---|
-| l'instrument ne charge pas | reste sur le deck : le temps 02 porte les mêmes chiffres |
-| la démo MCP ne part pas | clique « ↻ reprendre », ou passe — le temps 05 est plus fort |
-| le chrono dérape | **r** le remet à zéro sans quitter le temps où tu es |
-| tu es en retard à 3:00 | coupe le paragraphe du péage (03:06) : garde Speculos, dis « et le péage x402 est réglé sur Hedera » en une ligne |
-| tu es en avance | ajoute, au temps 02 : « huit tailles, les deux sens, un bloc épinglé — parce qu'un taux unique serait faux à toutes les tailles sauf une » |
+| the instrument will not load | stay on the deck: beat 2 carries the same figures |
+| the MCP demo will not start | click **↻ reset**, or skip it — beat 6 is the stronger one |
+| the clock runs away | **r** resets it without leaving the beat you are on |
+| you are behind at 3:00 | cut the toll paragraph (03:12): keep Speculos, and say « et le péage x402 est réglé sur Hedera » in one line |
+| you are ahead | add, on beat 2: « huit tailles, les deux sens, un bloc épinglé — parce qu'un taux unique serait faux à toutes les tailles sauf une » |
+| you need to cut 250 words | the first scene (153 words) and the method scene (120) are the two longest. Trim there before touching the figures |
 
 ---
 
-## Les chiffres du script, et où chacun s'affiche
+## Every figure the script says, and where it shows
 
-Aucun n'est dit sans être à l'écran. Vérifie-les avant la prise — ils sont tous générés, donc
-ils peuvent bouger si le corpus change.
+None is spoken without being on screen. Check them before the take — they are all generated, so
+they move when the corpus moves.
 
-| dit | à l'écran | source |
+| said | on screen | source |
 |---|---|---|
-| 9 sur 1 559 | deck 01 | `docs/dataset/declarations.json` |
-| 27 champs, 19 booléens, 0 quantité | deck 01 | `apps/web/public/data/hooklist.snapshot.json` |
-| 78 sur 112 absents | deck 01 | `docs/dataset/registre-couverture.json` |
-| 125 072 · 7 817 · 112 · 89 octets | deck 02 | `dataset.totals`, `engine/tare/stub.py` |
-| 96,74 bps exécutés = annoncés | deck 03 | `docs/dataset/porte-a4.json` |
-| 99,71 % — une seule porte | deck 05 | `packages/guard/data/chiffres-alternative.json` |
-| 63 156 / 61 466 / 450 / 0 | deck 07 | `docs/dataset/summary.json` |
-| 16 attestations sur 99 | deck 06 et 07 | `docs/dataset/attestations.json` |
-| 14 outils · 27 jeux · 5 accès | deck 08 | `apps/web/src/lib/outils.ts`, `donnees.ts` |
+| 9 out of 1,559 | beat 1 | `docs/dataset/declarations.json` |
+| 27 fields, 19 booleans, 0 quantities | beat 1 | `apps/web/public/data/hooklist.snapshot.json` |
+| 78 of 112 absent | beat 1 | `docs/dataset/registre-couverture.json` |
+| 125,072 · 7,817 · 112 · 89 bytes | beat 2 | `dataset.totals`, `engine/tare/stub.py` |
+| 96.74 bps executed = announced | beat 3 | `docs/dataset/porte-a4.json` |
+| 99.71 % — only one door | beat 6 | `packages/guard/data/chiffres-alternative.json` |
+| 63,156 / 61,466 / 450 / 0 | beat 8 | `docs/dataset/summary.json` |
+| 16 attestations out of 99 | **beat 8 only** | `docs/dataset/attestations.json` |
+| 14 tools · 27 datasets · 5 ways in | beat 9 | `apps/web/src/lib/outils.ts`, `donnees.ts` |
 
 ---
 
-## Ce qu'on ne dit pas, et pourquoi
+## What we do not say, and why
 
-- **« la première mesure globale des hooks sur EVM »** — c'est peut-être vrai, et c'est
-  exactement le genre de phrase qu'un juge ne peut pas vérifier : personne ne peut prouver
-  qu'aucune équipe n'a jamais fait ça. Or tout le projet repose sur le fait que **chaque
-  affirmation se vérifie**. Une revendication invérifiable au milieu de vingt chiffres
-  vérifiables les affaiblit tous.
-  **Dis plutôt ce qui se contrôle en trente secondes**, et qui est plus fort :
-  *« cent vingt-cinq mille mesures publiées, sur sept mille huit cents pools, chacune rejouable
-  en une commande — allez en trouver une autre. »* Le défi fait le même travail que le
-  superlatif, et il ne peut pas se retourner contre nous.
-- **« le premier », « le seul », « révolutionnaire »** — même raison.
-- **« temps réel »** — c'est faux : la mesure est une photographie, à un bloc, sur une chaîne.
-  Le dire serait exactement l'erreur qu'on reproche aux autres.
-- **« abonnement »** — le contrat existe et passe vingt tests, mais il n'est pas déployé sur un
-  réseau public. Si on le montre, on dit « écrit, pas déployé ».
-- **le nombre de tests** — 1 220 verts, c'est vrai, mais ça n'intéresse personne en vidéo. Ça
-  vit dans le README, où un juge qui veut vérifier ira le lire.
+- **"the first global measurement of hooks on EVM"** — it may well be true, and it is exactly the
+  kind of sentence a judge cannot check: nobody can prove no team ever did it. The whole project
+  rests on **every claim being checkable**. One unverifiable boast in the middle of twenty
+  verifiable figures weakens all twenty.
+  **Say instead what can be checked in thirty seconds**, which is stronger:
+  « cent vingt-cinq mille mesures publiées, sur sept mille huit cents pools, chacune rejouable
+  en une commande — allez en trouver une autre. » The challenge does the same work as the
+  superlative, and it cannot be turned against us.
+- **"the first", "the only", "revolutionary"** — same reason.
+- **"real time"** — it is false: the measurement is a photograph, at one block, on one chain.
+  Saying it would be the exact mistake we accuse others of.
+- **"subscription"** — the contract exists and passes twenty tests, but it is not deployed on a
+  public network. If it is shown, say "written, not deployed".
+- **the test count** — it is true and it interests nobody on video. It lives in the README, where
+  a judge who wants to check will go and read it.

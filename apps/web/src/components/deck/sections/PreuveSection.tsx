@@ -25,11 +25,11 @@ const ETAPE_EN: Readonly<Record<string, string>> = {
     'the guard decodes the calldata and returns a verdict',
   'y a-t-il une autre porte ?': 'is there another door?',
   'une mesure neuve, payee en x402 sur Hedera et relue sur le mirror node':
-    'a new measurement, paid over x402 on Hedera and read back on the mirror node',
+    'a new measurement, paid over x402, read on Hedera',
   'le lot est ancre sur le topic HCS, et relu':
-    'the batch is anchored on the HCS topic, and read back',
+    'the batch is anchored on the HCS topic, and read',
   "le rapport encode en EIP-712, rendu ecran par ecran sur l'appareil, et signe":
-    'the report encoded as EIP-712, rendered screen by screen on the device, and signed',
+    'the EIP-712 report, screen by screen, then signed',
 }
 
 interface EtapeChaine {
@@ -126,9 +126,8 @@ export function PreuveSection({
                 ))}
               </div>
               <span className="dk-prose">
-                A real transaction, a verdict, a door search, a measurement paid over x402, an HCS
-                anchor, a signature on the device.{' '}
-                <strong>And we also publish the pool where it does not match.</strong>
+                Real transaction, verdict, door search, x402, HCS anchor, device signature.{' '}
+                <strong>And we publish the pool that does not match.</strong>
               </span>
             </Carte>
           </div>

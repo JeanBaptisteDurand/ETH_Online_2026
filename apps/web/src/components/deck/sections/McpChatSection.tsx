@@ -252,7 +252,7 @@ export function McpChatSection({ pire, mesures, hooks }: McpChatSectionProps) {
             </div>
           ) : (
             <div className="dk-prose" style={{ marginTop: 'auto' }}>
-              The server does not run in this tab: it lives next to the model. The exchange is{' '}
+              The server runs next to the model, not in this tab. The exchange is{' '}
               <strong style={{ color: 'var(--m-5)' }}>replayed</strong>; the values come from the corpus.
             </div>
           )}

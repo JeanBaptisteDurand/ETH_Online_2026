@@ -17,9 +17,9 @@ Uniswap asks hooks to declare what they charge, through the `HookSwap` and `Hook
 developer guide recommends. Over the 200,000 Base blocks this corpus is built from, the PoolManager
 initialised pools carrying **1,559 distinct hooks — and 9 of them emit either event, 0.58 %**
 (16 contracts in total do, hooks or not). And an emitted `HookFee` carries an absolute amount on
-one past swap, not the rate you would pay at your size. Re-run it yourself:
-`PYTHONPATH=engine python3 -m tare.declare --scan` — the offline half costs no requests, and the artefact is
-[`docs/dataset/declarations.json`](docs/dataset/declarations.json).
+one past swap, not the rate you would pay at your size. Re-run it yourself with
+`PYTHONPATH=engine python3 -m tare.declare --scan` — the offline half costs no requests, and the
+artefact is [`docs/dataset/declarations.json`](docs/dataset/declarations.json).
 
 The official registry describes 978 entries — 866 distinct addresses, the rest declared on more
 than one chain — with **27 fields each, 19 of them booleans**: 14 permission flags, 4 property
@@ -29,7 +29,7 @@ a quantity.** The only number in the whole record is `chainId`, and it names a n
 And it does not see most of what takes something. Of the **112 hooks measured here, 78 are absent
 from that registry entirely — 69.64 %.** Only 34 are listed. The 78 addresses are enumerated in
 [`docs/dataset/registre-couverture.json`](docs/dataset/registre-couverture.json) — counted from
-the two files by `PYTHONPATH=engine python3 -m tare.registre`, never typed.
+the two files by `PYTHONPATH=engine python3 -m tare.registre`, and never typed.
 
 So TARE measures it.
 
@@ -180,8 +180,9 @@ PYTHONPATH=engine python3 -m tare.graph.cachebench
 
 ## The site, route by route
 
-Seven routes, all behind the hash, so the whole thing stays one static bundle — and every one of
-them answers with no network request, because the 125,072 measurements are in the page.
+Seven routes, all behind the hash, so the whole thing stays one static bundle. Six of them paint a
+verdict with no network request at all — the 125,072 measurements are compiled into the page. Only
+`#/reglages` needs a server, and when there is none it says so instead of spinning.
 
 | Route | What it is |
 |---|---|
@@ -415,7 +416,7 @@ The same fourteen tools are reachable five ways, and each way exists for a reaso
 
 | Way in | For | Why this one | Prerequisite | Tools |
 |---|---|---|---|---|
-| **The site** | someone who wants an answer now, with nothing installed | the whole corpus is *in the page*: 125,072 measurements encoded by column, 7.9 MB. Paste an address, read the result — no wallet, no account, not one network request | nothing | 2, 3, 4, 5, 6, 7, 9, 13, 14 |
+| **The site** | someone who wants an answer now, with nothing installed | the whole corpus is *in the page*: 125,072 measurements encoded by column, 7.9 MB. Paste an address, read the result — no wallet, no account, not one network request | a browser: <https://tare-hooks.tech> | 2, 3, 4, 5, 6, 7, 9, 13, 14 |
 | **The extension** | someone who already swaps elsewhere and will never come to our site | the right moment to know what a hook takes is not when you are researching: it is **three seconds before signing**, on the site where you swap. It sits between the page and the wallet, reads Universal Router calldata, and rules before the signature. The measurement table lives in its service worker and answers with no request — so it works even if our server is off | install it; an API key only for history | 2, 6, 8, 9 |
 | **The MCP server** | an agent, not a human | a model asked "what does this hook take?" **invents a plausible number**. The MCP server gives it four tools whose descriptions say, in as many words, never to state a figure the tool did not return — and every answer carries its label, block, size, direction and replay command. It reads the 125,072 measurements off disk and answers offline | Claude Desktop or any MCP client | 1, 2, 3, 5, 6, 13 |
 | **x402, live, on Hedera** | an autonomous agent with no account and no wish for one | an agent does not fill in a signup form. It makes a request, gets a **402 that announces the price**, pays, and gets the measurement — 0.001 USDC, settled and re-read on the Hedera mirror node, not on our word. The signing key is sealed in a Ledger, and the answering agent has an HCS-14 identity published on a topic: the caller can check **who** it is calling before paying | a Hedera account and test USDC | 1, 10, 13 |
@@ -519,6 +520,7 @@ packages/hookflags the 14 permission bits, derived from the hook's own address
 packages/keyring   the Ledger Key Ring, driven against Speculos
 contracts/         HookRateAttestations, and the subscription contract
 docs/              method, limits, and the corrections this project had to make
+docs/internal/     the briefs and snapshots the work was ordered from — French, dated, not maintained
 scripts/           install-all.sh, test-all.sh, regenerate.sh, deploy.sh
 ```
 

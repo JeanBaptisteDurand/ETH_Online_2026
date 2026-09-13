@@ -178,7 +178,7 @@ const SYM: Record<string, { symbole: string | null; nom: string | null }> =
 export const symbole = (adresse: string): string | null =>
   SYM[adresse.toLowerCase()]?.symbole ?? null
 
-function jetonsProposes(max = 3): { adresse: string; ecart: number }[] {
+function classerJetons(lisiblesSeulement: boolean): { adresse: string; ecart: number }[] {
   const groupes = new Map<string, Map<string, number>>()
   for (const r of dataset.rows) {
     if (r.label !== 'MESURE' || r.bps === null || r.stored_lp_fee === null) continue
@@ -188,11 +188,12 @@ function jetonsProposes(max = 3): { adresse: string; ecart: number }[] {
     ] as [string, string][]) {
       const jeton = t.toLowerCase()
       if (jeton in MONNAIES_DE_COTATION) continue
-      // Only tokens bought WITH ETH, WETH or USDC, and only with a readable on-chain symbol:
-      // a demo chip that reads "PQTEST" tells a visitor nothing.
-      if (!(autre.toLowerCase() in MONNAIES_DE_COTATION)) continue
-      const sym = symbole(jeton)
-      if (!sym || /test|dev/i.test(sym)) continue
+      if (lisiblesSeulement) {
+        // bought WITH ETH, WETH or USDC, and carrying a readable on-chain symbol
+        if (!(autre.toLowerCase() in MONNAIES_DE_COTATION)) continue
+        const sym = symbole(jeton)
+        if (!sym || /test|dev/i.test(sym)) continue
+      }
       const cle = `${jeton}|${autre.toLowerCase()}|${r.amount_in}`
       const m = groupes.get(cle) ?? new Map<string, number>()
       m.set(r.pool_id, lpFeeBps(r.stored_lp_fee) + r.bps)
@@ -208,9 +209,18 @@ function jetonsProposes(max = 3): { adresse: string; ecart: number }[] {
   }
   return [...ecarts.entries()]
     .sort((x, y) => y[1] - x[1])
-    .slice(0, max)
     .map(([adresse, ecart]) => ({ adresse, ecart }))
 }
+
+/** The three widest gaps in the corpus, plus the widest among tokens quoted in ETH or USDC. */
+function jetonsProposes(): { adresse: string; ecart: number }[] {
+  const vus = new Set<string>()
+  return [...classerJetons(false).slice(0, 3), ...classerJetons(true).slice(0, 1)].filter((j) =>
+    vus.has(j.adresse) ? false : (vus.add(j.adresse), true),
+  )
+}
+
+const NOMBRES = ['no', 'one', 'two', 'three', 'four', 'five']
 
 /** « smooth », sauf si la personne a demande moins de mouvement — alors on saute. */
 export function doux(): ScrollBehavior {
@@ -512,7 +522,7 @@ export function Carte({
                       ? 'an ERC-20 contract address on Base: 0x followed by 40 hexadecimal characters'
                       : valide
                         ? 'computed here, on the embedded corpus — no request'
-                        : 'nothing is sent, the corpus is in the page — or try one of these three measured tokens'}
+                        : `nothing is sent, the corpus is in the page — or try one of these ${NOMBRES[demos.length] ?? demos.length} measured tokens`}
                   </span>
                   {!saisie &&
                     demos.map((d) => (

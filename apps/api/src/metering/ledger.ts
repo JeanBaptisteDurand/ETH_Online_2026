@@ -1,29 +1,28 @@
 /**
- * Le registre des unites facturees.
+ * The ledger of billed units.
  *
- * Porte de CorLens v2 : apps/ai-service/src/repositories/prompt-log.repo.ts.
- * CorLens ecrivait UNE ligne par appel de modele, puis agregait par `purpose`
- * avec un groupBy Prisma. Ici :
+ * Ported from an earlier metering service of ours. That service wrote ONE row
+ * per model call, then aggregated by `purpose` with a Prisma groupBy. Here:
  *
- *   - le stockage Prisma/Postgres devient un JSONL append-only. TARE n'a pas de
- *     base ; ajouter Postgres pour un compteur serait un poste de panne de plus.
- *   - `purpose` devient `payer` : ce qu'on veut voir, c'est qui doit combien.
- *   - et surtout : L'UNITE N'EST PLUS L'APPEL, C'EST LA MESURE. Une requete qui
- *     demande 5 tailles x 2 sens ecrit DIX lignes, pas une. Le groupBy compte
- *     des mesures. C'est tout l'ecart entre "pay-per-call" et le
- *     "per-measurement metering" que ce lot doit prouver : la preuve est dans
- *     le fait qu'il y ait dix lignes.
+ *   - Prisma/Postgres storage becomes an append-only JSONL. TARE has no
+ *     database; adding Postgres for a meter would be one more point of failure.
+ *   - `purpose` becomes `payer`: what we want to see is who owes how much.
+ *   - and above all: THE UNIT IS NO LONGER THE CALL, IT IS THE MEASUREMENT. A
+ *     request asking for 5 sizes x 2 directions writes TEN rows, not one. The
+ *     groupBy counts measurements. That is the whole gap between "pay-per-call"
+ *     and the "per-measurement metering" LOT G has to prove: the proof is
+ *     in the fact that there are ten rows.
  *
- * Regle dure n.3 appliquee a la facturation : une mesure etiquetee
- * NOT_MEASURABLE n'est PAS facturee. Une lecture bornee, un timeout, un moteur
- * muet ne produisent pas d'unite. On ne facture pas un silence.
+ * Hard rule no. 3 applied to billing: a measurement labeled NOT_MEASURABLE is
+ * NOT billed. A bounded read, a timeout, a silent engine produce no unit. We do
+ * not bill a silence.
  */
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 import type { Label } from "../labels.js";
 
-/** Les etiquettes qui correspondent a un travail reellement effectue. */
+/** The labels that correspond to work actually performed. */
 export const DEFAULT_BILLABLE_LABELS: readonly Label[] = [
   "MEASURED",
   "INTERPOLATED",
@@ -31,7 +30,7 @@ export const DEFAULT_BILLABLE_LABELS: readonly Label[] = [
 ];
 
 export interface MeasurementUnit {
-  /** identifiant deterministe de la mesure (src/measurement.ts) quand il existe */
+  /** deterministic identifier of the measurement (src/measurement.ts) when there is one */
   measurement_id: string | null;
   hook: string;
   pool_id: string;
@@ -48,17 +47,17 @@ export interface BatchInput {
   payer: string | null;
   network: string | null;
   scheme: string | null;
-  /** ce que le plan avait promis, avant execution */
+  /** what the plan had promised, before execution */
   units_requested: number;
   units: MeasurementUnit[];
   unit_price_usd: number;
   latency_ms: number | null;
-  /** renseigne quand le moteur n'a rien rendu : aucune unite n'est alors facturee */
+  /** set when the engine returned nothing: no unit is billed in that case */
   error: string | null;
 }
 
 export interface UnitRow {
-  /** identite de la LIGNE de registre (unique, meme si la mesure est rejouee) */
+  /** identity of the ledger ROW (unique, even if the measurement is replayed) */
   id: string;
   batch_id: string;
   ts: string;
@@ -78,10 +77,10 @@ export interface UnitRow {
   billable: boolean;
   unit_price_usd: number;
   amount_usd: number;
-  /** hash de reglement x402, raccroche apres coup */
+  /** x402 settlement hash, attached after the fact */
   settlement_tx: string | null;
   settlement_ok: boolean | null;
-  /** ancrage HCS, raccroche apres publication */
+  /** HCS anchor, attached after publication */
   hcs_topic_id: string | null;
   hcs_sequence_number: number | null;
   latency_ms: number | null;
@@ -97,7 +96,7 @@ export interface BatchReceipt {
   unit_price_usd: number;
   amount_usd: number;
   by_label: Partial<Record<Label, number>>;
-  /** empreinte canonique du lot — c'est ELLE qui part sur HCS */
+  /** canonical digest of the batch — IT is what goes out on HCS */
   digest: string;
   payer: string | null;
   error: string | null;
@@ -116,9 +115,9 @@ export interface PayerRollup {
 }
 
 /**
- * Empreinte canonique d'un lot : sha256 sur une serialisation ordonnee et
- * stable. Deux processus qui voient les memes mesures publient la meme
- * empreinte — sinon l'ancrage HCS ne prouverait rien.
+ * Canonical digest of a batch: sha256 over an ordered and stable
+ * serialisation. Two processes that see the same measurements publish the same
+ * digest — otherwise the HCS anchor would prove nothing.
  */
 export function batchDigest(rows: readonly UnitRow[]): string {
   const canonical = rows
@@ -142,10 +141,10 @@ export function batchDigest(rows: readonly UnitRow[]): string {
 }
 
 export interface LedgerOptions {
-  /** chemin du JSONL. `null` ou "" => registre purement en memoire. */
+  /** path of the JSONL. `null` or "" => purely in-memory ledger. */
   path: string | null;
   billableLabels?: readonly Label[];
-  /** nombre max de lignes gardees en memoire */
+  /** maximum number of rows kept in memory */
   maxRows?: number;
 }
 
@@ -154,7 +153,7 @@ export class MeteringLedger {
   private readonly billable: ReadonlySet<Label>;
   private readonly maxRows: number;
   readonly path: string | null;
-  /** lignes du JSONL qu'on n'a pas su relire. Jamais reparees a la devinette. */
+  /** JSONL lines we could not read back. Never repaired by guesswork. */
   readonly rejectedLines: number[] = [];
 
   constructor(opts: LedgerOptions) {
@@ -166,7 +165,7 @@ export class MeteringLedger {
         mkdirSync(dirname(this.path), { recursive: true });
         if (existsSync(this.path)) this.replay(this.path);
       } catch {
-        /* le journal disque est un bonus, jamais un point de panne */
+        /* the on-disk log is a bonus, never a point of failure */
       }
     }
   }
@@ -194,7 +193,7 @@ export class MeteringLedger {
     try {
       appendFileSync(this.path, JSON.stringify(row) + "\n");
     } catch {
-      /* idem */
+      /* same as above */
     }
   }
 
@@ -202,7 +201,7 @@ export class MeteringLedger {
     return this.billable.has(label);
   }
 
-  /** Une requete => N lignes, une par mesure. C'est le coeur du lot. */
+  /** One request => N rows, one per measurement. This is the core of LOT G. */
   recordBatch(input: BatchInput): BatchReceipt {
     const batch_id = "b_" + randomUUID().replace(/-/g, "").slice(0, 20);
     const ts = new Date().toISOString();
@@ -263,8 +262,8 @@ export class MeteringLedger {
   }
 
   /**
-   * Une requete qui n'a produit AUCUNE mesure. On l'inscrit quand meme, a zero
-   * unite : le registre doit montrer les pannes, pas les taire.
+   * A request that produced NO measurement. We record it anyway, at zero
+   * units: the ledger must show failures, not hide them.
    */
   recordFailure(input: Omit<BatchInput, "units">): BatchReceipt {
     return this.recordBatch({ ...input, units: [] });
@@ -274,14 +273,14 @@ export class MeteringLedger {
     return this.rows.filter((r) => r.batch_id === batchId);
   }
 
-  /** Le hash de reglement x402 arrive APRES la reponse : on le raccroche ici. */
+  /** The x402 settlement hash arrives AFTER the response: it is attached here. */
   attachSettlement(
     batchId: string,
     settlement: {
       success: boolean;
       transaction: string | null;
       payer?: string | null;
-      /** le reseau CAIP-2 tel que le RENDS le reglement, jamais celui qu'on esperait */
+      /** the CAIP-2 network as the settlement RETURNS it, never the one we hoped for */
       network?: string | null;
     },
   ): number {
@@ -290,9 +289,9 @@ export class MeteringLedger {
       if (r.batch_id !== batchId) continue;
       r.settlement_tx = settlement.transaction;
       r.settlement_ok = settlement.success;
-      // Le payeur et le reseau ne sont lisibles qu'au reglement : l'en-tete de paiement
-      // Hedera porte une transaction serialisee, pas des champs JSON. On complete ce
-      // qu'on ne savait pas ; on n'ecrase jamais ce qu'on savait deja.
+      // The payer and the network are only readable at settlement: the Hedera payment
+      // header carries a serialised transaction, not JSON fields. We fill in what we
+      // did not know; we never overwrite what we already knew.
       if (!r.payer && settlement.payer) r.payer = settlement.payer;
       if (!r.network && settlement.network) r.network = settlement.network;
       this.write(r);
@@ -301,7 +300,7 @@ export class MeteringLedger {
     return n;
   }
 
-  /** Idem pour l'ancrage HCS : sequence number et topic, une fois publies. */
+  /** Same for the HCS anchor: sequence number and topic, once published. */
   attachAnchor(batchId: string, anchor: { topic_id: string; sequence_number: number }): number {
     let n = 0;
     for (const r of this.rows) {
@@ -314,7 +313,7 @@ export class MeteringLedger {
     return n;
   }
 
-  /** Les lots pas encore ancres sur HCS, du plus ancien au plus recent. */
+  /** The batches not yet anchored on HCS, from oldest to newest. */
   unanchoredBatches(): string[] {
     const seen = new Set<string>();
     const out: string[] = [];
@@ -339,7 +338,7 @@ export class MeteringLedger {
     return this.rows.filter((r) => r.ts >= sinceIso);
   }
 
-  /** Le groupBy de CorLens, par payeur au lieu de par `purpose`. */
+  /** The earlier groupBy, by payer instead of by `purpose`. */
   rollupByPayer(sinceIso: string | null = null): PayerRollup[] {
     const acc = new Map<string, PayerRollup & { _batches: Set<string>; _tx: Map<string, { ok: boolean; units: number }> }>();
     for (const r of this.since(sinceIso)) {
@@ -437,11 +436,11 @@ export class MeteringLedger {
     let billed = 0;
     let amount = 0;
     let anchored = 0;
-    // x402 encaisse AVANT que le moteur ne tourne : le prix est fige au 402, l'argent
-    // bouge au reglement, et l'etiquette n'existe qu'apres. Une unite NOT_MEASURABLE est
-    // donc payee puis declaree non facturable — les deux a la fois. Dire seulement
-    // `amount_usd: 0` presenterait comme gratuit ce qui a bel et bien ete preleve.
-    // On tient donc les deux chiffres, et leur ecart : c'est un CREDIT du, pas un zero.
+    // x402 collects BEFORE the engine runs: the price is fixed at the 402, the money
+    // moves at settlement, and the label only exists afterwards. A NOT_MEASURABLE unit
+    // is therefore paid and then declared non-billable — both at once. Saying only
+    // `amount_usd: 0` would present as free what was in fact taken.
+    // So we keep both figures, and the gap between them: it is a CREDIT owed, not a zero.
     let settledAmount = 0;
     let creditUnits = 0;
     let creditAmount = 0;

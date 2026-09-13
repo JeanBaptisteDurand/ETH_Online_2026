@@ -1,15 +1,14 @@
 /**
- * Le service d'usage.
+ * The usage service.
  *
- * Porte de CorLens v2 : apps/ai-service/src/services/usage.service.ts. CorLens
- * n'avait qu'une methode, `rollupSinceMonthStart()`, qui agregeait des appels de
- * modele par `purpose`. On la garde a l'identique dans sa FORME (meme fenetre :
- * depuis le 1er du mois UTC) et on change son CONTENU : elle agrege des MESURES
- * par payeur.
+ * Ported from an earlier metering service of ours. That service had a single
+ * method, `rollupSinceMonthStart()`, which aggregated model calls by `purpose`.
+ * We keep its SHAPE identical (same window: since the 1st of the month UTC) and
+ * we change its CONTENT: it aggregates MEASUREMENTS by payer.
  *
- * S'y ajoute ce que CorLens n'avait pas : l'ancrage du lot sur HCS. Le compteur
- * dit combien on doit ; le topic HCS dit que le compteur ne peut plus etre
- * reecrit apres coup.
+ * On top of that comes what the earlier service did not have: anchoring the
+ * batch on HCS. The meter says how much is owed; the HCS topic says the meter
+ * can no longer be rewritten after the fact.
  */
 import type { Label } from "../labels.js";
 import {
@@ -30,7 +29,7 @@ import {
   type PublishResult,
 } from "./hcs.js";
 
-/** Ce que le service attend d'un ancreur. Injectable : les tests n'ecrivent pas sur Hedera. */
+/** What the service expects from an anchor publisher. Injectable: tests do not write to Hedera. */
 export interface AnchorPublisher {
   readonly topic_id: string;
   readonly network: string;
@@ -39,7 +38,7 @@ export interface AnchorPublisher {
   verify(sequenceNumber: number, expectedMessage: string | null): Promise<MirrorVerification>;
 }
 
-/** L'ancreur reel : Hedera testnet, via @hiero-ledger/sdk deja installe. */
+/** The real anchor publisher: Hedera testnet, via the already-installed @hiero-ledger/sdk. */
 export function hederaAnchorPublisher(cfg: HcsConfig, topicId: string): AnchorPublisher {
   return {
     topic_id: topicId,
@@ -52,7 +51,7 @@ export function hederaAnchorPublisher(cfg: HcsConfig, topicId: string): AnchorPu
 
 export interface AnchorOutcome {
   ok: boolean;
-  /** NOT_ANCHORED n'est jamais promu en ANCHORED : l'echec reste lisible. */
+  /** NOT_ANCHORED is never promoted to ANCHORED: the failure stays readable. */
   status: "ANCHORED" | "NOT_ANCHORED";
   batch_id: string;
   reason: string | null;
@@ -63,7 +62,7 @@ export interface AnchorOutcome {
 export interface MeteringServiceOptions {
   ledger: MeteringLedger;
   anchor?: AnchorPublisher | null;
-  /** verifie chaque publication sur le mirror avant de la declarer ancree */
+  /** verifies each publication on the mirror before declaring it anchored */
   verifyOnPublish?: boolean;
 }
 
@@ -95,12 +94,12 @@ export class MeteringService {
     return this.ledger.attachSettlement(batchId, settlement);
   }
 
-  /** La fenetre de CorLens, gardee telle quelle : depuis le 1er du mois, UTC. */
+  /** The earlier window, kept as-is: since the 1st of the month, UTC. */
   static monthStartIso(now: Date = new Date()): string {
     return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
   }
 
-  /** rollupSinceMonthStart() de CorLens — `byPurpose` devient `byPayer`. */
+  /** The earlier rollupSinceMonthStart() — `byPurpose` becomes `byPayer`. */
   rollupSinceMonthStart(now: Date = new Date()): {
     since: string;
     unit: "measurement";
@@ -110,7 +109,7 @@ export class MeteringService {
     return { since, unit: "measurement", byPayer: this.ledger.rollupByPayer(since) };
   }
 
-  /** Le corps de GET /usage. */
+  /** The body of GET /usage. */
   usage(now: Date = new Date()): Record<string, unknown> {
     const monthStart = MeteringService.monthStartIso(now);
     const all = this.ledger.totals(null);
@@ -141,7 +140,7 @@ export class MeteringService {
     };
   }
 
-  /** Les hashes de reglement, un par transaction, avec ce qu'ils ont paye. */
+  /** The settlement hashes, one per transaction, with what they paid for. */
   settlements(): Array<{
     transaction: string;
     ok: boolean;
@@ -245,14 +244,14 @@ export class MeteringService {
   }
 
   /**
-   * Publie l'empreinte d'un lot sur le topic HCS, puis la relit sur le mirror.
-   * Tant que le mirror n'a pas rendu le meme contenu, le lot est NOT_ANCHORED :
-   * un accuse de reception local ne vaut pas une piste d'audit publique.
+   * Publishes a batch's digest on the HCS topic, then reads it back on the
+   * mirror. Until the mirror has returned the same content, the batch is
+   * NOT_ANCHORED: a local acknowledgement does not amount to a public audit trail.
    */
   async anchorBatch(receipt: BatchReceipt, extra: { block?: number | null } = {}): Promise<AnchorOutcome> {
-    // Un lot deja ancre ne se republie pas. Chaque message HCS coute du HBAR, et une
-    // piste d'audit qui contient deux fois le meme lot n'est plus une piste : il faudrait
-    // savoir laquelle des deux lignes fait foi.
+    // A batch already anchored is not republished. Every HCS message costs HBAR, and an
+    // audit trail that contains the same batch twice is no longer a trail: one would
+    // have to know which of the two entries is authoritative.
     const deja = this.anchors.find((a) => a.batch_id === receipt.batch_id && a.ok);
     if (deja) return deja;
 
@@ -271,10 +270,10 @@ export class MeteringService {
 
     const rows: UnitRow[] = this.ledger.rowsOf(receipt.batch_id);
     const settlement = rows.find((r) => r.settlement_tx)?.settlement_tx ?? null;
-    // Le payeur n'est connu qu'au REGLEMENT : l'en-tete X-PAYMENT d'un paiement Hedera
-    // porte une TransferTransaction serialisee, pas un champ `payer` lisible. Le recu,
-    // ecrit pendant le handler, l'ignore donc encore ; les lignes, mises a jour par
-    // attachSettlement, le savent. On prend celui qu'on SAIT, jamais celui qu'on suppose.
+    // The payer is only known at SETTLEMENT: the X-PAYMENT header of a Hedera payment
+    // carries a serialised TransferTransaction, not a readable `payer` field. The
+    // receipt, written during the handler, therefore does not know it yet; the rows,
+    // updated by attachSettlement, do. We take the one we KNOW, never the one we assume.
     const payer = rows.find((r) => r.payer)?.payer ?? receipt.payer;
     const payload: AnchorPayload = {
       v: HCS_SCHEMA,

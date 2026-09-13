@@ -1,4 +1,4 @@
-> **Internal working document — written in French, kept for the record.**
+> **Internal working document, kept for the record.**
 >
 > What it is: an audit of the front-end as it stood on 12 September 2026 — what the `design/tare` branch had done, what was still missing for a judge to understand the product, and the full specification of the account, the API keys, the MCP server and the extension.
 >
@@ -6,330 +6,331 @@
 
 ---
 
-# TARE — l'état du front, ce qui manque, et comment câbler le compte
+# TARE — the state of the front-end, what is missing, and how to wire up the account
 
-> **À qui ce document s'adresse.** Au Claude qui fait le design, et à JB. Il dit trois choses :
-> ce que la branche `design/tare` a fait, **ce qui manque pour qu'un juge comprenne le produit**,
-> et **la spécification complète du compte, des clés d'API, du MCP et de l'extension** — parce
-> que ces quatre-là existent dans le code, marchent, et ne sont visibles nulle part à l'écran.
+> **Who this document is for.** The Claude doing the design, and JB. It says three things:
+> what the `design/tare` branch did, **what is missing for a judge to understand the product**,
+> and **the full specification of the account, the API keys, the MCP and the extension** —
+> because those four exist in the code, work, and are visible nowhere on screen.
 >
-> Tout ce qui est écrit ici a été vérifié dans un navigateur ou dans le code, à la date du
-> 12 septembre 2026. Quand une chose n'a pas pu être vérifiée, c'est écrit.
+> Everything written here was checked in a browser or in the code, as of
+> 12 September 2026. Where something could not be checked, that is written.
 >
-> Le reste du cadre est dans [`FRONT-BRIEF.md`](FRONT-BRIEF.md) (section 0 : ce qui est figé,
-> ce qui est à toi) et dans [`PROMPT-FRONT.md`](PROMPT-FRONT.md).
+> The rest of the context is in [`FRONT-BRIEF.md`](FRONT-BRIEF.md) (section 0: what is frozen,
+> what is yours) and in [`PROMPT-FRONT.md`](PROMPT-FRONT.md).
 
 ---
 
-## 1. La branche `design/tare`
+## 1. The `design/tare` branch
 
-Un commit, `b1bde67`, « design skeleton », par Florent Belotti. Il n'a touché que `apps/web` :
-ni la landing, ni `src/lib/`, ni le moteur, ni les contrats. **Le build passe. Zéro erreur de
-console sur les seize routes. Aucun nouveau débordement horizontal.** Le triptyque
-entrée → exécution → sortie est intact sur les quatorze pages d'outil, et `donnees.ts` est
-toujours la source des jeux de données. Le travail est propre et respecte le périmètre.
+One commit, `b1bde67`, "design skeleton", by Florent Belotti. He touched only `apps/web`:
+not the landing, not `src/lib/`, not the engine, not the contracts. **The build passes. Zero
+console errors across the sixteen routes. No new horizontal overflow.** The
+input → execution → output triptych is intact on the fourteen tool pages, and `donnees.ts` is
+still the source of the datasets. The work is clean and stays within scope.
 
-Ce qu'il a ajouté de vraiment bon :
+What he added that is really good:
 
-- une **carte du système** (`Carte.tsx`, 500 lignes) : les 27 jeux de données en amont, les
-  14 outils, l'orchestrateur à 6/6 étapes en 13 680 ms ;
-- sur `#/outil/1`, une **figure appariée** qui met `out_with` et `out_without` sur une base 100,
-  **les nomme**, et ajoute la glose de la PoolKey — ce que ma version ne faisait pas ;
-- un glossaire des sept champs rendus ;
-- le hash du talon en entier dans l'en-tête, avec ses étiquettes de provenance.
+- a **system map** (`Carte.tsx`, 500 lines): the 27 datasets upstream, the
+  14 tools, the orchestrator at 6/6 steps in 13,680 ms;
+- on `#/outil/1`, a **paired figure** that puts `out_with` and `out_without` on a base of 100,
+  **names them**, and adds the gloss on the PoolKey — which my version did not do;
+- a glossary of the seven returned fields;
+- the stub's hash in full in the header, with its provenance labels.
 
-Une décision qu'il a prise et qu'il faut valider : sur la page outil, **il affiche la sortie
-avant l'entrée**. C'est défendable — on montre le résultat d'abord — mais ça contredit l'ordre
-de lecture documenté dans le brief. À trancher, ce n'est pas un défaut.
+One decision he made that needs to be signed off: on the tool page, **the output is displayed
+before the input**. That is defensible — the result is shown first — but it contradicts the
+reading order documented in the brief. It needs a decision; it is not a defect.
 
 ---
 
-## 2. Est-ce qu'on comprend le produit sur la page d'accueil ? — Non
+## 2. Can you understand the product from the home page? — No
 
-C'est le constat le plus lourd du document, et il est **mesuré**, pas ressenti. Sur le texte
-rendu de toute la page d'accueil :
+This is the heaviest finding in the document, and it is **measured**, not felt. Over the
+rendered text of the whole home page:
 
-| mot | occurrences |
+| word | occurrences |
 |---|---|
 | **Uniswap** | **0** |
 | **v4** | **0** |
-| hook | 24 — **jamais défini** |
+| hook | 24 — **never defined** |
 
-La phrase qui explique le produit **existe** : *« Ce qu'un hook Uniswap v4 prend réellement sur
-un swap. Le même swap coté deux fois, avec le hook et avec un stub inerte. L'écart est la
-mesure. »* Elle est dans le `<meta name="description">` de `index.html`. **Elle n'est rendue
-nulle part dans la page.** Personne ne la lit.
+The sentence that explains the product **exists**: *"What a Uniswap v4 hook really takes on
+a swap. The same swap quoted twice, with the hook and with an inert stub. The gap is the
+measurement."* It is in the `<meta name="description">` of `index.html`. **It is rendered
+nowhere on the page.** Nobody reads it.
 
-L'ordre de lecture est à l'envers pour quelqu'un qui arrive froid :
+The reading order is backwards for someone arriving cold:
 
-| écran | ce qu'il voit | ce que ça lui dit |
+| screen | what they see | what it tells them |
 |---|---|---|
-| 1 | « La chaîne et ses 14 outils » + la carte des 27 jeux | une **architecture interne**. Il ne sait pas encore de quoi on parle |
-| 2 | 99,03 contre 100,00 → **96,74 bps**, et les wei bruts | la méthode et le chiffre — enfin |
-| 3 | « Colle une adresse de jeton » | l'action |
+| 1 | "The chain and its 14 tools" + the map of the 27 datasets | an **internal architecture**. They do not yet know what this is about |
+| 2 | 99.03 against 100.00 → **96.74 bps**, and the raw wei | the method and the figure — at last |
+| 3 | "Paste a token address" | the action |
 
-Et une phrase a disparu au passage. `main` ouvrait sur :
+And one sentence disappeared along the way. `main` opened on:
 
-> « par où acheter ce jeton, et ce que ça coûte — 125 072 mesures embarquées · aucune requête.
-> Colle l'adresse d'un jeton. On te dit par quel pool l'acheter, ce que ce pool prend — frais LP
-> plus prélèvement du hook, mesuré — **et ce qu'il te reste sur 100.** »
+> "where to buy this token, and what it costs — 125,072 embedded measurements · no request.
+> Paste a token's address. We tell you which pool to buy it through, what that pool takes — LP fee
+> plus the hook's take, measured — **and what you have left out of 100.**"
 
-« Et ce qu'il te reste sur 100 » était la seule phrase qui disait au visiteur **ce qu'il
-obtient**. Elle n'existe plus.
+"And what you have left out of 100" was the only sentence that told the visitor **what they
+get**. It no longer exists.
 
 ---
 
-## 3. Le compte, les clés d'API, le MCP, l'extension
+## 3. The account, the API keys, the MCP, the extension
 
-**C'est la partie la plus rentable du document**, parce que tout ce qui suit **est déjà écrit,
-testé, et ne demande que des écrans**.
+**This is the highest-return part of the document**, because everything that follows **is already
+written, tested, and needs nothing but screens**.
 
-### 3.1 L'état réel, à l'écran
+### 3.1 The actual state, on screen
 
-| élément | dans le code | à l'écran |
+| element | in the code | on screen |
 |---|---|---|
-| panneau compte | oui, panneau 15 de `#/instrument` | **présent, mais 628 caractères** : il s'arrête à « aucun portefeuille annoncé » |
-| connexion portefeuille | **EIP-6963**, écrit à la main dans `src/compte/api.ts` | un message d'état, **pas de bouton** |
-| clés d'API | `Compte.tsx` — « une par surface » | **jamais visible** sans portefeuille |
-| **téléchargement de l'extension** | `GET /compte/extension.zip` | **`extension.zip` : 0 occurrence dans le texte rendu des 16 routes** |
-| **téléchargement du MCP** | `GET /compte/mcp.tgz` | **idem, 0 occurrence** |
-| **configuration MCP** | `apps/mcp/README.md` | **nulle part sur le site** : `mcpServers` 0, `claude_desktop` 0, `stdio` 0 |
-| abonnement lu on-chain | `POST /compte/abonnement` | en prose seulement — normal, le contrat n'est pas déployé |
-| historique | `GET /compte/journal` | en prose seulement |
+| account panel | yes, panel 15 of `#/instrument` | **present, but 628 characters**: it stops at "no wallet announced" |
+| wallet connection | **EIP-6963**, written by hand in `src/compte/api.ts` | a status message, **no button** |
+| API keys | `Compte.tsx` — "one per surface" | **never visible** without a wallet |
+| **extension download** | `GET /compte/extension.zip` | **`extension.zip`: 0 occurrences in the rendered text of the 16 routes** |
+| **MCP download** | `GET /compte/mcp.tgz` | **same, 0 occurrences** |
+| **MCP configuration** | `apps/mcp/README.md` | **nowhere on the site**: `mcpServers` 0, `claude_desktop` 0, `stdio` 0 |
+| subscription read on-chain | `POST /compte/abonnement` | in prose only — expected, the contract is not deployed |
+| history | `GET /compte/journal` | in prose only |
 
-**RainbowKit : absent, et ce n'est pas un oubli.** La découverte des portefeuilles passe par
-**EIP-6963** (`eip6963:requestProvider` / `eip6963:announceProvider`), écrite à la main, sans
-wagmi, sans viem, sans WalletConnect. La raison est bonne : avec deux portefeuilles installés,
-`window.ethereum` n'en montre qu'un et cache l'autre. **La conséquence est réelle : pas de QR
-code, pas de mobile.** Un juge qui ouvre le site sur son téléphone ne peut pas se connecter.
+**RainbowKit: absent, and that is not an oversight.** Wallet discovery goes through
+**EIP-6963** (`eip6963:requestProvider` / `eip6963:announceProvider`), written by hand, without
+wagmi, without viem, without WalletConnect. The reason is sound: with two wallets installed,
+`window.ethereum` shows only one and hides the other. **The consequence is real: no QR
+code, no mobile.** A judge who opens the site on their phone cannot connect.
 
-### 3.2 Les deux authentifications — elles ne se mélangent jamais
+### 3.2 The two authentications — they never mix
 
-C'est la règle du `router.ts`, et l'interface doit la refléter :
+It is the rule in `router.ts`, and the interface must reflect it:
 
-| | qui la porte | en-tête | ce qu'elle ouvre |
+| | who carries it | header | what it opens |
 |---|---|---|---|
-| **jeton de session** | un **humain** devant un navigateur | `authorization: Bearer <jeton>` | lire le compte, gérer les clés, lire l'historique |
-| **clé d'API** | une **machine** — l'extension, le MCP | `x-tare-cle: <clé>` | **écrire au journal, et rien d'autre** |
+| **session token** | a **human** in front of a browser | `authorization: Bearer <token>` | read the account, manage the keys, read the history |
+| **API key** | a **machine** — the extension, the MCP | `x-tare-cle: <key>` | **write to the history log, and nothing else** |
 
-> **Une clé ne peut jamais en créer une autre.** C'est volontaire, et ça mérite d'être dit à
-> l'écran : c'est un argument de sécurité qu'un jury comprend en une phrase.
+> **A key can never create another one.** That is deliberate, and it deserves to be said on
+> screen: it is a security argument a jury understands in one sentence.
 
-### 3.3 Toutes les routes du compte
+### 3.3 All the account routes
 
-| méthode | route | auth | ce qu'elle fait |
+| method | route | auth | what it does |
 |---|---|---|---|
-| `POST` | `/compte/nonce` | — | `{adresse}` → un nonce à usage unique |
-| `POST` | `/compte/session` | — | `{adresse, nonce, signature}` → un jeton de session |
-| `DELETE` | `/compte/session` | Bearer | déconnexion |
-| `GET` | `/compte` | Bearer | le compte : abonnement, clés, état |
-| `POST` | `/compte/cle` | Bearer | `{portee: 'extension' \| 'mcp', nom?}` → **la clé, rendue UNE SEULE FOIS** |
-| `DELETE` | `/compte/cle/:id` | Bearer | révoquer une clé |
-| `POST` | `/compte/abonnement` | Bearer | déclencher la relecture on-chain |
-| `GET` | `/compte/extension.zip` | Bearer + abonnement | le paquet de l'extension |
-| `GET` | `/compte/mcp.tgz` | Bearer + abonnement | le serveur MCP, empaqueté par `npm pack` |
-| `GET` | `/compte/paquets` | Bearer | l'état des deux paquets |
-| `GET` | `/compte/journal` | Bearer | l'historique — `?quoi=` et `?limite=` |
-| `POST` | `/compte/journal` | **`x-tare-cle`** | l'extension et le MCP y déposent |
+| `POST` | `/compte/nonce` | — | `{adresse}` → a single-use nonce |
+| `POST` | `/compte/session` | — | `{adresse, nonce, signature}` → a session token |
+| `DELETE` | `/compte/session` | Bearer | sign-out |
+| `GET` | `/compte` | Bearer | the account: subscription, keys, state |
+| `POST` | `/compte/cle` | Bearer | `{portee: 'extension' \| 'mcp', nom?}` → **the key, returned ONCE ONLY** |
+| `DELETE` | `/compte/cle/:id` | Bearer | revoke a key |
+| `POST` | `/compte/abonnement` | Bearer | trigger the on-chain re-read |
+| `GET` | `/compte/extension.zip` | Bearer + subscription | the extension package |
+| `GET` | `/compte/mcp.tgz` | Bearer + subscription | the MCP server, packaged by `npm pack` |
+| `GET` | `/compte/paquets` | Bearer | the state of the two packages |
+| `GET` | `/compte/journal` | Bearer | the history — `?quoi=` and `?limite=` |
+| `POST` | `/compte/journal` | **`x-tare-cle`** | the extension and the MCP post to it |
 
-Deux refus que l'interface doit rendre **tels quels**, parce qu'ils disent leur raison :
+Two refusals the interface must render **as they are**, because they state their reason:
 
-- créer une clé sans abonnement actif → **402**, avec `{error: "abonnement inactif", detail, abonnement}`.
-  Le code le dit : *« une clé ne sert à rien sans abonnement, et le dire ici vaut mieux que de
-  la délivrer pour qu'elle soit refusée plus tard, sans qu'on sache pourquoi. »*
-- la clé n'est **jamais** renvoyée deux fois : la base n'en garde que le `sha256`. Le message de
-  l'API est `« notez-la maintenant : elle n'est rendue qu'une fois »`. **L'écran doit la montrer
-  une fois, en gros, avec un bouton copier, et ne jamais prétendre pouvoir la relire.**
+- creating a key without an active subscription → **402**, with `{error: "abonnement inactif", detail, abonnement}`.
+  The code says so: *"a key is of no use without a subscription, and saying so here is better than
+  issuing it only for it to be refused later, without anyone knowing why."*
+- the key is **never** returned twice: the database keeps only its `sha256`. The API's
+  message is `« notez-la maintenant : elle n'est rendue qu'une fois »` ("write it down now: it is
+  returned only once"). **The screen must show it once, large, with a copy button, and never
+  claim to be able to read it back.**
 
-### 3.4 Ce qu'il faut construire, écran par écran
+### 3.4 What has to be built, screen by screen
 
-Rien de tout ceci n'existe à l'écran aujourd'hui. Tout existe côté API.
+None of this exists on screen today. All of it exists on the API side.
 
-1. **Un bouton « connecter »** qui liste les portefeuilles annoncés par EIP-6963, et, s'il n'y
-   en a aucun, dit quoi installer — c'est déjà le texte actuel, il lui manque le bouton.
-2. **Deux cartes de clé**, une par portée, avec leur raison d'être :
-   - `extension` → *« pour que l'extension dépose ses verdicts dans ton historique. Elle marche
-     sans, hors ligne. »*
-   - `mcp` → *« pour que le serveur MCP dépose ses appels dans ton historique. Il marche sans. »*
-   Dans les deux cas, **la clé est facultative** — c'est un argument, pas une limite, et il faut
-   l'écrire.
-3. **La clé neuve, affichée une fois**, en grand, avec « copier », et un avertissement explicite.
-4. **Deux boutons de téléchargement** — extension et MCP — avec leur prérequis (abonnement) et,
-   juste en dessous, **les instructions d'installation** de la section 3.5.
-5. **L'historique**, avec ses filtres `quoi` et `limite`.
-6. **L'abonnement**, avec le bouton « relire sur la chaîne » et le refus motivé quand la lecture
-   échoue : *« abonnement non vérifié, donc pas actif »* — jamais « abonné » sur la foi d'une
-   transaction partie.
+1. **A "connect" button** that lists the wallets announced through EIP-6963, and, if there
+   are none, says what to install — that is already the current text; what it lacks is the button.
+2. **Two key cards**, one per scope, with their reason for existing:
+   - `extension` → *"so that the extension posts its verdicts to your history. It works
+     without one, offline."*
+   - `mcp` → *"so that the MCP server posts its calls to your history. It works without one."*
+   In both cases, **the key is optional** — that is an argument, not a limitation, and it has
+   to be written.
+3. **The new key, displayed once**, large, with "copy", and an explicit warning.
+4. **Two download buttons** — extension and MCP — with their prerequisite (subscription) and,
+   just below, **the installation instructions** from section 3.5.
+5. **The history**, with its `quoi` and `limite` filters.
+6. **The subscription**, with the "re-read on chain" button and the reasoned refusal when the
+   reading fails: *"subscription not verified, therefore not active"* — never "subscribed" on the
+   strength of a transaction that went out.
 
-### 3.5 L'installation, à afficher sur le site
+### 3.5 Installation, to be displayed on the site
 
-**L'extension** — `chrome://extensions` → mode développeur → **Load unpacked** → le dossier
-décompressé. La clé d'API se règle dans la page d'options. Sans clé, elle fonctionne : la table
-des mesures vit dans son service worker, **elle ne fait aucune requête**. L'API par défaut est
-`http://127.0.0.1:8787`, et la clé est stockée sous `tare.cle_api` dans `chrome.storage.local`.
+**The extension** — `chrome://extensions` → Developer mode → **Load unpacked** → the unzipped
+folder. The API key is set in the options page. Without a key, it works: the measurement
+table lives in its service worker, **it makes no request**. The default API is
+`http://127.0.0.1:8787`, and the key is stored under `tare.cle_api` in `chrome.storage.local`.
 
-**Le serveur MCP** — dans Claude Desktop, ajouter à
+**The MCP server** — in Claude Desktop, add to
 `~/Library/Application Support/Claude/claude_desktop_config.json`
-(`%APPDATA%\Claude\claude_desktop_config.json` sur Windows) :
+(`%APPDATA%\Claude\claude_desktop_config.json` on Windows):
 
 ```json
 {
   "mcpServers": {
     "tare": {
       "command": "node",
-      "args": ["<chemin>/apps/mcp/dist/src/index.js"]
+      "args": ["<path>/apps/mcp/dist/src/index.js"]
     }
   }
 }
 ```
 
-Dans Claude Code, une ligne :
+In Claude Code, one line:
 
 ```bash
-claude mcp add tare -- node <chemin>/apps/mcp/dist/src/index.js
+claude mcp add tare -- node <path>/apps/mcp/dist/src/index.js
 ```
 
-**La clé est facultative** : `TARE_CLE_API`, de portée `mcp`, et elle ne sert **qu'**à déposer
-les appels dans l'historique. Sans elle, le serveur répond depuis les **125 072 mesures
-commitées** et n'envoie rien à personne. Ses quatre outils : `tare_measure`, `tare_lookup`,
+**The key is optional**: `TARE_CLE_API`, with scope `mcp`, and it is used **only** to post
+the calls to the history. Without it, the server answers from the **125,072 committed
+measurements** and sends nothing to anyone. Its four tools: `tare_measure`, `tare_lookup`,
 `tare_impact`, `tare_twins`.
 
 ---
 
-## 4. Le rejeu VM — une régression
+## 4. The VM replay — a regression
 
-`main` montrait, sur `#/outil/1`, **six exécutions du contrefactuel — les plus fortes du
-corpus**, chacune avec ses deux valeurs brutes et **sa propre commande de rejeu**, sous la
-phrase qui expliquait la démarche. Dont celle-ci :
+`main` showed, on `#/outil/1`, **six runs of the counterfactual — the strongest in the
+corpus**, each with its two raw values and **its own replay command**, under the
+sentence that explained the approach. Including this one:
 
-| hook | sens · taille | bps | avec le hook | avec le talon |
+| hook | direction · size | bps | with the hook | with the stub |
 |---|---|---|---|---|
-| `0xb429d62f…` | 1→0 · 1 000 000 000 000 | **9 999,5279** | 76 | 1 609 989 |
+| `0xb429d62f…` | 1→0 · 1,000,000,000,000 | **9,999.5279** | 76 | 1,609,989 |
 
-`design/tare` n'en garde **qu'une**, et c'est la **médiane** (100,00 bps). −1 612 caractères,
-**cinq commandes de rejeu perdues**, et le cas le plus spectaculaire du corpus avec.
+`design/tare` keeps **only one**, and it is the **median** (100.00 bps). −1,612 characters,
+**five replay commands lost**, and the most spectacular case in the corpus along with them.
 
-Son choix est argumenté dans son propre code — le maximum est un pool où il ne sort presque
-rien, vrai mais illisible comme figure. **Il a raison sur la figure. La solution est d'ajouter,
-pas de remplacer :** sa figure médiane en haut, et les six lignes en dessous, dépliables.
+His choice is argued for in his own code — the maximum is a pool out of which almost nothing
+comes, true but unreadable as a figure. **He is right about the figure. The fix is to add,
+not to replace:** his median figure at the top, and the six rows below it, expandable.
 
 ---
 
-## 5. Quatre chiffres qui mentaient — déjà corrigés et poussés
+## 5. Four figures that lied — already fixed and pushed
 
-Trouvés en croisant la landing, l'instrument et la branche de design. **Aucun n'était couvert
-par un test.** Les quatre sont corrigés sur `main`, et trois ont désormais un test.
+Found by cross-checking the landing, the instrument and the design branch. **None was covered
+by a test.** All four are fixed on `main`, and three now have a test.
 
-| | ce qui était affiché | la vérité |
+| | what was displayed | the truth |
 |---|---|---|
-| **le titre de la landing** | « 1 559 hooks. **Zero** declare. » et « not one emits either » | **9 déclarent** — la section juste en dessous l'écrivait déjà, avec neuf cases allumées. Le titre **lit** maintenant `hooks_declaring`, et un test refuse les deux phrases mortes |
-| **les attestations** | « **99** hooks attestés » en gros | `build-facts.mjs` étiquetait « écrits » ce qui est **« à écrire »**. **16** sont on-chain, chacune avec son hash. Maintenant : 99 calculés · 17 transactions envoyées · **16 écrites** · 13 écartées faute de mesure |
-| **le `<noscript>`** | « 128 mesures, 4 hooks, 32 pools », et il citait `docs/measurements-v1.json`, **un fichier qui n'existe plus** | 125 072 / 112 / 7 817. Servi sur **chaque route** à tout ce qui ne lance pas de JavaScript — un robot d'indexation, un aperçu de lien. Corrigé, + test |
-| **« 37 % des projets primés »** | attribué au **site** | dans `docs/planning/04-finalist-profile.md`, le 37 % porte sur « extension · mobile · WhatsApp · mini-app ». Remplacé par celui qui soutient vraiment l'argument : **les 27 projets primés en asynchrone avaient tous une URL de démo vivante, 27 sur 27** |
+| **the landing's headline** | "1,559 hooks. **Zero** declare." and "not one emits either" | **9 declare** — the section just below already said so, with nine boxes lit. The headline now **reads** `hooks_declaring`, and a test rejects the two dead sentences |
+| **the attestations** | "**99** hooks attested" in large type | `build-facts.mjs` labelled as "written" what is **"to be written"**. **16** are on-chain, each with its hash. Now: 99 computed · 17 transactions sent · **16 written** · 13 set aside for lack of a measurement |
+| **the `<noscript>`** | "128 measurements, 4 hooks, 32 pools", and it cited `docs/measurements-v1.json`, **a file that no longer exists** | 125,072 / 112 / 7,817. Served on **every route** to anything that does not run JavaScript — an indexing crawler, a link preview. Fixed, + test |
+| **"37 % of prize-winning projects"** | attributed to the **site** | in an earlier internal note, the 37 % referred to "extension · mobile · WhatsApp · mini-app". Replaced by the figure that really supports the argument: **the 27 projects that won prizes in the asynchronous format all had a live demo URL, 27 out of 27** |
 
 ---
 
-## 6. La landing et l'instrument : qui rate quoi
+## 6. The landing and the instrument: who misses what
 
-Deux surfaces, deux rôles. La **landing** (`/`, en **anglais**) porte l'argument en 8 sections.
-L'**instrument** (`/hooks/`, en **français**) porte le produit. Elles ne se doublonnent pas —
-mais chacune a un trou.
+Two surfaces, two roles. The **landing** (`/`, in **English**) carries the argument in 8 sections.
+The **instrument** (`/hooks/`, in **French**) carries the product. They do not duplicate each other —
+but each one has a gap.
 
-### Un juge qui ne voit que l'accueil de l'instrument rate
+### A judge who sees only the instrument's home page misses
 
-1. **Pourquoi le nombre est valide.** Que la **PoolKey contient l'adresse du hook**, donc que
-   « le même pool sans son hook » n'existe pas, donc qu'on remplace son **bytecode**. Sans ça,
-   « 96,74 bps » est un chiffre parmi d'autres. **La perte la plus coûteuse.**
-2. **Pourquoi le projet existe.** Le registre officiel : **978 fiches, 27 champs, 19 booléens,
-   0 quantité**, et `"additionalProperties": false` — *le schéma n'omet pas un nombre, il
-   interdit d'en ajouter un*. Absent de l'accueil. Et « 9 hooks sur 1 559 » n'y est que **dans
-   un dépliant fermé**, en incise d'une description de fichier.
-3. **L'échelle.** « 125 072 mesures » sans **7 817 pools · 112 hooks · 8 tailles · les deux
-   sens**. 125 072 mesures d'un seul pool donneraient le même chiffre.
-4. **Que le taux dépend de la taille.** Le sélecteur de taille est là sans un mot ; la
-   démonstration A3 (5 tailles, ±0,05 bps, réécriture indépendante antérieure au code) n'y est
-   pas.
-5. **« Ce que je ne sais pas ».** 61 916 lignes sur 125 072 ne sont **pas** des valeurs ;
-   `NOT_QUOTABLE` ≠ `NOT_MEASURABLE` ; deux erreurs passées publiées avec leur correction ;
-   aucune attribution nommée. **L'instrument n'a aucune section limites.** La discipline est
-   codée partout — refus motivés, `<NonLu>`, compteurs de troncature — elle n'est **jamais
-   plaidée**. Un jury ne peut pas créditer ce qu'il ne lit pas.
-6. **78 des 112 hooks mesurés sont absents du registre**, et **7 794 paires sur 7 802 n'ont
-   qu'un seul pool**. Les deux faits qui transforment « ce hook prend X » en « et tu ne peux pas
-   y échapper ».
+1. **Why the number is valid.** That the **PoolKey contains the hook's address**, so that
+   "the same pool without its hook" does not exist, so that its **bytecode** is what gets replaced.
+   Without that, "96.74 bps" is one figure among others. **The costliest loss.**
+2. **Why the project exists.** The official registry: **978 entries, 27 fields, 19 booleans,
+   0 quantities**, and `"additionalProperties": false` — *the schema does not omit a number, it
+   forbids adding one*. Absent from the home page. And "9 hooks out of 1,559" appears there only
+   **inside a closed collapsible**, as an aside in a file description.
+3. **The scale.** "125,072 measurements" without **7,817 pools · 112 hooks · 8 sizes · both
+   directions**. 125,072 measurements of a single pool would give the same figure.
+4. **That the rate depends on the size.** The size selector is there without a word; the
+   A3 demonstration (5 sizes, ±0.05 bps, an independent rewrite that predates the code) is not
+   there.
+5. **"What I do not know".** 61,916 rows out of 125,072 are **not** values;
+   `NOT_QUOTABLE` ≠ `NOT_MEASURABLE`; two past mistakes published with their correction;
+   no named attribution. **The instrument has no limits section.** The discipline is
+   coded everywhere — reasoned refusals, `<NonLu>`, truncation counters — it is **never
+   argued**. A jury cannot give credit for what it does not read.
+6. **78 of the 112 measured hooks are absent from the registry**, and **7,794 pairs out of 7,802
+   have only one pool**. The two facts that turn "this hook takes X" into "and you cannot
+   escape it".
 
-### Un juge qui ne voit que la landing rate
+### A judge who sees only the landing misses
 
-1. **Trois surfaces sur cinq : zéro mot.** L'extension, le serveur MCP, le compte.
-2. **Le geste.** Coller une adresse et obtenir un classement de portes. La landing le *promet*
-   en section 06 ; son propre champ ne décode que les 14 bits de permission.
-3. **Le coût total.** La landing ne publie que le prélèvement du hook ; l'instrument additionne
-   les **frais LP lus sur la chaîne**. C'est le total qui décide pour un utilisateur.
-4. **La preuve que le contrefactuel ne ment pas** : la porte A4, un swap **réellement exécuté**
-   recollé à sa cotation au wei près. Réduite à une subordonnée sans chiffre — alors que c'est
-   l'objection numéro un d'un juge v4.
-5. **La chaîne bout en bout** : 6/6 étapes en 13 680 ms, transaction réelle → verdict → autre
-   porte → mesure payée → ancrage HCS → signature sur l'appareil.
-6. **Les détails qui gagnent les prix de sponsors** : x402 à **0,001 USDC** avec un 402 qui
-   annonce son prix et un **prix dynamique** (cinq mesures coûtent cinq fois), la clé signataire
-   **scellée dans un Ledger**, **HCS-14** nommé et recalculable, **Permit2** et la liste de
-   commandes `0x0a10`, et la transaction de remplacement **jamais envoyée**.
-
----
-
-## 7. Ce qu'il reste à faire, par priorité
-
-### À faire absolument — quatre items, tous du texte, aucun design
-
-1. **Une phrase en haut de l'accueil** : ce que mesure TARE, sur **Uniswap v4**, et pour qui.
-   Le mot « Uniswap » n'est aujourd'hui nulle part sur la page.
-2. **Le contrefactuel en deux phrases** sous la figure : la PoolKey contient le hook → on
-   remplace le bytecode par 89 octets inertes → sur un fork épinglé → l'écart est le
-   prélèvement.
-3. **Remettre les six contrefactuels** sur `#/outil/1`, dépliables sous la figure médiane, dont
-   le hook à 9 999,53 bps.
-4. **Remonter hors du dépliant** « 9 hooks sur 1 559 déclarent » et « le registre a 0 quantité,
-   et son schéma interdit d'en ajouter une ».
-
-### Très rentable
-
-- Une section **« ce que je ne sais pas »** sur l'instrument — c'est ce qui fait croire au reste.
-- **L'échelle du corpus** à côté de « 125 072 » : 7 817 pools, 112 hooks, 8 tailles, deux sens.
-- **Rendre les cinq accès cliquables** vers leur surface.
-- **Les écrans du compte** de la section 3.4, et les instructions d'installation de la 3.5.
-- La phrase **« et ce qu'il te reste sur 100 »**, remise là où elle était.
-
-### À décider par JB, pas par le front
-
-- **RainbowKit** : environ deux heures, et ça règle le mobile. Sans lui, aucune connexion depuis
-  un téléphone.
-- **La langue** : la landing est en anglais, l'instrument en français. Un juge qui suit le
-  bouton passe de l'une à l'autre.
-- **La landing parle-t-elle du produit** (extension, MCP, compte) ou reste-t-elle l'argument pur ?
-
-### Pré-existant, à savoir — ce n'est la faute de personne sur cette branche
-
-- **`#/instrument` déborde à 390 px** : cinq `<th>` en `position: sticky` dans la table « Les
-  lignes brutes de ce hook » échappent au conteneur à `overflow-x: auto`. Présent aussi sur
-  `main`. L'accueil et les pages outil, eux, ne débordent pas.
-- **`npm run build` sur la landing prend 5 min 30** (l'étape `facts.mjs`), et
-  `src/generated/facts.json` est **gitignoré** — donc il est régénéré à chaque déploiement.
-  À savoir avant de compter sur un déploiement de dernière minute.
-- La table « Le registre contre la mesure » tronque les frais LP on-chain à 3 valeurs + « +5 »
-  au lieu de 8, et le libellé a perdu le mot **« on-chain »**, qui disait d'où venait le chiffre.
+1. **Three surfaces out of five: zero words.** The extension, the MCP server, the account.
+2. **The gesture.** Pasting an address and getting a ranking of doors. The landing *promises* it
+   in section 06; its own field decodes only the 14 permission bits.
+3. **The total cost.** The landing publishes only the hook's take; the instrument adds
+   the **LP fees read on chain**. It is the total that decides for a user.
+4. **The proof that the counterfactual does not lie**: door A4, a swap **actually executed**
+   matched back to its quote to the wei. Reduced to a subordinate clause with no figure — when it is
+   a v4 judge's number-one objection.
+5. **The end-to-end chain**: 6/6 steps in 13,680 ms, real transaction → verdict → another
+   door → paid measurement → HCS anchoring → signature on the device.
+6. **The details that win sponsor prizes**: x402 at **0.001 USDC** with a 402 that
+   announces its price and a **dynamic price** (five measurements cost five times as much), the
+   signing key **sealed in a Ledger**, **HCS-14** named and recomputable, **Permit2** and the
+   `0x0a10` command list, and the replacement transaction **never sent**.
 
 ---
 
-## 8. Ce qui reste dans les mains de JB
+## 7. What is left to do, by priority
 
-Ni le front ni son Claude n'y peuvent rien. Si un écran dit « en attente », c'est **ça** qu'il
-attend — ce n'est pas un bug à corriger :
+### Must do — four items, all text, no design
 
-- activer GitHub Pages (Settings → Pages → Source : GitHub Actions) ;
-- **révoquer la clé Alchemy**, encore présente dans l'historique git public ;
-- déployer `AbonnementTARE` sur un réseau public, puis renseigner `TARE_ABONNEMENT_CONTRAT` et
-  régénérer la fiche — **tant que ce n'est pas fait, le compte répond « abonnement non vérifié,
-  donc pas actif », et c'est le comportement correct** ;
-- renseigner `TARE_DEMO_URL` et régénérer ;
-- tourner la vidéo ;
-- ouvrir la PR `Uniswap/hooklist` et envoyer le formulaire de retour Uniswap.
+1. **One sentence at the top of the home page**: what TARE measures, on **Uniswap v4**, and for whom.
+   The word "Uniswap" is nowhere on the page today.
+2. **The counterfactual in two sentences** under the figure: the PoolKey contains the hook → the
+   bytecode is replaced with 89 inert bytes → on a pinned fork → the gap is the
+   take.
+3. **Put the six counterfactuals back** on `#/outil/1`, expandable under the median figure,
+   including the hook at 9,999.53 bps.
+4. **Bring out of the collapsible** "9 hooks out of 1,559 declare" and "the registry has
+   0 quantities, and its schema forbids adding one".
+
+### High return
+
+- A **"what I do not know"** section on the instrument — it is what makes the rest believable.
+- **The scale of the corpus** next to "125,072": 7,817 pools, 112 hooks, 8 sizes, two directions.
+- **Make the five ways in clickable** through to their surface.
+- **The account screens** from section 3.4, and the installation instructions from 3.5.
+- The sentence **"and what you have left out of 100"**, put back where it was.
+
+### For JB to decide, not the front-end
+
+- **RainbowKit**: about two hours, and it solves mobile. Without it, no connection from
+  a phone.
+- **The language**: the landing is in English, the instrument in French. A judge who follows the
+  button goes from one to the other.
+- **Does the landing talk about the product** (extension, MCP, account) or does it stay the pure argument?
+
+### Pre-existing, worth knowing — nobody on this branch is at fault
+
+- **`#/instrument` overflows at 390 px**: five `<th>` in `position: sticky` in the "The raw
+  rows of this hook" table escape the `overflow-x: auto` container. Also present on
+  `main`. The home page and the tool pages do not overflow.
+- **`npm run build` on the landing takes 5 min 30 s** (the `facts.mjs` step), and
+  `src/generated/facts.json` is **gitignored** — so it is regenerated on every deployment.
+  Worth knowing before counting on a last-minute deployment.
+- The "The registry against the measurement" table truncates the on-chain LP fees to 3 values + "+5"
+  instead of 8, and the label has lost the word **"on-chain"**, which said where the figure came from.
+
+---
+
+## 8. What stays in JB's hands
+
+Neither the front-end nor its Claude can do anything about these. If a screen says "pending",
+**this** is what it is waiting for — it is not a bug to fix:
+
+- enable GitHub Pages (Settings → Pages → Source: GitHub Actions);
+- **revoke the Alchemy key**, still present in the public git history;
+- deploy `AbonnementTARE` to a public network, then set `TARE_ABONNEMENT_CONTRAT` and
+  regenerate the sheet — **until that is done, the account answers "subscription not verified,
+  therefore not active", and that is the correct behaviour**;
+- set `TARE_DEMO_URL` and regenerate;
+- shoot the video;
+- open the `Uniswap/hooklist` PR and send the Uniswap feedback form.

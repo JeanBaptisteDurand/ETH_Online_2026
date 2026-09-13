@@ -6,6 +6,10 @@ sells measurement on demand behind an x402 toll on Hedera testnet.
 **It computes no bps.** The numbers come either from the published dataset or from the
 Python engine (`engine/tare`, 47 tests, gate A3), called by `scripts/measure_one.py`.
 
+**Public instance:** <https://api.tare-hooks.tech>. The x402 toll answers there — an unpaid
+`POST /measure` returns 402 with its price. The measurement engine and the account database are
+not deployed on that host yet; see [`DEPLOY.md`](../../DEPLOY.md).
+
 ## Getting started
 
 ```bash
@@ -117,7 +121,7 @@ public) rate-limited, the read came back empty, and an empty read is a
 * `payTo` defaults to `HEDERA_FEE_PAYER` (`0.0.7162784`), that is, the facilitator's
   account. **Put a real TARE account in `HEDERA_PAY_TO` before any paid demo.**
 * `replay.command` (`make measure HOOK=… BLOCK=…`) is the short form published in the
-  root README. `engine/tare/cli.py` appeared during this batch, so the command
+  root README. `engine/tare/cli.py` appeared during this work package, so the command
   exists — but my only attempt (`make measure HOOK=0x1aea38f0… BLOCK=50614000`) stopped
   on an uncaught `RpcError: empty response`, the fork's upstream RPC being
   rate-limited. **The form that runs today is `replay.command_exact`**

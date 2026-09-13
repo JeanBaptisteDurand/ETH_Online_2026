@@ -12,11 +12,17 @@ The first needs a machine that is switched on.
 
 ## Where this stands today
 
-<https://tare-hooks.tech> is live, with a valid Let's Encrypt certificate. **It serves the two
-static surfaces and nothing else** — the instrument at the root, the landing page under
-`/landing/`. Every API path falls through to the page: there is no `db`, no `anvil` and no `api`
-container behind that domain. So the x402 service is still **not hosted**, and the track
-requirement is still **not** met.
+<https://tare-hooks.tech> is live, with a valid Let's Encrypt certificate: the instrument at the
+root, the landing page under `/landing/`.
+
+<https://api.tare-hooks.tech> is live too, and **the x402 toll answers**: an unpaid `POST /measure`
+returns 402 with its price. It runs as a systemd unit (`tare-api.service`, Node 20, bound to
+`127.0.0.1:8780`) behind the host's own Caddy — not in the Docker compose described below, whose
+networking failed on this machine. Its secrets sit in a root-only file outside the checkout.
+
+What does **not** run on that host yet: the measurement engine (no `anvil`, nothing on port 8545),
+so a fresh measurement cannot be delivered behind the toll; and a database, so the account routes
+answer 503 with their reason.
 
 ## What is already verified
 

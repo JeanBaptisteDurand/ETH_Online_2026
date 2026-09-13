@@ -82,7 +82,7 @@ POST /usage/anchor             anchors a batch — HMAC-signed
 
 ## The wiring, as it stands (and why it is not the one described above)
 
-This batch described a two-line wiring. It is wired — but **not** like that, because
+LOT G described a two-line wiring. It is wired — but **not** like that, because
 the first payment actually settled showed that this wiring was wrong. See
 [`X402.md`](../../../../X402.md) for the full account; in short:
 
@@ -133,7 +133,7 @@ TARE_LIVE_HCS=0                    # switches off the network test
 
 ```bash
 cd apps/api
-npx vitest run --config src/metering/vitest.config.ts   # 50 tests + 1 skipped
+npx vitest run --config src/metering/vitest.config.ts   # 51 tests + 1 skipped
 npx tsx src/metering/cli.ts topic-create                # once only
 npx tsx src/metering/cli.ts anchor                      # publishes a digest and reads it back
 npx tsx src/metering/cli.ts usage                       # the full walkthrough, 10 units

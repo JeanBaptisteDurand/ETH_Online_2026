@@ -1,13 +1,13 @@
 /**
- * Les routes du compteur.
+ * The meter's routes.
  *
- * Porte de CorLens v2 : apps/ai-service/src/controllers/usage.controller.ts.
- * CorLens exposait un seul GET /usage (Fastify + Zod) rendant un rollup par
- * `purpose` depuis le 1er du mois. On garde cette route et sa fenetre, et on
- * ajoute ce qu'un compteur a l'unite doit pouvoir montrer : le detail ligne a
- * ligne, le lot, et la piste d'audit HCS relue sur le mirror node.
+ * Ported from an earlier metering service of ours. That service exposed a
+ * single GET /usage (Fastify + Zod) returning a rollup by `purpose` since the
+ * 1st of the month. We keep that route and its window, and we add what a
+ * per-unit meter has to be able to show: the row-by-row detail, the batch, and
+ * the HCS audit trail read back from the mirror node.
  *
- * Ce routeur est un sous-app Hono autonome. Il se monte en une ligne :
+ * This router is a standalone Hono sub-app. It mounts in one line:
  *   app.route("/", meteringRouter(service));
  */
 import { Hono } from "hono";
@@ -17,10 +17,10 @@ import { batchDigest } from "./ledger.js";
 import { verifyOnMirror, type HcsConfig } from "./hcs.js";
 
 export interface MeteringRouterOptions {
-  /** secret HMAC des routes d'ecriture. null => garde desactivee, et annoncee. */
+  /** HMAC secret for the write routes. null => guard disabled, and announced. */
   hmacSecret?: string | null;
   hmacMaxAgeSeconds?: number;
-  /** config Hedera, pour la relecture live d'un message par le mirror node */
+  /** Hedera config, for the live read-back of a message by the mirror node */
   hcs?: HcsConfig | null;
 }
 
@@ -31,10 +31,10 @@ export function meteringRouter(service: MeteringService, opts: MeteringRouterOpt
     maxAgeSeconds: opts.hmacMaxAgeSeconds ?? 60,
   });
 
-  /** d) le compteur : total de mesures facturees, par payeur, avec les hashes de reglement */
+  /** d) the meter: total billed measurements, by payer, with the settlement hashes */
   app.get("/usage", (c) => c.json(service.usage()));
 
-  /** la forme CorLens, conservee telle quelle : rollup depuis le 1er du mois UTC */
+  /** the earlier shape, kept as-is: rollup since the 1st of the month, UTC */
   app.get("/usage/rollup", (c) => c.json(service.rollupSinceMonthStart()));
 
   app.get("/usage/log", (c) => {
@@ -71,7 +71,7 @@ export function meteringRouter(service: MeteringService, opts: MeteringRouterOpt
     });
   });
 
-  /** c) le journal HCS, tel que le service le connait */
+  /** c) the HCS log, as the service knows it */
   app.get("/usage/hcs", (c) => c.json(service.hcsStatus()));
 
   app.get("/usage/hcs/history", (c) =>
@@ -96,9 +96,9 @@ export function meteringRouter(service: MeteringService, opts: MeteringRouterOpt
   );
 
   /**
-   * Relecture LIVE d'un message par le mirror node. C'est la route qui prouve
-   * l'ancrage a un juge : elle ne rend pas ce que TARE croit avoir ecrit, elle
-   * rend ce que Hedera a horodate.
+   * LIVE read-back of a message by the mirror node. This is the route that
+   * proves the anchor to a judge: it does not return what TARE believes it
+   * wrote, it returns what Hedera timestamped.
    */
   app.get("/usage/hcs/message/:seq", async (c) => {
     const seq = Number(c.req.param("seq"));
@@ -129,7 +129,7 @@ export function meteringRouter(service: MeteringService, opts: MeteringRouterOpt
     );
   });
 
-  /** b) le middleware HMAC : la seule route d'ecriture est signee. */
+  /** b) the HMAC middleware: the only write route is signed. */
   app.post("/usage/anchor", guard, async (c) => {
     let body: { batch_id?: unknown } = {};
     try {
@@ -162,7 +162,7 @@ export function meteringRouter(service: MeteringService, opts: MeteringRouterOpt
   return app;
 }
 
-/** Le montage, en une ligne, dans src/app.ts. */
+/** The wiring, in one line, in src/app.ts. */
 export function mountMetering(
   app: Hono,
   service: MeteringService,

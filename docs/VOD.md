@@ -1,12 +1,11 @@
 # The demo video — shooting script, beat by beat
 
-> **What this file is, and why half of it is in French.**
+> **What this file is.**
 >
 > It is the shot list for the demo video: what is on screen, what is said, and when to move.
-> Everything you *do* is in English — the headings, the timings, the stage directions, the
-> checks. The lines inside the quoted blocks are what is **spoken on camera**, and the recording
-> is in French, so they are kept in the language they will be said in. Translating them would
-> mean rehearsing one text and speaking another.
+> Everything you *do* is in the headings, the timings, the stage directions and the checks. The
+> lines inside the quoted blocks are what is **spoken on camera**, in the exact words they will
+> be said in: the text you rehearse is the text you speak.
 >
 > **The route it follows is the deck**, in order: `#/deck` in presenter mode (`?presenter=1`),
 > with two cuts out to the live instrument to show it really runs. The deck carries **nine
@@ -34,7 +33,8 @@
 > python3 -c "import re; b=re.findall(r'as it will be spoken:\n\n((?:>.*\n)+)', open('docs/VOD.md').read()); print(len(b),'blocks;',len(re.sub(r'^> ?','',''.join(b),flags=re.M).split()),'words')"
 > ```
 >
-> It prints `11 blocks; 694 words` today. Recount after every edit: the figure above is the only
+> It prints `11 blocks; 708 words` today — 708 raw tokens, **694 spoken words** once the lone
+> dashes and ellipses are dropped. Recount after every edit: the figure above is the only
 > thing standing between a rehearsed take and a disqualified one.
 
 ---
@@ -57,7 +57,7 @@
 
 **On screen** — the deck, **beat 1**, but you speak *before* showing the figures. Open on the instrument at `#/` with an address already pasted, cursor in the field, nothing submitted.
 
-**What you say** — in French, as it will be spoken:
+**What you say** — as it will be spoken:
 
 > Michel runs a small company. He holds treasury in tokens, and today he wants to swap some for
 > ETH. He opens an exchange, sees a price, signs.
@@ -68,7 +68,7 @@
 > **TARE measures what hooks actually take, and publishes it.** A hundred and twenty-five
 > thousand measurements, seven thousand eight hundred pools, a hundred and twelve hooks.
 
-**Cue** — on « et le publie », space → the deck, beat 1.
+**Cue** — on "and publishes it", space → the deck, beat 1.
 
 **Tone** — Michel is there for a reason, not for a laugh. He makes concrete a problem that is otherwise a protocol abstraction. Say his name once, then forget him: the rest is about measurement, not about a character.
 
@@ -78,7 +78,7 @@
 
 **On screen** — deck, **beat 1**. The three large figures: `9 / 1 559`, `0`, `78 / 112`.
 
-**What you say** — in French, as it will be spoken:
+**What you say** — as it will be spoken:
 
 > Uniswap asks these hooks to declare what they charge. Out of one thousand five hundred and
 > fifty-nine hooks seen across two hundred thousand blocks, **nine** do. Nine.
@@ -91,7 +91,7 @@
 
 **On screen** — still **beat 1**, scrolled down to the paragraph. `"additionalProperties": false` is visible.
 
-**What you say** — in French, as it will be spoken:
+**What you say** — as it will be spoken:
 
 > There is an official hook registry. Twenty-seven fields per entry, nineteen booleans.
 > **Not one is a quantity.** And the schema is closed: it does not merely omit a rate, it
@@ -106,7 +106,7 @@
 
 **On screen** — deck, **beat 2**. `125 072` · `7 817` · `112` · `89`.
 
-**What you say** — in French, as it will be spoken:
+**What you say** — as it will be spoken:
 
 > So we measured it. And the obvious measurement is **impossible**: a v4 pool's identity — its
 > `PoolKey` — **contains the hook's address.** "The same pool without its hook" cannot be
@@ -116,7 +116,7 @@
 > `slot0`: identical to the bit. The only thing that changed is the code that runs during the
 > swap. Quote the same swap twice — **the gap is what the hook took.**
 
-**Cue** — on « l'écart, c'est ce que le hook a pris », space → beat 3.
+**Cue** — on "the gap is what the hook took", space → beat 3.
 
 ---
 
@@ -124,7 +124,7 @@
 
 **On screen** — deck, **beat 3**. `96,74` executed against `96,74` announced.
 
-**What you say** — in French, as it will be spoken:
+**What you say** — as it will be spoken:
 
 > The objection comes immediately: what is a quote on a fork worth? So we **executed the swap
 > for real**, and matched the result against what the quote announced. **To the wei.** And we
@@ -141,7 +141,7 @@
 
 Beat 4 of the deck now runs the real app inside the board, so this cut is a choice, not a necessity: a live tab is more convincing, beat 4 is safer if the machine is slow.
 
-**What you say** — in French, as it will be spoken:
+**What you say** — as it will be spoken:
 
 > Back to Michel. I paste his token's address…
 > and I get the doors I can buy it through, ranked: the pool fee, **plus** the measured hook take,
@@ -156,7 +156,7 @@ Beat 4 of the deck now runs the real app inside the board, so this cut is a choi
 
 **On screen** — deck, **beat 6**. Click **there is a better one**, let it play, then click **there is only one door** — the deck's own two outcomes, in its own words.
 
-**What you say** — in French, as it will be spoken:
+**What you say** — as it will be spoken:
 
 > But the right moment to know what a hook takes is not when you search. It is **three seconds
 > before you sign.** The extension sits between the exchange and the wallet, reads the calldata,
@@ -173,7 +173,7 @@ Beat 4 of the deck now runs the real app inside the board, so this cut is a choi
 
 **On screen** — deck, **beat 5**. Click the second ready-made question.
 
-**What you say** — in French, as it will be spoken:
+**What you say** — as it will be spoken:
 
 > And for agents. Ask a model what a hook takes, and it **invents a plausible number.** Our four
 > MCP tools carry, in their own description, the ban on stating one. Here the model does not
@@ -188,9 +188,7 @@ Beat 4 of the deck now runs the real app inside the board, so this cut is a choi
 
 **On screen** — deck, **beat 7**, the Speculos screens lighting up one by one.
 
-> **Careful, this is the one place the script breaks its own rule.** The line ends on « seize attestations », and 16 / 99 is displayed on **beat 8**, not on beat 7. Either advance before saying it, or move the sentence into the next scene.
-
-**What you say** — in French, as it will be spoken:
+**What you say** — as it will be spoken:
 
 > The verdict is rendered **field by field** on a Ledger: you do not sign an opaque digest, you
 > read what you sign, and declining sends nothing. A fresh measurement costs **one thousandth of
@@ -205,9 +203,7 @@ Beat 4 of the deck now runs the real app inside the board, so this cut is a choi
 
 **On screen** — deck, **beat 8**. `63 156` · `61 466` · `450` · `0`.
 
-> The line says « deux erreurs passées ». [`docs/HONESTY.md`](HONESTY.md) documents **nine**, and the README says nine. Say two only if the screen is showing two; otherwise say nine, which is the stronger number anyway.
-
-**What you say** — in French, as it will be spoken:
+**What you say** — as it will be spoken:
 
 > And then there is this, displayed as large as everything else. Out of a hundred and twenty-five
 > thousand measurements, **sixty-one thousand four hundred and sixty-six are not values.** We keep
@@ -223,7 +219,7 @@ Beat 4 of the deck now runs the real app inside the board, so this cut is a choi
 
 **On screen** — deck, **beat 9**. The fourteen tools, the five ways in.
 
-**What you say** — in French, as it will be spoken:
+**What you say** — as it will be spoken:
 
 > Fourteen tools, twenty-seven datasets, five ways in: the site, the extension, the MCP server,
 > the x402 toll, the account. Everything is published — the corpus, the replay commands, and what
@@ -240,8 +236,8 @@ Beat 4 of the deck now runs the real app inside the board, so this cut is a choi
 | the instrument will not load | stay on the deck: beat 2 carries the same figures |
 | the MCP demo will not start | click **↻ reset**, or skip it — beat 6 is the stronger one |
 | the clock runs away | **r** resets it without leaving the beat you are on |
-| you are behind at 3:00 | cut the toll paragraph (03:12): keep Speculos, and say « et le péage x402 est réglé sur Hedera » in one line |
-| you are ahead | add, on beat 2: « huit tailles, les deux sens, un bloc épinglé — parce qu'un taux unique serait faux à toutes les tailles sauf une » |
+| you are behind at 3:00 | cut the toll paragraph (03:12): keep Speculos, and say "and the x402 toll is settled on Hedera" in one line |
+| you are ahead | add, on beat 2: "eight sizes, both directions, one pinned block — because a single rate would be wrong at every size but one" |
 | you need to cut 250 words | the first scene (153 words) and the method scene (120) are the two longest. Trim there before touching the figures |
 
 ---
@@ -272,9 +268,9 @@ they move when the corpus moves.
   rests on **every claim being checkable**. One unverifiable boast in the middle of twenty
   verifiable figures weakens all twenty.
   **Say instead what can be checked in thirty seconds**, which is stronger:
-  « cent vingt-cinq mille mesures publiées, sur sept mille huit cents pools, chacune rejouable
-  en une commande — allez en trouver une autre. » The challenge does the same work as the
-  superlative, and it cannot be turned against us.
+  "a hundred and twenty-five thousand measurements published, across seven thousand eight hundred
+  pools, each one replayable in one command — go and find another one." The challenge does the
+  same work as the superlative, and it cannot be turned against us.
 - **"the first", "the only", "revolutionary"** — same reason.
 - **"real time"** — it is false: the measurement is a photograph, at one block, on one chain.
   Saying it would be the exact mistake we accuse others of.

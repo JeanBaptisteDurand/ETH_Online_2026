@@ -1,7 +1,7 @@
 /**
- * Le service et ses routes. L'ancreur est un double : aucune de ces
- * assertions n'ecrit sur Hedera. Le vrai message publie, lui, est verifie par
- * live-hcs.test.ts et par `tsx src/metering/cli.ts read`.
+ * The service and its routes. The anchor publisher is a test double: none of
+ * these assertions writes to Hedera. The real published message, for its part,
+ * is verified by live-hcs.test.ts and by `tsx src/metering/cli.ts read`.
  */
 import { describe, it, expect } from "vitest";
 import { MeteringLedger, type BatchInput, type MeasurementUnit } from "./ledger.js";
@@ -43,7 +43,7 @@ function batch(units: MeasurementUnit[], over: Partial<BatchInput> = {}): BatchI
   };
 }
 
-/** Ancreur double : garde ce qu'on lui donne, et rejoue le mirror a la demande. */
+/** Test-double anchor publisher: keeps what it is given, and replays the mirror on demand. */
 function fakeAnchor(opts: { verified?: boolean; throwOnPublish?: boolean; fee?: number | null } = {}) {
   const published: AnchorPayload[] = [];
   let seq = 0;
@@ -95,7 +95,7 @@ function fakeAnchor(opts: { verified?: boolean; throwOnPublish?: boolean; fee?: 
 }
 
 describe("MeteringService", () => {
-  it("garde la fenetre de CorLens (1er du mois UTC) et groupe par payeur", () => {
+  it("keeps the earlier service's window (1st of the month UTC) and groups by payer", () => {
     const svc = new MeteringService({ ledger: new MeteringLedger({ path: null }) });
     svc.recordBatch(batch([unit(), unit({ amount_in: "2" })], { payer: "0.0.111" }));
     svc.recordBatch(batch([unit({ amount_in: "3" })], { payer: "0.0.222" }));
@@ -110,7 +110,7 @@ describe("MeteringService", () => {
     ]);
   });
 
-  it("ancre un lot : le mirror confirme, les lignes recoivent le sequence number", async () => {
+  it("anchors a batch: the mirror confirms, the rows receive the sequence number", async () => {
     const ledger = new MeteringLedger({ path: null });
     const { anchor, published } = fakeAnchor();
     const svc = new MeteringService({ ledger, anchor });
@@ -142,7 +142,7 @@ describe("MeteringService", () => {
     expect(hcs.cost.total_tinybar).toBe(377528);
   });
 
-  it("mirror muet => NOT_ANCHORED : l'echec n'est jamais promu en succes", async () => {
+  it("silent mirror => NOT_ANCHORED: the failure is never promoted to success", async () => {
     const ledger = new MeteringLedger({ path: null });
     const svc = new MeteringService({ ledger, anchor: fakeAnchor({ verified: false }).anchor });
     const receipt = svc.recordBatch(batch([unit()]));
@@ -151,12 +151,12 @@ describe("MeteringService", () => {
     expect(out.ok).toBe(false);
     expect(out.status).toBe("NOT_ANCHORED");
     expect(out.reason).toContain("NOT_VERIFIED");
-    // la ligne n'est PAS marquee ancree
+    // the row is NOT marked as anchored
     expect(ledger.rowsOf(receipt.batch_id)[0]!.hcs_sequence_number).toBeNull();
     expect(ledger.unanchoredBatches()).toEqual([receipt.batch_id]);
   });
 
-  it("publication refusee par le reseau => NOT_ANCHORED avec la raison", async () => {
+  it("publication refused by the network => NOT_ANCHORED with the reason", async () => {
     const svc = new MeteringService({
       ledger: new MeteringLedger({ path: null }),
       anchor: fakeAnchor({ throwOnPublish: true }).anchor,
@@ -167,7 +167,7 @@ describe("MeteringService", () => {
     expect(out.publish).toBeNull();
   });
 
-  it("sans topic configure, /usage dit 'pas ancre', pas 'ancre a zero'", async () => {
+  it("without a configured topic, /usage says 'pas ancre' (not anchored), not 'ancre a zero' (anchored at zero)", async () => {
     const svc = new MeteringService({ ledger: new MeteringLedger({ path: null }), anchor: null });
     svc.recordBatch(batch([unit()]));
     const hcs = svc.hcsStatus() as Record<string, any>;
@@ -178,7 +178,7 @@ describe("MeteringService", () => {
     expect(out.status).toBe("NOT_ANCHORED");
   });
 
-  it("un cout non lu reste null dans l'agregat, jamais compte comme zero", async () => {
+  it("a cost that was not read stays null in the aggregate, never counted as zero", async () => {
     const svc = new MeteringService({
       ledger: new MeteringLedger({ path: null }),
       anchor: fakeAnchor({ fee: null }).anchor,
@@ -190,7 +190,7 @@ describe("MeteringService", () => {
   });
 });
 
-describe("les routes du compteur", () => {
+describe("the meter's routes", () => {
   function build(opts: { verified?: boolean } = {}) {
     const ledger = new MeteringLedger({ path: null });
     const { anchor } = fakeAnchor(opts);
@@ -199,7 +199,7 @@ describe("les routes du compteur", () => {
     return { ledger, svc, app };
   }
 
-  it("GET /usage rend le total en MESURES, par payeur, avec les hashes de reglement", async () => {
+  it("GET /usage returns the total in MEASUREMENTS, by payer, with the settlement hashes", async () => {
     const { svc, app } = build();
     const r1 = svc.recordBatch(
       batch(
@@ -238,7 +238,7 @@ describe("les routes du compteur", () => {
     expect(body.hcs.topic_id).toBe("0.0.10371106");
   });
 
-  it("GET /usage/log rend une ligne PAR MESURE et dit s'il tronque", async () => {
+  it("GET /usage/log returns one row PER MEASUREMENT and says whether it truncates", async () => {
     const { svc, app } = build();
     svc.recordBatch(batch([unit(), unit({ amount_in: "2" }), unit({ amount_in: "3" })]));
     const res = await app.request("/usage/log?limit=2");
@@ -249,7 +249,7 @@ describe("les routes du compteur", () => {
     expect(body.rows[0]).toHaveProperty("measurement_id");
   });
 
-  it("GET /usage/batch/:id rend le detail, et 404 sur un lot inconnu", async () => {
+  it("GET /usage/batch/:id returns the detail, and 404 on an unknown batch", async () => {
     const { svc, app } = build();
     const r = svc.recordBatch(batch([unit(), unit({ label: "NOT_MEASURABLE", bps: null })]));
     const ok = (await (await app.request(`/usage/batch/${r.batch_id}`)).json()) as any;
@@ -258,7 +258,7 @@ describe("les routes du compteur", () => {
     expect((await app.request("/usage/batch/b_inexistant")).status).toBe(404);
   });
 
-  it("POST /usage/anchor exige la signature HMAC, puis ancre", async () => {
+  it("POST /usage/anchor requires the HMAC signature, then anchors", async () => {
     const { svc, app } = build();
     const r = svc.recordBatch(batch([unit()]));
 
@@ -287,7 +287,7 @@ describe("les routes du compteur", () => {
     expect(res404.status).toBe(404);
   });
 
-  it("un ancrage refuse par le mirror sort en 503, jamais en 200", async () => {
+  it("an anchor refused by the mirror exits with a 503, never a 200", async () => {
     const { svc, app } = build({ verified: false });
     const r = svc.recordBatch(batch([unit()]));
     const body = JSON.stringify({ batch_id: r.batch_id });
@@ -300,7 +300,7 @@ describe("les routes du compteur", () => {
     expect(((await res.json()) as any).status).toBe("NOT_ANCHORED");
   });
 
-  it("GET /usage/rollup garde la forme CorLens { since, byPayer }", async () => {
+  it("GET /usage/rollup keeps the earlier shape { since, byPayer }", async () => {
     const { svc, app } = build();
     svc.recordBatch(batch([unit()]));
     const body = (await (await app.request("/usage/rollup")).json()) as any;
@@ -310,7 +310,7 @@ describe("les routes du compteur", () => {
 });
 
 describe("createMetering", () => {
-  it("ne touche pas au reseau sans topic, et branche l'adaptateur de mesure", () => {
+  it("does not touch the network without a topic, and wires in the measurement adapter", () => {
     const m = createMetering({
       env: {} as NodeJS.ProcessEnv,
       ledgerPath: null,
@@ -330,19 +330,19 @@ describe("createMetering", () => {
       bps: null,
     });
     const receipt = m.service.recordBatch(batch([u]));
-    expect(receipt.units_billed).toBe(1); // NOT_QUOTABLE est un verdict, pas un silence
+    expect(receipt.units_billed).toBe(1); // NOT_QUOTABLE is a verdict, not a silence
     expect(m.ledger.list(1)[0]!.measurement_id).toBe("m_dead");
   });
 });
 
 /* ------------------------------------------------------------------------ *
- * Ce que le PREMIER paiement x402 reellement regle a montre, et que rien
- * dans ces tests ne couvrait : la comptabilite d'un lot paye puis declare
- * non facturable, et la republication d'un lot deja ancre.
+ * What the FIRST x402 payment actually settled showed, and what nothing in
+ * these tests covered: the accounting of a batch paid and then declared
+ * non-billable, and the republication of a batch already anchored.
  * ------------------------------------------------------------------------ */
 
-describe("le premier reglement reel", () => {
-  it("une unite NOT_MEASURABLE payee n'est pas gratuite : elle devient un credit", () => {
+describe("the first real settlement", () => {
+  it("a paid NOT_MEASURABLE unit is not free: it becomes a credit", () => {
     const ledger = new MeteringLedger({ path: null });
     const receipt = ledger.recordBatch(batch([unit({ label: "NOT_MEASURABLE", bps: null })]));
     ledger.attachSettlement(receipt.batch_id, {
@@ -353,13 +353,13 @@ describe("le premier reglement reel", () => {
 
     const t = ledger.totals(null);
     expect(t.units_billed).toBe(0);
-    expect(t.amount_usd).toBe(0); // rien n'est DU
-    expect(t.amount_settled_usd).toBe(0.001); // mais 0,001 USDC a bel et bien bouge
+    expect(t.amount_usd).toBe(0); // nothing is OWED
+    expect(t.amount_settled_usd).toBe(0.001); // but 0.001 USDC did actually move
     expect(t.credit_units).toBe(1);
-    expect(t.credit_usd).toBe(0.001); // l'ecart est un credit, jamais un zero
+    expect(t.credit_usd).toBe(0.001); // the gap is a credit, never a zero
   });
 
-  it("une unite mesuree et payee ne laisse aucun credit", () => {
+  it("a measured and paid unit leaves no credit", () => {
     const ledger = new MeteringLedger({ path: null });
     const receipt = ledger.recordBatch(batch([unit()]));
     ledger.attachSettlement(receipt.batch_id, {
@@ -373,7 +373,7 @@ describe("le premier reglement reel", () => {
     expect(t.credit_usd).toBe(0);
   });
 
-  it("un reglement ECHOUE ne compte ni comme preleve ni comme credit", () => {
+  it("a FAILED settlement counts neither as taken nor as a credit", () => {
     const ledger = new MeteringLedger({ path: null });
     const receipt = ledger.recordBatch(batch([unit({ label: "NOT_MEASURABLE", bps: null })]));
     ledger.attachSettlement(receipt.batch_id, { success: false, transaction: null });
@@ -382,7 +382,7 @@ describe("le premier reglement reel", () => {
     expect(t.credit_usd).toBe(0);
   });
 
-  it("un lot deja ancre n'est jamais republie : une piste d'audit ne se dedouble pas", async () => {
+  it("a batch already anchored is never republished: an audit trail does not duplicate itself", async () => {
     const ledger = new MeteringLedger({ path: null });
     const { anchor, published } = fakeAnchor();
     const svc = new MeteringService({ ledger, anchor });
@@ -392,15 +392,15 @@ describe("le premier reglement reel", () => {
     const second = await svc.anchorBatch(receipt);
 
     expect(first.status).toBe("ANCHORED");
-    expect(second).toBe(first); // le meme resultat, pas un second message
+    expect(second).toBe(first); // the same result, not a second message
     expect(published).toHaveLength(1);
   });
 
-  it("l'empreinte HCS porte le payeur connu au REGLEMENT, pas celui du recu", async () => {
+  it("the HCS digest carries the payer known at SETTLEMENT, not the one from the receipt", async () => {
     const ledger = new MeteringLedger({ path: null });
     const { anchor, published } = fakeAnchor();
     const svc = new MeteringService({ ledger, anchor });
-    // Le recu ignore le payeur : l'en-tete de paiement Hedera ne le laisse pas voir.
+    // The receipt does not know the payer: the Hedera payment header does not reveal it.
     const receipt = svc.recordBatch(batch([unit()], { payer: null }));
     svc.attachSettlement(receipt.batch_id, {
       success: true,

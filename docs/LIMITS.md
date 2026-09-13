@@ -327,10 +327,10 @@ numbers instead of one: `amount_usd` (what is **owed**), `amount_settled_usd` (w
 **taken** on chain), and `credit_usd` (the gap, which the service **owes back**). A paid unit the
 engine then calls unmeasurable is a **credit**, never a zero.
 
-**What is still not true.** The service is **not hosted** — the image is built and has itself
-served a paid request, but no domain answers *it*. <https://tare-hooks.tech> is live and serves
-the two static surfaces only: every API path falls through to the page. So the track's *live
-service* requirement is not met ([`DEPLOY.md`](../DEPLOY.md)). And nothing has settled on mainnet.
+**What is still not true.** The toll is hosted — <https://api.tare-hooks.tech/measure> answers
+402 with its price — but the measurement engine behind it is not: no `anvil` fork runs on that
+host, so a fresh paid measurement cannot be delivered there yet ([`DEPLOY.md`](../DEPLOY.md)). And
+nothing has settled on mainnet.
 
 ## 10b. A quote is not an execution, and on one pool in nine it showed
 

@@ -1,23 +1,21 @@
 /**
- * Signature HMAC des appels machine-a-machine.
+ * HMAC signature for machine-to-machine calls.
  *
- * Porte de CorLens v2 :
- *   packages/clients/src/hmac.ts                  (hmacSigner / hmacVerifier)
- *   apps/ai-service/src/middleware/hmac-verify.ts (le hook Fastify)
+ * Ported from an earlier metering service of ours: its signer/verifier pair
+ * (`hmacSigner` / `hmacVerifier`) and its Fastify verification hook.
  *
- * Trois adaptations, toutes assumees :
- *   1. Fastify -> Hono : le hook `(req, reply)` devient un `MiddlewareHandler`.
- *   2. En-tetes renommees x-corlens-* -> x-tare-*.
- *   3. CorLens lisait `req.body` deja parse puis le re-serialisait avec
- *      JSON.stringify : deux JSON equivalents mais differemment espaces
- *      donnaient deux signatures. Ici on signe le corps BRUT, octet pour octet,
- *      via `c.req.text()`, et le corps lu est remis a disposition du handler
- *      suivant. Un canon de signature qui depend du pretty-print n'est pas un
- *      canon.
+ * Three adaptations, all deliberate:
+ *   1. Fastify -> Hono: the `(req, reply)` hook becomes a `MiddlewareHandler`.
+ *   2. Headers renamed to x-tare-*.
+ *   3. That earlier service read the already-parsed `req.body`, then
+ *      re-serialised it with JSON.stringify: two equivalent JSON documents
+ *      spaced differently gave two signatures. Here we sign the RAW body, byte
+ *      for byte, via `c.req.text()`, and the body that was read is handed back
+ *      to the next handler. A signing canon that depends on pretty-printing is
+ *      not a canon.
  *
- * Le message signe est exactement `${ts}\n${body}` — meme construction que
- * CorLens, pour qu'un client CorLens existant n'ait qu'a changer le prefixe
- * d'en-tete.
+ * The signed message is exactly `${ts}\n${body}` — the same construction as
+ * before, so that an existing client only has to change the header prefix.
  */
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { MiddlewareHandler } from "hono";
@@ -50,7 +48,7 @@ export function hmacSigner(
   };
 }
 
-/** Pourquoi une signature a ete refusee. On le dit ; on ne renvoie pas un 401 muet. */
+/** Why a signature was refused. We say so; we do not send back a silent 401. */
 export type HmacFailure =
   | "missing_headers"
   | "bad_timestamp"
@@ -81,7 +79,7 @@ export function hmacVerifier(
       return { ok: false, reason: "bad_signature_encoding" };
 
     const expected = computeSignature(opts.secret, ts, body ?? "");
-    // timingSafeEqual jette si les longueurs different : on compare d'abord.
+    // timingSafeEqual throws if the lengths differ: compare them first.
     if (expected.length !== sig.length) return { ok: false, reason: "signature_mismatch" };
     const same = timingSafeEqual(Buffer.from(expected, "hex"), Buffer.from(sig, "hex"));
     return same ? { ok: true, reason: null } : { ok: false, reason: "signature_mismatch" };
@@ -89,16 +87,16 @@ export function hmacVerifier(
 }
 
 export interface HmacGuardOptions {
-  /** secret partage. Vide ou absent => la garde s'efface (mode ouvert, annonce). */
+  /** shared secret. Empty or absent => the guard steps aside (open mode, announced). */
   secret: string | null;
   maxAgeSeconds?: number;
   nowSeconds?: () => number;
 }
 
 /**
- * Middleware Hono. Sans secret configure, il laisse passer et se signale comme
- * desactive : on prefere un service ouvert et honnete a un service qui pretend
- * etre protege par un secret vide.
+ * Hono middleware. With no secret configured, it lets requests through and flags
+ * itself as disabled: we prefer an open and honest service to a service that
+ * claims to be protected by an empty secret.
  */
 export function hmacGuard(opts: HmacGuardOptions): MiddlewareHandler {
   const secret = opts.secret && opts.secret.length > 0 ? opts.secret : null;
@@ -114,8 +112,8 @@ export function hmacGuard(opts: HmacGuardOptions): MiddlewareHandler {
     nowSeconds: opts.nowSeconds,
   });
   return async (c, next) => {
-    // corps brut : c.req.text() met le corps en cache, le handler suivant peut
-    // encore appeler c.req.json().
+    // raw body: c.req.text() caches the body, so the next handler can still
+    // call c.req.json().
     let body = "";
     try {
       body = await c.req.text();

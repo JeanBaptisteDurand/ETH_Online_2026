@@ -1,24 +1,25 @@
 /**
- * LOT G — le compteur a la mesure et le journal HCS.
+ * LOT G — the per-measurement meter and the HCS log.
  *
- * Trois choses, et rien d'autre :
+ * Three things, and nothing else:
  *
- *   1. On compte des MESURES, pas des requetes. Une requete "5 tailles x 2 sens"
- *      ecrit dix lignes au registre et coute dix unites. C'est le point Hedera
- *      "pay-per-call inference, data, or compute metering rather than a flat
- *      per-request charge", et il ne se prouve que par le registre.
- *   2. Les routes d'ecriture sont signees en HMAC (porte de CorLens v2).
- *   3. Chaque lot publie son empreinte sur un topic HCS Hedera testnet, et
- *      l'empreinte n'est declaree ancree que si le mirror node la rend, octet
- *      pour octet.
+ *   1. We count MEASUREMENTS, not requests. A "5 sizes x 2 directions" request
+ *      writes ten rows to the ledger and costs ten units. This is the Hedera
+ *      point "pay-per-call inference, data, or compute metering rather than a
+ *      flat per-request charge", and only the ledger can prove it.
+ *   2. The write routes are HMAC-signed (ported from an earlier metering
+ *      service of ours).
+ *   3. Each batch publishes its digest on a Hedera testnet HCS topic, and the
+ *      digest is declared anchored only if the mirror node returns it, byte for
+ *      byte.
  *
- * MONTAGE dans apps/api/src/app.ts — deux lignes :
+ * WIRING in apps/api/src/app.ts — two lines:
  *
  *   import { createMetering } from "./metering/index.js";
  *   const metering = createMetering({ unitPriceUsd: cfg.unitPriceUsd });
  *   app.route("/", metering.router);
  *
- * puis, dans le handler POST /measure, apres `measurements` :
+ * then, in the POST /measure handler, after `measurements`:
  *
  *   const receipt = metering.service.recordBatch({
  *     route: "/measure", method: "POST", payer: who.payer, network: who.network,
@@ -26,11 +27,11 @@
  *     latency_ms: Date.now() - t0, error: null,
  *     units: measurements.map(toMeasurementUnit),
  *   });
- *   void metering.service.anchorBatch(receipt);   // l'ancrage HCS ne bloque pas la reponse
+ *   void metering.service.anchorBatch(receipt);   // HCS anchoring does not block the response
  *
- * `createMetering` est volontairement sans effet de bord reseau au demarrage :
- * sans HEDERA_HCS_TOPIC_ID, il n'y a pas d'ancreur, et /usage le DIT au lieu de
- * pretendre ancrer.
+ * `createMetering` deliberately has no network side effect at startup: without
+ * HEDERA_HCS_TOPIC_ID there is no anchor publisher, and /usage SAYS so instead
+ * of pretending to anchor.
  */
 import { MeteringLedger, type MeasurementUnit } from "./ledger.js";
 import { MeteringService, hederaAnchorPublisher, type AnchorPublisher } from "./service.js";
@@ -46,11 +47,11 @@ export * from "./router.js";
 
 export interface CreateMeteringOptions {
   unitPriceUsd?: number;
-  /** chemin du registre JSONL. "" ou null => en memoire seulement. */
+  /** path of the JSONL ledger. "" or null => in memory only. */
   ledgerPath?: string | null;
   billableLabels?: readonly Label[];
   hmacSecret?: string | null;
-  /** injectable en test : evite tout appel a Hedera */
+  /** injectable in tests: avoids any call to Hedera */
   anchor?: AnchorPublisher | null;
   env?: NodeJS.ProcessEnv;
   verifyOnPublish?: boolean;
@@ -89,7 +90,7 @@ export function createMetering(opts: CreateMeteringOptions = {}): Metering {
   return { service, ledger, router: meteringRouter(service, routerOpts), hcsConfig, unitPriceUsd };
 }
 
-/** Adaptateur : une Measurement de src/measurement.ts -> une unite facturable. */
+/** Adapter: a Measurement from src/measurement.ts -> a billable unit. */
 export function toMeasurementUnit(m: {
   id?: string;
   hook: string;

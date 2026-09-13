@@ -420,7 +420,7 @@ The same fourteen tools are reachable five ways, and each way exists for a reaso
 | **The site** | someone who wants an answer now, with nothing installed | the whole corpus is *in the page*: 125,072 measurements encoded by column, 7.9 MB. Paste an address, read the result — no wallet, no account, not one network request | a browser: <https://tare-hooks.tech> | 2, 3, 4, 5, 6, 7, 9, 13, 14 |
 | **The extension** | someone who already swaps elsewhere and will never come to our site | the right moment to know what a hook takes is not when you are researching: it is **three seconds before signing**, on the site where you swap. It sits between the page and the wallet, reads Universal Router calldata, and rules before the signature. The measurement table lives in its service worker and answers with no request — so it works even if our server is off | install it; an API key only for history | 2, 6, 8, 9 |
 | **The MCP server** | an agent, not a human | a model asked "what does this hook take?" **invents a plausible number**. The MCP server gives it four tools whose descriptions say, in as many words, never to state a figure the tool did not return — and every answer carries its label, block, size, direction and replay command. It reads the 125,072 measurements off disk and answers offline | Claude Desktop or any MCP client | 1, 2, 3, 5, 6, 13 |
-| **x402, live, on Hedera** | an autonomous agent with no account and no wish for one | an agent does not fill in a signup form. It makes a request, gets a **402 that announces the price**, pays, and gets the measurement — 0.001 USDC, settled and re-read on the Hedera mirror node, not on our word. The signing key is sealed in a Ledger, and the answering agent has an HCS-14 identity published on a topic: the caller can check **who** it is calling before paying. "Live" here is about the money — **5 settlements really moved**, each re-read on the mirror node — not about a public endpoint: the API is not hosted yet, and the last section says so | a Hedera account, test USDC, and the API running locally | 1, 10, 13 |
+| **x402, live, on Hedera** | an autonomous agent with no account and no wish for one | an agent does not fill in a signup form. It makes a request, gets a **402 that announces the price**, pays, and gets the measurement — 0.001 USDC, settled and re-read on the Hedera mirror node, not on our word. The signing key is sealed in a Ledger, and the answering agent has an HCS-14 identity published on a topic: the caller can check **who** it is calling before paying. The toll is public: <https://api.tare-hooks.tech/measure> answers **402** with its price, and **5 settlements really moved**, each re-read on the mirror node. The measurement engine behind the toll is not deployed on that host yet — the last section says so | a Hedera account and test USDC | 1, 10, 13 |
 | **The account** | someone who uses the product more than once | it adds no measurement — it opens **surfaces**: one API key per surface, the extension and MCP downloads, and the history of what they did. Login is a wallet signature — RainbowKit for the connection, a JWT for the session, revocable by its `jti` — and the subscription is read **on chain** rather than believed | a wallet, and an active subscription for the keys | 11, 12 |
 
 ---
@@ -602,15 +602,22 @@ attached — [`packages/keyring/`](packages/keyring/). Production refuses a loca
 app's attestation, correctly, so staging is what this runs against; that limit is stated
 there and not smoothed over.
 
-The x402 service is **still not hosted**. <https://tare-hooks.tech> is live, but it serves the two
-static surfaces and nothing else: every API path — `/measure`, `/graph`, `/rag/search`, the twelve
-account routes — falls through to the page instead of reaching a server. The site says so rather
-than failing quietly: ask it for anything that needs one and it answers *"no API is published for
-this build of the site"*, and names what that costs you. The image is built, runs, and has
-been paid — the last settlement in [`docs/x402-settlements.jsonl`](docs/x402-settlements.jsonl)
-was served by the container, not by a dev process — and [`scripts/deploy.sh`](scripts/deploy.sh)
-brings it up behind TLS in one command ([`DEPLOY.md`](DEPLOY.md)). But one command not yet run
-is not a live service, so the track requirement is **not** met.
+The x402 toll **is hosted**: <https://api.tare-hooks.tech>. An unpaid `POST /measure` answers
+**402** and announces its price in the `payment-required` header — 0.001 USDC per measurement on
+`hedera:testnet`, paid to `0.0.10367997` — and the resource it names is the `https://` address,
+which is what a client checks before it pays. Checked on 13 September 2026:
+
+```bash
+curl -si -X POST https://api.tare-hooks.tech/measure -H 'content-type: application/json' \
+  -d '{"hook":"0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc"}' | head -1        # HTTP/2 402
+```
+
+Two things behind that toll are **not** live, and they are not the same thing. The measurement
+engine — the pinned `anvil` fork — does not run on that host, so a fresh measurement cannot be
+delivered there yet: the toll is public, the delivery is not. And no database is configured, so
+the account routes answer **503** with their reason instead of a login. The five settlements in
+[`docs/x402-settlements.jsonl`](docs/x402-settlements.jsonl) were served by the same service run
+locally, each re-read on the mirror node ([`DEPLOY.md`](DEPLOY.md)).
 
 ---
 

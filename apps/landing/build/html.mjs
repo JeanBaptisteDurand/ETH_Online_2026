@@ -110,8 +110,15 @@ const chip = (t) => `<span class="chip">${esc(t)}</span>`;
 /* Ou vit l'instrument, vu depuis la page d'accueil. Sur une page de PROJET GitHub Pages le
    site est servi sous /<depot>/, donc un « /hooks » absolu pointe a cote et rend un 404 —
    c'est-a-dire que le seul lien qui mene au produit ne mene nulle part. */
+/* DEUX FAITS INDEPENDANTS, LONGTEMPS TENUS PAR UNE SEULE VARIABLE.
+   « Ou sont mes fichiers » et « ou est l'instrument » ne coincident que si la page d'accueil
+   est a la racine du site. En production c'est l'inverse : l'instrument est a la racine et
+   la page d'accueil vit sous /landing/. Avec une seule variable il fallait choisir lequel
+   des deux casser — base "/" rendait la page nue (ses propres fichiers introuvables),
+   base "/landing/" envoyait le seul lien vers le produit sur /landing/hooks/, qui n'existe
+   pas. INSTRUMENT_URL separe les deux ; a defaut, l'ancien comportement, mot pour mot. */
 const BASE = (process.env.BASE_URL ?? "/").replace(/\/*$/, "/");
-const INSTRUMENT = `${BASE}hooks/`;
+const INSTRUMENT = process.env.INSTRUMENT_URL ?? `${BASE}hooks/`;
 
 /* The page ships as one response and holds itself to a 14 kB gzip critical document, which
    `npm run budget` measures. The markup below is indented for whoever reads this file; the

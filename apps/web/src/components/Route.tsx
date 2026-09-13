@@ -95,11 +95,33 @@ function TokenName({ address }: { address: string }) {
   )
 }
 
+
+/**
+ * UN CHEMIN, RENDU RELATIF AU DEPOT.
+ *
+ * L'API rend le chemin ABSOLU du fichier qu'elle a lu. Deux consequences, et la seconde est
+ * la pire : ca deborde de l'ecran, et surtout ca PUBLIE l'arborescence du disque de celui qui
+ * fait tourner l'API — `/Users/<prenom>/Documents/...` sur une capture, une video, une demo.
+ * Le fait utile est le fichier LU, pas l'endroit ou il se trouve sur une machine.
+ */
+export function cheminCourt(chemin: string | null | undefined): string {
+  if (!chemin) return '—'
+  const m = chemin.match(/(?:^|\/)(docs|engine|apps|packages|contracts)\/.*$/)
+  return m ? m[0].replace(/^\//, '') : chemin.split('/').slice(-2).join('/')
+}
+
 function Note({ children }: { children: React.ReactNode }) {
   return (
     <p
       className="t-data-xs m-0"
-      style={{ color: 'var(--ink-2)', maxWidth: '110ch', fontFamily: 'var(--mono)' }}
+      style={{
+        color: 'var(--ink-2)',
+        maxWidth: '110ch',
+        fontFamily: 'var(--mono)',
+        // Un chemin de fichier est un mot INSECABLE. Sans ceci, il pousse la page entiere
+        // au-dela de l'ecran : l'instrument defilait de cote a 390 px pour cette seule raison.
+        overflowWrap: 'anywhere',
+      }}
     >
       {children}
     </p>
@@ -425,7 +447,7 @@ function StructureBar({ answer }: { answer: RouteAnswer }) {
         </p>
       )}
       {s.caveat && <Note>{s.caveat}</Note>}
-      {s.source && <Note>source · {s.source}</Note>}
+      {s.source && <Note>source · {cheminCourt(s.source)}</Note>}
     </div>
   )
 }
@@ -931,14 +953,14 @@ export function RoutePanel() {
           >
             {parsed.sources.map((s) => (
               <Note key={s.path ?? s.kind ?? 'source'}>
-                source {s.kind ?? '—'} · {s.path ?? '—'} · {s.measurements ?? '—'} mesures lues sur{' '}
+                source {s.kind ?? '—'} · {cheminCourt(s.path)} · {s.measurements ?? '—'} mesures lues sur{' '}
                 {s.rows_read ?? '—'} lignes · {s.rejected_lines ?? '—'} ligne(s) illisible(s)
                 {s.exists ? '' : ' · FICHIER ABSENT'}
               </Note>
             ))}
             {parsed.census_source.path && (
               <Note>
-                recensement · {parsed.census_source.path} · pools illisibles{' '}
+                recensement · {cheminCourt(parsed.census_source.path)} · pools illisibles{' '}
                 {parsed.census_source.unreadable_pools === null
                   ? 'inconnu'
                   : parsed.census_source.unreadable_pools}{' '}

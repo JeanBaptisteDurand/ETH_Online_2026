@@ -25,7 +25,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 
@@ -179,5 +179,49 @@ test('chaque acces dit a qui il s\'adresse, pourquoi lui, et ce qu\'il faut', ()
 test('chaque outil est atteignable par au moins un acces', () => {
   for (const o of OUTILS) {
     assert.ok(o.acces.length >= 1, `outil ${o.n} (${o.nom}) n'est atteignable par rien`)
+  }
+})
+
+test('le repli sans JavaScript ne peut pas annoncer un chiffre faux', () => {
+  // `<noscript>` est servi a tout ce qui ne lance pas de JavaScript : un robot d'indexation,
+  // un apercu de lien, un lecteur en mode texte. Il annoncait « 128 mesures, 4 hooks,
+  // 32 pools » et citait `docs/measurements-v1.json`, un fichier qui n'existe plus — un
+  // corpus 977 fois trop petit, servi sur CHAQUE route, et que personne ne relisait parce
+  // que personne ne le voit dans un navigateur normal.
+  //
+  // La regle n'est pas « il doit porter le bon compte » : ne porter AUCUN compte est une
+  // reponse valable, et meme la meilleure, puisque les comptes vivent dans le corpus et que
+  // le corpus a besoin du script. La regle est : aucun nombre qui ne soit pas vrai.
+  const html = readFileSync(resolve(DEPOT, 'apps/web/index.html'), 'utf8')
+  // Les COMMENTAIRES sont retires avant de chercher : un commentaire qui explique pourquoi
+  // « 128 mesures » a ete supprime n'est pas « 128 mesures » servi au monde. Faire tomber un
+  // test sur un commentaire est une facon de ne rien tester du tout.
+  const bloc = html
+    .slice(html.indexOf('<noscript>'), html.indexOf('</noscript>'))
+    .replace(/<!--[\s\S]*?-->/g, '')
+  assert.ok(bloc.length > 0, 'le <noscript> a disparu')
+
+  for (const mort of ['128 mesures', '4 hooks', '32 pools', 'measurements-v1.json']) {
+    assert.equal(bloc.includes(mort), false, `« ${mort} » est encore annonce au monde sans JavaScript`)
+  }
+
+  // Tout nombre d'au moins trois chiffres doit etre un chiffre REEL du depot.
+  const inv = (facts as { inventaire: Record<string, { n: number | null }> }).inventaire
+  const vrais = new Set(
+    Object.values(inv)
+      .map((v) => v.n)
+      .filter((n): n is number => typeof n === 'number')
+      .map(String),
+  )
+  vrais.add('50614000') // le bloc epingle
+  vrais.add('38857') // les mesures au-dessus d'un point de base
+  vrais.add('7817') // les pools
+  vrais.add('112') // les hooks
+  vrais.add('2026') // une annee dans un lien ou un nom de fichier
+  for (const nombre of bloc.replace(/&nbsp;/g, '').match(/\d{3,}/g) ?? []) {
+    assert.ok(
+      vrais.has(nombre),
+      `le repli sans JS annonce ${nombre}, qui ne correspond a aucun compte du depot`,
+    )
   }
 })

@@ -121,7 +121,16 @@ const attestations = att === null ? null : {
   contrat: att.contract,
   hashscan: att.contract ? `https://hashscan.io/testnet/contract/${att.contract}` : null,
   rpc: att.rpc,
-  ecrits: att.n_a_ecrire ?? (att.a_ecrire?.length ?? null),
+  // TROIS NOMBRES, ET ILS NE DISENT PAS LA MEME CHOSE.
+  //
+  // `ecrits` valait `n_a_ecrire` : le site affichait donc « 99 hooks attestes » en gros,
+  // alors que 99 est le nombre de hooks CALCULES. Le nombre reellement ecrit on-chain est
+  // `n_envoyes` — 16, chacun avec son hash de transaction. Annoncer 99 la ou 16 sont
+  // ecrits est exactement ce que ce projet reproche au reste : un chiffre flatteur mis a
+  // la place du chiffre vrai.
+  calcules: att.n_a_ecrire ?? (att.a_ecrire?.length ?? null),
+  ecrits: att.n_envoyes ?? (att.envoyes ?? []).filter((x) => x.ok).length,
+  tentes: (att.envoyes ?? []).length || null,
   // Un hook ECARTE n'est pas un hook a zero : il n'a simplement aucune mesure a attester.
   ecartes: att.n_ecartes ?? (att.ecartes_faute_de_mesure?.length ?? null),
   corpus: att.corpus ?? null,

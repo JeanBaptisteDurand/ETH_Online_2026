@@ -189,3 +189,29 @@ test("la couverture du registre est COMPTEE, plus une adresse ecrite a la main",
   // aucune adresse listee ne peut figurer parmi les absentes
   assert.equal(new Set(c.absent_addresses).size, c.absent, "doublons dans les absentes");
 });
+
+/* ------------------------------------------------------------------------- */
+/* LE TITRE. Les chiffres de la section 01 avaient ete corriges ; la PHRASE   */
+/* du hero, elle, etait restee litterale. La page annoncait « Zero declare »  */
+/* et « not one emits either » trois cents pixels au-dessus d'une grille qui  */
+/* montrait NEUF cases allumees et d'un titre qui disait « 9 OF 1 559 ».      */
+/* C'est la ligne la plus visible du projet, et elle etait fausse.            */
+/* ------------------------------------------------------------------------- */
+
+test("le hero ne peut plus contredire le nombre de hooks qui declarent", () => {
+  for (const mort of ["Zero<br>declare", "not one emits either"]) {
+    assert.equal(
+      html.includes(mort),
+      false,
+      `« ${mort} » est ecrit en dur dans le hero, alors que le scan compte des declarants`,
+    );
+  }
+  // Le titre ET le chapo doivent LIRE le compte, pas le raconter.
+  const hero = html.slice(html.indexOf('<h1 class="hero">'), html.indexOf("</p>", html.indexOf('class="lead"')));
+  assert.match(hero, /hooks_declaring/, "le hero n'affiche aucun compte lu : il raconte");
+  assert.equal(
+    (hero.match(/hooks_declaring/g) ?? []).length >= 2,
+    true,
+    "le titre et le chapo doivent tous les deux lire le compte, pas seulement l'un des deux",
+  );
+});

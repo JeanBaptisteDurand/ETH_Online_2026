@@ -330,7 +330,17 @@ function Attestations() {
                   {nb(a.ecrits) ?? '—'}
                 </div>
                 <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                  hooks attestes, avec leur mediane et leur maximum
+                  hooks <strong>reellement ecrits on-chain</strong>, avec leur mediane et leur
+                  maximum — sur {nb(a.tentes) ?? '—'} transactions envoyees
+                </div>
+              </div>
+              <div>
+                <div className="t-metric" style={{ color: 'var(--ink-2)' }}>
+                  {nb(a.calcules) ?? '—'}
+                </div>
+                <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
+                  calcules sur le corpus — l'ecart avec ce qui est ecrit attend du gaz, et il
+                  est publie plutot que lisse
                 </div>
               </div>
               <div>

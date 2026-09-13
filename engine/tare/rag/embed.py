@@ -1,6 +1,6 @@
 """Les embeddings. Ollama d'abord (gratuit, local), OpenAI en repli.
 
-granite-embedding:278m est le modele de cobol-explorer : 768 dimensions,
+granite-embedding:278m est le modele de an earlier codebase of ours : 768 dimensions,
 fenetre de 512 tokens, servi par Ollama sur la machine. Il ne coute rien et il
 n'envoie rien dehors. OpenAI (text-embedding-3-small, 1536 dims) n'est utilise
 que si Ollama ne repond pas ou n'a pas le modele — et le rapport de build dit

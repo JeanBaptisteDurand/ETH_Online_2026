@@ -1,12 +1,12 @@
 """chunk_corpus() — le corpus decoupe, et JAMAIS vectorise brut.
 
-Reprise directe de cobol-explorer/ingestion/index/chunk.py : chaque morceau est
+Reprise directe de an earlier codebase of ours : chaque morceau est
 `en-tete + "\\n\\n" + contenu`, et c'est cette concatenation qui part a
 l'embedding. L'en-tete vient du graphe (graph_header.py).
 
 Trois differences avec l'original, toutes forcees par le corpus de TARE :
 
-1. Les LIGNES sont portees par le morceau. cobol-explorer citait un fichier ;
+1. Les LIGNES sont portees par le morceau. an earlier codebase of ours citait un fichier ;
    la regle 4 de TARE exige qu'une citation se rejoue en une commande, donc un
    morceau porte `line_start`/`line_end` et son `sed -n 'a,bp' fichier`.
 2. La prose est decoupee par SECTION (les titres markdown), pas par fichier :

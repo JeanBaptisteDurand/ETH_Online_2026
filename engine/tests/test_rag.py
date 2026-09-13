@@ -3,7 +3,7 @@
 Quatre choses peuvent rendre un index de recherche faux sans qu'il proteste, et
 les quatre ont deja frappe des projets voisins :
 
-  * il est construit et JAMAIS peuple. C'est le `void ragIndex;` de CorLens :
+  * il est construit et JAMAIS peuple. C'est le `void ragIndex;` d'un projet anterieur :
     la table existe, la route repond 200, la liste est vide, et rien dans le
     systeme ne peut distinguer "vide" de "rien ne correspond". TestIndexPeuple
     compte les lignes EN BASE et les compare au rapport de build.
@@ -154,7 +154,7 @@ _SANS_GRAPHE = (
 
 @unittest.skipUnless(GH.DEFAULT_GRAPH.exists(), _SANS_GRAPHE)
 class TestEnTete(unittest.TestCase):
-    """La technique centrale reprise de cobol-explorer : l'en-tete AVANT le texte."""
+    """La technique centrale reprise de an earlier codebase of ours : l'en-tete AVANT le texte."""
 
     @classmethod
     def setUpClass(cls):
@@ -410,7 +410,7 @@ def _skip_if_no_db(case: unittest.TestCase) -> ST.PgVectorStore:
 class TestIndexPeuple(unittest.TestCase):
     """LE test qu'on refuse de ne pas avoir : l'index est-il REMPLI ?
 
-    CorLens a livre `void ragIndex;` — l'index etait construit et jamais peuple.
+    Un projet anterieur a livre `void ragIndex;` — l'index etait construit et jamais peuple.
     Rien dans son systeme ne pouvait le contredire, parce que rien ne comptait
     les lignes. Ici on les compte, en base, et on les confronte au rapport de
     build ecrit sur disque."""

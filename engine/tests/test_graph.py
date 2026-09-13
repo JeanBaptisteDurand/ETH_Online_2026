@@ -448,7 +448,7 @@ class TestBothBackends(unittest.TestCase):
 # ------------------------------------------------------------------------ cache
 
 class TestCache(unittest.TestCase):
-    """Le bug de cobol-explorer (server/api/app.py:157) : le graphe reconstruit
+    """Le bug de an earlier codebase of ours : le graphe reconstruit
     a chaque requete. Ici il est charge une fois, et on le prouve."""
 
     def setUp(self):

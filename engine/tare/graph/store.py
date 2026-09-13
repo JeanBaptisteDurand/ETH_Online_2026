@@ -1,6 +1,6 @@
 """Le graphe charge UNE fois, pas une fois par requete.
 
-C'est le bug de cobol-explorer, a server/api/app.py:157 : chaque appel HTTP y
+C'est le bug de an earlier codebase of ours : chaque appel HTTP y
 reconstruisait GraphTools, soit 102 ms de CPU brules pour servir une requete qui
 en coute 0,09 ms. Le graphe est immuable entre deux ecritures du fichier : il n'y
 a aucune raison de le relire.

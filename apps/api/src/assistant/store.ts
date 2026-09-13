@@ -382,7 +382,7 @@ let builds = 0;
 
 /**
  * La vue est construite UNE fois par version du jeu, pas une fois par requete HTTP.
- * (Le RAG COBOL de reference reconstruisait son graphe a chaque appel : 102 ms de CPU
+ * (Le RAG de reference reconstruisait son graphe a chaque appel : 102 ms de CPU
  * brules pour une requete a 0,09 ms. On ne reprend pas ce bug.)
  * `loadDataset()` et `loadRegistry()` rendent le MEME objet tant que le mtime ne bouge
  * pas : comparer les references suffit, et c'est exact.

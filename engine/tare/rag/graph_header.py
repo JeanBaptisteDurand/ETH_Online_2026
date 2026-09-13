@@ -1,7 +1,7 @@
-"""L'en-tete derive du graphe — la brique reprise de cobol-explorer.
+"""L'en-tete derive du graphe — la brique reprise de an earlier codebase of ours.
 
-Dans cobol-explorer/ingestion/index/chunk.py, `_deps_header()` prefixait chaque
-programme COBOL des copybooks qu'il inclut, des programmes qu'il appelle et des
+Dans an earlier codebase of ours, `_deps_header()` prefixait chaque
+document des fichiers qu'il inclut, des programmes qu'il appelle et des
 tables qu'il lit ou ecrit, AVANT le source. Le gain n'est pas cosmetique : une
 question posee en termes de relations ("qui ecrit dans la table des soldes ?")
 ne trouve rien dans un source qui ne nomme jamais la relation, et tout dans un

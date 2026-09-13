@@ -17,7 +17,7 @@
  * cross-copy check above exists: three hand-copied tables that drift apart would answer the same
  * question two different ways, and nothing would break.
  *
- * Ported from LPLens (packages/agent/src/phases/05-hooks/flags.ts), which checked the layout
+ * Ported from an earlier project of ours, which checked the layout
  * against Uniswap/v4-core/src/libraries/Hooks.sol.
  *
  * Consequence for the product: "paste an address, 14 lights come on" is exact, needs no RPC and

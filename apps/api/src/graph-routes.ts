@@ -9,7 +9,7 @@
  * Deux regles de construction, et elles ne sont pas cosmetiques.
  *
  * 1. LE GRAPHE EST CHARGE UNE FOIS.
- *    C'est le bug de cobol-explorer (server/api/app.py:157) : chaque appel HTTP y
+ *    C'est le bug de an earlier codebase of ours : chaque appel HTTP y
  *    reconstruisait l'outil de graphe — 102 ms de CPU brules pour servir une requete
  *    qui en coute 0,09. Ici le fichier est memorise par (chemin, mtime_ns, taille) :
  *    le reecrire invalide l'entree tout seul, y toucher sans le modifier ne coute

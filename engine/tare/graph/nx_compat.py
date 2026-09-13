@@ -3,7 +3,7 @@
 Le moteur TARE n'a aucune dependance : il parle a la chaine avec curl et hache
 avec un keccak ecrit a la main. Le graphe ne va pas etre le premier module a
 casser `make test` sur une machine neuve. Alors : si networkx est importable, on
-prend networkx — c'est la structure de reference, celle de cobol-explorer. Sinon
+prend networkx — c'est la structure de reference, celle de an earlier codebase of ours. Sinon
 on prend cette implementation, qui expose exactement la surface utilisee par
 build.py et queries.py et rien de plus :
 

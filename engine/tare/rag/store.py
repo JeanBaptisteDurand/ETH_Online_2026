@@ -7,7 +7,7 @@ Deux tables, et la deuxieme est la lecon du bug qu'on refuse d'heriter.
   rag_builds   une ligne par construction : le modele, la dimension, le nombre
                de morceaux ecrits, les empreintes des fichiers sources. C'est ce
                qui permet de PROUVER qu'un index est peuple, et de dire avec
-               quoi. CorLens a livre un `void ragIndex;` — un index construit,
+               quoi. Un projet anterieur a livre un `void ragIndex;` — un index construit,
                jamais rempli, et rien dans le systeme ne pouvait le contredire.
 
 Trois refus explicites :

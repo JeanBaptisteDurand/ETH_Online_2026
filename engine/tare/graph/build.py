@@ -1,6 +1,6 @@
 """Assemblage des noeuds et des aretes en MultiDiGraph, et (de)serialisation.
 
-Porte de cobol-explorer/ingestion/graph/build.py. Deux invariants sont repris
+Porte de an earlier codebase of ours Deux invariants sont repris
 tels quels parce qu'ils sont ce qui rend le graphe interrogeable :
 
   * UNE arete par (src, dst, kind). Un hook attache a un pool l'est une fois,
@@ -9,7 +9,7 @@ tels quels parce qu'ils sont ce qui rend le graphe interrogeable :
   * Aucun noeud sans type. Un point d'arrivee cite par une arete mais jamais
     declare est synthetise depuis son prefixe et marque external.
 
-Ce qui change par rapport a l'original : l'evidence COBOL accumulait des
+Ce qui change par rapport a l'original : l'evidence d'origine accumulait des
 numeros de ligne (`lines`). Ici elle accumule des references de provenance
 (`refs`) — un identifiant de mesure, un index de fiche de registre, un numero
 de bloc — parce que c'est ce qui permet de rejouer. Le principe est identique :

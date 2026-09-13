@@ -1,6 +1,6 @@
 """Uniswap v4 hook permission flags — the low 14 bits of the hook address.
 
-Ported from LPLens (phases/05-hooks/flags.ts) and kept byte-identical to the TypeScript
+Ported from an earlier project of ours and kept byte-identical to the TypeScript
 package @tare/hookflags. Verified against the whole official registry: 8,974 bit
 comparisons over 613 hooks, zero deviation.
 """

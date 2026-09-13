@@ -5,7 +5,7 @@ ce bytecode, quel deployeur, quels pools re-mesurer. Il ne repond pas a "que dit
 la methode quand le pool refuse de coter ?". C'est la moitie que ce module
 ajoute — et il l'ajoute en s'appuyant sur le graphe, pas a cote de lui.
 
-La technique centrale est reprise de cobol-explorer
+La technique centrale est reprise de an earlier codebase of ours
 (ingestion/index/chunk.py) : `chunk_corpus()` ne vectorise JAMAIS le texte brut.
 Chaque document est PREFIXE d'un en-tete derive du graphe — pools attaches,
 jumeaux au meme bytecode, deployeur, profil bps avec ses etiquettes — puis le

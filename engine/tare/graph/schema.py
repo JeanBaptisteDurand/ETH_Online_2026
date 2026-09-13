@@ -50,7 +50,7 @@ class EdgeKind:
 
 # Le prefixe de l'identifiant est le type. Un noeud cite dans une arete sans
 # avoir ete declare est synthetise a partir de son prefixe, jamais laisse
-# sans type (repris de cobol-explorer/ingestion/graph/build.py).
+# sans type (repris de an earlier codebase of ours).
 PREFIX_TO_KIND = {
     "hook": NodeKind.HOOK,
     "code": NodeKind.BYTECODE,

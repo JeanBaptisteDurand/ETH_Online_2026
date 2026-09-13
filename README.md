@@ -560,16 +560,16 @@ are those lines.
 ## Prompts, specs and planning artifacts
 
 Every brief given to every agent, and the documents they were planned against, are committed under
-[`docs/prompts/`](docs/prompts/) and [`docs/planning/`](docs/planning/). See
-[`docs/prompts/README.md`](docs/prompts/README.md).
+`docs/prompts/` and `docs/planning/`. See
+`docs/prompts/README.md`.
 
 ---
 
 ## AI attribution
 
 Built with Claude Code. Every prompt, spec and planning artifact is committed under
-[`docs/prompts/`](docs/prompts/) and [`docs/planning/`](docs/planning/) — including
-[`docs/planning/01-adversarial-audit.md`](docs/planning/01-adversarial-audit.md), the record of an
+`docs/prompts/` and `docs/planning/` — including
+`docs/planning/01-adversarial-audit.md`, the record of an
 earlier direction being abandoned after its own figures failed review.
 
 What is not AI-generated is the measurement: every number in `docs/dataset/` comes from an EVM fork,

@@ -1,6 +1,6 @@
 """Le banc : l'en-tete de graphe change-t-il quelque chose, oui ou non ?
 
-La these reprise de cobol-explorer est que prefixer un document d'un en-tete
+La these reprise de an earlier codebase of ours est que prefixer un document d'un en-tete
 DERIVE DU GRAPHE fait remonter des documents qu'une recherche sur le texte seul
 n'aurait pas trouves. C'est une these mesurable, et une these mesurable qu'on
 n'a pas mesuree est une affirmation.

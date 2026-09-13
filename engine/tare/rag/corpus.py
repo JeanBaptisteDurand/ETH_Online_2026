@@ -1,7 +1,7 @@
 """Le corpus, DECLARE source par source.
 
 Pourquoi une declaration explicite plutot qu'un `glob("docs/**")` : un index
-vide ne proteste pas. CorLens a livre un `void ragIndex;` — l'index etait
+vide ne proteste pas. Un projet anterieur a livre un `void ragIndex;` — l'index etait
 construit, jamais peuple, et personne ne s'en est apercu avant la demo, parce
 qu'aucun endroit du code ne disait ce que l'index DEVAIT contenir. Ici la liste
 est ecrite, chaque entree porte `required`, et build() refuse de rendre un

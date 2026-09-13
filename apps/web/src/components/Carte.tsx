@@ -188,6 +188,11 @@ function jetonsProposes(max = 3): { adresse: string; ecart: number }[] {
     ] as [string, string][]) {
       const jeton = t.toLowerCase()
       if (jeton in MONNAIES_DE_COTATION) continue
+      // Only tokens bought WITH ETH, WETH or USDC, and only with a readable on-chain symbol:
+      // a demo chip that reads "PQTEST" tells a visitor nothing.
+      if (!(autre.toLowerCase() in MONNAIES_DE_COTATION)) continue
+      const sym = symbole(jeton)
+      if (!sym || /test|dev/i.test(sym)) continue
       const cle = `${jeton}|${autre.toLowerCase()}|${r.amount_in}`
       const m = groupes.get(cle) ?? new Map<string, number>()
       m.set(r.pool_id, lpFeeBps(r.stored_lp_fee) + r.bps)

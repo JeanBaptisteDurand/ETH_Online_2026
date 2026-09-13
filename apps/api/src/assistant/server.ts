@@ -34,7 +34,7 @@ registerAssistant(app, {
 });
 
 // On chauffe le modele de lecture et le graphe AU DEMARRAGE, une fois. Les reconstruire
-// a chaque requete serait le bug du RAG COBOL de reference : 102 ms de CPU brules par appel.
+// a chaque requete serait le bug du RAG de reference : 102 ms de CPU brules par appel.
 const store = getStore();
 const graph = getGraph(store);
 console.log(

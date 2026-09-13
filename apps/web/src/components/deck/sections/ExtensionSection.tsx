@@ -128,7 +128,7 @@ export function ExtensionSection({ actif, transactionsReelles }: ExtensionSectio
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'max(0.7cqi, 6px)' }}>
             {(cheaper
-              ? ['PRET — substitute', 'sign as is', 'cancel']
+              ? ['substitute — state PRET', 'sign as is', 'cancel']
               : ['confirm knowingly', 'cancel']
             ).map((b, i) => (
               <span key={b} className="dk-bouton" data-fort={i === 0 ? 'oui' : undefined}>

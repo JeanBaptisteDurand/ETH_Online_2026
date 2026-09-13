@@ -43,7 +43,7 @@ export function SpeculosSection({ actif, ecransRendus, type712 }: SpeculosSectio
       <Sous>Eight screens, one after another, exactly as the device renders them.</Sous>
 
       <div className="dk-grille dk-g11 dk-fill">
-        <div className="dk-ecrans">
+        <div className="dk-ecrans" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(max(11cqi, 150px), 1fr))', alignContent: 'center' }}>
           {ECRANS.map(([k, v], i) => (
             <div
               key={k}

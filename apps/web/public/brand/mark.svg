@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="img" aria-label="TARE">
+  <!-- La marque EST la mesure : le meme swap cote deux fois, et l'ecart est le produit.
+       Barre haute, grise : la cotation contre le talon inerte — ce que le swap rend sans hook.
+       Barre basse, jaune : la cotation avec le hook — plus courte, forcement.
+       Le bloc terne qui la prolonge est la difference : ce que le hook a pris.
+       Aplats, radius 0, aucun degrade, aucune ombre (locks 10 et 11 de la DA). Couleurs
+       explicites et non currentColor : charge en <img>, un SVG n'herite d'aucune couleur. -->
+  <rect x="0" y="5"  width="24" height="4" fill="#868D96"/>
+  <rect x="0" y="15" width="15" height="4" fill="#F6D746"/>
+  <rect x="15" y="15" width="9"  height="4" fill="#868D96" opacity=".3"/>
+</svg>

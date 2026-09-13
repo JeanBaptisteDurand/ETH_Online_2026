@@ -29,19 +29,9 @@ for p in "${PAQUETS[@]}"; do
   fi
 done
 
-# apps/web lit deux fichiers DERIVES — src/data/dataset.json et facts.json — gitignores parce
-# qu'ils se recalculent. Sans eux, six tests du front tombent en ECHEC sur un clone frais,
-# alors qu'il ne manque qu'une commande locale (aucun reseau, aucun RPC : elle ne lit que des
-# fichiers du depot). On la lance ici pour qu'une seule commande suffise avant les tests.
-if [ -f apps/web/package.json ] && [ -d apps/web/node_modules ]; then
-  printf "  %-24s " "apps/web (donnees)"
-  if (cd apps/web && npm run --silent data >/dev/null 2>&1); then
-    echo "ok (dataset.json + facts.json)"
-  else
-    echo "ECHEC — les tests du front en dependent"
-    rate+=("apps/web (donnees)")
-  fi
-fi
+# L'ordre compte : apps/web/scripts/build-facts.mjs LIT packages/guard/data/table.json.
+# Construire la table de la garde avant les donnees du front, sinon facts.json sort avec une
+# source manquante et le test « aucun fait ne manque a ce build » tombe sur un clone frais.
 
 # packages/guard lit data/table.json, gitignore parce qu'il pese 21 Mo et se recalcule depuis
 # docs/dataset/measurements.jsonl — aucun reseau, aucun RPC, que des fichiers du depot.
@@ -61,6 +51,21 @@ if [ -f packages/guard/package.json ] && [ -d packages/guard/node_modules ]; the
     rate+=("packages/guard (table)")
   fi
 fi
+
+# apps/web lit deux fichiers DERIVES — src/data/dataset.json et facts.json — gitignores parce
+# qu'ils se recalculent. Sans eux, six tests du front tombent en ECHEC sur un clone frais,
+# alors qu'il ne manque qu'une commande locale (aucun reseau, aucun RPC : elle ne lit que des
+# fichiers du depot). On la lance ici pour qu'une seule commande suffise avant les tests.
+if [ -f apps/web/package.json ] && [ -d apps/web/node_modules ]; then
+  printf "  %-24s " "apps/web (donnees)"
+  if (cd apps/web && npm run --silent data >/dev/null 2>&1); then
+    echo "ok (dataset.json + facts.json)"
+  else
+    echo "ECHEC — les tests du front en dependent"
+    rate+=("apps/web (donnees)")
+  fi
+fi
+
 
 echo "  ----------------------------------------"
 printf "  %d installes" "${#ok[@]}"

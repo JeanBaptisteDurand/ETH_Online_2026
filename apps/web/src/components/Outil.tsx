@@ -711,8 +711,9 @@ export function OutilPanel({ n, surOutil }: { n: number; surOutil?: (n: number) 
   const etat = o.etat === 'pret' ? 'prêt' : o.etat === 'en_attente' ? 'en attente' : 'hors ligne'
   return (
     <>
-      {/* LE NOM ET LA QUESTION — le titre de page, une fois, en tete de route. */}
-      <header className="px-[16px] pt-[8px] pb-[14px]">
+      {/* LE NOM ET LA QUESTION — le titre de page, une fois, en tete de route.
+          Le voile (lock 32) : c'est un bloc de texte, il se lit par-dessus le champ. */}
+      <header className="px-[16px] pt-[8px] pb-[14px] voile">
         <div className="flex flex-wrap items-center gap-x-[16px] gap-y-[6px] pb-[10px]">
           <span className="t-body flex items-center gap-[8px]" style={{ fontSize: 14, color: 'var(--ink-2)' }}>
             <span aria-hidden="true" className="nuancier" style={{ background: c }} />

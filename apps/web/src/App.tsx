@@ -483,7 +483,8 @@ function AppInterne() {
       <Head theme={theme} setTheme={setTheme} vue={vue} versOutil={versOutil} />
 
       <main id="contenu" className="px-[24px] pt-[24px] pb-[24px] mx-auto w-full" style={{ maxWidth: 1360 }}>
-        <div className="flex flex-wrap items-end justify-between gap-x-[40px] gap-y-[12px] pb-[28px]">
+        {/* Le voile (lock 32) : l'en-tete de la route est un bloc de texte comme un autre. */}
+        <div className="flex flex-wrap items-end justify-between gap-x-[40px] gap-y-[12px] pb-[28px] voile voile-air">
           <div className="flex flex-col" style={{ gap: 12, maxWidth: '52ch' }}>
             <h1 className="t-display m-0">L’instrument</h1>
             <p className="t-body t-body-muted m-0">

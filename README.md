@@ -502,8 +502,8 @@ These are enforced, not aspirational.
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) answers one question per section: why a technology
 is here and what would be lost without it. It carries the three diagrams — the chain from an
 `Initialize` log to a refused signature, the three Hedera layers, and which panels are reading,
-which are user actions, and which touch a chain. It also says plainly which two panels are
-missing.
+which need a server, and which touch a chain — and it says plainly what is still only reachable
+through the extension rather than through a panel.
 
 ---
 

@@ -244,7 +244,21 @@ function Head({
     >
       <div className="flex items-center gap-[8px] px-[12px] sm:px-[24px] mx-auto w-full" style={{ maxWidth: 1360, minHeight: 56 }}>
         {/* La marque : en sans, comme la voix du produit. Plus de capitales chassées. */}
-        <a href="#/" className="no-underline" translate="no" style={{ color: 'var(--ink)', fontFamily: 'var(--prose)', fontWeight: 600, fontSize: 20, letterSpacing: '-0.01em' }}>
+        <a
+          href="#/"
+          className="no-underline inline-flex items-center gap-[8px]"
+          translate="no"
+          style={{ color: 'var(--ink)', fontFamily: 'var(--prose)', fontWeight: 600, fontSize: 20, letterSpacing: '-0.01em' }}
+        >
+          {/* LA MARQUE : trois barres, et elles disent la mesure.
+              Une pleine, une partielle en jaune de la rampe, et le reste en creux — c'est la
+              lecture d'un appareil, pas un logo decoratif. Les fichiers autonomes sont dans
+              public/brand/, pour les usages hors page. */}
+          <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style={{ display: 'block', flex: 'none' }}>
+            <rect x="0" y="5" width="24" height="4" fill="currentColor" opacity=".55" />
+            <rect x="0" y="15" width="15" height="4" fill="var(--m-6, #F6D746)" />
+            <rect x="15" y="15" width="9" height="4" fill="currentColor" opacity=".22" />
+          </svg>
           TARE
         </a>
         {/* La barre porte une entree de plus depuis le deck : sous 400 px elle depassait la

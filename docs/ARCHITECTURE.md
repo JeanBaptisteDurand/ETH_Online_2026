@@ -1,251 +1,275 @@
-# TARE — ce que fait chaque brique, et pourquoi elle existe
+# TARE — what each piece does, and why it exists
 
-Ce document répond à une question par section : *pourquoi cette technologie est là, et que
-perdrait-on en la retirant ?* Chaque chiffre cité a été relevé sur le dépôt, pas estimé.
-
----
-
-## 0. Le problème, en une phrase
-
-Un pool Uniswap v4 peut afficher **0 % de frais** — lu sur la chaîne, dans `slot0` — et son hook
-t'en prendre **18 %**. Rien ne publie ce nombre : **9 des 1 559 hooks** vus en 200 000 blocs déclarent — 0,58 %, et ce qu'ils déclarent est un montant absolu sur un swap passé, pas le taux qu'on paierait ; les 1 550 autres ne déclarent rien du tout, alors qu'ils ont été déployés en 200 000 blocs
-Base n'émet l'événement qu'Uniswap leur demande d'émettre, et le registre officiel décrit
-**978 hooks avec 19 champs dont un seul est numérique — `chainId`**.
-
-TARE mesure ce nombre, l'écrit sur une chaîne, et t'arrête avant que tu signes.
+This document answers one question per section: *why is this technology here, and what would be
+lost by removing it?* Every figure quoted was read off the repository, not estimated.
 
 ---
 
-## 1. La chaîne complète, d'un log à un refus de signature
+## 0. The problem, in one sentence
+
+A Uniswap v4 pool can show **0 % fees** — read on chain, in `slot0` — while its hook takes **18 %**
+of your swap. Nothing publishes that number. Of the **1,559 distinct hooks** seen initialising
+pools over 200,000 Base blocks, **9 emit either of the two events Uniswap's own guide asks them to
+emit — 0.58 %** — and what those nine emit is an absolute amount on one past swap, not the rate you
+would pay at your size. The other 1,550 emit nothing at all. The official registry describes
+**978 entries with 27 fields each, 19 of them booleans, and not one of the 27 is a quantity**: the
+only number in the whole record is `chainId`, and it names a network.
+
+TARE measures that number, writes it to a chain, and stops you before you sign.
+
+---
+
+## 1. The whole chain, from a log to a refused signature
 
 ```mermaid
 flowchart TB
-    subgraph MESURE["① MESURER — hors chaîne, sur une VM"]
-        A["logs Initialize<br/>22 896 lus"] --> B["recensement<br/>7 817 pools"]
-        B --> C["fork anvil<br/>bloc 50 614 000"]
-        C --> D["cote AVEC le hook"]
-        C --> E["anvil_setCode<br/>talon 89 octets"] --> F["cote SANS le hook"]
-        D & F --> G["différence = prélèvement<br/>125 072 mesures"]
+    subgraph MEASURE["① MEASURE — off chain, on a VM"]
+        A["Initialize logs<br/>22,896 read"] --> B["census<br/>7,817 pools"]
+        B --> C["anvil fork<br/>block 50,614,000"]
+        C --> D["quote WITH the hook"]
+        C --> E["anvil_setCode<br/>89-byte stub"] --> F["quote WITHOUT the hook"]
+        D & F --> G["difference = the take<br/>125,072 measurements"]
     end
 
-    subgraph COMPRENDRE["② COMPRENDRE — ranger, relier, lire"]
-        G --> H["graphe typé<br/>143 788 nœuds"]
-        G --> I["sources Sourcify<br/>2 309 fichiers .sol"]
-        H & I --> J["RAG double<br/>3 591 morceaux"]
+    subgraph UNDERSTAND["② UNDERSTAND — sort, connect, read"]
+        G --> H["typed graph<br/>143,788 nodes"]
+        G --> I["Sourcify sources<br/>2,309 .sol files"]
+        H & I --> J["dual RAG<br/>3,591 chunks"]
     end
 
-    subgraph PUBLIER["③ PUBLIER — visible, réutilisable"]
-        G --> K["instrument<br/>7 panneaux"]
-        G --> L["attestations Hedera<br/>99 hooks on-chain"]
-        G --> M["table de la garde<br/>7 817 pools"]
-        J --> N["chatbot<br/>23 intentions"]
+    subgraph PUBLISH["③ PUBLISH — visible, reusable"]
+        G --> K["the instrument<br/>17 panels"]
+        G --> L["Hedera attestations<br/>16 written, 99 computed"]
+        G --> M["the guard's table<br/>7,817 pools"]
+        J --> N["the assistant"]
     end
 
-    subgraph AGIR["④ AGIR — la seule action réelle"]
-        M --> O["extension MV3<br/>décode le calldata"]
+    subgraph ACT["④ ACT — the only real action"]
+        M --> O["MV3 extension<br/>decodes the calldata"]
         O --> P["verdict OK / WARN / BLOCK"]
-        P --> Q["écran Ledger<br/>16 champs"]
-        Q --> R{{"la transaction<br/>part ou ne part pas"}}
+        P --> Q["Ledger screen<br/>16 screens"]
+        Q --> R{{"the transaction<br/>goes, or does not"}}
     end
 
-    style AGIR fill:#1a1a1a,stroke:#F6D746,stroke-width:2px
+    style ACT fill:#1a1a1a,stroke:#F6D746,stroke-width:2px
     style R fill:#F6D746,color:#000
 ```
 
-**Où est l'actionnable ?** Une seule boîte l'est : ④. Tout le reste produit de la donnée. Le
-moment où le produit change quelque chose au monde, c'est **quand une transaction qui serait
-partie ne part pas**.
+**Where is the actionable part?** One box only: ④. Everything else produces data. The moment the
+product changes something in the world is **when a transaction that would have gone out does not**.
 
 ---
 
-## 2. Chaque technologie, et ce qu'on perdrait sans elle
+## 2. Each technology, and what would be lost without it
 
-### anvil — la machine virtuelle qui rend le contrefactuel possible
+### anvil — the virtual machine that makes the counterfactual possible
 
-**Pourquoi.** L'adresse du hook est **un des cinq champs de la `PoolKey`**. « Le même pool sans son
-hook » n'existe pas : le retirer désigne un autre pool. C'est le mur, et c'est pour ça que
-personne ne publie ce nombre.
+**Why.** The hook's address is **one of the five fields of the `PoolKey`**. "The same pool without
+its hook" does not exist: removing it names a different pool. That is the wall, and it is why
+nobody publishes this number.
 
-**Ce qu'anvil permet.** `anvil_setCode` réécrit le bytecode **à l'adresse du hook**, sur un fork
-épinglé à un bloc. Le `poolId`, la liquidité, `slot0`, les réserves : identiques au bit près. La
-seule chose qui change est le code qui s'exécute pendant l'échange.
+**What anvil allows.** `anvil_setCode` rewrites the bytecode **at the hook's address**, on a fork
+pinned to a block. The `poolId`, the liquidity, `slot0`, the reserves: identical to the bit. The
+only thing that changes is the code that runs during the swap.
 
-**Qui fait tourner la VM.** Nous, en local ou en CI. Quatre forks en parallèle ont produit le
-corpus en une nuit. Le lecteur qui veut vérifier lance le sien : `docker compose up -d`.
+**Who runs the VM.** We do, locally or in CI. Four forks in parallel produced the corpus in one
+night. A reader who wants to check runs their own: `docker compose up -d`.
 
-**Sans anvil** : aucun contrefactuel, donc aucun nombre. C'est la brique non substituable.
+**Without anvil**: no counterfactual, so no number. It is the one piece with no substitute.
 
-### Uniswap v4 — le sujet, pas une intégration
+### Uniswap v4 — the subject, not an integration
 
-Le talon fait **89 octets** parce que `Hooks.sol` valide les *données rendues* : ≥32 octets avec le
-sélecteur réécho (`:153`), exactement 96 depuis `beforeSwap` (`:166`), exactement 64 sur le chemin
-des deltas (`:259`). Un `STOP` échouerait. Le talon est un néant **conforme au protocole**.
+The stub is **89 bytes** because `Hooks.sol` validates the *returned data*: ≥32 bytes with the
+selector echoed back (`:153`), exactly 96 from `beforeSwap` (`:166`), exactly 64 on the delta path
+(`:259`). A bare `STOP` would fail. The stub is a nothing that is **protocol-conformant**.
 
-### La sonde d'exécution — parce que coter n'est pas exécuter
+### The execution probe — because quoting is not executing
 
-`V4Quoter` est un `eth_call` : une **simulation**. `SwapProbe.sol` exécute un vrai swap —
-`unlock`, `swap`, `settle`, `take` — et lit son propre solde.
+`V4Quoter` is an `eth_call`: a **simulation**. `SwapProbe.sol` executes a real swap — `unlock`,
+`swap`, `settle`, `take` — and reads its own balance.
 
-**Résultat : 8 pools sur 9 concordent au wei. Un diverge** — coté 3,5669 bps, exécuté 0,00.
+**Result: 8 pools out of 9 agree to the wei. One diverges** — quoted 3.5669 bps, executed 0.00.
+Both legs are printed in [`LIMITS.md` §10b](LIMITS.md).
 
-Sans cette sonde, la thèse reposait sur la fidélité d'un simulateur que rien n'avait vérifié.
+Without that probe, the thesis rested on the fidelity of a simulator nothing had checked.
 
-### Hedera — trois couches, une par usage
+### Hedera — three layers, one per use
 
 ```mermaid
 flowchart LR
-    U["un intégrateur"] -->|"POST /measure"| API
+    U["an integrator"] -->|"POST /measure"| API
     API -->|"402 + accepts"| U
-    U -->|"paiement x402"| F["facilitateur<br/>Blocky402"]
-    API --> M["mesure<br/>facturée à l'unité"]
-    M --> HCS["topic HCS<br/>empreinte du lot"]
-    HCS --> MN["mirror node<br/>relecture"]
-    G["corpus"] --> ATT["HookRateAttestations<br/>EVM Hedera"]
-    ATT --> R["un routeur<br/>un portefeuille"]
+    U -->|"x402 payment"| F["facilitator<br/>Blocky402"]
+    API --> M["measurement<br/>billed per unit"]
+    M --> HCS["HCS topic<br/>batch digest"]
+    HCS --> MN["mirror node<br/>re-read"]
+    G["the corpus"] --> ATT["HookRateAttestations<br/>Hedera EVM"]
+    ATT --> R["a router<br/>a wallet"]
     style ATT fill:#1a1a1a,stroke:#F6D746
 ```
 
-| couche | ce qu'elle porte | vérifié |
+| layer | what it carries | verified |
 |---|---|---|
-| **x402** | le péage, facturé **à la mesure** pas à la requête | le 402 est formé et le facilitateur répond · **aucun règlement n'a abouti** |
-| **HCS** | l'empreinte de chaque lot, ancrée puis relue | oui — message #4, horodatage de consensus |
-| **EVM** | **99 hooks attestés** — le champ que le registre n'a pas | oui — relu depuis la chaîne |
+| **x402** | the toll, billed **per measurement**, not per request | yes — **5 settlements**, each re-read on the mirror node, in [`docs/x402-settlements.jsonl`](x402-settlements.jsonl) |
+| **HCS** | the digest of each batch, anchored then re-read | yes — message #4, with its consensus timestamp |
+| **EVM** | **16 hooks attested on chain**, out of 99 computed — the field the registry does not have | yes — re-read from the chain |
 
-Le contrat **refuse** `nMeasured == 0` : un hook non mesuré est **absent**, jamais présent à zéro.
-`latest()` révèle plutôt que de rendre une structure de zéros qu'on ne saurait distinguer d'une
-mesure nulle.
+That 16-against-99 gap is published rather than smoothed over:
+[`docs/dataset/attestations.json`](dataset/attestations.json) carries both numbers and the corpus
+digest they were derived from. **99 is never the figure to quote as written.**
 
-### Ledger — le nombre sur un écran que la page ne repeint pas
+The contract **refuses** `nMeasured == 0`: a hook that was not measured is **absent**, never
+present at zero. `latest()` reverts rather than return a struct of zeros indistinguishable from a
+measured zero.
 
-La garde construit un EIP-712 dont les champs sont ses constats. Exécuté contre **Speculos avec
-l'application Ethereum officielle 1.22.3**, l'appareil affiche **16 écrans** puis signe :
-`take 689.95 bps`, `label MEASURED`, `direction 1->0`. Signature `v=28`.
+### Ledger — the number on a screen the page cannot repaint
 
-Cela n'aboutit qu'avec le réglage **« Raw messages »**. Sans lui, l'application dit *« Blind
-signing must be enabled »* — **le mauvais réglage**, puisque le blind signing fait signer un hash.
-Notre code n'a **aucun repli**. Voir [`OPEN-SOURCE.md`](../OPEN-SOURCE.md).
+The guard builds an EIP-712 message whose fields are its findings. Run against **Speculos with the
+official Ethereum app 1.22.3**, the device shows **16 screens** and then signs: `take 689.95 bps`,
+`label MEASURED`, `direction 1->0`. Signature `v=28`.
 
-### Les deux RAG — et pourquoi deux, mesuré
+That only works with the **"Raw messages"** setting. Without it the app says *"Blind signing must
+be enabled"* — **the wrong setting**, since blind signing makes you sign a hash. Our code has **no
+fallback**. See [`OPEN-SOURCE.md`](../OPEN-SOURCE.md) and [`EIP712.md`](../EIP712.md).
 
-**À quoi sert le RAG.** Le chatbot doit répondre à deux familles de questions qui n'ont rien en
-commun :
+A second capture, taken from a **real Base transaction** rather than a hand-written object, is in
+[`docs/ledger/ECRANS.md`](ledger/ECRANS.md): there the pool is not in the guard's table, and the
+device renders the refusal itself. The string it shows is the one
+[`packages/guard/src/ledger.ts`](../packages/guard/src/ledger.ts) emits, verbatim and in
+French — `take non mesure — ce n'est pas zero`, "take not measured — this is not zero".
 
-- *« lesquels prennent le plus »* — une question **structurelle**, dont la réponse est un ensemble
-  d'entités qu'un parcours de graphe calcule exactement ;
-- *« pourquoi le talon fait-il 89 octets »* — une question de **prose**, dont la réponse est un
-  paragraphe.
+### The two RAGs — and why two, measured
 
-Une seule botte de foin (**3 591 morceaux**), deux classes, trois récupérateurs :
+**What the RAG is for.** The assistant has to answer two families of question with nothing in
+common:
 
-| | graphe | vecteur + en-tête | vecteur seul |
+- *"which ones take the most"* — a **structural** question, whose answer is a set of entities a
+  graph traversal computes exactly;
+- *"why is the stub 89 bytes"* — a question of **prose**, whose answer is a paragraph.
+
+One haystack (**3,591 chunks**), two classes, three retrievers:
+
+| | graph | vector + header | vector alone |
 |---|---|---|---|
-| **structurel** | **1,000** | 0,051 | 0,040 |
-| **sémantique** | 0,000 | **0,433** | 0,383 |
+| **structural** | **1.000** | 0.051 | 0.040 |
+| **semantic** | 0.000 | **0.433** | 0.383 |
 
-**Chacun est nul sur la classe de l'autre.** Aucun modèle d'embedding ne compare des nombres ;
-aucun graphe n'indexe de la prose. C'est l'argument chiffré pour en embarquer deux, et il est
-mesuré, pas affirmé.
+**Each scores zero on the other's class.** No embedding model compares numbers; no graph indexes
+prose. That is the measured argument for shipping two, and it is measured, not asserted.
 
-Chaque morceau vectoriel porte un **en-tête dérivé du graphe** qui inclut les négations honnêtes :
-*« aucune mesure : jamais tenté, pas zéro prélèvement »*.
+Every vector chunk carries a **header derived from the graph** that includes the honest negations:
+*"no measurement: never attempted, not zero take"*.
 
-### Le chatbot — il ne produit jamais un nombre
+### The assistant — it never produces a number
 
-Deux étages : un planificateur déterministe et un planificateur LLM où **`ollama:granite3.3:8b` et
-`openai:gpt-4o-mini` courent ensemble**. La première réponse valide gagne, les autres sont
-annulées, et le sort de chacune est publié. Mesuré : **51,8 s en série → 1,8 à 3,6 s**.
+Two stages: a deterministic planner, and an LLM planner where **`ollama:granite3.3:8b` and
+`openai:gpt-4o-mini` race each other**. The first valid answer wins, the others are cancelled, and
+the fate of each is published. Measured: **51.8 s in series → 1.8 to 3.6 s**.
 
-Le modèle **choisit quoi interroger** ; le produit calcule. Ses actions passent par Zod, sa phrase
-par un auditeur de nombres.
+The model **chooses what to query**; the product computes. Its actions go through Zod, its sentence
+through a number auditor.
 
 ---
 
-## 3. Les 7 panneaux : lecture, action, ou chaîne ?
+## 3. The instrument's panels: read, user action, or chain?
+
+The instrument carries **17 panels, `00` to `16`**, declared once in
+[`apps/web/src/components/Index.tsx`](../apps/web/src/components/Index.tsx). Fourteen of them paint
+from the corpus compiled into the page and need no network at all; three say so when no API is
+published.
 
 ```mermaid
 flowchart TB
-    subgraph L["LECTURE DE DONNÉE — aucun réseau"]
-        P1["01 · le verdict"]
-        P2["02 · registre vs mesure"]
-        P3["03 · 14 permissions"]
-        P5["05 · profil taille → bps"]
-        P6["06 · les lignes brutes"]
+    subgraph L["READING DATA — no network"]
+        P0["00 · the exit test"]
+        P1["01 · the same swap, quoted twice"]
+        P2["02 · the registry against the measurement"]
+        P5["05 · the record of the selected hook"]
+        P7["07 · the raw rows"]
+        P11["11 · what is written on chain"]
+        P13["13 · proof of execution on the device"]
     end
-    subgraph A["ACTION DE L'UTILISATEUR"]
-        P4["04 · fiche hook"]
-        P7["07 · par quelle porte passer"]
-        CH["le chat — 23 intentions"]
+    subgraph A["NEEDS A SERVER — and says so"]
+        P3["03 · which door to take"]
+        P8["08 · the graph around the hook"]
+        P15["15 · the account"]
     end
-    subgraph O["ACTION ON-CHAIN RÉELLE"]
-        EXT["extension MV3"]
-        LED["écran Ledger"]
-        ATT["attestations"]
+    subgraph O["REAL ON-CHAIN ACTION"]
+        P16["16 · the replacement door"]
+        EXT["MV3 extension"]
+        LED["Ledger screen"]
     end
-    P2 --> P4 --> P5 --> P6
-    CH --> P1 & P2 & P3 & P4 & P5 & P6 & P7
-    P7 --> EXT --> LED
+    P2 --> P5 --> P7
+    P16 --> EXT --> LED
     style O fill:#1a1a1a,stroke:#F6D746,stroke-width:2px
 ```
 
-| | panneau | nature | pourquoi l'utilisateur veut le voir |
+| | panel | nature | why a user wants to see it |
 |---|---|---|---|
-| **01** | le verdict | **lecture** | il doit comprendre le problème en 5 secondes, sans wallet, sans clic |
-| **02** | registre vs mesure | **lecture** | les deux colonnes ne sont pas d'accord — c'est tout le produit en une image |
-| **03** | 14 permissions | **action locale** | il colle son adresse, 14 diodes s'allument, **zéro appel réseau** : il vérifie que l'outil ne le piste pas |
-| **04** | fiche hook | **action** | il a un hook précis en tête et veut son dossier |
-| **05** | profil taille → bps | **lecture** | le prélèvement dépend de la taille — un chiffre unique mentirait |
-| **06** | lignes brutes | **lecture + rejeu** | chaque ligne porte sa commande : il peut **ne pas nous croire** |
-| **07** | par quelle porte | **action** | la seule question qu'un utilisateur réel pose |
-| **+** | le graphe | **lecture** | jumeaux, rayon d'impact, désaccords, orphelins |
+| **00** | the exit test | read | put 100 in, read what comes back out — the question before any other |
+| **01** | the same swap, quoted twice | read | the method itself, on one row |
+| **02** | the registry against the measurement | read | the two columns disagree — the whole product in one image |
+| **03** | which door to take | needs a server | the only question a real user asks; it says so when no API answers |
+| **04** | the permissions, read on chain | local action | paste an address, 14 LEDs light up, **zero RPC and zero backend** — the bits are the address |
+| **05** | the record of the selected hook | read | a specific hook, and its file |
+| **06** | the size-to-bps profile | read | the take depends on the size — a single figure would lie |
+| **07** | the raw rows | read + replay | every row carries its command: you can **refuse to believe us** |
+| **08** | the graph around the hook | needs a server | twins, blast radius, disagreements, orphans |
+| **09** | the toll, re-read on the mirror node | read | 5 settlements, each confirmed by a source that is not us |
+| **10** | who measures: the agent identity | read | the HCS-14 identity, recomputable before you pay |
+| **11** | what is written on chain | read | **16 written**, and the 99 computed next to it |
+| **12** | an independent source, cross-checked | read | The Graph, used to contradict us rather than confirm us |
+| **13** | proof of execution on the device | read | the screens the Ledger rendered, word for word |
+| **14** | the other surfaces | read | the 14 tools, and the five ways in |
+| **15** | the account | needs a server | the wallet, the session, the keys, the subscription |
+| **16** | and elsewhere? the replacement door | action | the transaction it would build instead — and it never sends it |
 
-**Réponse franche : non, ces 7 panneaux ne couvrent pas tout.** Il en manque deux.
-
-**Ce qui manque — 08, la garde en action.** Le panneau qui montre une transaction interceptée, le
-verdict, et le refus. C'est **l'actionnable**, et il n'a pas de surface dans l'instrument : il vit
-dans l'extension. Un juge voit sept panneaux de lecture et une action qu'il doit installer pour
-constater.
-
-**Ce qui manque — 09, les attestations on-chain.** 99 hooks écrits sur Hedera, lisibles par un
-contrat, et rien à l'écran ne le montre.
+**Two panels used to be missing, and this document used to say so: the on-chain attestations, and
+the guard's proof on a device.** They are `11` and `13` now. What is still true is that the
+interception itself — a transaction caught three seconds before signature — lives in the
+**extension**, not in the instrument: it is an action you install to witness, not a panel you read.
 
 ---
 
-## 4. Toutes les données stockées
+## 4. All the stored data
 
-| poids | contenu | fichier | dérivé ? |
+| weight | content | file | derived? |
 |---|---|---|---|
-| 86,2 Mo | **125 072 mesures** — la preuve | `docs/dataset/measurements.jsonl` | **source** |
-| 0,3 Mo | 368 mesures des 8 paires à plusieurs pools | `docs/dataset/measurements-contestes.jsonl` | **source** |
-| 21,5 Mo | 22 896 logs `Initialize` bruts | `docs/dataset/init-logs-200k.json` | **source** |
-| 1,7 Mo | 7 817 pools recensés | `docs/dataset/pools-liquides-full.json` | **source** |
-| 1,2 Mo | 978 fiches du registre officiel | `docs/hooklist-live-20260905.json` | **source** |
-| 29 Mo | **2 309 fichiers Solidity** vérifiés, récupérés sur Sourcify | `docs/hooks-source/` | **source** |
-| 7,3 Mo | 112 hooks analysés depuis leur code | `docs/hooks-source/analysis.json` | dérivé |
-| 188,8 Mo | graphe typé — 143 788 nœuds, 149 904 arêtes | `engine/tare/graph/data/graph.json` | dérivé |
-| 51,2 Mo | index vectoriel — 3 591 morceaux, dim 768 | `engine/tare/rag/var/index.jsonl` | dérivé |
-| 20,7 Mo | table de la garde — 7 817 pools | `packages/guard/data/table.json` | dérivé |
-| 87,4 Mo | jeu embarqué par l'instrument | `apps/web/src/data/dataset.json` | dérivé |
-| 3,3 Mo | résumé du balayage | `docs/dataset/summary.json` | dérivé |
-| < 0,1 Mo | 6 pools à sens unique · 99 attestations | `one-way.json` · `attestations.json` | dérivé |
+| 86.2 MB | **125,072 measurements** — the evidence | `docs/dataset/measurements.jsonl` | **source** |
+| 0.3 MB | 368 measurements of the contested pools | `docs/dataset/measurements-contestes.jsonl` | **source** |
+| 21.5 MB | 22,896 raw `Initialize` logs | `docs/dataset/init-logs-200k.json` | **source** |
+| 1.7 MB | 7,817 pools in the census | `docs/dataset/pools-liquides-full.json` | **source** |
+| 1.2 MB | 978 entries of the official registry | `docs/hooklist-live-20260905.json` | **source** |
+| 29 MB | **2,309 verified Solidity files**, fetched from Sourcify | `docs/hooks-source/` | **source** |
+| 7.3 MB | 112 hooks analysed against their own code | `docs/hooks-source/analysis.json` | derived |
+| 188.8 MB | typed graph — 143,788 nodes, 149,904 edges | `engine/tare/graph/data/graph.json` | derived |
+| 51.2 MB | vector index — 3,591 chunks, dim 768 | `engine/tare/rag/var/index.jsonl` | derived |
+| 20.7 MB | the guard's table — 7,817 pools | `packages/guard/data/table.json` | derived |
+| 7.9 MB | the dataset compiled into the instrument | `apps/web/src/data/dataset.json` | derived |
+| 3.3 MB | the sweep summary | `docs/dataset/summary.json` | derived |
+| < 0.1 MB | 6 one-way pools · 16 attestations written, 99 computed | `one-way.json` · `attestations.json` | derived |
 
-**Les dérivés ne sont pas versionnés** — trois pesaient 296 Mo et l'un dépassait la limite de
-GitHub. `scripts/regenerate.sh` les reconstruit dans l'ordre. Versionner un fichier dérivé est
-précisément ce qui avait fait publier au graphe **dix nombres que le jeu avait déjà retirés**.
+The instrument's dataset is the same 125,072 rows as the corpus, written **by column** rather than
+by object: the same stub hash repeated 125,072 times costs one string, not 125,072. That is how it
+went from 86 MB to 7.9 MB, and why the page paints in 2.7 s instead of 10.3 s.
 
-Composition du graphe : 125 072 `Measurement` · 8 586 `Token` · 7 817 `Pool` · 1 019 `Hook` ·
+**Derived files are not versioned** — three of them weighed 296 MB and one was over GitHub's file
+limit. `scripts/regenerate.sh` rebuilds them in dependency order. Versioning a derived file is
+precisely what once made the graph publish **ten numbers the dataset had already retracted**.
+
+Graph composition: 125,072 `Measurement` · 8,586 `Token` · 7,817 `Pool` · 1,019 `Hook` ·
 978 `RegistryEntry` · 158 `Bytecode` · 158 `Deployer`.
 
 ---
 
-## 5. Ce que le produit refuse
+## 5. What the product refuses to do
 
-Quatre étiquettes, **jamais promues** : `MEASURED` · `INTERPOLATED` · `NOT_MEASURABLE` ·
-`NOT_QUOTABLE`. Une lecture bornée, un délai, une limite de débit donnent `NOT_MEASURABLE` —
-jamais une valeur, jamais un zéro.
+Four labels, **never promoted**: `MEASURED` · `INTERPOLATED` · `NOT_MEASURABLE` · `NOT_QUOTABLE`.
+A bounded read, a timeout, a rate limit all give `NOT_MEASURABLE` — never a value, never a zero.
 
-Cette règle **survit du moteur Python jusqu'à l'écran Ledger** depuis lequel tu signes, et elle est
-gravée dans le contrat on-chain, qui révèle plutôt que d'écrire un zéro.
+That rule **survives from the Python engine all the way to the Ledger screen** you sign from, and
+it is written into the on-chain contract, which reverts rather than write a zero.
 
-[`docs/HONESTY.md`](HONESTY.md) recense **neuf faux résultats** que ce projet a produits avant que
-ses règles soient absolues. Cinq étaient la même faute : une lecture bornée, une borne invisible,
-un résultat tronqué qui s'analysait proprement.
+[`docs/HONESTY.md`](HONESTY.md) lists **nine false findings** this project produced before its
+rules were absolute. Five were the same mistake: a bounded read, an invisible bound, a truncated
+result that parsed cleanly.

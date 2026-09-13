@@ -153,22 +153,17 @@ body {
    droit d'encoder ici est la rampe. Sur un pseudo-element FIXE et sans pointeur, jamais dans
    un conteneur qui defile — sinon c'est un repeint GPU continu.
 
-   IL SUIT LA SOURIS (lock 16). Deux couches, et aucune des deux ne repeint :
-     ::before  la trame de fond, deplacee de quelques pixels a CONTRE-SENS du curseur. Un
-               contre-sens, pas un suivi : c'est ce qui donne la profondeur, le fond parait
-               derriere la page au lieu d'etre colle dessus.
-     ::after   la meme trame, plus claire, dans un disque MASQUE centre sur le curseur. Le
-               masque est un `radial-gradient` — un masque, pas un remplissage : il ne pose
-               aucune couleur, il decide ou la trame se voit. La regle « aucun degrade sur un
-               element d'interface » n'est pas touchee, c'est une matiere de fond.
-   Les deux n'animent que `transform`, donc le compositeur les deplace sans mise en page. Les
-   variables --px/--py sont ecrites par src/lib/champ.ts, une fois par frame. */
-body::before,
-body::after {
+   IL NE BOUGE PLUS. C'est la TEXTURE (couche 3 de /make-background), pas le champ : le champ
+   est le shader ci-dessous. Un fond ou deux couches bougent est un fond ou l'on ne lit plus
+   rien. C'est aussi le repli : si WebGL2 manque ou si le GLSL ne compile pas, le canevas
+   reste invisible et cette trame tient la page toute seule. */
+body::before {
   content: '';
   position: fixed;
-  pointer-events: none;
+  inset: 0;
   z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
   background-image:
     linear-gradient(45deg, var(--line) 25%, transparent 25%, transparent 75%, var(--line) 75%),
     linear-gradient(45deg, var(--line) 25%, transparent 25%, transparent 75%, var(--line) 75%);
@@ -178,49 +173,23 @@ body::after {
     3px 3px;
 }
 
-body::before {
-  /* Deborde de 24 px de chaque cote : la parallaxe le deplace, il ne doit jamais decouvrir
-     un bord. */
-  inset: -24px;
-  opacity: 0.5;
-  transform: translate3d(
-    calc((var(--px, 50vw) - 50vw) / -60),
-    calc((var(--py, 40vh) - 50vh) / -60),
-    0
-  );
-  will-change: transform;
+/* LE CHAMP (couche 2) — le canevas du shader `releve`. Derriere tout, devant rien : il est en
+   z-index 0 comme la trame, et #root monte a 1. `opacity` est mise a 1 par le composant une
+   fois le programme lie ; tant qu'il ne l'est pas, il n'y a rien a voir et rien de casse. */
+.fond-shader {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  display: block;
+  transition: opacity var(--t-view, 280ms) linear;
 }
 
-body::after {
-  left: 0;
-  top: 0;
-  width: 46rem;
-  height: 46rem;
-  margin: -23rem 0 0 -23rem;
-  opacity: 0.75;
-  background-image:
-    linear-gradient(45deg, var(--line-strong) 25%, transparent 25%, transparent 75%, var(--line-strong) 75%),
-    linear-gradient(45deg, var(--line-strong) 25%, transparent 25%, transparent 75%, var(--line-strong) 75%);
-  -webkit-mask-image: radial-gradient(closest-side, #000 0%, rgba(0, 0, 0, 0.45) 45%, transparent 100%);
-  mask-image: radial-gradient(closest-side, #000 0%, rgba(0, 0, 0, 0.45) 45%, transparent 100%);
-  transform: translate3d(var(--px, 50vw), var(--py, 40vh), 0);
-  will-change: transform;
-}
-
-/* Pas de pointeur fin : pas de survol, donc pas de champ — et une couche de moins. */
-@media not all and (hover: hover) and (pointer: fine) {
-  body::after {
-    display: none;
-  }
-}
-
-/* Le mouvement s'arrete, la matiere reste : le damier de fond ne bouge plus et le disque
-   disparait. Le design est le meme, complet. */
 @media (prefers-reduced-motion: reduce) {
-  body::before {
-    transform: none;
-  }
-  body::after {
+  /* Le composant ne monte meme pas le contexte WebGL dans ce cas ; la regle est la ceinture. */
+  .fond-shader {
     display: none;
   }
 }

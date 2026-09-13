@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { dataset } from './lib/dataset'
-import { brancherChampAuPointeur } from './lib/champ'
+import { FondShader } from './components/backgrounds/FondShader'
 import { PALIERS } from './lib/ramp'
 import { fmtBlock } from './lib/format'
 import { HookTable } from './components/Table'
@@ -374,10 +374,19 @@ function AppInterne() {
     document.documentElement.setAttribute('data-theme', theme)
   }, [theme])
 
-  // LE CHAMP AU POINTEUR (lock 16). Tout le rendu est dans index.css ; ce module n'ecrit que
-  // deux variables CSS, une fois par frame. Il se debranche sous `prefers-reduced-motion` et
-  // sur un ecran tactile, et il rend son nettoyage.
-  useEffect(() => brancherChampAuPointeur(), [])
+  // LES TROIS COULEURS DU FOND, LUES SUR LES JETONS et non ecrites ici : le shader doit suivre
+  // le theme, et `--line` n'a pas la meme valeur en clair qu'en sombre. Relues a chaque
+  // changement de theme, apres que l'attribut est pose.
+  const [couleursFond, setCouleursFond] = useState({ bg: '#08090a', c1: '#24272b', c2: '#383c42' })
+  useEffect(() => {
+    const s = getComputedStyle(document.documentElement)
+    const lu = (n: string, secours: string) => s.getPropertyValue(n).trim() || secours
+    setCouleursFond({
+      bg: lu('--bg', '#08090a'),
+      c1: lu('--line-strong', '#383c42'),
+      c2: lu('--ink-4', '#454a50'),
+    })
+  }, [theme])
 
   // Le bouton « précédent » du navigateur doit marcher : on écoute le fragment plutôt que de
   // garder l'état seul. Sans ça, revenir en arrière quitte le site au lieu de la page outil.
@@ -419,6 +428,12 @@ function AppInterne() {
   if (vue.quoi === 'accueil') {
     return (
       <div className="min-h-full">
+        {/* LE FOND ANIME (locks 23 a 25) : le preset `releve` des briques de da-kit — des
+            courbes de niveau sur un plan en perspective, que le pointeur DEPLACE au lieu de
+            l'eclairer. Sur la route d'accueil seulement : la table des fonds de DESIGN.md ne
+            donne de champ qu'a la hero, et un fond anime sous les dix-sept panneaux de
+            l'instrument serait un fond sans hierarchie. */}
+        <FondShader preset="releve" bg={couleursFond.bg} c1={couleursFond.c1} c2={couleursFond.c2} />
         <Evitement />
         <Head theme={theme} setTheme={setTheme} vue={vue} versOutil={versOutil} />
         <RouteMotion cle="accueil">

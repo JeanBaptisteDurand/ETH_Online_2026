@@ -53,7 +53,7 @@ export function Cell({
 }
 
 /** Un bouton de copie qui dit ce qu'il a copie. Aucun nombre ne bouge, aucune couleur n'apparait. */
-export function Copy({ text, label = 'copier' }: { text: string; label?: string }) {
+export function Copy({ text, label = 'copy' }: { text: string; label?: string }) {
   const [done, setDone] = useState(false)
   return (
     <button
@@ -81,7 +81,7 @@ export function Copy({ text, label = 'copier' }: { text: string; label?: string 
     >
       {/* La confirmation est annoncee : sans ca, l'action que l'instrument met en avant
           reussit en silence pour un lecteur d'ecran. */}
-      <span aria-live="polite">{done ? 'copié' : label}</span>
+      <span aria-live="polite">{done ? 'copied' : label}</span>
     </button>
   )
 }
@@ -101,7 +101,7 @@ export function Replay({ cmd, note }: { cmd: string; note?: string }) {
         className="t-label flex items-center justify-between px-[10px] py-[6px]"
         style={{ borderBottom: '1px solid var(--line)', color: 'var(--ink-2)' }}
       >
-        <span>rejouer cette valeur</span>
+        <span>replay this value</span>
         <Copy text={cmd} />
       </div>
       {/* Une region qui defile doit etre atteignable au clavier : la commande de rejeu est
@@ -109,7 +109,7 @@ export function Replay({ cmd, note }: { cmd: string; note?: string }) {
       <pre
         tabIndex={0}
         role="region"
-        aria-label="commande de rejeu, defilement horizontal"
+        aria-label="replay command, horizontal scrolling"
         className="t-data-sm hex px-[10px] py-[8px] m-0 overflow-x-auto whitespace-pre"
         style={{ color: 'var(--ink-2)' }}
       >
@@ -226,7 +226,7 @@ export function Absence({
           {quoi}
         </span>
         <span className="t-data-sm" style={{ color: panne ? 'var(--ink)' : 'var(--ink-2)' }}>
-          {etat ?? (panne ? 'ne répond pas' : 'absent de ce build')}
+          {etat ?? (panne ? 'not responding' : 'absent from this build')}
         </span>
       </div>
       <p
@@ -240,7 +240,7 @@ export function Absence({
           <code className="t-data-sm hex" style={{ color: 'var(--ink-2)', overflowWrap: 'anywhere', minWidth: 0 }}>
             {cmd}
           </code>
-          <Copy text={cmd} label="copier la commande" />
+          <Copy text={cmd} label="copy the command" />
         </div>
       )}
     </div>
@@ -272,8 +272,8 @@ export function Lien({ href, children }: { href: string; children: ReactNode }) 
  */
 export function NonLu({ quoi }: { quoi: string }) {
   return (
-    <span className="t-data-xs" style={{ color: 'var(--ink-2)' }} title={`source absente : ${quoi}`}>
-      non lu
+    <span className="t-data-xs" style={{ color: 'var(--ink-2)' }} title={`source missing: ${quoi}`}>
+      not read
     </span>
   )
 }

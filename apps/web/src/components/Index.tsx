@@ -22,23 +22,23 @@ const nb = (x: number) => x.toLocaleString('fr')
 
 /** Les dix-sept panneaux, dans l'ordre ou la page les pose. */
 export const PANNEAUX: { id: string; titre: string; compte: string }[] = [
-  { id: '00', titre: 'Le test de sortie', compte: `${nb(T.hooks)} hooks` },
-  { id: '01', titre: 'Le même swap, coté deux fois', compte: `${nb(T.measured)} MESURE` },
-  { id: '02', titre: 'Le registre contre la mesure', compte: `${nb(T.hooks)} lignes` },
-  { id: '03', titre: 'Par quelle porte passer', compte: 'API requise' },
-  { id: '04', titre: 'Les permissions, lues sur la chaîne', compte: '14 bits' },
-  { id: '05', titre: 'La fiche du hook choisi', compte: `${nb(T.pools)} pools` },
-  { id: '06', titre: 'Le profil taille vers bps', compte: 'par taille' },
-  { id: '07', titre: 'Les lignes brutes de ce hook', compte: `${nb(T.rows)} au total` },
-  { id: '08', titre: 'Le graphe autour du hook', compte: 'API requise' },
-  { id: '09', titre: 'Le péage, relu sur le mirror node', compte: facts.x402 ? `${nb(Number(facts.x402.regles))} réglés` : 'non lu' },
-  { id: '10', titre: 'Qui mesure : l’identité d’agent', compte: facts.agent ? String(facts.agent.etat).toLowerCase() : 'non lu' },
-  { id: '11', titre: 'Ce qui est écrit on-chain', compte: facts.attestations ? `${nb(Number(facts.attestations.ecrits))} écrits` : 'non lu' },
-  { id: '12', titre: 'Une source indépendante, confrontée', compte: facts.graph ? String(facts.graph.part) : 'non lu' },
-  { id: '13', titre: 'La preuve d’exécution sur l’appareil', compte: facts.ledger ? `${nb(Number(facts.ledger.ecrans))} écrans` : 'non lu' },
-  { id: '14', titre: 'Les autres surfaces', compte: `${OUTILS.length} outils` },
-  { id: '15', titre: 'Le compte', compte: 'API requise' },
-  { id: '16', titre: 'Et ailleurs ? La porte de remplacement', compte: `${DONNEES.length} jeux lus` },
+  { id: '00', titre: 'The exit test', compte: `${nb(T.hooks)} hooks` },
+  { id: '01', titre: 'The same swap, quoted twice', compte: `${nb(T.measured)} MESURE` },
+  { id: '02', titre: 'The registry against the measurement', compte: `${nb(T.hooks)} rows` },
+  { id: '03', titre: 'Which door to take', compte: 'API required' },
+  { id: '04', titre: 'The permissions, read on-chain', compte: '14 bits' },
+  { id: '05', titre: 'The record of the selected hook', compte: `${nb(T.pools)} pools` },
+  { id: '06', titre: 'The size-to-bps profile', compte: 'by size' },
+  { id: '07', titre: 'The raw rows of this hook', compte: `${nb(T.rows)} in total` },
+  { id: '08', titre: 'The graph around the hook', compte: 'API required' },
+  { id: '09', titre: 'The toll, re-read on the mirror node', compte: facts.x402 ? `${nb(Number(facts.x402.regles))} settled` : 'not read' },
+  { id: '10', titre: 'Who measures: the agent identity', compte: facts.agent ? String(facts.agent.etat).toLowerCase() : 'not read' },
+  { id: '11', titre: 'What is written on-chain', compte: facts.attestations ? `${nb(Number(facts.attestations.ecrits))} written` : 'not read' },
+  { id: '12', titre: 'An independent source, cross-checked', compte: facts.graph ? String(facts.graph.part) : 'not read' },
+  { id: '13', titre: 'Proof of execution on the device', compte: facts.ledger ? `${nb(Number(facts.ledger.ecrans))} screens` : 'not read' },
+  { id: '14', titre: 'The other surfaces', compte: `${OUTILS.length} tools` },
+  { id: '15', titre: 'The account', compte: 'API required' },
+  { id: '16', titre: 'And elsewhere? The replacement door', compte: `${DONNEES.length} datasets read` },
 ]
 
 export function IndexPanneaux() {
@@ -83,9 +83,9 @@ export function IndexPanneaux() {
   }, [])
 
   return (
-    <nav className="index-panneaux" aria-label="les dix-sept panneaux de l’instrument">
+    <nav className="index-panneaux" aria-label="the seventeen panels of the instrument">
       <p className="t-data-sm m-0 px-[10px] pb-[10px]" style={{ color: 'var(--ink-2)' }}>
-        {PANNEAUX.length} panneaux
+        {PANNEAUX.length} panels
       </p>
       <ol className="m-0 p-0" style={{ listStyle: 'none' }}>
         {PANNEAUX.map((p) => {

@@ -1812,3 +1812,37 @@ span a[href] {
   display: block;
   background: var(--bg);
 }
+
+/* DEUX CORRECTIONS DE LA PLANCHE, mesurees sur capture.
+
+   1. FAIRE DU PANNEAU UN CONTENEUR DE REQUETE A CHANGE LA REFERENCE DE SES ENFANTS.
+      `cqi` ne se mesure plus sur la planche mais sur la case, et la legende — ecrite en
+      1,35cqi pour la planche — est devenue illisible : 3 px au lieu de 19. Le nombre, lui,
+      etait bien reglé. On redonne donc aux deux lignes de texte une taille exprimee sur LEUR
+      conteneur, avec un plancher en pixels pour les cases etroites. */
+.deck-stat span {
+  font-size: max(12px, 5.4cqi);
+  margin-top: 0.5em;
+}
+.deck-stat i {
+  font-size: max(10px, 4cqi);
+  margin-top: 0.35em;
+}
+
+/* 2. LA VITRE ETAIT TROP PETITE POUR QU'ON VOIE LE PRODUIT TOURNER.
+      Une iframe qui montre l'application doit dominer la planche, sinon autant mettre une
+      capture. La rangee qui la porte prend donc deux fois la hauteur des chiffres.
+      `!important` est ici volontaire : la hauteur de rangee est posee en style en ligne dans
+      le composant, et c'est la mise en page — pas le composant — qui doit en decider. */
+/* `auto` laissait la rangee des chiffres prendre toute la hauteur de son contenu, et la vitre
+   heritait du reste — mesure : 160 px contre 195. Les deux rangees sont donc BORNEES, et le
+   rapport devient celui qu'on demande. */
+.deck-grille-2:has(.deck-vitre) {
+  grid-template-rows: minmax(0, 1fr) minmax(0, 2.2fr) !important;
+}
+.deck-grille-2:has(.deck-vitre) .deck-stat {
+  padding: 1.4cqi 1.6cqi;
+}
+.deck-grille-12:has(> div > .deck-vitre) {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+}

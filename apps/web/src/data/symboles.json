@@ -2,8 +2,8 @@
  "schema": "tare-symboles/1",
  "quoi": "symbol() et name() lus sur Base, pour les jetons que le site nomme a l ecran",
  "chain_id": 8453,
- "n_jetons": 60,
- "appels_rpc": 118,
+ "n_jetons": 83,
+ "appels_rpc": 158,
  "jetons": {
   "0x4200000000000000000000000000000000000006": {
    "symbole": "WETH",
@@ -245,6 +245,98 @@
   "0x0e264383d9a01aa631eb2f377c53e2beeaeef38f": {
    "symbole": "zosphotos",
    "nom": "zosphotos"
+  },
+  "0x600d89d7def7fcd40ec650d271a690022d911d2f": {
+   "symbole": "velvetblack",
+   "nom": "velvetblack"
+  },
+  "0x73fbd42aa6ab138c2cf75a4543b8bb395a5738f7": {
+   "symbole": "interfacing",
+   "nom": "interfacing"
+  },
+  "0xf588f22aadc2c6b6db07f1b43e0bef2d97134089": {
+   "symbole": "trumpoilreserved",
+   "nom": "trumpoilreserved"
+  },
+  "0xefd246b8b5132f940dce5b66c15aeb16aabb9313": {
+   "symbole": "rodrikmtr",
+   "nom": "rodrikmtr"
+  },
+  "0xa72b2cbc031af74d3b24ed97df334f020d61bbe4": {
+   "symbole": "nikoalerce",
+   "nom": "nikoalerce"
+  },
+  "0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf": {
+   "symbole": "cbBTC",
+   "nom": "Coinbase Wrapped BTC"
+  },
+  "0x592c5b81f0f992c784452522236002edd6ecddd5": {
+   "symbole": "transformersz",
+   "nom": "transformersz"
+  },
+  "0xde905ac0f5cf4b2d920867ffe7489f7b79caf05c": {
+   "symbole": "spambot",
+   "nom": "spambot"
+  },
+  "0x114df805f38ae0d5b1b593aa2fdd8619f1d12150": {
+   "symbole": "jivvvaguan",
+   "nom": "jivvvaguan"
+  },
+  "0x5729332654f7c6db3a0918d44201c692ed3113ff": {
+   "symbole": "imuhammadumer",
+   "nom": "imuhammadumer"
+  },
+  "0xbe8259b229427b14505b10b06a40b46dc3fa4ef0": {
+   "symbole": "catus",
+   "nom": "catus"
+  },
+  "0xa9a1f7217d76d82281d8d0e512805c1f8fda7742": {
+   "symbole": "jomchatree",
+   "nom": "jomchatree"
+  },
+  "0x8a2f465be77b40b7c79304fb99a849b4c5950a0a": {
+   "symbole": "alenkapetrisic",
+   "nom": "alenkapetrisic"
+  },
+  "0xb76aae9dc42a486c72031a210e9e4dfcef04bb90": {
+   "symbole": "zoracr",
+   "nom": "zoracr"
+  },
+  "0x7638f368a214b9045b23338236d7684f793c9fab": {
+   "symbole": "dorfcat",
+   "nom": "dorfcat"
+  },
+  "0xf64ed58b532e7d32a9a399e05bdd03fed2661412": {
+   "symbole": "devl",
+   "nom": "devl"
+  },
+  "0xf813eb548fb0b7ac571d496566332b4da4229652": {
+   "symbole": "janina8888",
+   "nom": "janina8888"
+  },
+  "0xd037f4eee5ad629623de95e574bfa2a08ea2d6b6": {
+   "symbole": "droomdroom",
+   "nom": "droomdroom"
+  },
+  "0x4d6ece85efeeae88982c73f31ab89193cd342fdb": {
+   "symbole": "nubank",
+   "nom": "nubank"
+  },
+  "0x61ae9c93aada278d431b13f095f53596bcbde700": {
+   "symbole": "touchdesigner",
+   "nom": "touchdesigner"
+  },
+  "0xb2000000000000000000000518f4215d5615bfb8": {
+   "symbole": "Housecoin",
+   "nom": "Housecoin"
+  },
+  "0xb20000000000000000000090aa1082ce28905f01": {
+   "symbole": "BASELINE",
+   "nom": "Baseline"
+  },
+  "0x69df254076b8a0360ea1180b58aaf1749fe97786": {
+   "symbole": "MTL",
+   "nom": "Metal DAO (MTL)"
   }
  }
 }

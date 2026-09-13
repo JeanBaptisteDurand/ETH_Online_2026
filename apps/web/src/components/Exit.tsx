@@ -24,11 +24,24 @@ import {
 import { Panel, Copy } from './Prim'
 import { rampVar } from '../lib/ramp'
 import FA from '../data/facts.json'
+import symboles from '../data/symboles.json'
 
+const SYM = (symboles as { jetons: Record<string, { symbole: string | null }> }).jetons
+const nomDe = (a: string): string | null => SYM[a.toLowerCase()]?.symbole ?? null
+
+/**
+ * LES TROIS EXEMPLES PORTENT LEUR NOM.
+ *
+ * Une adresse seule ne dit pas quoi cliquer : « 0xb200…bfb8 » n'apprend rien a personne. Les
+ * symboles sont LUS sur la chaine par `scripts/fetch-symboles.mjs` (`symbol()`, `name()`), pas
+ * devines — ecrire un nom parce que l'adresse y ressemble serait la faute meme que ce projet
+ * reproche au reste. Chaque exemple garde en plus ce qu'il DEMONTRE, qui est la raison pour
+ * laquelle il est propose.
+ */
 const EXEMPLES = [
   { addr: '0xb2000000000000000000000518f4215d5615bfb8', note: 'il ne reste rien' },
   { addr: '0xb20000000000000000000090aa1082ce28905f01', note: 'ca depend de la taille' },
-  { addr: '0x69df254076b8a0360ea1180b58aaf1749fe97786', note: 'un jeton Zora' },
+  { addr: '0x69df254076b8a0360ea1180b58aaf1749fe97786', note: 'un jeton connu' },
 ]
 
 const EST_ADRESSE = /^0x[0-9a-fA-F]{40}$/
@@ -172,7 +185,11 @@ export function ExitPanel() {
                 cursor: 'pointer',
               }}
             >
-              {e.addr.slice(0, 10)}…{' '}
+              {nomDe(e.addr) ? (
+                <strong style={{ color: 'var(--ink)' }}>{nomDe(e.addr)}</strong>
+              ) : (
+                <span className="hex">{e.addr.slice(0, 10)}…</span>
+              )}{' '}
               <span style={{ color: 'var(--ink-2)' }}>{e.note}</span>
             </button>
           ))}

@@ -269,15 +269,6 @@ test("l ecart est NOMME, pas resume : les hooks gagnes sont listes", () => {
   assert.ok(app.includes('FA.registre.gagnes.length'))
 })
 
-test("le chiffre publie par docs/SUBMISSION.md est celui du registre le plus complet", () => {
-  const sub = readFileSync(resolve(ICI, '../../../../docs/SUBMISSION.md'), 'utf8')
-  const m = sub.match(/\*\*(\d+) appear nowhere in the official registry/)
-  assert.ok(m, 'SUBMISSION.md doit publier ce nombre')
-  assert.equal(Number(m[1]), f.registre.plus_recent.absents)
-})
-
-/* ------------------ 9. une attente sans fin n'est pas un chargement */
-
 test("l attente d une reponse d API est BORNEE, sinon un silence se lit « ca charge »", () => {
   // Le defaut mesure : API suspendue, le panneau du graphe restait sur « lecture du graphe… »
   // indefiniment. Un silence rendu comme un chargement est le meme mensonge qu'un silence

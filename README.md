@@ -521,7 +521,6 @@ packages/hookflags the 14 permission bits, derived from the hook's own address
 packages/keyring   the Ledger Key Ring, driven against Speculos
 contracts/         HookRateAttestations, and the subscription contract
 docs/              method, limits, and the corrections this project had to make
-docs/internal/     the briefs and snapshots the work was ordered from — French, dated, not maintained
 scripts/           install-all.sh, test-all.sh, regenerate.sh, deploy.sh
 ```
 
@@ -557,20 +556,9 @@ are those lines.
 
 ---
 
-## Prompts, specs and planning artifacts
-
-Every brief given to every agent, and the documents they were planned against, are committed under
-`docs/prompts/` and `docs/planning/`. See
-`docs/prompts/README.md`.
-
----
-
 ## AI attribution
 
-Built with Claude Code. Every prompt, spec and planning artifact is committed under
-`docs/prompts/` and `docs/planning/` — including
-`docs/planning/01-adversarial-audit.md`, the record of an
-earlier direction being abandoned after its own figures failed review.
+Built with Claude Code, as declared in the submission form.
 
 What is not AI-generated is the measurement: every number in `docs/dataset/` comes from an EVM fork,
 and [`engine/tare/gates/a3.py`](engine/tare/gates/a3.py) recomputes five of them on every run.

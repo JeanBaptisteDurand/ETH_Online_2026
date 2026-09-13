@@ -427,7 +427,7 @@ function StructureBar({ answer }: { answer: RouteAnswer }) {
         <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
           {s.pairs_discovered ?? '—'} pairs ·{' '}
           <span style={{ color: 'var(--ink)' }}>{s.pairs_with_more_than_one_pool ?? '—'}</span> with
-          more than one door ({s.share_pct === null ? '—' : `${s.share_pct} %`}) ·{' '}
+          more than one door ({s.share_pct === null ? '—' : `${s.share_pct}%`}) ·{' '}
           <span style={{ color: 'var(--ink)' }}>{s.pairs_with_a_single_pool ?? '—'}</span> have only
           one door
         </span>

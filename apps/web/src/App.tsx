@@ -309,7 +309,7 @@ function Verdict() {
     [
       String(T.hooks),
       'hooks measured',
-      `${T.pools.toLocaleString('fr')} pools, ${T.rows.toLocaleString('fr')} measurements, ${T.measured.toLocaleString('fr')} of them labeled MESURE`,
+      `${T.pools.toLocaleString('en-US')} pools, ${T.rows.toLocaleString('en-US')} measurements, ${T.measured.toLocaleString('en-US')} of them labeled MESURE`,
     ],
     // Ce nombre est calcule contre l'instantane EPINGLE du registre. Contre un tirage plus
     // recent il en vaut un autre, et le taire reviendrait a publier le plus flatteur des deux :
@@ -581,9 +581,9 @@ function AppInterne() {
             </p>
           </div>
           <span className="flex flex-wrap items-baseline t-data-sm" style={{ gap: 14, color: 'var(--ink-2)' }}>
-            <span>{T.rows.toLocaleString('fr')} measurements</span>
+            <span>{T.rows.toLocaleString('en-US')} measurements</span>
             <span className="meta-filet">{T.hooks} hooks</span>
-            <span className="meta-filet">{T.pools.toLocaleString('fr')} pools</span>
+            <span className="meta-filet">{T.pools.toLocaleString('en-US')} pools</span>
           </span>
         </div>
       <div className="instrument">

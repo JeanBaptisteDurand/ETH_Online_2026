@@ -69,7 +69,7 @@ export function Pourquoi() {
       titre: 'The registry cannot say how much',
       texte: (
         <>
-          The official list of hooks describes {p.entries.toLocaleString('fr')} entries with{' '}
+          The official list of hooks describes {p.entries.toLocaleString('en-US')} entries with{' '}
           {p.field_census.leaf_fields} fields, {p.field_census.boolean_fields} of them booleans.{' '}
           <strong style={{ color: 'var(--ink)', fontWeight: 500 }}>
             {p.field_census.quantitative_fields.length === 0
@@ -117,7 +117,7 @@ export function Pourquoi() {
           that changed is the code that runs during the swap. We quote the same swap twice, and{' '}
           <strong style={{ color: 'var(--ink)', fontWeight: 500 }}>the gap is the take</strong>.
           {' '}
-          {T.rows.toLocaleString('fr')} measurements later, every row replays in one command.
+          {T.rows.toLocaleString('en-US')} measurements later, every row replays in one command.
         </>
       ),
     },
@@ -472,7 +472,7 @@ export function DonneesPanel({ surOutil }: { surOutil?: (n: number) => void }) {
                       {v ? taille(v.octets) : 'not read'}
                       {v && v.n !== null && v.unite ? (
                         <div style={{ color: 'var(--ink-2)' }}>
-                          {v.n.toLocaleString('fr')} {v.unite}
+                          {v.n.toLocaleString('en-US')} {v.unite}
                         </div>
                       ) : null}
                     </td>

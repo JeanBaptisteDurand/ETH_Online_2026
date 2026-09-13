@@ -48,7 +48,7 @@ const reduit = (): boolean =>
 const ACCUEIL: ChatMsg = {
   id: 'system',
   role: 'agent',
-  content: 'Serveur MCP « tare » connecté en stdio. Prêt. Choisis une question à droite →',
+  content: 'MCP server “tare” connected over stdio. Ready. Pick a question on the right →',
 }
 
 interface Pire {
@@ -77,33 +77,33 @@ export function McpChatSection({ pire, mesures, hooks }: McpChatSectionProps) {
     () => [
       {
         id: 'outils',
-        label: 'quels outils exposes-tu ?',
-        prompt: 'Quels outils MCP expose TARE, et lesquels coûtent quelque chose ?',
+        label: 'which tools do you expose?',
+        prompt: 'Which MCP tools does TARE expose, and which ones cost anything?',
         tool: null,
         replay: null,
         response: [
-          'TARE expose 4 outils, tous lisibles hors ligne.',
+          'TARE exposes 4 tools, all readable offline.',
           '',
-          '  • tare_lookup(hook)     tout ce qui est déjà mesuré, étiqueté   GRATUIT',
-          '  • tare_impact(hook)     quels pools et quels jetons sont exposés  GRATUIT',
-          '  • tare_twins(hook)      les hooks au bytecode identique          GRATUIT',
-          '  • tare_measure(...)     une mesure NEUVE                  0,001 USDC',
+          '  • tare_lookup(hook)     everything already measured, labeled      FREE',
+          '  • tare_impact(hook)     which pools and which tokens are exposed  FREE',
+          '  • tare_twins(hook)      hooks with identical bytecode             FREE',
+          '  • tare_measure(...)     a NEW measurement                   0.001 USDC',
           '',
-          `Les trois premiers lisent ${nb(mesures)} mesures sur disque : aucune requête,`,
-          'aucune clé. Le quatrième a besoin du fork, et il le dit.',
+          `The first three read ${nb(mesures)} measurements from disk: no request,`,
+          'no key. The fourth needs the fork, and it says so.',
           '',
-          'Et la règle que je ne peux pas contourner, parce qu’elle est écrite',
-          'dans la description des outils eux-mêmes : je n’énonce jamais un',
-          'chiffre que l’outil n’a pas rendu.',
+          'And the rule I cannot get around, because it is written',
+          'into the tool descriptions themselves: I never state a number',
+          'the tool did not return.',
         ].join('\n'),
       },
       {
         id: 'lookup',
-        label: `ce hook prend combien ? ${court(pire.hook)}`,
-        prompt: `Combien ce hook prend-il vraiment ? ${pire.hook}`,
+        label: `how much does this hook take? ${court(pire.hook)}`,
+        prompt: `How much does this hook really take? ${pire.hook}`,
         tool: `tare_lookup(\n  hook: "${pire.hook}"\n)`,
         response: [
-          `→ lu dans docs/dataset/measurements.jsonl (${nb(mesures)} lignes, ${nb(hooks)} hooks)`,
+          `→ read from docs/dataset/measurements.jsonl (${nb(mesures)} rows, ${nb(hooks)} hooks)`,
           '',
           `  bps            ${pire.bps.toFixed(4)}`,
           `  label          ${pire.label}`,
@@ -111,11 +111,11 @@ export function McpChatSection({ pire, mesures, hooks }: McpChatSectionProps) {
           `  out_without    ${pire.out_without}`,
           `  block_number   ${nb(pire.block_number)}`,
           `  amount_in      ${pire.amount_in}`,
-          `  sens           ${pire.zero_for_one ? '0 → 1' : '1 → 0'}`,
+          `  direction      ${pire.zero_for_one ? '0 → 1' : '1 → 0'}`,
           '',
-          '✓ mesuré par contrefactuel : le même swap coté deux fois, une fois',
-          '  contre un talon inerte de 89 octets à l’adresse du hook',
-          '✓ rejouable en une commande — elle est dans le rail de droite',
+          '✓ measured by counterfactual: the same swap quoted twice, once',
+          '  against an 89-byte inert stub at the hook address',
+          '✓ replayable in one command — it is in the right-hand rail',
         ].join('\n'),
         replay: [
           'python3 apps/api/scripts/measure_one.py --rpc $RPC',
@@ -170,10 +170,10 @@ export function McpChatSection({ pire, mesures, hooks }: McpChatSectionProps) {
 
   return (
     <>
-      <Eyebrow tone="m-6">serveur mcp · claude desktop · stdio</Eyebrow>
+      <Eyebrow tone="m-6">mcp server · claude desktop · stdio</Eyebrow>
       <Titre petit>
-        Un modèle à qui on demande « ce hook prend combien ? » invente un nombre plausible.{' '}
-        <span style={{ color: 'var(--m-6)' }}>Clique une question.</span>
+        A model asked “how much does this hook take?” invents a plausible number.{' '}
+        <span style={{ color: 'var(--m-6)' }}>Click a question.</span>
       </Titre>
 
       <section className="dk-grille dk-g12 dk-fill" style={{ gridTemplateRows: 'minmax(0, 1fr)' }}>
@@ -189,7 +189,7 @@ export function McpChatSection({ pire, mesures, hooks }: McpChatSectionProps) {
               className="dk-ghost"
               style={{ marginLeft: 'auto' }}
               onClick={reset}
-              title="Reprendre le transcript à zéro"
+              title="Start the transcript over"
             >
               ↻ reset
             </button>
@@ -203,7 +203,7 @@ export function McpChatSection({ pire, mesures, hooks }: McpChatSectionProps) {
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.7cqi' }}>
                 <span className="dk-pastille" />
                 <Mono style={{ color: 'var(--ink-2)', fontSize: 'max(0.98cqi, 10px)' }}>
-                  tare répond…
+                  tare is answering…
                 </Mono>
               </div>
             )}
@@ -213,7 +213,7 @@ export function McpChatSection({ pire, mesures, hooks }: McpChatSectionProps) {
         {/* Le rail de droite : questions prêtes, puis les quatre outils */}
         <aside style={{ display: 'flex', flexDirection: 'column', gap: '1cqi', minWidth: 0, minHeight: 0 }}>
           <div className="dk-carte" style={{ flex: '0 0 auto' }}>
-            <div className="dk-carte-titre">questions prêtes — clique</div>
+            <div className="dk-carte-titre">ready-made questions — click</div>
             {boutons.map((b) => (
               <button
                 key={b.id}
@@ -221,7 +221,7 @@ export function McpChatSection({ pire, mesures, hooks }: McpChatSectionProps) {
                 className="dk-prompt"
                 onClick={() => void send(b)}
                 disabled={busy}
-                title="Envoyer cette question au serveur MCP « tare »"
+                title="Send this question to the “tare” MCP server"
               >
                 <span style={{ flex: 1 }}>{b.label}</span>
                 <Mono
@@ -232,18 +232,18 @@ export function McpChatSection({ pire, mesures, hooks }: McpChatSectionProps) {
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  ▶ ENVOYER
+                  ▶ SEND
                 </Mono>
               </button>
             ))}
           </div>
 
           <div className="dk-carte" style={{ flex: '0 0 auto' }}>
-            <div className="dk-carte-titre">4 outils · 3 gratuits · 1 payant</div>
-            <ToolLine name="tare_lookup" prix="GRATUIT" />
-            <ToolLine name="tare_impact" prix="GRATUIT" />
-            <ToolLine name="tare_twins" prix="GRATUIT" />
-            <ToolLine name="tare_measure" prix="0,001 USDC" paye />
+            <div className="dk-carte-titre">4 tools · 3 free · 1 paid</div>
+            <ToolLine name="tare_lookup" prix="FREE" />
+            <ToolLine name="tare_impact" prix="FREE" />
+            <ToolLine name="tare_twins" prix="FREE" />
+            <ToolLine name="tare_measure" prix="0.001 USDC" paye />
           </div>
 
           {replay ? (
@@ -252,8 +252,8 @@ export function McpChatSection({ pire, mesures, hooks }: McpChatSectionProps) {
             </div>
           ) : (
             <div className="dk-prose" style={{ marginTop: 'auto' }}>
-              Le serveur ne tourne pas dans cet onglet : il vit à côté du modèle. Le déroulé est{' '}
-              <strong style={{ color: 'var(--m-5)' }}>rejoué</strong> ; les valeurs sortent du corpus.
+              The server does not run in this tab: it lives next to the model. The exchange is{' '}
+              <strong style={{ color: 'var(--m-5)' }}>replayed</strong>; the values come from the corpus.
             </div>
           )}
         </aside>
@@ -270,7 +270,7 @@ export function McpChatSection({ pire, mesures, hooks }: McpChatSectionProps) {
  */
 function ChatBubble({ msg, onFini }: { msg: ChatMsg; onFini: () => void }) {
   const etiquette =
-    msg.role === 'user' ? 'utilisateur' : msg.role === 'tool' ? 'appel d’outil · mcp' : 'tare · mcp'
+    msg.role === 'user' ? 'user' : msg.role === 'tool' ? 'tool call · mcp' : 'tare · mcp'
   const couleur =
     msg.role === 'user' ? 'var(--ink-2)' : msg.role === 'tool' ? 'var(--focus)' : 'var(--m-6)'
   return (

@@ -140,7 +140,18 @@ const GLOSE: Record<EtatRecherche, string> = {
 }
 
 /** A door, one line: the total first, then what it is made of, then where it is. */
-function PorteLigne({ p, rang, meilleure }: { p: Porte; rang: number; meilleure: Porte }) {
+function PorteLigne({
+  p,
+  rang,
+  seule,
+  meilleure,
+}: {
+  p: Porte
+  rang: number
+  /** true when this door is the only measured one: « cheapest » would imply a race */
+  seule: boolean
+  meilleure: Porte
+}) {
   const ecart = p.totalBps !== null && meilleure.totalBps !== null ? p.totalBps - meilleure.totalBps : null
   return (
     <div
@@ -163,7 +174,7 @@ function PorteLigne({ p, rang, meilleure }: { p: Porte; rang: number; meilleure:
         pool {p.poolId.slice(0, 10)}… · hook {p.hook.slice(0, 10)}…
       </span>
       <span className="t-data-xs" style={{ color: 'var(--ink)' }}>
-        {rang === 0 ? 'cheapest' : ecart === null ? '' : `+${ecart.toFixed(2)} bps`}
+        {seule ? 'the only measured door' : rang === 0 ? 'cheapest' : ecart === null ? '' : `+${ecart.toFixed(2)} bps`}
       </span>
     </div>
   )
@@ -192,7 +203,13 @@ function GroupeBloc({ g }: { g: Groupe }) {
       </div>
       {meilleure &&
         g.classees.map((p, i) => (
-          <PorteLigne key={`${p.poolId}${p.sens}`} p={p} rang={i} meilleure={meilleure} />
+          <PorteLigne
+            key={`${p.poolId}${p.sens}`}
+            p={p}
+            rang={i}
+            seule={g.classees.length === 1}
+            meilleure={meilleure}
+          />
         ))}
       {g.non_mesurees.length > 0 && (
         <div className="t-data-xs pt-[6px]" style={{ color: 'var(--ink-2)', borderTop: '1px solid var(--line)' }}>
@@ -336,9 +353,11 @@ function Portes({ jeton }: { jeton: string }) {
           Where else could you buy it?
         </h3>
         <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-          {r.n_portes} door{r.n_portes > 1 ? 's' : ''} in the corpus
-          {r.groupes.length > 1 && `, across ${r.groupes.length} currencies`}
-          {r.bloc !== null && ` · block ${r.bloc}`}
+          {r.n_portes.toLocaleString('en-US')} door{r.n_portes > 1 ? 's' : ''} in the corpus
+          {r.groupes.length > 1 && `, across ${r.groupes.length.toLocaleString('en-US')} currencies`}
+          {/* Same block, same spelling as the panel's own header: « 50 614 000 ». Two
+              spellings of one number on one screen read as two numbers. */}
+          {r.bloc !== null && ` · block ${r.bloc.toLocaleString('en-US').replace(/,/g, ' ')}`}
         </span>
       </div>
 
@@ -350,10 +369,10 @@ function Portes({ jeton }: { jeton: string }) {
 
       {restants > 0 && (
         <p className="t-data-xs m-0" style={{ color: 'var(--ink-2)', maxWidth: '78ch' }}>
-          {restants} other currenc{restants > 1 ? 'ies' : 'y'} can buy this token and {restants > 1 ? 'are' : 'is'}{' '}
-          not shown here. The truncation is said out loud rather than performed in silence — and
-          none of those currencies would change the ranking above, because a ranking never
-          crosses two currencies.
+          {restants.toLocaleString('en-US')} other currenc{restants > 1 ? 'ies' : 'y'} can be spent
+          to buy this token, and {restants > 1 ? 'are' : 'is'} not shown here. The truncation is
+          said out loud rather than performed in silence — and none of those currencies would
+          change the ranking above, because a ranking never crosses two currencies.
         </p>
       )}
 

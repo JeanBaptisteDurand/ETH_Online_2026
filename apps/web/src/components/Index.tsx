@@ -18,7 +18,7 @@ import { DONNEES } from '../lib/donnees'
 import facts from '../data/facts.json'
 
 const T = dataset.totals
-const nb = (x: number) => x.toLocaleString('fr')
+const nb = (x: number) => x.toLocaleString('en-US')
 
 /** Les dix-sept panneaux, dans l'ordre ou la page les pose. */
 export const PANNEAUX: { id: string; titre: string; compte: string }[] = [

@@ -17,7 +17,7 @@ import { Panel, Copy, Replay, Lien, Chip } from './Prim'
 import { ACCES, outil } from '../lib/outils'
 import facts from '../data/facts.json'
 
-const nb = (x: number) => x.toLocaleString('fr')
+const nb = (x: number) => x.toLocaleString('en-US')
 
 const MESURES = facts.inventaire.corpus.n
 const CORPUS = facts.inventaire.corpus.fichier

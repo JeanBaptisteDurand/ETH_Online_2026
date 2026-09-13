@@ -20,34 +20,34 @@ interface AtlasSectionProps {
 }
 
 export function AtlasSection({ mesures, pools, hooks, octetsCorpus }: AtlasSectionProps) {
-  const mo = (octetsCorpus / 1_000_000).toLocaleString('fr-FR', { maximumFractionDigits: 1 })
+  const mo = (octetsCorpus / 1_000_000).toLocaleString('en-US', { maximumFractionDigits: 1 })
   return (
     <>
-      <Eyebrow tone="m-6">l’instrument · statique · zéro requête</Eyebrow>
+      <Eyebrow tone="m-6">the instrument · static · zero requests</Eyebrow>
       <Titre petit>
-        Le cadre ci-dessous n’est pas une capture.{' '}
-        <span style={{ color: 'var(--m-6)' }}>C’est le produit.</span>
+        The frame below is not a screenshot.{' '}
+        <span style={{ color: 'var(--m-6)' }}>It is the product.</span>
       </Titre>
 
       <div className="dk-grille dk-g11 dk-fill">
-        <Vitre route="/" titre="l’instrument TARE — coller un jeton, lire par où l’acheter" />
+        <Vitre route="/" titre="the TARE instrument — paste a token, read where to buy it" />
 
         <div className="dk-grille" style={{ margin: 0, gridTemplateRows: 'repeat(3, minmax(0, 1fr))' }}>
           <AggCell
-            label="MESURES DANS LA PAGE"
+            label="MEASUREMENTS IN THE PAGE"
             value={nb(mesures)}
-            sub={`${nb(pools)} pools · ${nb(hooks)} hooks · un seul bloc`}
+            sub={`${nb(pools)} pools · ${nb(hooks)} hooks · a single block`}
           />
           <AggCell
-            label="POIDS DU CORPUS EMBARQUÉ"
-            value={`${mo} Mo`}
-            sub="apps/web/src/data/dataset.json, encodé par colonne"
+            label="WEIGHT OF THE BUNDLED CORPUS"
+            value={`${mo} MB`}
+            sub="apps/web/src/data/dataset.json, column-encoded"
             ton="m-6"
           />
           <AggCell
-            label="REQUÊTES RÉSEAU"
+            label="NETWORK REQUESTS"
             value="0"
-            sub="rien à joindre, rien à tenir pendant la démo"
+            sub="nothing to reach, nothing to keep running during the demo"
             ton="focus"
           />
         </div>

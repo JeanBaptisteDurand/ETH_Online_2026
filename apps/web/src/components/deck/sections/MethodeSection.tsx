@@ -13,10 +13,10 @@
 import { Carte, Chiffre, Eyebrow, Mono, Titre, nb, useSequence } from '../atoms'
 
 const ETAPES: ReadonlyArray<[string, string]> = [
-  ['on épingle un fork', 'au bloc 50 614 000, pour que deux cotations prises à dix minutes d’écart restent comparables'],
-  ['on cote le swap', 'tel qu’il est, hook en place — c’est ce que l’utilisateur reçoit vraiment'],
-  ['anvil_setCode', 'remplace le bytecode DU HOOK par 89 octets inertes. Même adresse, donc même poolId, même liquidité, même slot0'],
-  ['on cote le MÊME swap', 'contre le talon. L’écart entre les deux cotations est le prélèvement, en points de base'],
+  ['we pin a fork', 'at block 50 614 000, so two quotes taken ten minutes apart stay comparable'],
+  ['we quote the swap', 'as it is, hook in place — this is what the user really receives'],
+  ['anvil_setCode', 'replaces THE HOOK’s bytecode with 89 inert bytes. Same address, so same poolId, same liquidity, same slot0'],
+  ['we quote the SAME swap', 'against the stub. The gap between the two quotes is the take, in basis points'],
 ]
 
 interface MethodeSectionProps {
@@ -32,19 +32,19 @@ export function MethodeSection({ actif, mesures, pools, hooks, stubHash }: Metho
 
   return (
     <>
-      <Eyebrow tone="m-5">la méthode · contrefactuel · fork épinglé</Eyebrow>
+      <Eyebrow tone="m-5">the method · counterfactual · pinned fork</Eyebrow>
       <Titre petit>
-        On ne peut pas retirer le hook d’un pool.{' '}
-        <span style={{ color: 'var(--m-5)' }}>Alors on change son code.</span>
+        You cannot remove a pool’s hook.{' '}
+        <span style={{ color: 'var(--m-5)' }}>So we change its code.</span>
       </Titre>
       <p className="dk-sous">
-        La clé d’un pool v4 contient l’adresse du hook : changer le hook change le{' '}
-        <code>poolId</code>. « Le même pool sans son hook » n’existe pas — il faut donc le
-        fabriquer, à l’adresse même du hook.
+        A v4 pool’s key contains the hook’s address: change the hook and you change the{' '}
+        <code>poolId</code>. “The same pool without its hook” does not exist — so it has to be
+        built, at the hook’s own address.
       </p>
 
       <div className="dk-grille dk-g11 dk-fill">
-        <Carte titre="le contrefactuel, en quatre gestes">
+        <Carte titre="the counterfactual, in four moves">
           {ETAPES.map(([quoi, pourquoi], i) => (
             <div key={quoi} className="dk-etape" style={{ opacity: i < etape ? 1 : 0.18 }}>
               <span className="dk-num" style={{ color: i === 2 ? 'var(--m-4)' : 'var(--m-6)' }}>
@@ -56,21 +56,21 @@ export function MethodeSection({ actif, mesures, pools, hooks, stubHash }: Metho
             </div>
           ))}
           <div className="dk-prose" style={{ marginTop: 'auto', color: 'var(--ink)' }}>
-            La seule chose qui change entre les deux cotations est le code qui s’exécute pendant
-            le swap.{' '}
+            The only thing that changes between the two quotes is the code that runs during the
+            swap.{' '}
             <button type="button" className="dk-ghost" onClick={rejouer} style={{ marginLeft: '0.6cqi' }}>
-              rejouer
+              replay
             </button>
           </div>
         </Carte>
 
         <div className="dk-grille dk-g2" style={{ margin: 0, gridTemplateRows: 'auto auto auto' }}>
-          <Chiffre v={nb(mesures)} k="mesures publiées" source="docs/dataset/measurements.jsonl" />
-          <Chiffre v="89" k="octets de talon inerte" ton="m-4" source="engine/tare/stub.py" />
-          <Chiffre v={nb(pools)} k="pools balayés" ton="focus" />
-          <Chiffre v={nb(hooks)} k="hooks mesurés" ton="m-6" />
+          <Chiffre v={nb(mesures)} k="published measurements" source="docs/dataset/measurements.jsonl" />
+          <Chiffre v="89" k="bytes of inert stub" ton="m-4" source="engine/tare/stub.py" />
+          <Chiffre v={nb(pools)} k="pools swept" ton="focus" />
+          <Chiffre v={nb(hooks)} k="hooks measured" ton="m-6" />
           <div style={{ gridColumn: '1 / -1' }}>
-            <Carte titre="le talon, par son empreinte">
+            <Carte titre="the stub, by its hash">
               <Mono
                 style={{
                   color: 'var(--ink)',
@@ -82,8 +82,8 @@ export function MethodeSection({ actif, mesures, pools, hooks, stubHash }: Metho
                 {stubHash}
               </Mono>
               <span className="dk-prose">
-                Le même talon pour les {nb(mesures)} lignes : une mesure qui ne porte pas cette
-                empreinte n’a pas été prise contre ce code-là.
+                The same stub for all {nb(mesures)} rows: a measurement that does not carry this
+                hash was not taken against that code.
               </span>
             </Carte>
           </div>

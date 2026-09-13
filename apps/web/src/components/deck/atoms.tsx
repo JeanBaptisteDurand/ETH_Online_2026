@@ -20,6 +20,8 @@ export const reduit = (): boolean =>
   typeof window.matchMedia === 'function' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
+/* `fr-FR` n'est pas une langue ici : c'est le SEUL moyen court d'obtenir l'espace insécable
+   fine des milliers (U+202F), celle que `lib/format.ts` pose à la main dans tout le site. */
 export const nb = (x: number): string => x.toLocaleString('fr-FR')
 export const court = (a: string): string => `${a.slice(0, 10)}…${a.slice(-4)}`
 
@@ -326,9 +328,9 @@ export function Vitre({ route, titre }: { route: string; titre: string }) {
     <div className="dk-vitre">
       <div className="dk-vitre-barre">
         <span className="dk-pastille" style={{ background: 'var(--focus)' }} />
-        <span className="dk-label">l’instrument, en vrai — {route}</span>
+        <span className="dk-label">the instrument, live — {route}</span>
         <a className="dk-label" href={`#${route}`} style={{ marginLeft: 'auto', color: 'var(--ink-2)' }}>
-          ouvrir ↗
+          open ↗
         </a>
       </div>
       <iframe src={`${base}#${route}`} title={titre} loading="lazy" />

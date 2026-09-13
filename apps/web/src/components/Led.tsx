@@ -175,7 +175,7 @@ export function LedWidget() {
                 label="copy the permissions"
               />
               {measured && (
-                <Chip title={`this hook appears in our ${dataset.totals.rows.toLocaleString('fr')} measurements`}>
+                <Chip title={`this hook appears in our ${dataset.totals.rows.toLocaleString('en-US')} measurements`}>
                   measurement: {measured.bpsMax === null ? 'none' : `${measured.bpsMax.toFixed(2)} bps max`}
                 </Chip>
               )}

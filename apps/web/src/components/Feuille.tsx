@@ -16,7 +16,7 @@ import { Panel, Chip, Lien } from './Prim'
 import { OUTILS, type Outil } from '../lib/outils'
 import facts from '../data/facts.json'
 
-const nb = (x: number) => x.toLocaleString('fr')
+const nb = (x: number) => x.toLocaleString('en-US')
 
 const PRETS = OUTILS.filter((o) => o.etat === 'pret')
 const ATTENTE = OUTILS.filter((o) => o.etat === 'en_attente')

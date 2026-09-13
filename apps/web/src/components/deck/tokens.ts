@@ -32,15 +32,15 @@ export const EASE = {
  * la phrase que le présentateur se dit à lui-même avant de parler.
  */
 export const BEATS: ReadonlyArray<{ id: string; label: string; hint: string }> = [
-  { id: 'hero', label: 'le problème', hint: 'un hook peut prélever ; personne ne publie combien' },
-  { id: 'methode', label: 'la méthode', hint: 'on remplace le bytecode du hook, et on cote deux fois' },
-  { id: 'preuve', label: 'la preuve', hint: 'la porte A4 : annoncé = exécuté, au wei près' },
-  { id: 'atlas', label: "l'instrument", hint: "l'app tourne dans la planche, sans réseau" },
-  { id: 'mcp', label: 'pour les agents', hint: '4 outils MCP, 3 gratuits, 1 payant' },
-  { id: 'extension', label: 'avant la signature', hint: 'deux issues : une porte moins chère, ou une seule' },
-  { id: 'speculos', label: "sur l'appareil", hint: 'EIP-712, écran par écran, annuler rend 4001' },
-  { id: 'honnetete', label: "ce qu'on ne sait pas", hint: '61 916 lignes qui ne sont pas des valeurs' },
-  { id: 'close', label: 'essayez', hint: '14 outils · 27 jeux · 5 accès · le dépôt' },
+  { id: 'hero', label: 'the problem', hint: 'a hook can take; nobody publishes how much' },
+  { id: 'methode', label: 'the method', hint: 'we replace the hook bytecode, and we quote twice' },
+  { id: 'preuve', label: 'the proof', hint: 'door A4: announced = executed, to the wei' },
+  { id: 'atlas', label: 'the instrument', hint: 'the app runs inside the slide, with no network' },
+  { id: 'mcp', label: 'for agents', hint: '4 MCP tools, 3 free, 1 paid' },
+  { id: 'extension', label: 'before the signature', hint: 'two outcomes: a cheaper door, or only one' },
+  { id: 'speculos', label: 'on the device', hint: 'EIP-712, screen by screen, cancel returns 4001' },
+  { id: 'honnetete', label: 'what we do not know', hint: '61 916 rows that are not values' },
+  { id: 'close', label: 'try it', hint: '14 tools · 27 datasets · 5 ways in · the repository' },
 ]
 
 /** Le chrono du mode présentateur : cinq minutes, comme la source. */

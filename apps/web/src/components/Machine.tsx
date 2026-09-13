@@ -45,10 +45,10 @@ function Ligne({
 const usd = (n: number | null | undefined) =>
   n === null || n === undefined
     ? null
-    : n.toLocaleString('fr-FR', { maximumFractionDigits: 0 }) + ' $'
+    : '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 })
 
 const nb = (n: number | null | undefined) =>
-  n === null || n === undefined ? null : n.toLocaleString('fr-FR')
+  n === null || n === undefined ? null : n.toLocaleString('en-US')
 
 /* ------------------------------------------------------------------ 08 · x402 */
 
@@ -484,7 +484,7 @@ function Independante() {
             <p className="t-data-xs" style={{ color: 'var(--ink-2)', maxWidth: '78ch', margin: 0 }}>
               A pool that was not found would be <strong>absent</strong> from this file, never
               present at zero volume. None is: coverage is{' '}
-              {g.part === null ? '—' : `${(g.part * 100).toFixed(1)} %`}.
+              {g.part === null ? '—' : `${(g.part * 100).toFixed(1)}%`}.
             </p>
           </>
         )}

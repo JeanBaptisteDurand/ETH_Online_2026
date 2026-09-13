@@ -11,6 +11,27 @@
  */
 import { Carte, Chiffre, Eyebrow, Mono, Titre, nb, useSequence } from '../atoms'
 
+/**
+ * LES SIX ÉTAPES DE LA CHAÎNE VIENNENT DE `facts.json`, ET ELLES Y SONT EN FRANÇAIS.
+ *
+ * On ne réécrit pas le corpus depuis une planche : on traduit à l'affichage, et une étape qu'on
+ * ne reconnaît pas s'affiche telle qu'elle est écrite dans le fait. Le jour où `facts.json`
+ * passera à l'anglais, la table ne trouvera plus rien et le texte du fait passera tel quel.
+ */
+const ETAPE_EN: Readonly<Record<string, string>> = {
+  'une vraie transaction Base, rejouable par son hash':
+    'a real Base transaction, replayable by its hash',
+  'la garde decode le calldata et rend un verdict':
+    'the guard decodes the calldata and returns a verdict',
+  'y a-t-il une autre porte ?': 'is there another door?',
+  'une mesure neuve, payee en x402 sur Hedera et relue sur le mirror node':
+    'a new measurement, paid over x402 on Hedera and read back on the mirror node',
+  'le lot est ancre sur le topic HCS, et relu':
+    'the batch is anchored on the HCS topic, and read back',
+  "le rapport encode en EIP-712, rendu ecran par ecran sur l'appareil, et signe":
+    'the report encoded as EIP-712, rendered screen by screen on the device, and signed',
+}
+
 interface EtapeChaine {
   n: number
   quoi: string
@@ -39,27 +60,27 @@ export function PreuveSection({
 
   return (
     <>
-      <Eyebrow tone="focus">la preuve · porte A4 · swap réellement exécuté</Eyebrow>
+      <Eyebrow tone="focus">the proof · door A4 · a swap actually executed</Eyebrow>
       <Titre petit>
-        Et quand on l’exécute vraiment,{' '}
-        <span style={{ color: 'var(--focus)' }}>la cotation tient au wei près.</span>
+        And when we actually execute it,{' '}
+        <span style={{ color: 'var(--focus)' }}>the quote holds to the wei.</span>
       </Titre>
 
       <div className="dk-grille dk-g11 dk-fill">
         {/* L'enveloppe : ce que la cotation annonçait, ce que la chaîne a rendu */}
-        <Carte titre="le swap exécuté, confronté à sa cotation">
+        <Carte titre="the executed swap, against its quote">
           <Champ
-            label="AVEC LE HOOK · EXÉCUTÉ"
+            label="WITH THE HOOK · EXECUTED"
             value={avecHook.execute}
             ton={avecHook.egal ? 'focus' : 'm-4'}
           />
-          <Champ label="AVEC LE HOOK · COTÉ" value={avecHook.cote} />
+          <Champ label="WITH THE HOOK · QUOTED" value={avecHook.cote} />
           <Champ
-            label="AVEC LE TALON · EXÉCUTÉ"
+            label="WITH THE STUB · EXECUTED"
             value={avecTalon.execute}
             ton={avecTalon.egal ? 'focus' : 'm-4'}
           />
-          <Champ label="AVEC LE TALON · COTÉ" value={avecTalon.cote} />
+          <Champ label="WITH THE STUB · QUOTED" value={avecTalon.cote} />
           <div
             style={{
               marginTop: 'auto',
@@ -72,7 +93,7 @@ export function PreuveSection({
               executed == quoted
               <br />
               <span style={{ color: 'var(--focus)' }}>
-                ✓ {avecHook.egal && avecTalon.egal ? 'les deux cotations tiennent, au wei près' : 'écart publié'}
+                ✓ {avecHook.egal && avecTalon.egal ? 'both quotes hold, to the wei' : 'gap published'}
               </span>
               <br />
               <span style={{ color: 'var(--ink-3)' }}>engine/tare/gates/a4.py</span>
@@ -82,11 +103,11 @@ export function PreuveSection({
 
         {/* La colonne de droite : les deux bps, puis la chaîne complète */}
         <div className="dk-grille dk-g2" style={{ margin: 0, gridAutoRows: 'min-content' }}>
-          <Chiffre v={bpsExecutes.toFixed(2)} k="bps réellement exécutés" ton="m-4" />
-          <Chiffre v={bpsPublies.toFixed(2)} k="bps annoncés par la cotation" ton="m-6" />
+          <Chiffre v={bpsExecutes.toFixed(2)} k="bps actually executed" ton="m-4" />
+          <Chiffre v={bpsPublies.toFixed(2)} k="bps announced by the quote" ton="m-6" />
           <div style={{ gridColumn: '1 / -1', minHeight: 0 }}>
             <Carte
-              titre={`la chaîne complète · ${chaine.n_ok}/${chaine.n_total} · ${nb(chaine.duree_ms)} ms`}
+              titre={`the full chain · ${chaine.n_ok}/${chaine.n_total} · ${nb(chaine.duree_ms)} ms`}
               style={{ minHeight: 0 }}
             >
               <div style={{ minHeight: 0, overflowY: 'auto' }}>
@@ -96,7 +117,7 @@ export function PreuveSection({
                       {e.etat === 'OK' ? '✓' : '·'}
                     </span>
                     <span className="dk-prose" style={{ flex: 1, minWidth: 0 }}>
-                      {e.quoi}
+                      {ETAPE_EN[e.quoi] ?? e.quoi}
                     </span>
                     <Mono style={{ color: 'var(--ink-2)', fontSize: 'max(0.96cqi, 10px)', whiteSpace: 'nowrap' }}>
                       {nb(e.a_ms)} ms
@@ -105,8 +126,9 @@ export function PreuveSection({
                 ))}
               </div>
               <span className="dk-prose">
-                Transaction réelle, verdict, recherche de porte, mesure payée en x402, ancrage HCS,
-                signature sur l’appareil. <strong>Et on publie aussi le pool où ça ne concorde pas.</strong>
+                A real transaction, a verdict, a door search, a measurement paid over x402, an HCS
+                anchor, a signature on the device.{' '}
+                <strong>And we also publish the pool where it does not match.</strong>
               </span>
             </Carte>
           </div>

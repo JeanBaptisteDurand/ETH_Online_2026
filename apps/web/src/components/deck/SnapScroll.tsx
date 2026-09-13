@@ -73,7 +73,7 @@ export function BeatSection({ index, id, marqueur, caption, total, children }: B
 
         <footer className="dk-pied">
           <span className="dk-label" style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {caption ?? 'mesuré sur Base, bloc 50 614 000 — chaque nombre se rejoue en une commande'}
+            {caption ?? 'measured on Base, block 50 614 000 — every number replays in one command'}
           </span>
           <span className="dk-label" style={{ marginLeft: 'auto' }}>
             {String(index + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
@@ -102,7 +102,7 @@ function PresenterOverlay({ presenter }: { presenter: PresenterState }) {
         />
         <span>{remaining}</span>
         <span style={{ color: 'var(--ink-3)', fontSize: 10 }}>/ 5:00</span>
-        <span style={{ color: 'var(--ink-3)', fontSize: 10 }}>{elapsedSec}s écoulées</span>
+        <span style={{ color: 'var(--ink-3)', fontSize: 10 }}>{elapsedSec}s elapsed</span>
       </div>
 
       {/* Compteur + feuille de route, en haut à gauche */}
@@ -120,7 +120,7 @@ function PresenterOverlay({ presenter }: { presenter: PresenterState }) {
           ))}
         </span>
         <span style={{ color: 'var(--ink-3)', fontSize: 10, whiteSpace: 'nowrap' }}>
-          espace · ← → · f · r
+          space · ← → · f · r
         </span>
       </div>
     </>

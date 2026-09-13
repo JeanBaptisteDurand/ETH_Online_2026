@@ -73,3 +73,17 @@ design/
 inspi/
 skills-lock.json
 .claude/
+
+# LES SOURCES SOLIDITY DES HOOKS — 2 340 fichiers, 29 Mo, et ce n'est pas notre code.
+#
+# `docs/hooks-source/<adresse>/sources/` porte le Solidity verifie de chaque hook, tire de
+# Sourcify pour la confrontation source <-> mesure. Ces fichiers ne sont pas la preuve : la
+# preuve est `analysis.json`, qui est garde, et chaque dossier garde son `provenance.json` qui
+# dit d'ou son code vient. Une commande les rapatrie tous :
+#
+#     python3 -m tare.source.cli fetch
+#
+# Les garder suivis, c'etait publier le code de tiers dans notre depot et multiplier son nombre
+# de fichiers par cinq, pour une preuve qu'on publie deja sous forme d'artefact.
+docs/hooks-source/*/sources/
+docs/hooks-source/*/metadata.json

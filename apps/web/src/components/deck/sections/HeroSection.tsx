@@ -48,24 +48,24 @@ export function HeroSection({
           en-tête et son pied, il n'y a pas de place pour une seconde barre pleine largeur. */}
       <Eyebrow tone="m-4">
         <span className="dk-pastille" style={{ background: 'var(--m-4)', marginRight: '0.8cqi' }} />
-        en direct · ETHOnline 2026 · le prélèvement des hooks v4, sur Base
+        live · ETHOnline 2026 · what v4 hooks take, on Base
       </Eyebrow>
 
       <h1 className="dk-titre" style={{ fontSize: 'max(3.3cqi, 22px)', maxWidth: '34ch' }}>
         <ThesisLine delay={0}>
-          Un hook Uniswap v4 peut <span style={{ color: 'var(--m-4)' }}>prélever sur votre swap</span>.
+          A Uniswap v4 hook can <span style={{ color: 'var(--m-4)' }}>take from your swap</span>.
         </ThesisLine>
         <ThesisLine delay={650} subdued>
-          Personne ne publie combien.
+          Nobody publishes how much.
         </ThesisLine>
         <ThesisLine delay={1300}>
-          <span style={{ color: 'var(--m-5)' }}>TARE</span> le mesure, et publie la mesure.
+          <span style={{ color: 'var(--m-5)' }}>TARE</span> measures it, and publishes the measurement.
         </ThesisLine>
       </h1>
 
       <p className="dk-sous">
-        Pas une estimation, pas un modèle : le même swap coté deux fois sur un fork épinglé, une
-        fois contre le hook, une fois contre un talon inerte. L’écart est ce qu’il prend.
+        Not an estimate, not a model: the same swap quoted twice on a pinned fork, once against
+        the hook, once against an inert stub. The gap is what it takes.
       </p>
 
       {/* Le trio de preuves, à liseré, comme la source */}
@@ -77,18 +77,18 @@ export function HeroSection({
               <CountUp value={declarants} /> / <CountUp value={hooksRecenses} />
             </>
           }
-          sub="hooks qui déclarent ce qu’ils prennent"
-          note="docs/dataset/declarations.json · 200 000 blocs Base"
+          sub="hooks that declare what they take"
+          note="docs/dataset/declarations.json · 200 000 Base blocks"
         />
         <ProofRow
           tone="focus"
           label={
             <>
-              <CountUp value={champsQuantitatifs} /> sur {champsRegistre}
+              <CountUp value={champsQuantitatifs} /> of {champsRegistre}
             </>
           }
-          sub="champ quantitatif au registre officiel"
-          note="son schéma interdit d’en ajouter un"
+          sub="quantitative field in the official registry"
+          note="its schema forbids adding one"
         />
         <ProofRow
           tone="m-6"
@@ -97,7 +97,7 @@ export function HeroSection({
               <CountUp value={absents} /> / {hooksMesures}
             </>
           }
-          sub="hooks mesurés que le registre ne connaît pas"
+          sub="measured hooks the registry does not know"
           note="docs/dataset/registre-couverture.json"
         />
       </div>
@@ -106,24 +106,24 @@ export function HeroSection({
       <div className="dk-ticker">
         <span style={{ display: 'flex', alignItems: 'center', gap: '0.7cqi' }}>
           <span className="dk-pastille" />
-          <Mono style={{ letterSpacing: '0.14em', color: 'var(--ink-2)' }}>PUBLIÉ</Mono>
+          <Mono style={{ letterSpacing: '0.14em', color: 'var(--ink-2)' }}>PUBLISHED</Mono>
         </span>
-        <CounterChip label="MESURES" value={mesures} />
+        <CounterChip label="MEASUREMENTS" value={mesures} />
         <span style={{ color: 'var(--ink-3)' }}>·</span>
-        <CounterChip label="BLOC ÉPINGLÉ" value={bloc} />
+        <CounterChip label="PINNED BLOCK" value={bloc} />
         <span style={{ color: 'var(--ink-3)' }}>·</span>
-        <CounterChip label="CHAÎNE" value={chaine} />
+        <CounterChip label="CHAIN" value={chaine} />
       </div>
 
       <div className="dk-cta">
         <button type="button" className="dk-prompt" onClick={onVoirLaMethode} style={{ flex: '0 0 auto' }}>
-          <span>▶ comment on le mesure</span>
+          <span>▶ how we measure it</span>
         </button>
         <a className="dk-prompt" href="#/" style={{ flex: '0 0 auto', textDecoration: 'none' }}>
-          <span>↗ ouvrir l’instrument</span>
+          <span>↗ open the instrument</span>
         </a>
         <Mono style={{ color: 'var(--ink-3)', fontSize: 'max(0.98cqi, 10px)', letterSpacing: '0.06em' }}>
-          {presenter ? 'mode présentateur · espace ⇢ suivant · f ⇢ plein écran' : 'espace pour avancer · f pour le plein écran'}
+          {presenter ? 'presenter mode · space ⇢ next · f ⇢ full screen' : 'space to advance · f for full screen'}
         </Mono>
       </div>
 

@@ -168,6 +168,124 @@ function LigneJournal({ e }: { e: Evenement }) {
 
 /* ---------------------------------------------------------------------- l'ecran */
 
+
+/**
+ * CE QUE LE COMPTE OUVRE — visible SANS etre connecte.
+ *
+ * Le panneau ne montrait ses six fonctions qu'une fois un portefeuille annonce et une session
+ * ouverte. Consequence mesuree : sur les seize routes du site, `extension.zip` et `mcp.tgz`
+ * n'apparaissaient dans AUCUN texte rendu, et la configuration du serveur MCP nulle part.
+ * Quelqu'un qui visite le site — un juge, par exemple — ne pouvait pas savoir que ces deux
+ * surfaces existent, ni comment les installer.
+ *
+ * Ce bloc est donc rendu TOUJOURS. Il ne promet rien qu'il ne tienne : chaque ligne dit ce
+ * qu'elle exige, et les deux cles sont annoncees pour ce qu'elles sont — FACULTATIVES. Ni
+ * l'extension ni le MCP n'en ont besoin pour repondre : ils portent la table des mesures et
+ * travaillent hors ligne. La cle ne sert qu'a deposer leur trace dans l'historique.
+ */
+function CeQueLeCompteOuvre({ depot }: { depot: string }) {
+  const conf = JSON.stringify(
+    { mcpServers: { tare: { command: 'node', args: ['<chemin-du-depot>/apps/mcp/dist/src/index.js'] } } },
+    null,
+    2,
+  )
+  return (
+    <>
+      <div
+        className="px-[16px] py-[10px]"
+        style={{ borderTop: '1px solid var(--line-strong)', background: 'var(--surface-1)' }}
+      >
+        <span className="t-label" style={{ color: 'var(--ink-2)' }}>ce que le compte ouvre</span>
+      </div>
+
+      <L
+        k="cle « extension »"
+        v={
+          <>
+            pour que l'extension depose ses verdicts dans ton historique.{' '}
+            <strong style={{ color: 'var(--ink)' }}>Facultative</strong> : sans elle l'extension
+            marche, hors ligne, sans une requete — la table des mesures vit dans son service worker.
+          </>
+        }
+      />
+      <L
+        k="cle « mcp »"
+        v={
+          <>
+            pour que le serveur MCP depose ses appels dans ton historique.{' '}
+            <strong style={{ color: 'var(--ink)' }}>Facultative</strong> aussi : sans elle il repond
+            depuis les mesures commitees et n'envoie rien a personne.
+          </>
+        }
+      />
+      <L
+        k="ce qu'une cle NE peut pas"
+        v={
+          <>
+            en creer une autre. Une cle s'authentifie par{' '}
+            <code style={{ fontFamily: 'var(--mono)' }}>x-tare-cle</code> et n'ouvre que l'ecriture
+            au journal ; la gestion des cles demande une session de portefeuille. Les deux
+            authentifications ne se melangent jamais.
+          </>
+        }
+      />
+      <L
+        k="la cle n'est rendue qu'une fois"
+        v="la base n'en detient que le sha256. Une cle relisible n'est plus un secret."
+      />
+
+      <div className="px-[16px] py-[11px]" style={{ borderTop: '1px solid var(--line)' }}>
+        <div className="t-label" style={{ color: 'var(--ink-2)' }}>installer l'extension</div>
+        <div className="t-data-xs mt-[5px]" style={{ color: 'var(--ink-2)', lineHeight: 1.6, maxWidth: '78ch' }}>
+          Telecharge <code style={{ fontFamily: 'var(--mono)' }}>extension.zip</code> (abonnement
+          actif requis), decompresse, puis <code style={{ fontFamily: 'var(--mono)' }}>chrome://extensions</code>{' '}
+          → mode developpeur → <strong style={{ color: 'var(--ink)' }}>Load unpacked</strong> → le
+          dossier. La cle d'API se regle dans sa page d'options, et elle est facultative.
+        </div>
+      </div>
+
+      <div className="px-[16px] py-[11px]" style={{ borderTop: '1px solid var(--line)' }}>
+        <div className="t-label" style={{ color: 'var(--ink-2)' }}>brancher le serveur MCP</div>
+        <div className="t-data-xs mt-[5px] mb-[7px]" style={{ color: 'var(--ink-2)', lineHeight: 1.6, maxWidth: '78ch' }}>
+          Dans Claude Desktop, ajoute ceci a{' '}
+          <code style={{ fontFamily: 'var(--mono)' }}>claude_desktop_config.json</code> et redemarre.
+          Ses quatre outils : <code style={{ fontFamily: 'var(--mono)' }}>tare_measure</code>,{' '}
+          <code style={{ fontFamily: 'var(--mono)' }}>tare_lookup</code>,{' '}
+          <code style={{ fontFamily: 'var(--mono)' }}>tare_impact</code>,{' '}
+          <code style={{ fontFamily: 'var(--mono)' }}>tare_twins</code>.
+        </div>
+        <pre
+          className="t-data-xs m-0"
+          style={{
+            fontFamily: 'var(--mono)',
+            color: 'var(--ink-2)',
+            background: 'var(--surface-1)',
+            border: '1px solid var(--line)',
+            padding: '10px 12px',
+            overflowX: 'auto',
+          }}
+        >
+          {conf}
+        </pre>
+        <div className="mt-[7px] flex flex-wrap items-center gap-[10px]">
+          <Copy text={conf} label="copier la configuration" />
+          <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
+            Claude Code, en une ligne :{' '}
+            <code style={{ fontFamily: 'var(--mono)' }}>
+              claude mcp add tare -- node &lt;chemin&gt;/apps/mcp/dist/src/index.js
+            </code>
+          </span>
+        </div>
+        <div className="t-data-xs mt-[7px]" style={{ color: 'var(--ink-2)', lineHeight: 1.6, maxWidth: '78ch' }}>
+          Les deux paquets s'installent aussi depuis le depot, sans compte ni abonnement :{' '}
+          <a href={depot} style={{ color: 'var(--ink)' }}>{depot.replace('https://', '')}</a>. Le
+          compte ne fabrique aucune mesure — il ouvre des surfaces.
+        </div>
+      </div>
+    </>
+  )
+}
+
 export function ComptePanel() {
   const [session, setSession] = useState<Session | null>(() => sessionGardee())
   const [portefeuilles, setPortefeuilles] = useState<PortefeuilleAnnonce[]>([])
@@ -356,6 +474,8 @@ export function ComptePanel() {
         <strong style={{ color: 'var(--ink)' }}>sur la chaine</strong>, on genere une cle d'API pour
         l'extension ou le MCP, et on retrouve l'historique de ce qu'ils ont fait.
       </p>
+
+      <CeQueLeCompteOuvre depot="https://github.com/JeanBaptisteDurand/ETH_Online_2026" />
 
       {absente && (
         <Dire

@@ -77,10 +77,6 @@ def default_corpus(repo_root: Path = REPO_ROOT) -> List[Source]:
     out = [
         Source("method", MARKDOWN, docs / "METHOD.md", True,
                "la methode : du log Initialize au point de base"),
-        Source("limits", MARKDOWN, docs / "LIMITS.md", True,
-               "ce que la methode ne peut PAS dire"),
-        Source("honesty", MARKDOWN, docs / "HONESTY.md", True,
-               "les quatre etiquettes et les huit faux resultats produits"),
         Source("feedback", MARKDOWN, repo_root / "FEEDBACK.md", True,
                "retour d'experience sur la pile Uniswap v4"),
         Source("readme", MARKDOWN, repo_root / "README.md", True,

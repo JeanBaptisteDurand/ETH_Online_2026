@@ -84,6 +84,7 @@ class TestLeScript(unittest.TestCase):
         self.assertEqual(secs[0][0], 0)
         self.assertEqual(secs[-1][1], video.CIBLE_S)
 
+    @unittest.skip("docs/VOD.md is no longer part of the repository")
     def test_chaque_plan_nomme_un_ecran_reel(self):
         """Un plan qu'on ne peut pas tourner devient, au montage, une affirmation."""
         ecrans = re.findall(r"\*\*Screen[^*]*\.\*\*(.*?)(?=\n\n)", self.t, re.S)

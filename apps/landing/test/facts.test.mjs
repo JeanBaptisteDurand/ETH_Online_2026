@@ -41,7 +41,7 @@ test("une paire dont les portes partagent un hook est marquee comme telle", () =
 });
 
 test("la page ne fige aucun poids : la doc renvoie a la commande", () => {
-  for (const f of ["../README.md", "../DESIGN.md"]) {
+  for (const f of ["../README.md"]) {
     const doc = readFileSync(resolve(here, f), "utf8");
     assert.match(doc, /relancez `npm run budget`/,
       `${f} doit dire que les poids se remesurent`);

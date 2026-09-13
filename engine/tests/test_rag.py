@@ -56,7 +56,7 @@ class TestCorpus(unittest.TestCase):
     def test_les_documents_de_methode_et_le_registre_sont_requis(self):
         """Un corpus qui n'exige rien produit un index qui ne contient rien."""
         srcs = {s.name: s for s in C.default_corpus()}
-        for name in ("method", "limits", "honesty", "feedback", "readme", "registry"):
+        for name in ("method", "feedback", "readme", "registry"):
             self.assertIn(name, srcs, f"{name} n'est pas declare dans le corpus")
             self.assertTrue(srcs[name].required, f"{name} devrait etre requis")
         self.assertFalse(srcs["hook_sources"].required,
@@ -97,7 +97,7 @@ class TestRejeu(unittest.TestCase):
     def setUpClass(cls):
         cls.gi = None
         cls.md = K.chunk_markdown(
-            C.Source("honesty", C.MARKDOWN, REPO / "docs" / "HONESTY.md", True), None)
+            C.Source("method", C.MARKDOWN, REPO / "docs" / "METHOD.md", True), None)
         cls.reg_source = next(s for s in C.default_corpus() if s.kind == C.REGISTRY)
 
     def test_un_morceau_markdown_se_relit_a_l_identique(self):

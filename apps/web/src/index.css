@@ -151,14 +151,24 @@ body {
    Elevation & Depth). Deux couches `linear-gradient` utilisees en trame 1 bit DURE, pas en
    fondu : un degrade sur une surface serait un encodage fantome, et la seule chose qui a le
    droit d'encoder ici est la rampe. Sur un pseudo-element FIXE et sans pointeur, jamais dans
-   un conteneur qui defile — sinon c'est un repeint GPU continu. */
-body::before {
+   un conteneur qui defile — sinon c'est un repeint GPU continu.
+
+   IL SUIT LA SOURIS (lock 16). Deux couches, et aucune des deux ne repeint :
+     ::before  la trame de fond, deplacee de quelques pixels a CONTRE-SENS du curseur. Un
+               contre-sens, pas un suivi : c'est ce qui donne la profondeur, le fond parait
+               derriere la page au lieu d'etre colle dessus.
+     ::after   la meme trame, plus claire, dans un disque MASQUE centre sur le curseur. Le
+               masque est un `radial-gradient` — un masque, pas un remplissage : il ne pose
+               aucune couleur, il decide ou la trame se voit. La regle « aucun degrade sur un
+               element d'interface » n'est pas touchee, c'est une matiere de fond.
+   Les deux n'animent que `transform`, donc le compositeur les deplace sans mise en page. Les
+   variables --px/--py sont ecrites par src/lib/champ.ts, une fois par frame. */
+body::before,
+body::after {
   content: '';
   position: fixed;
-  inset: 0;
-  z-index: 0;
   pointer-events: none;
-  opacity: 0.5;
+  z-index: 0;
   background-image:
     linear-gradient(45deg, var(--line) 25%, transparent 25%, transparent 75%, var(--line) 75%),
     linear-gradient(45deg, var(--line) 25%, transparent 25%, transparent 75%, var(--line) 75%);
@@ -167,6 +177,54 @@ body::before {
     0 0,
     3px 3px;
 }
+
+body::before {
+  /* Deborde de 24 px de chaque cote : la parallaxe le deplace, il ne doit jamais decouvrir
+     un bord. */
+  inset: -24px;
+  opacity: 0.5;
+  transform: translate3d(
+    calc((var(--px, 50vw) - 50vw) / -60),
+    calc((var(--py, 40vh) - 50vh) / -60),
+    0
+  );
+  will-change: transform;
+}
+
+body::after {
+  left: 0;
+  top: 0;
+  width: 46rem;
+  height: 46rem;
+  margin: -23rem 0 0 -23rem;
+  opacity: 0.75;
+  background-image:
+    linear-gradient(45deg, var(--line-strong) 25%, transparent 25%, transparent 75%, var(--line-strong) 75%),
+    linear-gradient(45deg, var(--line-strong) 25%, transparent 25%, transparent 75%, var(--line-strong) 75%);
+  -webkit-mask-image: radial-gradient(closest-side, #000 0%, rgba(0, 0, 0, 0.45) 45%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 0%, rgba(0, 0, 0, 0.45) 45%, transparent 100%);
+  transform: translate3d(var(--px, 50vw), var(--py, 40vh), 0);
+  will-change: transform;
+}
+
+/* Pas de pointeur fin : pas de survol, donc pas de champ — et une couche de moins. */
+@media not all and (hover: hover) and (pointer: fine) {
+  body::after {
+    display: none;
+  }
+}
+
+/* Le mouvement s'arrete, la matiere reste : le damier de fond ne bouge plus et le disque
+   disparait. Le design est le meme, complet. */
+@media (prefers-reduced-motion: reduce) {
+  body::before {
+    transform: none;
+  }
+  body::after {
+    display: none;
+  }
+}
+
 #root {
   position: relative;
   z-index: 1;
@@ -470,7 +528,7 @@ summary::-webkit-details-marker {
 .t-hero {
   font-family: var(--mono);
   font-weight: 800;
-  font-size: clamp(2.5rem, 8vw, 4.5rem);
+  font-size: clamp(2rem, 8vw, 3.5rem);
   line-height: 0.86;
   letter-spacing: -0.045em;
   text-transform: uppercase;
@@ -525,7 +583,8 @@ summary::-webkit-details-marker {
 .enceinte {
   background: var(--surface-1);
   border: 1px solid var(--line);
-  padding: 14px 20px 16px;
+  /* Resserree pour le budget du pli (lock 22) : le schema doit tenir ENTIER sous le hero. */
+  padding: 10px 16px 8px;
 }
 @media (max-width: 639px) {
   .enceinte {
@@ -957,36 +1016,62 @@ summary::-webkit-details-marker {
   border: 1px solid var(--line);
 }
 
-/* LES TROIS CHIFFRES DU CORPUS. Colles, separes au filet : `gap: 1px` sur un fond de filet,
-   la technique du damier de grille — aucune bordure a declarer, et la separation est exacte.
-   Deux colonnes des 560 px, trois au-dela : en dessous, le troisieme libelle ne tient pas. */
+/* LES TROIS CHIFFRES DU CORPUS — une ligne, separee au filet VERTICAL. Le lock 22 fait du pli
+   un budget : les blocs cadres coutaient 90 px de haut pour trois nombres, le schema de la
+   chaine en reclame 330, et il reste 844 px sous la barre a 1440x900. En dessous de 700 px la
+   ligne se replie en colonne et les filets redeviennent horizontaux. */
 .hero-chiffres {
+  display: grid;
   grid-template-columns: minmax(0, 1fr);
+  border-top: 1px solid var(--line);
 }
-@media (min-width: 560px) {
-  .hero-chiffres {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  /* Le dernier bloc prend la ligne entiere quand il est seul dessus : un bloc orphelin a
-     demi-largeur laisse un trou que le filet dessine. */
-  .hero-chiffres > div:last-child {
-    grid-column: 1 / -1;
-  }
+.hero-chiffres > div {
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
 }
-@media (min-width: 1100px) {
+.hero-chiffres > div:first-child {
+  border-top: 0;
+}
+.hero-chiffres dt {
+  display: inline;
+}
+.hero-chiffres dd {
+  display: inline;
+  margin-left: 8px;
+}
+@media (min-width: 700px) {
   .hero-chiffres {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-  .hero-chiffres > div:last-child {
-    grid-column: auto;
+  .hero-chiffres > div {
+    padding: 8px 14px;
+    border-top: 0;
+    border-left: 1px solid var(--line);
+  }
+  .hero-chiffres > div:first-child {
+    padding-left: 0;
+    border-left: 0;
+  }
+  .hero-chiffres dt,
+  .hero-chiffres dd {
+    display: block;
+    margin-left: 0;
+  }
+  .hero-chiffres dd {
+    margin-top: 2px;
   }
 }
 
-/* LE TABLEAU CLE / VALEUR du panneau de mesure : la cle en etiquette, la valeur en mono
-   dessous, et les lignes separees par un filet. Pas de deux colonnes a 1440 — les valeurs
-   sont des entiers de 26 chiffres, elles ont besoin de la largeur entiere. */
+/* LE TABLEAU CLE / VALEUR du panneau de mesure. A partir de 1200 px il passe en DEUX colonnes :
+   cinq lignes empilees coutaient 240 px de hauteur au panneau, et le pli n'en a pas les moyens.
+   Les valeurs les plus longues sont des entiers de 26 chiffres — a 13 px de mono elles tiennent
+   dans une demi-largeur de panneau, verifie a 1440. */
+.kv {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
 .kv > div {
-  padding: 8px 0;
+  padding: 6px 0;
   border-top: 1px solid var(--line);
 }
 .kv > div:first-child {
@@ -997,17 +1082,58 @@ summary::-webkit-details-marker {
   word-break: break-all;
   margin-top: 2px;
 }
+@media (min-width: 1200px) {
+  .kv {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 16px;
+  }
+  .kv > div:nth-child(2) {
+    border-top: 1px solid var(--line-strong);
+    margin-top: 6px;
+  }
+}
 
-/* LA COMMANDE QUI REJOUE la ligne qu'on vient de lire. Un cran plus clair que le panneau :
-   c'est du texte a copier, pas du texte a lire. */
+/* LA COMMANDE QUI REJOUE la ligne qu'on vient de lire — un depliant, ferme par defaut. Elle
+   n'est pas cachee par honte : elle est la preuve, et une preuve se demande. Ouverte en
+   permanence elle prenait 75 px du pli pour deux lignes qu'on lit une fois. */
 .rejouer {
-  margin-top: 6px;
-  padding: 10px 12px;
-  background: var(--bg);
+  margin-top: 10px;
   border: 1px solid var(--line);
+  background: var(--bg);
+}
+.rejouer > summary {
+  padding: 8px 12px;
+  cursor: pointer;
+  list-style: none;
+  min-height: 32px;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  align-items: center;
+  gap: 8px;
+  transition: color var(--t-feedback) var(--e-out);
+}
+.rejouer > summary::-webkit-details-marker {
+  display: none;
+}
+/* Le chevron DIT l'etat : ferme il pointe a droite, ouvert il pointe en bas. */
+.rejouer > summary::before {
+  content: '';
+  width: 0;
+  height: 0;
+  flex: none;
+  border-left: 5px solid currentColor;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  transition: transform var(--t-element) var(--e-out);
+}
+.rejouer[open] > summary::before {
+  transform: rotate(90deg);
+}
+.rejouer > summary:hover {
+  color: var(--ink) !important;
+}
+.rejouer > code {
+  display: block;
+  padding: 0 12px 10px;
 }
 
 /* La barre haute : 56 px, la voix en sans, les routes en liens texte. */
@@ -1250,6 +1376,21 @@ summary::-webkit-details-marker {
 @media (max-width: 639px) {
   .carte-grille {
     gap: 14px !important;
+  }
+  /* UNE SEULE COLONNE DE NOEUDS a cette largeur. `auto-fit, minmax(174px, 1fr)` en tirait
+     deux, qui debordaient la page de 7 px : une largeur minimale en pixels ne sait pas ce que
+     la page a de place. Le lock 13 dit que rien ne deborde a 390 ; c'est ici que ca se joue. */
+  .carte-outils {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  /* Un enfant de grille ou de flex a `min-width: auto` : il refuse de descendre sous la
+     largeur de son contenu, et il deborde la page au lieu de se serrer. C'est ce qui faisait
+     depasser la carte de 7 px a 390. Le lock 13 dit que rien ne deborde a cette largeur. */
+  .carte-outils,
+  .carte-outils > *,
+  .carte-outils > * > *,
+  .noeud {
+    min-width: 0 !important;
   }
   .carte-outils > * {
     gap: 6px !important;

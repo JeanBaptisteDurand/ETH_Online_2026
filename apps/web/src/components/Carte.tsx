@@ -54,6 +54,73 @@ const EXEC = (facts as { execution: { source: string } }).execution
     perdrait la precision que le fichier porte, sur un produit dont c'est tout le propos. */
 const msFr = (ms: number | null): string => (ms === null ? '—' : `${ms.toLocaleString('fr')} ms`)
 
+/**
+ * LE COMPTEUR — il monte de 0 a la valeur, et SEULEMENT quand on le demande.
+ *
+ * C'est le lock 20 de design/BRIEF.md, et il remplace une regle que le produit publiait :
+ * « un nombre n'anime jamais sa valeur ». La raison de cette regle etait bonne — un compteur
+ * affiche, le temps qu'il monte, des valeurs qui n'ont jamais ete mesurees — alors trois
+ * garde-fous limitent ce qu'elle protegeait :
+ *
+ *   1. il ne tourne QUE sur demande explicite (`anime`), jamais au chargement, jamais quand on
+ *      choisit une adresse de demonstration ;
+ *   2. il ne depasse jamais la cible : l'easing est decelere, pas un ressort, donc aucune
+ *      valeur superieure a la mesure n'est affichee, meme une frame ;
+ *   3. tant qu'il tourne il porte `aria-busy`, et son contenu n'est annonce qu'une fois pose :
+ *      un lecteur d'ecran n'entend jamais un chiffre intermediaire.
+ *
+ * Sous `prefers-reduced-motion`, il affiche directement. Il n'anime que du texte deja present,
+ * jamais une position : rien ne bouge autour de lui.
+ */
+function Compteur({ valeur, anime, className, style }: {
+  valeur: number
+  anime: boolean
+  className?: string
+  style?: CSSProperties
+}) {
+  const [affiche, setAffiche] = useState(valeur)
+  const [enCours, setEnCours] = useState(false)
+
+  useEffect(() => {
+    const reduit =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (!anime || reduit) {
+      setAffiche(valeur)
+      setEnCours(false)
+      return
+    }
+    let brut = 0
+    let debut: number | null = null
+    const duree = 520
+    setEnCours(true)
+    const pas = (t: number) => {
+      if (debut === null) debut = t
+      const p = Math.min(1, (t - debut) / duree)
+      // decelere (easeOutCubic) : on arrive sur la valeur, on ne la depasse pas.
+      setAffiche(valeur * (1 - Math.pow(1 - p, 3)))
+      if (p < 1) brut = requestAnimationFrame(pas)
+      else {
+        setAffiche(valeur)
+        setEnCours(false)
+      }
+    }
+    brut = requestAnimationFrame(pas)
+    return () => cancelAnimationFrame(brut)
+  }, [valeur, anime])
+
+  return (
+    <output
+      className={className}
+      style={style}
+      aria-busy={enCours || undefined}
+      aria-live={enCours ? 'off' : 'polite'}
+    >
+      {affiche.toLocaleString('fr', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+    </output>
+  )
+}
+
 /** Une seule ligne de métadonnée par nœud — l'anatomie de la référence, rien de plus. */
 function meta(o: Outil): string {
   const n = luPar(o.n).length
@@ -280,6 +347,16 @@ export function Carte({
   const demos = useMemo(() => jetonsProposes(), [])
 
   /**
+   * CE QUI EST SOUMIS, et non ce qui est tape (lock 19). Choisir une adresse de demonstration
+   * REMPLIT le champ et ne calcule rien : le panneau de droite continue d'afficher la mesure
+   * de reference jusqu'a ce qu'on presse le bouton. Sans cette separation, la reponse tombait
+   * pendant qu'on cliquait, et le compteur du lock 20 n'aurait jamais rien eu a compter.
+   */
+  const [soumis, setSoumis] = useState('')
+  /** Vrai juste apres une pression : c'est le seul cas ou un nombre a le droit de monter. */
+  const [aDemande, setADemande] = useState(false)
+
+  /**
    * LA REPONSE, calculee ici et affichee ici.
    *
    * La section d'operation qui vivait sous la carte a disparu : la barre du hero la remplace,
@@ -288,14 +365,14 @@ export function Carte({
    * succes : c'est une reponse, pas un trou.
    */
   const reponse = useMemo(() => {
-    if (!valide) return null
-    const r = ouAcheter(dataset.rows, jeton)
+    if (!soumis) return null
+    const r = ouAcheter(dataset.rows, soumis)
     const vue = aMontrer(r)
     const g = vue.montres.find((x) => x.classees.length >= 2 && x.ecart_bps !== null)
     if (g) {
       return {
         quoi: 'ecart' as const,
-        ecart: g.ecart_bps!.toLocaleString('fr', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        ecart: g.ecart_bps!,
         bas: g.classees[0]!.totalBps!.toFixed(2),
         haut: g.classees[g.classees.length - 1]!.totalBps!.toFixed(2),
         portes: g.classees.length,
@@ -303,7 +380,7 @@ export function Carte({
       }
     }
     return { quoi: 'refus' as const, etat: r.etat.replace(/_/g, ' ').toLowerCase(), raison: r.raison }
-  }, [jeton, valide])
+  }, [soumis])
 
   /** La carte est dans le premier écran : le repère de défilement mène donc à ce qui vient
       après elle, l'opération. Le defilement doux est un mouvement : sous
@@ -352,34 +429,24 @@ export function Carte({
           le titre, le champ où l'on colle une adresse (on agit), l'écart déjà mesuré (on lit),
           et en bas le repère de défilement (on descend). Derrière, le champ de câblage. */}
       <div className="hero-cadre">
-        <div className="flex flex-col" style={{ gap: 24 }}>
+        <div className="flex flex-col" style={{ gap: 16 }}>
           <div className="hero">
             <div className="flex flex-col" style={{ gap: 16 }}>
-              {/* L'EYEBROW : ou et quand la mesure a ete prise, avant de dire ce qu'elle dit.
-                  Les deux nombres viennent de `provenance.measurements`, jamais tapes. */}
-              <p className="eyebrow t-valeur m-0">
-                corpus · base {PROV.chain_ids[0]} · bloc {PROV.blocks[0].toLocaleString('fr')}
-              </p>
-
-              {/* LA PLAQUE. Le premier ecran n'annonce plus une mesure, il EST une mesure
-                  (design/BRIEF.md, lock 15 « A »). Le chiffre et la phrase sont le meme objet
-                  typographique : c'est le dispositif de apps/landing, avec le contenu de
-                  l'instrument. Le nombre sort de `totals`, la phrase dit sa definition —
-                  38 857 mesures au-dessus de 1 bps sur des pools dont la commission LP lue
-                  on-chain vaut zero. Rien n'est arrondi, rien n'est anime. */}
+              {/* LA PLAQUE — la catchphrase du produit (lock 17), mise dans la police du
+                  TABLEAU : c'est la meme phrase qu'avant, ce qui change est qu'elle grave au
+                  lieu d'ecrire. L'eyebrow « corpus · base · bloc » est retiree (lock 18) : le
+                  bloc et la chaine sont deja dits dans le panneau de droite, sous « bloc ». */}
               <h1 id="carte-titre" className="t-hero m-0">
-                {T.over1bpsWithZeroStoredFee.toLocaleString('fr')} fois,
-                <br />
-                le pool dit zéro
-                <br />
-                et le hook prend.
+                Ce qu’un hook prend vraiment sur un swap.
               </h1>
 
-              <p className="t-body m-0" style={{ color: 'var(--ink-2)', maxWidth: '68ch' }}>
-                Un hook peut prendre sur ton swap sans que le pool l’affiche&nbsp;: la commission
-                lue on-chain vaut zéro, et l’écart est ailleurs. TARE ne change pas le pool, il
-                change le hook — même swap, coté deux fois, une fois avec le code du hook et une
-                fois avec un talon inerte. La différence est ce qu’il a pris.
+              {/* Deux lignes (lock 21). Ce qui a ete coupe n'est pas perdu : la methode complete
+                  — meme swap, deux cotations, talon de 89 octets — est ecrite dans le panneau de
+                  droite, ligne par ligne, avec les valeurs. */}
+              <p className="t-body m-0" style={{ color: 'var(--ink-2)', maxWidth: '62ch' }}>
+                Le pool peut afficher zéro et le hook prendre quand même. TARE ne change pas le
+                pool, il change le hook&nbsp;: même swap, coté deux fois, et la différence est ce
+                qu’il a pris.
               </p>
 
               {/* PREMIÈRE INTERACTION : coller une adresse. C'est l'action primaire de la page,
@@ -390,11 +457,19 @@ export function Carte({
                 style={{ gap: 12, rowGap: 6 }}
                 onSubmit={(e) => {
                   e.preventDefault()
-                  // La reponse s'ecrit a droite, dans le meme ecran : il n'y a nulle part ou
-                  // aller. Le bouton sert donc a revenir a la mesure de reference.
-                  if (saisie) {
+                  // LE CALCUL PART D'ICI, et de nulle part ailleurs (locks 19 et 20). Presser
+                  // avec une adresse lisible calcule et lance le compteur ; presser une seconde
+                  // fois revient a la mesure de reference et rend le champ.
+                  if (soumis) {
+                    setSoumis('')
+                    setADemande(false)
                     setSaisie('')
                     champ.current?.focus()
+                    return
+                  }
+                  if (valide) {
+                    setSoumis(jeton)
+                    setADemande(true)
                   }
                 }}
               >
@@ -419,7 +494,7 @@ export function Carte({
                   />
                 </div>
                 <button type="submit" className="bouton-primaire">
-                  {saisie ? 'recommencer' : 'voir ce qu’elle coûte'}
+                  {soumis ? 'recommencer' : 'voir ce qu’elle coûte'}
                 </button>
                 {/* L'aide et les jetons de demonstration partagent la ligne du dessous : la
                     barre remplace la section d'operation, il faut donc pouvoir essayer sans
@@ -428,17 +503,23 @@ export function Carte({
                   <span id="jeton-hero-aide" className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
                     {saisie.length > 0 && !valide
                       ? 'une adresse de contrat : 0x suivi de 40 caractères hexadécimaux'
-                      : valide
+                      : soumis
                         ? 'calculé ici, sur le corpus embarqué — aucune requête'
-                        : 'rien n’est envoyé, le corpus est dans la page — ou essaie'}
+                        : valide
+                          ? 'presse pour calculer — rien n’est envoyé, le corpus est dans la page'
+                          : 'rien n’est envoyé, le corpus est dans la page — ou essaie'}
                   </span>
-                  {!saisie &&
+                  {!soumis &&
                     demos.map((d) => (
                       <button
                         key={d.adresse}
                         type="button"
                         className="jeton-demo t-data-sm hex"
-                        onClick={() => setSaisie(d.adresse)}
+                        onClick={() => {
+                          // Lock 19 : elle REMPLIT le champ. Elle ne calcule pas.
+                          setSaisie(d.adresse)
+                          champ.current?.focus()
+                        }}
                         title={`${d.ecart.toFixed(2)} bps entre ses portes`}
                       >
                         {court(d.adresse)}
@@ -447,34 +528,26 @@ export function Carte({
                 </span>
               </form>
 
-              {/* LES TROIS CHIFFRES DU CORPUS, sous la prose : le dispositif de apps/landing,
-                  avec les totaux de l'instrument. Trois blocs colles, separes par un filet de
-                  1 px et non par un ecart — un ecart dirait qu'ils sont sans rapport. Aucun
-                  n'est tape : tous sortent de `dataset.totals`. */}
-              <dl
-                className="hero-chiffres grid gap-px m-0"
-                style={{ background: 'var(--line)', border: '1px solid var(--line)' }}
-              >
+              {/* LES TROIS CHIFFRES DU CORPUS — UNE LIGNE, pas une grille de blocs.
+                  Le lock 22 demande quatre choses entieres dans le premier ecran ; a 1440x900
+                  il reste 844 px sous la barre et le schema en reclame 330. Les blocs cadres
+                  coutaient 90 px de hauteur pour trois nombres qui en demandent 30. Ils sont
+                  toujours separes au filet, mais le filet est vertical. Aucun n'est tape :
+                  tous sortent de `dataset.totals`. */}
+              <dl className="hero-chiffres m-0">
                 {(
                   [
-                    ['corpus', `${T.rows.toLocaleString('fr')} mesures`, `${T.pools.toLocaleString('fr')} pools`],
-                    ['hooks mesurés', String(T.hooks), `${T.hooksAbsentFromRegistry} absents du registre`],
-                    [
-                      'étiquettes',
-                      `${T.measured.toLocaleString('fr')} mesuré`,
-                      `${(T.rows - T.measured).toLocaleString('fr')} non cotable ou non mesurable`,
-                    ],
-                  ] as [string, string, string][]
-                ).map(([quoi, valeur, sous]) => (
-                  <div key={quoi} style={{ background: 'var(--bg)', padding: '10px 14px' }}>
-                    <dt className="t-valeur m-0" style={{ color: 'var(--ink-3)' }}>
+                    ['corpus', `${T.rows.toLocaleString('fr')} mesures · ${T.pools.toLocaleString('fr')} pools`],
+                    ['hooks', `${T.hooks} mesurés · ${T.hooksAbsentFromRegistry} absents du registre`],
+                    ['étiquettes', `${T.measured.toLocaleString('fr')} mesuré`],
+                  ] as [string, string][]
+                ).map(([quoi, valeur]) => (
+                  <div key={quoi}>
+                    <dt className="t-valeur" style={{ color: 'var(--ink-3)' }}>
                       {quoi}
                     </dt>
-                    <dd className="t-data m-0" style={{ color: 'var(--ink)', marginTop: 4 }}>
+                    <dd className="t-data-sm m-0" style={{ color: 'var(--ink-2)' }}>
                       {valeur}
-                    </dd>
-                    <dd className="t-data-sm m-0" style={{ color: 'var(--ink-3)' }}>
-                      {sous}
                     </dd>
                   </div>
                 ))}
@@ -511,9 +584,12 @@ export function Carte({
                 </>
               ) : reponse?.quoi === 'ecart' ? (
                 <>
-                  <output className="t-number m-0" style={{ color: 'var(--m-4)' }}>
-                    {reponse.ecart}
-                  </output>
+                  <Compteur
+                    valeur={reponse.ecart}
+                    anime={aDemande}
+                    className="t-number m-0"
+                    style={{ color: 'var(--m-4)' }}
+                  />
                   <p className="t-body m-0 t-body-muted" style={{ maxWidth: '34ch' }}>
                     bps entre ses {reponse.portes} portes, payé en {reponse.monnaie}&nbsp;: de{' '}
                     <span className="t-data" style={{ color: 'var(--ink)' }}>{reponse.bas}</span> à{' '}
@@ -527,9 +603,9 @@ export function Carte({
                       {paire.bps}
                     </output>
                     <p className="t-body m-0 t-body-muted" style={{ maxWidth: '34ch' }}>
-                      bps pris sur un swap réellement exécuté&nbsp;: il en reste{' '}
+                      bps sur un swap réellement exécuté&nbsp;: il en reste{' '}
                       <span className="t-data" style={{ color: 'var(--ink)' }}>{paire.avec}</span> au
-                      lieu de <span className="t-data">{paire.sans}</span>, à 89 octets inertes près.
+                      lieu de <span className="t-data">{paire.sans}</span>.
                     </p>
 
                     {/* CE QUI A ETE MESURE, exactement : les deux cotations en wei, le bloc, la
@@ -540,8 +616,8 @@ export function Carte({
                     <dl className="kv m-0">
                       {(
                         [
-                          ['reçu avec le hook', `${paire.avecWei} wei`],
-                          ['reçu avec le talon', `${paire.sansWei} wei`],
+                          ['reçu avec le hook, en wei', paire.avecWei],
+                          ['reçu avec le talon, en wei', paire.sansWei],
                           ['bloc', `${PROV.blocks[0].toLocaleString('fr')} · chaîne ${PROV.chain_ids[0]}`],
                           ['talon', '89 octets, conforme à Hooks.sol'],
                           ['source', EXEC.source],
@@ -561,16 +637,16 @@ export function Carte({
                     {/* REJOUER CETTE LIGNE. La commande qui reproduit ce nombre-la, pas une
                         commande d'exemple : gate A4 execute les swaps et compare l'execution a
                         la cotation. C'est le dispositif « REPLAY THIS ROW » de la landing. */}
-                    <div className="rejouer">
-                      <span className="t-valeur" style={{ color: 'var(--ink-3)' }}>
+                    <details className="rejouer">
+                      <summary className="t-valeur" style={{ color: 'var(--ink-3)' }}>
                         rejouer cette ligne
-                      </span>
+                      </summary>
                       <code className="t-data-sm" translate="no" style={{ color: 'var(--ink-2)', display: 'block' }}>
                         docker compose up -d anvil
                         <br />
                         make gate-a4
                       </code>
-                    </div>
+                    </details>
                   </>
                 )
               )}
@@ -582,14 +658,14 @@ export function Carte({
           Elle est DANS le premier écran, avec le titre, la mesure et le champ : le schéma ne se
           réduit pas, c'est la mesure et le champ qui se compactent autour de lui. */}
           <div className="enceinte">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-[24px] gap-y-[6px] pb-[14px]">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-[24px] gap-y-[6px] pb-[10px]">
           <div className="flex flex-wrap items-baseline" style={{ gap: 12 }}>
             <h2 className="t-headline m-0" style={{ fontSize: '1.25rem' }}>
               La chaîne et ses {OUTILS.length} outils
             </h2>
             {/* DEUXIÈME INTERACTION, écrite : un nœud s'ouvre. */}
             <span className="t-body t-body-muted" style={{ fontSize: 13 }}>
-              cliquer un outil ouvre sa page, le survoler allume son chemin
+              cliquer ouvre, survoler allume le chemin
             </span>
           </div>
           <dl className="legende m-0 p-0 flex flex-wrap items-baseline" style={{ gap: 16 }}>

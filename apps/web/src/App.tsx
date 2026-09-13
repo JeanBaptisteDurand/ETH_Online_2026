@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { dataset } from './lib/dataset'
+import { brancherChampAuPointeur } from './lib/champ'
 import { PALIERS } from './lib/ramp'
 import { fmtBlock } from './lib/format'
 import { HookTable } from './components/Table'
@@ -182,8 +183,19 @@ function Head({
       style={{ background: 'var(--bg)', borderBottom: '1px solid var(--line)' }}
     >
       <div className="flex items-center gap-[8px] px-[12px] sm:px-[24px] mx-auto w-full" style={{ maxWidth: 1360, minHeight: 56 }}>
-        {/* La marque : en sans, comme la voix du produit. Plus de capitales chassées. */}
-        <a href="#/" className="no-underline" translate="no" style={{ color: 'var(--ink)', fontFamily: 'var(--prose)', fontWeight: 600, fontSize: 20, letterSpacing: '-0.01em' }}>
+        {/* La marque : en sans, comme la voix du produit. Plus de capitales chassées.
+            Le signe devant est la mesure elle-même : barre haute, la cotation contre le talon
+            inerte ; barre basse, la cotation avec le hook, plus courte ; et le bloc terne qui la
+            prolonge est l'écart, ce que le hook a pris. Inline, donc zéro requête, et le gris est
+            en currentColor : il suit le thème sans second fichier, là où le jaune suit la rampe
+            par --m-6 (qui s'inverse en rouge en thème clair). Aplats, radius 0.
+            Les fichiers autonomes sont dans public/brand/. */}
+        <a href="#/" className="no-underline inline-flex items-center gap-[8px]" translate="no" style={{ color: 'var(--ink)', fontFamily: 'var(--prose)', fontWeight: 600, fontSize: 20, letterSpacing: '-0.01em' }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style={{ display: 'block', flex: 'none' }}>
+            <rect x="0" y="5" width="24" height="4" fill="currentColor" opacity=".55" />
+            <rect x="0" y="15" width="15" height="4" fill="var(--m-6, #F6D746)" />
+            <rect x="15" y="15" width="9" height="4" fill="currentColor" opacity=".22" />
+          </svg>
           TARE
         </a>
         {/* La barre porte une entree de plus depuis le deck : sous 400 px elle depassait la
@@ -362,6 +374,11 @@ function AppInterne() {
     document.documentElement.setAttribute('data-theme', theme)
   }, [theme])
 
+  // LE CHAMP AU POINTEUR (lock 16). Tout le rendu est dans index.css ; ce module n'ecrit que
+  // deux variables CSS, une fois par frame. Il se debranche sous `prefers-reduced-motion` et
+  // sur un ecran tactile, et il rend son nettoyage.
+  useEffect(() => brancherChampAuPointeur(), [])
+
   // Le bouton « précédent » du navigateur doit marcher : on écoute le fragment plutôt que de
   // garder l'état seul. Sans ça, revenir en arrière quitte le site au lieu de la page outil.
   useEffect(() => {
@@ -407,7 +424,7 @@ function AppInterne() {
         <RouteMotion cle="accueil">
           <main
             id="contenu"
-            className="flex flex-col px-[24px] pt-[40px] pb-[24px] mx-auto w-full"
+            className="flex flex-col px-[24px] pt-[24px] pb-[24px] mx-auto w-full"
             style={{ maxWidth: 1360, gap: 'clamp(4rem, 8vw, 7rem)' }}
           >
             {/* LA CARTE D'ABORD. Le système en une image, et chaque nœud est une porte.

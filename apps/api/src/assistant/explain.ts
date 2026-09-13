@@ -185,8 +185,6 @@ const i = (s: string): Seg => ({ k: "i", s });
 const n = (token: string, cite: Omit<Citation, "token">): Seg => ({ k: "n", token, cite });
 
 const METHOD = "docs/METHOD.md";
-const LIMITS = "docs/LIMITS.md";
-const HONESTY = "docs/HONESTY.md";
 
 const konst = (what: string, source: string): Omit<Citation, "token"> => ({
   kind: "constant",
@@ -284,7 +282,6 @@ export const DOCTRINE: DoctrineArticle[] = [
     ],
     refs: [
       { file: METHOD, heading: "3. The stub, and the invariants it has to satisfy" },
-      { file: LIMITS, heading: "8. The stub is a counterfactual, not an option" },
     ],
     ragQuery: "stub inerte conforme Hooks.sol 89 octets, une adresse sans code fait revert la cotation",
   },
@@ -313,7 +310,7 @@ export const DOCTRINE: DoctrineArticle[] = [
         "Personne ne peut retirer un hook d'un pool vivant. La comparaison que trace TARE est entre le monde et un monde inatteignable. C'est precisement ce qui en fait une mesure propre — les deux cotations ne different que par une variable — et c'est aussi pourquoi le resultat ne doit JAMAIS se dire \"tu economiserais tant en evitant ce hook\". On ne peut pas l'eviter et garder le pool : le pool EST le hook.",
       ),
     ],
-    refs: [{ file: LIMITS, heading: "8. The stub is a counterfactual, not an option" }],
+    refs: [],
     ragQuery: "le stub est un contrefactuel, on ne peut pas retirer le hook du pool, pas une economie",
   },
   {
@@ -347,10 +344,6 @@ export const DOCTRINE: DoctrineArticle[] = [
       ),
     ],
     refs: [
-      { file: HONESTY, heading: "`MEASURED`" },
-      { file: HONESTY, heading: "`INTERPOLATED`" },
-      { file: HONESTY, heading: "`NOT_QUOTABLE`" },
-      { file: HONESTY, heading: "`NOT_MEASURABLE`" },
     ],
     ragQuery: "les quatre etiquettes MEASURED INTERPOLATED NOT_QUOTABLE NOT_MEASURABLE et ce qu'elles ne veulent pas dire",
   },
@@ -365,8 +358,6 @@ export const DOCTRINE: DoctrineArticle[] = [
       ),
     ],
     refs: [
-      { file: HONESTY, heading: "`MEASURED`" },
-      { file: LIMITS, heading: "6. A high bps is not an abuse — and we have not read the hooks' code" },
     ],
     ragQuery: "MEASURED signifie que le contrefactuel a tourne, pas que le hook prend un frais",
   },
@@ -397,8 +388,6 @@ export const DOCTRINE: DoctrineArticle[] = [
       ),
     ],
     refs: [
-      { file: HONESTY, heading: "`NOT_MEASURABLE`" },
-      { file: LIMITS, heading: "4. Custom accounting: the counterfactual is meaningless, by construction" },
     ],
     ragQuery: "NOT_MEASURABLE rpc_unavailable concurrent_measurer custom accounting, une absence de lecture pas un zero",
   },
@@ -417,7 +406,7 @@ export const DOCTRINE: DoctrineArticle[] = [
         "NOT_QUOTABLE veut dire qu'on a demande et que le pool a refuse : la cotation a revert avec une erreur du protocole, en pratique presque toujours un manque de liquidite pour cette taille et ce sens. La ligne garde la raison. Ca ne veut pas dire que le pool est mort, et ca ne dit RIEN du hook : dans ce corpus, la plupart des pools ne cotent que dans un seul sens, et l'autre sens de chacun d'eux est un NOT_QUOTABLE qui n'apprend rien sur le prelevement.",
       ),
     ],
-    refs: [{ file: HONESTY, heading: "`NOT_QUOTABLE`" }],
+    refs: [],
     ragQuery: "NOT_QUOTABLE le quoter revert NotEnoughLiquidity, un seul sens cotable",
   },
   {
@@ -435,7 +424,7 @@ export const DOCTRINE: DoctrineArticle[] = [
         "INTERPOLATED veut dire qu'aucune mesure n'existe a la taille demandee, mais que deux points MEASURED l'encadrent sur le meme pool, le meme sens et le meme bloc. La valeur a ete CALCULEE entre eux, pas observee, et elle ne devient jamais une mesure. En dehors de l'intervalle mesure, rien n'est rendu : on refuse d'extrapoler, on rend une raison. Le corpus livre ne contient aucune ligne INTERPOLATED — chaque nombre publie a ete observe.",
       ),
     ],
-    refs: [{ file: HONESTY, heading: "`INTERPOLATED`" }],
+    refs: [],
     ragQuery: "INTERPOLATED calcule entre deux points mesures, refus d'extrapoler",
   },
   {
@@ -478,8 +467,6 @@ export const DOCTRINE: DoctrineArticle[] = [
       ),
     ],
     refs: [
-      { file: LIMITS, heading: "6. A high bps is not an abuse — and we have not read the hooks' code" },
-      { file: HONESTY, heading: "What we refuse to say" },
     ],
     ragQuery: "un bps eleve n'est pas un abus, la mesure est une grandeur muette sur la legitimite, frais dynamique",
   },
@@ -525,8 +512,6 @@ export const DOCTRINE: DoctrineArticle[] = [
       t(" fiche(s)."),
     ],
     refs: [
-      { file: LIMITS, heading: "7. The registry is a description, not a ground truth" },
-      { file: HONESTY, heading: "#6 — a registry entry from the wrong chain attached to a Base measurement" },
     ],
     ragQuery: "le registre est une description pas une verite terrain, aucun champ n'est une grandeur, CREATE2 multi-chaines",
   },
@@ -561,7 +546,6 @@ export const DOCTRINE: DoctrineArticle[] = [
       ),
     ],
     refs: [
-      { file: HONESTY, heading: "What we refuse to say" },
       { file: "README.md", heading: "The honesty rules" },
     ],
     ragQuery: "le modele ne produit jamais un nombre, il choisit quoi interroger, auditeur de citations",
@@ -594,8 +578,6 @@ export const DOCTRINE: DoctrineArticle[] = [
       ),
     ],
     refs: [
-      { file: LIMITS, heading: "9. One measurer per anvil, or the numbers are fiction" },
-      { file: HONESTY, heading: "#5 — two measurers on one fork: **100 bps became 0.00**" },
     ],
     ragQuery: "un seul mesureur par anvil, le stub est un etat global, deux processus produisent un faux nombre",
   },
@@ -621,7 +603,6 @@ export const DOCTRINE: DoctrineArticle[] = [
     ],
     refs: [
       { file: METHOD, heading: "2. The trick" },
-      { file: HONESTY, heading: "What we refuse to say" },
     ],
     ragQuery: "formule du bps, ecart relatif entre les deux cotations, dix mille, negatif custom accounting",
   },
@@ -689,8 +670,6 @@ export const DOCTRINE: DoctrineArticle[] = [
       ),
     ],
     refs: [
-      { file: LIMITS, heading: "2. 199 pools is not the population, and it is not even a clean sample" },
-      { file: LIMITS, heading: "5. A quote is not a swap" },
     ],
     ragQuery: "le corpus n'est pas la population, une chaine un bloc, une cotation n'est pas un swap",
   },

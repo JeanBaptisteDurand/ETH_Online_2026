@@ -997,6 +997,40 @@ summary::-webkit-details-marker {
   }
 }
 
+/* LE VOILE (lock 32) — un verre tres leger derriere les blocs de section et de texte, pour
+   qu'ils se lisent par-dessus le champ de courbes.
+
+   C'est une TROISIEME matiere, et DESIGN.md -> Elevation & Depth n'en connaissait que deux :
+   un palier de surface et un filet de 1 px, sans exception. Elle est donc assumee, et tenue
+   courte pour ne pas defaire la charte :
+     - pas de degrade : un aplat translucide, une seule valeur ;
+     - pas d'ombre, pas de rayon, pas de liserer clair — rien de la panoplie « glassmorphism » ;
+     - le flou est faible (8 px) et il ne sert qu'a casser le trait des courbes sous le texte,
+       pas a faire un effet.
+   `color-mix` garde la teinte du fond du theme : en clair le voile eclaircit, il ne grise pas.
+
+   LA HERO N'EN PORTE PAS : le champ y est a nu, c'est la seule page ou on le voit en entier.
+
+   `backdrop-filter` n'est pas partout : sans lui il reste l'aplat translucide, qui fait deja
+   l'essentiel du travail. Le repli est donc le voile lui-meme, pas un trou. */
+.voile {
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+/* Sur un bloc qui touche les bords de la colonne, le voile deborde un peu pour ne pas couper
+   le texte au ras : c'est un fond, pas un cadre. */
+.voile-air {
+  padding: 20px 20px 24px;
+  margin: 0 -20px;
+}
+@media (max-width: 639px) {
+  .voile-air {
+    padding: 14px;
+    margin: 0 -14px;
+  }
+}
+
 /* LE PANNEAU DE MESURE — l'outil reel, a droite du verdict. Un palier de surface et un filet
    de 1 px : c'est toute la profondeur du produit, il n'y a ni ombre ni rayon (DESIGN.md ->
    Elevation & Depth, niveau 1). */

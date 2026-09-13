@@ -158,7 +158,8 @@ export function Panel({
 }) {
   const id = `p-${index}`
   return (
-    <section id={id} aria-labelledby={`${id}-t`} style={{ borderTop: '1px solid var(--line)' }}>
+    // Le voile (lock 32) : un panneau se lit par-dessus le champ de courbes, pas dedans.
+    <section id={id} aria-labelledby={`${id}-t`} className="voile" style={{ borderTop: '1px solid var(--line)' }}>
       {/* L'EN-TETE DE SECTION, au systeme : la mono du tableau, 24 px, capitales, et de l'air
           au-dessus. Plus de couleur en dur : le role `headline` porte l'accent depuis
           index.css (lock 29), et un `color` inline le neutralisait. */}

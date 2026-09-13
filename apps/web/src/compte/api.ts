@@ -328,6 +328,47 @@ export async function connecter(fournisseur: Fournisseur): Promise<Session> {
   return { ...s, adresse: adresse.toLowerCase() }
 }
 
+
+/**
+ * LA MEME SESSION, MAIS SIGNEE PAR WAGMI (donc par RainbowKit).
+ *
+ * `connecter()` ci-dessus parle directement a un fournisseur EIP-1193 decouvert en EIP-6963.
+ * Celle-ci fait exactement la meme chose — nonce, signature, session — avec une adresse deja
+ * connectee et une fonction de signature fournie par wagmi. Elle existe pour que RainbowKit
+ * puisse ouvrir une session SANS que le panneau ait a retrouver le fournisseur brut derriere
+ * le connecteur, ce qui casserait avec WalletConnect ou la signature part sur le telephone.
+ *
+ * LA REGLE NE BOUGE PAS : le message vient du serveur, EN ENTIER, et on le signe tel quel.
+ */
+export async function connecterAvecSigneur(
+  adresse: string,
+  signer: (message: string) => Promise<string>,
+): Promise<Session> {
+  if (!adresse) throw new Refus('non_authentifie', "aucune adresse connectee")
+
+  const n = await appeler<{ adresse: string; nonce: string; message: string }>('/compte/nonce', {
+    methode: 'POST',
+    corps: { adresse },
+  })
+
+  let signature: string
+  try {
+    signature = await signer(n.message)
+  } catch (e) {
+    const err = e as { code?: number; name?: string; message?: string }
+    // wagmi enveloppe le refus de l'utilisateur : le code 4001 n'est pas toujours en surface.
+    if (err.code === 4001 || /reject|denied|UserRejected/i.test(`${err.name} ${err.message}`))
+      throw new Refus('non_authentifie', 'signature refusee dans le portefeuille')
+    throw new Refus('non_authentifie', `signature impossible : ${err.message ?? 'sans message'}`)
+  }
+
+  const s = await appeler<Session>('/compte/session', {
+    methode: 'POST',
+    corps: { adresse, nonce: n.nonce, signature },
+  })
+  return { ...s, adresse: adresse.toLowerCase() }
+}
+
 export const deconnecter = (jeton: string): Promise<{ ferme: boolean }> =>
   appeler('/compte/session', { methode: 'DELETE', jeton })
 

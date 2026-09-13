@@ -30,12 +30,14 @@
  */
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Panel, Copy, NonLu, Replay, Absence } from './Prim'
+import { ConnectButton, usePortefeuille, QR_DISPONIBLE } from '../compte/wallet'
 import {
   API,
   CONTRAT_ABONNEMENT,
   CHAINE_ABONNEMENT,
   Refus,
   connecter,
+  connecterAvecSigneur,
   creerCle,
   deconnecter,
   ecouterPortefeuilles,
@@ -290,6 +292,7 @@ export function ComptePanel() {
   const [session, setSession] = useState<Session | null>(() => sessionGardee())
   const [portefeuilles, setPortefeuilles] = useState<PortefeuilleAnnonce[]>([])
   const [choisi, setChoisi] = useState<PortefeuilleAnnonce | null>(null)
+  const rk = usePortefeuille()
   const [compte, setCompte] = useState<Compte | null>(null)
   const [paquets, setPaquets] = useState<Paquets | null>(null)
   const [journal, setJournal] = useState<Evenement[] | null>(null)
@@ -341,6 +344,29 @@ export function ComptePanel() {
   useEffect(() => {
     if (session?.jeton && !compte && !absente) void rafraichir(session.jeton)
   }, [session, compte, absente, rafraichir])
+
+  /**
+   * OUVRIR LA SESSION AVEC LE PORTEFEUILLE DE RAINBOWKIT.
+   *
+   * Meme protocole que `seConnecter` : nonce du serveur, signature du message tel quel,
+   * session. La difference tient a QUI signe — wagmi, qui sait parler a un telephone par
+   * WalletConnect, la ou un fournisseur EIP-1193 brut ne le sait pas.
+   */
+  const seConnecterRk = async () => {
+    if (!rk.adresse) return
+    setOccupe('signature dans le portefeuille')
+    try {
+      const s = await connecterAvecSigneur(rk.adresse, rk.signer)
+      garderSession(s)
+      setSession(s)
+      setRefus(null)
+      await rafraichir(s.jeton)
+    } catch (e) {
+      attraper(e)
+    } finally {
+      setOccupe(null)
+    }
+  }
 
   const seConnecter = async () => {
     if (!choisi) return
@@ -492,10 +518,37 @@ export function ComptePanel() {
       {!absente && !session && (
         <>
           <L k="api" v={API} />
+
+          {/* RAINBOWKIT — le bouton qu'un juge reconnait, et qui apporte le QR WalletConnect.
+              Il n'a pas REMPLACE la decouverte EIP-6963 : elle vit toujours dessous, listee
+              plus bas, parce qu'elle marche sans projectId et sans reseau. */}
+          <div className="px-[16px] py-[11px] flex flex-wrap items-center gap-[12px]" style={{ borderTop: '1px solid var(--line)' }}>
+            <ConnectButton chainStatus="none" showBalance={false} accountStatus="address" />
+            {rk.connecte && (
+              <Bouton onClick={seConnecterRk} actif={!occupe} fort>
+                signer pour entrer
+              </Bouton>
+            )}
+            <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
+              {occupe ??
+                (rk.connecte
+                  ? 'le texte signe est celui que le serveur rend — le client ne le reconstruit pas'
+                  : 'connecte un portefeuille, puis signe une fois pour ouvrir la session')}
+            </span>
+          </div>
+          {!QR_DISPONIBLE && (
+            <div className="px-[16px] py-[8px] t-data-xs" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-2)' }}>
+              le QR WalletConnect demande un <code style={{ fontFamily: 'var(--mono)' }}>projectId</code> public,
+              pose au build par <code style={{ fontFamily: 'var(--mono)' }}>VITE_WALLETCONNECT_ID</code>. Il n'est
+              pas pose sur cette version : les portefeuilles installes dans ce navigateur marchent, le
+              telephone non — et c'est dit plutot qu'un bouton qui echoue en silence.
+            </div>
+          )}
+
           {portefeuilles.length === 0 ? (
             <div className="px-[16px] py-[11px] t-data-xs" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-2)' }}>
-              aucun portefeuille annonce. Installe MetaMask ou Rainbow, puis recharge — la
-              detection passe par EIP-6963, parce qu'avec deux portefeuilles installes{' '}
+              aucun portefeuille annonce en EIP-6963. Installe MetaMask ou Rainbow, puis recharge —
+              la detection passe par EIP-6963, parce qu'avec deux portefeuilles installes{' '}
               <code style={{ fontFamily: 'var(--mono)' }}>window.ethereum</code> n'en montre qu'un et
               cache l'autre.
             </div>

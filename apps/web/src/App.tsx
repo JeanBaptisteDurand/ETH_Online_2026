@@ -15,6 +15,7 @@ import { AccesPanel, DonneesPanel, Pourquoi } from './components/Accueil'
 import { IndexPanneaux } from './components/Index'
 import { Carte } from './components/Carte'
 import { OutilPanel } from './components/Outil'
+import { Portefeuilles } from './compte/wallet'
 import { OUTILS } from './lib/outils'
 import { COULEUR as COULEUR_FAM, ORDRE as ORDRE_FAM } from './components/familles'
 import { Reveal, Route as RouteMotion } from './components/Motion'
@@ -333,7 +334,7 @@ function lireVue(hash: string): Vue {
   return { quoi: 'accueil' }
 }
 
-export default function App() {
+function AppInterne() {
   const [theme, setTheme] = useState('dark')
   /** L'ADRESSE COLLÉE. Elle est saisie dans le hero et lue par la section qui répond : deux
       surfaces, un seul état. Sans cela le champ du premier écran serait un décor. */
@@ -583,5 +584,32 @@ export default function App() {
 
       <Chat model={model} view={view} onView={setView} />
     </div>
+  )
+}
+
+
+/**
+ * LA RACINE — elle ne fait qu'une chose : poser le fournisseur de portefeuilles.
+ *
+ * Il est DEHORS de l'instrument, et volontairement : `AppInterne` ne sait rien de wagmi, et
+ * l'instrument continue de fonctionner sans portefeuille, sans compte et sans une requete.
+ * Le theme est lu sur `data-theme`, pose par `AppInterne` lui-meme, pour que le modal de
+ * connexion suive le theme du site sans faire remonter l'etat d'un cran.
+ */
+export default function App() {
+  const [theme, setTheme] = useState(
+    typeof document === 'undefined' ? 'dark' : document.documentElement.getAttribute('data-theme') ?? 'dark',
+  )
+  useEffect(() => {
+    const o = new MutationObserver(() =>
+      setTheme(document.documentElement.getAttribute('data-theme') ?? 'dark'),
+    )
+    o.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+    return () => o.disconnect()
+  }, [])
+  return (
+    <Portefeuilles theme={theme}>
+      <AppInterne />
+    </Portefeuilles>
   )
 }

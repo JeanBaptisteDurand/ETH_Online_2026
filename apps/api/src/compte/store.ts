@@ -13,6 +13,7 @@
  */
 import pg from "pg";
 import { createHash, randomBytes } from "node:crypto";
+import { signer, verifier, type Charge } from "./jwt.js";
 import { SCHEMA_SQL, type Nature, type Portee, type Source } from "./schema.js";
 
 export const hash = (s: string): string => createHash("sha256").update(s, "utf8").digest("hex");
@@ -143,31 +144,79 @@ export class CompteStore {
 
   /* ------------------------------------------------------------ les sessions */
 
-  /** Cree une session et rend le jeton EN CLAIR — la seule fois ou il existe. */
+  /**
+   * Cree une session et rend un JWT — signe, date, ET revocable.
+   *
+   * Le `jti` du jeton est un aleatoire de 32 octets, et c'est LUI que la table connait, par
+   * son sha256 : la revocation ne depend donc pas de la signature. Un jeton vole reste
+   * cryptographiquement valide et cesse pourtant d'ouvrir quoi que ce soit des qu'on le
+   * revoque — ce qu'un JWT seul ne sait pas faire.
+   *
+   * La colonne s'appelle toujours `jeton_hash` : elle porte le hash du `jti`, pas celui du
+   * jeton entier. Un JWT change a chaque emission par son `iat` ; hacher le jeton complet
+   * aurait marche aussi, mais aurait empeche de reemettre le meme droit sous une autre forme.
+   */
   async ouvrirSession(compteId: string, dureeMs = 7 * 24 * 3600 * 1000): Promise<string> {
-    const jeton = randomBytes(32).toString("base64url");
+    const jti = randomBytes(32).toString("base64url");
+    const r = await this.p().query<{ adresse: string }>(
+      `SELECT adresse FROM comptes WHERE id = $1`,
+      [compteId],
+    );
+    const adresse = r.rows[0]?.adresse ?? "";
     await this.p().query(
       `INSERT INTO sessions (jeton_hash, compte_id, expire_le)
        VALUES ($1, $2, now() + ($3 || ' milliseconds')::interval)`,
-      [hash(jeton), compteId, String(dureeMs)],
+      [hash(jti), compteId, String(dureeMs)],
     );
-    return jeton;
+    const maintenant = Math.floor(Date.now() / 1000);
+    return signer({
+      sub: compteId,
+      adresse,
+      jti,
+      iat: maintenant,
+      exp: maintenant + Math.floor(dureeMs / 1000),
+    });
   }
 
+  /**
+   * DEUX BARRIERES, ET LES DEUX DOIVENT TOMBER.
+   *
+   * La signature et la date sont verifiees d'abord, sans toucher la base : un jeton forge ou
+   * perime est refuse pour rien. Puis la base tranche la revocation. Sauter la seconde
+   * reviendrait a dire qu'une session ne se ferme jamais.
+   *
+   * Les jetons OPAQUES d'avant restent acceptes : ils n'ont pas la forme d'un JWT, on retombe
+   * alors sur l'ancien chemin. Une migration qui deconnecte tout le monde est une migration
+   * qu'on reporte.
+   */
   async compteDeSession(jeton: string): Promise<Compte | null> {
+    let cle = jeton;
+    if (jeton.split(".").length === 3) {
+      const v = verifier(jeton);
+      if ("refus" in v) return null;
+      cle = (v as Charge).jti;
+    }
     const r = await this.p().query<Compte>(
       `SELECT c.id::text, c.adresse, c.cree_le, c.vu_le
          FROM sessions s JOIN comptes c ON c.id = s.compte_id
         WHERE s.jeton_hash = $1 AND s.revoquee_le IS NULL AND s.expire_le > now()`,
-      [hash(jeton)],
+      [hash(cle)],
     );
     return r.rows[0] ?? null;
   }
 
   async fermerSession(jeton: string): Promise<boolean> {
+    let cle = jeton;
+    if (jeton.split(".").length === 3) {
+      const v = verifier(jeton);
+      // Un jeton illisible ne ferme rien, mais il ne doit pas non plus lever : deconnecter
+      // avec un jeton perime est le cas NORMAL, pas une erreur.
+      if ("refus" in v) return false;
+      cle = (v as Charge).jti;
+    }
     const r = await this.p().query(
       `UPDATE sessions SET revoquee_le = now() WHERE jeton_hash = $1 AND revoquee_le IS NULL`,
-      [hash(jeton)],
+      [hash(cle)],
     );
     return (r.rowCount ?? 0) === 1;
   }

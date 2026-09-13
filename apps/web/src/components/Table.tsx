@@ -106,7 +106,7 @@ export function HookTable({
                 {shortAddr(h.address, 10, 6)}
               </div>
               <div className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
-                {h.registry ? h.registry.name : 'nom inconnu'}
+                {h.registry ? h.registry.name : 'unknown name'}
               </div>
               <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                 base · chainid {h.chainId}
@@ -118,7 +118,7 @@ export function HookTable({
 
       col.accessor((h) => (h.inRegistry ? 1 : 0), {
         id: 'registre',
-        header: 'ce que le registre dit',
+        header: 'what the registry says',
         cell: (c) => {
           const r = c.row.original.registry
           if (!r)
@@ -128,7 +128,7 @@ export function HookTable({
                   ABSENT
                 </div>
                 <div className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
-                  aucune fiche dans hooklist.json
+                  no entry in hooklist.json
                 </div>
                 <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                   commit {dataset.provenance.registry.commit.slice(0, 7)}
@@ -138,21 +138,21 @@ export function HookTable({
           return (
             <div className="px-[10px] py-[6px] flex flex-col gap-[3px]">
               <div className="flex flex-wrap gap-x-[10px] gap-y-[2px]">
-                <Bool on={r.verifiedSource} label="SRC" title="verifiedSource — source verifiee" />
-                <Bool on={r.dynamicFee} label="DYN" title="dynamicFee — commission dynamique declaree" />
-                <Bool on={r.upgradeable} label="UPG" title="upgradeable — contrat evolutif" />
-                <Bool on={r.vanillaSwap} label="VAN" title="vanillaSwap — swap standard" />
+                <Bool on={r.verifiedSource} label="SRC" title="verifiedSource — verified source" />
+                <Bool on={r.dynamicFee} label="DYN" title="dynamicFee — dynamic fee declared" />
+                <Bool on={r.upgradeable} label="UPG" title="upgradeable — upgradeable contract" />
+                <Bool on={r.vanillaSwap} label="VAN" title="vanillaSwap — standard swap" />
                 <Bool
                   on={r.requiresCustomSwapData}
                   label="CSD"
-                  title="requiresCustomSwapData — donnees de swap specifiques"
+                  title="requiresCustomSwapData — custom swap data"
                 />
               </div>
               <div className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
-                swapAccess : {r.swapAccess}
+                swapAccess: {r.swapAccess}
               </div>
               <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                aucun champ numerique dans les {dataset.provenance.registry.entries} fiches
+                no numeric field across the {dataset.provenance.registry.entries} entries
               </div>
             </div>
           )
@@ -161,7 +161,7 @@ export function HookTable({
 
       col.accessor((h) => h.bpsMax ?? -1, {
         id: 'mesure',
-        header: '\u2260 ce que la mesure dit',
+        header: '\u2260 what the measurement says',
         cell: (c) => {
           const h = c.row.original
           if (h.bpsMax === null)
@@ -171,10 +171,10 @@ export function HookTable({
                   —
                 </div>
                 <div className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
-                  aucune cotation
+                  no quote
                 </div>
                 <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                  bloc {fmtBlock(h.blocks[0])}
+                  block {fmtBlock(h.blocks[0])}
                 </div>
               </div>
             )
@@ -190,7 +190,7 @@ export function HookTable({
                 min {h.bpsMin!.toFixed(2)} · {h.measuredCount} obs
               </div>
               <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                bloc {fmtBlock(h.blocks[0])}
+                block {fmtBlock(h.blocks[0])}
                 {w && ` · ${powerOfTen(w.amount_in) ?? groupDigits(w.amount_in)} · ${w.zero_for_one ? 'c0→c1' : 'c1→c0'}`}
               </div>
             </div>
@@ -207,12 +207,12 @@ export function HookTable({
             <div className="px-[10px] py-[6px] text-right">
               <div className="t-data">{h.poolCount}</div>
               <div className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
-                {h.poolCountMeasured} cotes
+                {h.poolCountMeasured} quoted
               </div>
               <div
                 className="t-data-sm"
                 style={{ color: 'var(--ink-2)' }}
-                title={`commissions LP lues on-chain : ${h.storedLpFees.join(', ')}`}
+                title={`LP fees read on-chain: ${h.storedLpFees.join(', ')}`}
               >
                 lp fee {h.storedLpFees.slice(0, 3).join('/')}
                 {h.storedLpFees.length > 3 && ` +${h.storedLpFees.length - 3}`}
@@ -224,17 +224,17 @@ export function HookTable({
 
       col.accessor('rowCount', {
         id: 'mesures',
-        header: 'mesures',
+        header: 'measurements',
         cell: (c) => {
           const h = c.row.original
           return (
             <div className="px-[10px] py-[6px] text-right">
               <div className="t-data">{h.rowCount}</div>
               <div className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
-                {h.counts.MESURE} mesure
+                {h.counts.MESURE} MESURE
               </div>
               <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                {h.counts.NON_COTABLE} non cotable · {h.counts.NON_MESURABLE} non mesurable
+                {h.counts.NON_COTABLE} NON_COTABLE · {h.counts.NON_MESURABLE} NON_MESURABLE
               </div>
             </div>
           )
@@ -243,10 +243,10 @@ export function HookTable({
 
       col.accessor('label', {
         id: 'etiquette',
-        header: 'étiquette',
+        header: 'label',
         cell: (c) => (
           <div className="px-[10px] py-[6px]">
-            <Chip title="etiquette la plus forte presente sur ce hook, jamais une moyenne">
+            <Chip title="strongest label present on this hook, never an average">
               {c.getValue()}
             </Chip>
           </div>
@@ -262,7 +262,7 @@ export function HookTable({
           return (
             <div className="px-[10px] py-[6px]">
               <div className="t-data" style={{ color: url ? 'var(--ink)' : 'var(--ink-2)' }}>
-                {url ? 'oui' : 'non'}
+                {url ? 'yes' : 'no'}
               </div>
               {url ? (
                 <a
@@ -272,11 +272,11 @@ export function HookTable({
                   rel="noreferrer"
                   style={{ color: 'var(--focus)' }}
                 >
-                  ouvrir
+                  open
                 </a>
               ) : (
                 <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                  {r ? 'auditUrl vide' : 'hors registre'}
+                  {r ? 'auditUrl empty' : 'not in the registry'}
                 </div>
               )}
             </div>
@@ -303,7 +303,7 @@ export function HookTable({
       className="overflow-x-auto tableau-registre"
       tabIndex={0}
       role="region"
-      aria-label="tableau registre contre mesure, défilement horizontal"
+      aria-label="registry against measurement table, horizontal scrolling"
       onScroll={mesurer}
     >
       <table className="w-full border-collapse" style={{ minWidth: 1080 }}>
@@ -341,7 +341,7 @@ export function HookTable({
                 className="t-data-sm px-[10px] py-[12px]"
                 style={{ color: 'var(--ink-2)', borderBottom: '1px solid var(--line)' }}
               >
-                Aucune ligne ne satisfait ce critere. Ce n'est pas un zero : c'est une selection vide.
+                No row matches this criterion. This is not a zero: it is an empty selection.
               </td>
             </tr>
           )}
@@ -417,7 +417,7 @@ export function HookTable({
           pointerEvents: 'none',
         }}
       >
-        {reste} colonne{reste > 1 ? 's' : ''} à droite →
+        {reste} column{reste > 1 ? 's' : ''} to the right →
       </div>
     )}
     </div>

@@ -308,12 +308,16 @@ test('les monnaies de cotation ne sont pas des jetons a tester', () => {
 
 test('l ecran ne peut pas afficher de montant sur un refus', () => {
   const src = readFileSync(resolve(ICI, '../components/Exit.tsx'), 'utf8')
-  // phraseSortie n est appelee que dans la branche 'ok'. Un appel ailleurs signifierait
-  // qu un refus peut malgre tout produire un nombre.
-  const appels = src.match(/phraseSortie\(/g) ?? []
-  assert.equal(appels.length, 1)
+  // LA GARANTIE, et elle n a pas bouge : la phrase qui porte un MONTANT n est ecrite que dans
+  // la branche 'ok'. L ecran est passe en anglais et la fonction s appelle desormais
+  // `phraseEnAnglais` ; ce que le test garde est identique — un refus ne peut pas produire un
+  // nombre. On verifie donc qu elle n est appelee qu une fois, et apres le debut du bloc 'ok'.
+  // Deux occurrences attendues : la DECLARATION de la fonction, et son unique APPEL. Une
+  // troisieme voudrait dire qu un montant s ecrit ailleurs que dans la branche 'ok'.
+  const appels = src.match(/phraseEnAnglais\(/g) ?? []
+  assert.equal(appels.length, 2, 'la phrase chiffree ne doit etre appelee qu a un seul endroit')
   const bloc = src.slice(src.indexOf("resultat?.etat === 'ok'"))
-  assert.ok(bloc.includes('phraseSortie('), 'le seul appel doit etre dans la branche ok')
+  assert.ok(bloc.includes('phraseEnAnglais('), 'le seul appel doit etre dans la branche ok')
   // et le refus dit sa raison plutot que de se taire.
   assert.ok(src.includes('{resultat.raison}'))
 })

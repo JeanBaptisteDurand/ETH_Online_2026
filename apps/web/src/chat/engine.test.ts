@@ -299,7 +299,7 @@ test('la divergence entre lecture locale et lecture serveur est dite, pas arbitr
   const f = { maxBps: 1 }
   assert.equal(crossCheck(['0xa'], ['0xa'], f, { maxBps: 1 }), null)
   const w = crossCheck(['0xa'], ['0xa', '0xb'], f, { maxBps: 1 })
-  assert.ok(w && w.includes('divergent'))
+  assert.ok(w && w.includes('diverge'))
   // criteres differents : on ne compare pas, donc on n'accuse pas
   assert.equal(crossCheck(['0xa'], ['0xa', '0xb'], f, { maxBps: 2 }), null)
   assert.equal(crossCheck(['0xa'], null, f, f), null)
@@ -328,7 +328,7 @@ test('une demande de mesure n’est jamais executee par le navigateur', () => {
     model,
   )
   assert.equal(out.results[0].ok, false)
-  assert.ok(out.results[0].note.toLowerCase().includes('un seul mesureur par anvil'))
+  assert.ok(out.results[0].note.toLowerCase().includes('one measurer per anvil'))
   assert.ok(out.results[0].lines.some((l) => l.v.includes('POST /measure')))
 })
 

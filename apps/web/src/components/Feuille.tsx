@@ -28,59 +28,59 @@ const AT = facts.attestations
 /** Ce qui reste devant. Chaque entrée dit ce qui EST aujourd’hui, avant de dire ce qui manque. */
 const SUITE: { titre: string; etat: ReactNode; texte: ReactNode }[] = [
   {
-    titre: 'D’autres chaînes que Base',
-    etat: 'rien de mesuré ailleurs',
+    titre: 'Chains other than Base',
+    etat: 'nothing measured elsewhere',
     texte: (
       <>
-        Les {nb(facts.inventaire.corpus.n)} mesures sont prises sur <F>Base</F> et sur elle seule
-        (<C>chain_id 8453</C> sur chaque ligne du corpus). Le moteur ne connaît rien d’autre
-        aujourd’hui : aucun hook d’une autre chaîne n’a été coté, donc aucune réponse ne peut en
-        parler. <F>Pas encore.</F>
+        The {nb(facts.inventaire.corpus.n)} measurements are taken on <F>Base</F> and on it alone
+        (<C>chain_id 8453</C> on every row of the corpus). The engine knows nothing else
+        today: no hook from another chain has been quoted, so no answer can speak about
+        one. <F>Not yet.</F>
       </>
     ),
   },
   {
-    titre: 'Un balayage continu, au lieu d’un bloc épinglé',
-    etat: <>tout est pris au bloc {nb(BLOC)}</>,
+    titre: 'A continuous sweep, instead of a pinned block',
+    etat: <>everything is taken at block {nb(BLOC)}</>,
     texte: (
       <>
-        Un chiffre n’est rejouable que parce qu’il porte son bloc : le corpus entier est épinglé
-        au bloc {nb(BLOC)}, et une mesure demandée à un autre bloc rend{' '}
-        <C>NOT_MEASURABLE / fork_block_mismatch</C> plutôt qu’un nombre estampillé d’un bloc où il
-        n’a pas été pris. Un balayage qui suivrait la tête de chaîne et re-mesurerait en continu
-        n’est pas écrit. <F>Pas encore.</F>
+        A number is replayable only because it carries its block: the whole corpus is pinned
+        at block {nb(BLOC)}, and a measurement requested at another block returns{' '}
+        <C>NOT_MEASURABLE / fork_block_mismatch</C> rather than a number stamped with a block it
+        was not taken at. A sweep that would follow the chain head and re-measure continuously
+        is not written. <F>Not yet.</F>
       </>
     ),
   },
   {
-    titre: 'L’attestation des hooks calculés mais pas écrits',
+    titre: 'Attestation of the hooks computed but not written',
     etat: (
       <>
-        {nb(AT.calcules)} calculées, {nb(AT.ecrits)} écrites
+        {nb(AT.calcules)} computed, {nb(AT.ecrits)} written
       </>
     ),
     texte: (
       <>
-        {nb(AT.calcules)} attestations sont calculées depuis le corpus ; <F>{nb(AT.ecrits)}</F>{' '}
-        seulement sont réellement écrites on-chain ({nb(AT.tentes)} tentées, {nb(AT.ecartes)}{' '}
-        écartées). Le reste attend du gaz, et l’écart est publié plutôt que lissé. Le contrat se
-        lit ici :{' '}
+        {nb(AT.calcules)} attestations are computed from the corpus; only <F>{nb(AT.ecrits)}</F>{' '}
+        are actually written on-chain ({nb(AT.tentes)} attempted, {nb(AT.ecartes)}{' '}
+        discarded). The rest is waiting on gas, and the gap is published rather than smoothed
+        over. The contract can be read here:{' '}
         <Lien href={AT.hashscan}>
           {AT.contrat.slice(0, 10)}…{AT.contrat.slice(-6)}
         </Lien>
-        . <F>Pas encore.</F>
+        . <F>Not yet.</F>
       </>
     ),
   },
   {
-    titre: 'Le déploiement du contrat d’abonnement',
-    etat: 'écrit, testé, jamais déployé',
+    titre: 'The deployment of the subscription contract',
+    etat: 'written, tested, never deployed',
     texte: (
       <>
-        182 lignes de Solidity et 20 tests forge, vérifiés contre un fork local où 1,5 × le prix
-        achète exactement 45,00 jours — mais le contrat n’est <F>déployé sur aucun réseau
-        public</F>. Tant qu’il ne l’est pas, le compte répond « abonnement non vérifié, donc pas
-        actif », et il le dit au lieu de faire semblant. <F>Pas encore.</F>
+        182 lines of Solidity and 20 forge tests, verified against a local fork where 1.5 × the
+        price buys exactly 45.00 days — but the contract is <F>deployed on no public
+        network</F>. As long as it is not, the account answers « subscription not verified, so
+        not active », and it says so instead of pretending. <F>Not yet.</F>
       </>
     ),
   },
@@ -196,22 +196,22 @@ export function FeuillePage() {
           className="flex flex-wrap items-center gap-x-[14px] gap-y-[6px] pb-[12px] t-data-sm"
           style={{ color: 'var(--ink-2)' }}
         >
-          <span>{OUTILS.length} outils</span>
-          <span className="meta-filet">{PRETS.length} tournent</span>
-          <span className="meta-filet">{ATTENTE.length} attendent une action humaine</span>
-          <span className="meta-filet">aucune date</span>
+          <span>{OUTILS.length} tools</span>
+          <span className="meta-filet">{PRETS.length} running</span>
+          <span className="meta-filet">{ATTENTE.length} waiting on a human action</span>
+          <span className="meta-filet">no date</span>
         </div>
         <h1 className="t-headline m-0" style={{ color: 'var(--ink)', maxWidth: '24ch' }}>
-          Ce qui tourne, ce qui attend, ce qui n’existe pas
+          What runs, what waits, what does not exist
         </h1>
         <div className="pt-[14px] flex flex-col gap-[10px]">
           <P>
-            Cette page ne porte <F>aucune date</F>, et le mot « bientôt » n’y apparaît pas : une
-            date qu’on ne tient pas est un chiffre faux de plus. Les deux premières colonnes sont
-            lues dans <C>src/lib/outils.ts</C>, où chaque outil porte son état — et la règle du
-            fichier est qu’un outil qui n’est pas prêt <F>doit dire pourquoi</F>. La troisième
-            colonne est ce qui reste devant : pour chacun, ce qui existe aujourd’hui d’abord, ce
-            qui manque ensuite, et aucune date.
+            This page carries <F>no date</F>, and the word « soon » does not appear on it: a
+            date you do not keep is one more false number. The first two columns are read from
+            <C>src/lib/outils.ts</C>, where every tool carries its state — and the rule of that
+            file is that a tool which is not ready <F>must say why</F>. The third column is what
+            is still ahead: for each one, what exists today first, what is missing next, and no
+            date.
           </P>
         </div>
       </header>
@@ -221,8 +221,8 @@ export function FeuillePage() {
         style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}
       >
         {/* --------------------------------------- 1. ce qui tourne aujourd’hui */}
-        <Panel index="feuille-pret" title="Ce qui tourne aujourd’hui" meta={['état : prêt']}>
-          <Compte n={PRETS.length} quoi="outils sur quatorze, utilisables maintenant" />
+        <Panel index="feuille-pret" title="What runs today" meta={['state: ready']}>
+          <Compte n={PRETS.length} quoi="tools out of fourteen, usable right now" />
           <ul className="m-0 p-0">
             {PRETS.map((o) => (
               <Ligne
@@ -244,7 +244,7 @@ export function FeuillePage() {
                 <span className="t-data-sm" style={{ color: 'var(--ink)', fontSize: 13 }}>
                   {o.n} · {o.nom}
                 </span>
-                <Chip>hors ligne par construction</Chip>
+                <Chip>offline by construction</Chip>
               </div>
               <div className="t-data-sm" style={{ color: 'var(--ink-2)', lineHeight: 1.55 }}>
                 {o.pourquoi ? <Gras texte={o.pourquoi} /> : null}
@@ -256,10 +256,10 @@ export function FeuillePage() {
         {/* ------------------------------------- 2. écrit, pas encore déployé */}
         <Panel
           index="feuille-attente"
-          title="Écrit, pas encore déployé"
-          meta={['état : en attente']}
+          title="Written, not yet deployed"
+          meta={['state: pending']}
         >
-          <Compte n={ATTENTE.length} quoi="outils dont le code existe et dont l’action manque" />
+          <Compte n={ATTENTE.length} quoi="tools whose code exists and whose action is missing" />
           <ul className="m-0 p-0">
             {ATTENTE.map((o) => (
               <Ligne
@@ -273,17 +273,17 @@ export function FeuillePage() {
           </ul>
           <div className="px-[16px] py-[12px]" style={{ borderTop: '1px solid var(--line)' }}>
             <P>
-              Ces trois-là ne sont pas des intentions : le code est écrit et il passe ses tests.
-              Ce qui manque est <F>une action qu’aucun test ne fait</F> — une transaction de
-              déploiement, du gaz, un fichier de 198 Mo reconstruit. Le texte ci-dessus est celui
-              du dépôt, recopié sans être adouci.
+              These three are not intentions: the code is written and it passes its tests. What
+              is missing is <F>an action that no test performs</F> — a deployment transaction,
+              gas, a 198 MB file rebuilt. The text above is the one from the repository, copied
+              over without being softened.
             </P>
           </div>
         </Panel>
 
         {/* ------------------------------------------------------- 3. la suite */}
-        <Panel index="feuille-suite" title="La suite" meta={['aucune date']}>
-          <Compte n={SUITE.length} quoi="chantiers devant nous, et aucune date pour aucun" />
+        <Panel index="feuille-suite" title="What comes next" meta={['no date']}>
+          <Compte n={SUITE.length} quoi="pieces of work ahead of us, and no date for any" />
           <ul className="m-0 p-0">
             {SUITE.map((s) => (
               <Ligne key={s.titre} titre={s.titre} etiquette={s.etat} corps={s.texte} />
@@ -291,10 +291,10 @@ export function FeuillePage() {
           </ul>
           <div className="px-[16px] py-[12px]" style={{ borderTop: '1px solid var(--line)' }}>
             <P>
-              Rien de cette colonne n’a de date, et rien n’en aura tant que ce ne sera pas écrit.
-              Un projet qui promet quatre chantiers datés en a trois en retard la semaine
-              suivante ; celui-ci préfère dire <F>pas encore</F>, qui reste vrai jusqu’au jour où
-              la ligne change de colonne.
+              Nothing in this column has a date, and nothing will have one until it is written.
+              A project that promises four dated pieces of work has three of them late the week
+              after; this one would rather say <F>not yet</F>, which stays true until the day the
+              line changes column.
             </P>
           </div>
         </Panel>

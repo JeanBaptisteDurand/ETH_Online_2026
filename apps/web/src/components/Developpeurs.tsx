@@ -197,29 +197,29 @@ export function DeveloppeursPage() {
           className="flex flex-wrap items-center gap-x-[14px] gap-y-[6px] pb-[12px] t-data-sm"
           style={{ color: 'var(--ink-2)' }}
         >
-          <span>4 outils MCP</span>
-          <span className="meta-filet">1 extension Manifest V3</span>
-          <span className="meta-filet">12 routes de compte</span>
-          <span className="meta-filet">1 route payante</span>
+          <span>4 MCP tools</span>
+          <span className="meta-filet">1 Manifest V3 extension</span>
+          <span className="meta-filet">12 account routes</span>
+          <span className="meta-filet">1 paid route</span>
         </div>
         <h1 className="t-headline m-0" style={{ color: 'var(--ink)', maxWidth: '22ch' }}>
-          Brancher TARE ailleurs que sur ce site
+          Plugging TARE in somewhere other than this site
         </h1>
         <div className="pt-[14px] flex flex-col gap-[10px]">
           <P>
-            Deux pièces s’installent chez vous — <F>le serveur MCP</F>, pour un modèle, et{' '}
-            <F>l’extension</F>, pour la seconde qui précède une signature. Les deux répondent{' '}
-            <F>hors ligne</F>, depuis les {nb(MESURES)} mesures commitées de <C>{CORPUS}</C> :
-            ni l’une ni l’autre n’a besoin d’une clé, d’un compte ou de notre serveur pour
-            rendre un verdict. Deux portes réseau restent, et elles ne servent qu’à ça :{' '}
-            <C>/compte</C> pour les clés, les paquets et l’historique, <C>POST /measure</C> pour
-            une mesure neuve payée à l’unité.
+            Two pieces install on your own machine — <F>the MCP server</F>, for a model, and{' '}
+            <F>the extension</F>, for the second that comes before a signature. Both answer{' '}
+            <F>offline</F>, from the {nb(MESURES)} committed measurements in <C>{CORPUS}</C>:
+            neither one needs a key, an account or our server to return a verdict. Two network
+            doors remain, and that is all they are for:{' '}
+            <C>/compte</C> for the keys, the packages and the history, <C>POST /measure</C> for
+            a fresh measurement paid for by the unit.
           </P>
           <P>
-            Le dépôt :{' '}
-            <Lien href={facts.depot}>{facts.depot.replace('https://', '')}</Lien>. Dans toutes
-            les commandes de cette page, <C>$TARE</C> est l’endroit où vous l’avez cloné —{' '}
-            <C>export TARE=$(pwd)</C> une fois, à la racine, et tout se colle tel quel.
+            The repository:{' '}
+            <Lien href={facts.depot}>{facts.depot.replace('https://', '')}</Lien>. In every
+            command on this page, <C>$TARE</C> is wherever you cloned it —{' '}
+            <C>export TARE=$(pwd)</C> once, at the root, and everything pastes as is.
           </P>
         </div>
       </header>
@@ -227,135 +227,135 @@ export function DeveloppeursPage() {
       {/* ------------------------------------------------------------ 1. le MCP */}
       <Panel
         index="dev-mcp"
-        title="Le serveur MCP"
-        meta={['4 outils', 'stdio', 'clé facultative']}
+        title="The MCP server"
+        meta={['4 tools', 'stdio', 'optional key']}
       >
         <Corps>
           <P>
-            Un modèle à qui on demande « ce hook prend combien ? » <F>invente un nombre
-            plausible</F>. Le serveur lui donne quatre outils dont les descriptions disent, en
-            toutes lettres, de ne jamais énoncer un chiffre que l’outil n’a pas rendu. Le modèle
-            choisit quoi demander ; il ne produit aucune valeur. Chaque réponse publie le fichier
-            réellement lu, son sha256 et son nombre de lignes sous <C>provenance</C>, et la
-            commande qui la rejoue cite <F>ce même fichier</F>.
+            A model asked “how much does this hook take?” <F>invents a plausible
+            number</F>. The server gives it four tools whose descriptions say, in so many
+            words, never to state a number the tool did not return. The model chooses what to
+            ask; it produces no value of its own. Every answer publishes the file actually
+            read, its sha256 and its line count under <C>provenance</C>, and the
+            command that replays it cites <F>that same file</F>.
           </P>
         </Corps>
 
         <Tableau
           gabarit="minmax(150px,190px) minmax(220px,1fr) minmax(150px,190px)"
-          entetes={['outil', 'la question à laquelle il répond', 'a-t-il besoin du fork ?']}
+          entetes={['tool', 'the question it answers', 'does it need the fork?']}
           lignes={[
             [
               <C>tare_measure</C>,
               <>
-                ce hook, sur <F>ce</F> swap-là, à cette taille — combien prend-il ? Arguments :{' '}
+                this hook, on <F>that</F> swap, at this size — how much does it take? Arguments:{' '}
                 <C>hook, pool, size, direction, block?</C>
               </>,
-              'seulement pour un swap absent du corpus',
+              'only for a swap missing from the corpus',
             ],
             [
               <C>tare_lookup</C>,
-              'tout ce qui est déjà enregistré sur ce hook, ligne par ligne, avec son étiquette',
-              'non',
+              'everything already recorded on this hook, row by row, with its label',
+              'no',
             ],
             [
               <C>tare_impact</C>,
-              'le rayon d’action : quels pools, quels jetons, et quelle part est réellement mesurée',
-              'non',
+              'the reach: which pools, which tokens, and what share is actually measured',
+              'no',
             ],
             [
               <C>tare_twins</C>,
-              'même bytecode, mêmes permissions déclarées, même main',
-              'seulement pour les jumeaux de bytecode',
+              'same bytecode, same declared permissions, same hand',
+              'only for bytecode twins',
             ],
           ]}
         />
 
         <Corps>
           <P>
-            <F>Les quatre étiquettes ne sont jamais relevées</F> — une réponse qui n’a pas de
-            chiffre n’en reçoit pas plus tard :
+            <F>The four labels are never raised</F> — an answer that has no number does not
+            get one later:
           </P>
           <div className="flex flex-wrap gap-[8px]">
-            <Chip title="la valeur a été mesurée">MEASURED</Chip>
-            <Chip title="interpolée entre deux tailles mesurées, les deux bornes étant citées">
+            <Chip title="the value was measured">MEASURED</Chip>
+            <Chip title="interpolated between two measured sizes, with both bounds cited">
               INTERPOLATED
             </Chip>
-            <Chip title="rien à citer, et la raison est dite">NOT_MEASURABLE</Chip>
-            <Chip title="le pool n’a pas pu être coté">NOT_QUOTABLE</Chip>
+            <Chip title="nothing to cite, and the reason is stated">NOT_MEASURABLE</Chip>
+            <Chip title="the pool could not be quoted">NOT_QUOTABLE</Chip>
           </div>
           <P>
-            L’ordre de résolution de <C>tare_measure</C> : la ligne exacte du corpus, puis l’API
-            si elle répond, puis <F>la contrefactuelle en direct contre le fork épinglé</F> —{' '}
-            <C>anvil_setCode</C> remplace le bytecode du hook par un talon inerte de 89 octets,
-            l’adresse ne bouge pas, donc <C>poolId</C>, liquidité et <C>slot0</C> restent
-            identiques au bit près, et le même swap est coté deux fois. La différence <F>est</F>{' '}
-            ce que le hook a pris. Si la tête du fork n’est pas le bloc demandé, la réponse est{' '}
-            <C>NOT_MEASURABLE</C> avec <C>fork_block_mismatch</C> — jamais un nombre estampillé
-            d’un bloc où il n’a pas été pris.
+            The resolution order of <C>tare_measure</C>: the exact row in the corpus, then the
+            API if it answers, then <F>the live counterfactual against the pinned fork</F> —{' '}
+            <C>anvil_setCode</C> replaces the hook’s bytecode with an 89-byte inert stub,
+            the address does not move, so <C>poolId</C>, liquidity and <C>slot0</C> stay
+            identical to the bit, and the same swap is quoted twice. The gap <F>is</F>{' '}
+            what the hook took. If the fork’s head is not the requested block, the answer is{' '}
+            <C>NOT_MEASURABLE</C> with <C>fork_block_mismatch</C> — never a number stamped
+            with a block where it was not taken.
           </P>
         </Corps>
 
         <Corps>
-          <Bloc titre="1. construire le serveur" code={BUILD_MCP} />
+          <Bloc titre="1. build the server" code={BUILD_MCP} />
           <Bloc
             titre="2. Claude Desktop — claude_desktop_config.json"
             code={CONFIG_CLAUDE}
             note={
               <>
-                macOS :{' '}
-                <C>~/Library/Application Support/Claude/claude_desktop_config.json</C> · Windows :{' '}
-                <C>%APPDATA%\Claude\claude_desktop_config.json</C>. Redémarrer Claude Desktop
-                ensuite.
+                macOS:{' '}
+                <C>~/Library/Application Support/Claude/claude_desktop_config.json</C> · Windows:{' '}
+                <C>%APPDATA%\Claude\claude_desktop_config.json</C>. Restart Claude Desktop
+                afterwards.
               </>
             }
           />
           <Bloc
-            titre="2 bis. Claude Code — la même chose en une ligne"
+            titre="2b. Claude Code — the same thing in one line"
             code={AJOUT_CLAUDE_CODE}
           />
           <Bloc
-            titre="facultatif — pour mesurer des swaps absents du corpus"
+            titre="optional — to measure swaps missing from the corpus"
             code={FORK}
-            note={<>le fork épinglé au bloc {nb(BLOC)} ; sans lui, tout le reste répond quand même</>}
+            note={<>the fork pinned at block {nb(BLOC)}; without it, everything else still answers</>}
           />
         </Corps>
 
         <Corps>
           <P>
             <F>
-              <C>TARE_CLE_API</C> est facultative.
+              <C>TARE_CLE_API</C> is optional.
             </F>{' '}
-            Sans elle, le serveur n’envoie <F>rien du tout</F> : les outils lisent le corpus
-            commité et le fork local, ils n’ont besoin de personne. Avec une clé de portée{' '}
-            <C>mcp</C>, générée depuis votre compte, chaque appel est déposé dans votre
-            historique — le dépôt ne retarde jamais une réponse et ne fait jamais échouer un
-            appel.
+            Without it, the server sends <F>nothing at all</F>: the tools read the committed
+            corpus and the local fork, they need no one. With a key scoped to{' '}
+            <C>mcp</C>, generated from your account, every call is logged to your
+            history — the logging never delays an answer and never makes a call
+            fail.
           </P>
         </Corps>
 
         <Tableau
           min={560}
           gabarit="minmax(170px,220px) minmax(120px,170px) minmax(200px,1fr)"
-          entetes={['variable', 'défaut', 'ce qu’elle fait']}
+          entetes={['variable', 'default', 'what it does']}
           lignes={[
-            [<C>TARE_RPC_URL</C>, <C>http://127.0.0.1:8545</C>, 'le fork épinglé'],
+            [<C>TARE_RPC_URL</C>, <C>http://127.0.0.1:8545</C>, 'the pinned fork'],
             [
               <C>TARE_API_URL</C>,
               <C>http://127.0.0.1:8787</C>,
-              'l’API ; son absence est signalée, jamais masquée',
+              'the API; its absence is reported, never hidden',
             ],
-            [<C>TARE_BLOCK</C>, <C>{String(BLOC)}</C>, 'le bloc où le corpus a été pris'],
-            [<C>TARE_LIVE</C>, <C>1</C>, <><C>0</C> interdit au serveur de toucher au fork</>],
+            [<C>TARE_BLOCK</C>, <C>{String(BLOC)}</C>, 'the block where the corpus was taken'],
+            [<C>TARE_LIVE</C>, <C>1</C>, <><C>0</C> forbids the server from touching the fork</>],
             [
               <C>TARE_HOOK_UNIVERSE</C>,
               <C>docs/hooks-universe.json</C>,
-              'les adresses supplémentaires que tare_twins va sonder',
+              'the extra addresses tare_twins will probe',
             ],
             [
               <C>TARE_CLE_API</C>,
-              'aucun',
-              'la seule qui parle au réseau, et seulement pour l’historique',
+              'none',
+              'the only one that talks to the network, and only for the history',
             ],
           ]}
         />
@@ -363,18 +363,18 @@ export function DeveloppeursPage() {
         <Corps>
           <Replay
             cmd={REJEU}
-            note={`la forme exacte que produit apps/mcp/src/replay.ts, ici sur la première ligne de ${CORPUS} ; le serveur, lui, y met le chemin absolu de votre copie.`}
+            note={`the exact shape apps/mcp/src/replay.ts produces, here on the first row of ${CORPUS}; the server itself puts the absolute path of your own copy in it.`}
           />
           {mcp && (
             <P>
-              Cet accès couvre {mcp.outils.length} des quatorze outils du catalogue :{' '}
+              This access covers {mcp.outils.length} of the fourteen tools in the catalog:{' '}
               {couverts(mcp.outils).map((o, i) => (
                 <span key={o.n}>
                   {i > 0 ? ', ' : ''}
                   {o.n} · {o.nom}
                 </span>
               ))}
-              . Prérequis : {mcp.prerequis}.
+              . Requires: {mcp.prerequis}.
             </P>
           )}
         </Corps>
@@ -383,204 +383,204 @@ export function DeveloppeursPage() {
       {/* ------------------------------------------------------ 2. l’extension */}
       <Panel
         index="dev-extension"
-        title="L’extension de navigateur"
-        meta={['Manifest V3', 'aucune requête réseau', 'sans clé']}
+        title="The browser extension"
+        meta={['Manifest V3', 'no network request', 'no key']}
       >
         <Corps>
           <P>
-            Le bon moment pour savoir ce qu’un hook prend n’est pas quand on cherche : c’est{' '}
-            <F>trois secondes avant de signer</F>, sur le site où on échange. L’extension
-            s’installe au <C>document_start</C>, dans le monde de la page (<C>world: "MAIN"</C>),{' '}
-            <F>avant qu’un portefeuille ait publié <C>window.ethereum</C></F> — dans le monde
-            isolé elle ne verrait rien, et au <C>document_idle</C> elle arriverait après. Elle
-            couvre trois portes : un fournisseur déjà présent, un fournisseur assigné plus tard
-            (par un accesseur qui <F>préserve le setter</F>, donc aucun portefeuille ne casse), et
-            les annonces EIP-6963.
+            The right moment to know what a hook takes is not while you are searching: it is{' '}
+            <F>three seconds before signing</F>, on the site where you swap. The extension
+            installs at <C>document_start</C>, in the page’s world (<C>world: "MAIN"</C>),{' '}
+            <F>before any wallet has published <C>window.ethereum</C></F> — in the isolated
+            world it would see nothing, and at <C>document_idle</C> it would arrive too late. It
+            covers three doors: a provider already present, a provider assigned later
+            (through an accessor that <F>preserves the setter</F>, so no wallet breaks), and
+            EIP-6963 announcements.
           </P>
           <P>
-            Elle intercepte <C>eth_sendTransaction</C> <F>et rien d’autre</F> : les demandes de
-            signature et les changements de chaîne passent intactes — une garde qui détourne plus
-            qu’elle ne doit est une garde que personne ne garde. Sur une transaction, elle lit la{' '}
-            <C>PoolKey</C> dans le calldata de l’Universal Router (<C>{G.universal_router}</C>,
-            chaîne {G.chain_id}), et affiche ce que ce hook a pris à cette taille, le bloc où ça a
-            été mesuré, et la commande de rejeu. {G.transactions_reelles} transactions Base réelles
-            servent de gabarits à ses tests (<C>{facts.sources.garde}</C>).
+            It intercepts <C>eth_sendTransaction</C> <F>and nothing else</F>: signature
+            requests and chain switches pass through untouched — a guard that diverts more
+            than it should is a guard nobody keeps. On a transaction, it reads the{' '}
+            <C>PoolKey</C> from the Universal Router calldata (<C>{G.universal_router}</C>,
+            chain {G.chain_id}), and shows what that hook took at that size, the block where it
+            was measured, and the replay command. {G.transactions_reelles} real Base transactions
+            serve as templates for its tests (<C>{facts.sources.garde}</C>).
           </P>
           <P>
-            <F>Elle n’invente pas :</F> un pool qui n’a pas été mesuré rend <C>unknown</C>, et{' '}
-            <C>unknown</C> ne devient jamais <C>ok</C>.
+            <F>It does not invent:</F> a pool that has not been measured returns <C>unknown</C>, and{' '}
+            <C>unknown</C> never becomes <C>ok</C>.
           </P>
         </Corps>
 
         <Corps>
           <Bloc
-            titre="1. construire le script injecté"
+            titre="1. build the injected script"
             code={BUILD_EXT}
             note={
               <>
-                empaquette <C>src/browser.ts</C> vers <C>extension/inject.js</C>
+                bundles <C>src/browser.ts</C> into <C>extension/inject.js</C>
               </>
             }
           />
           <P>
-            <F>2. Charger :</F> <C>chrome://extensions</C> → <F>mode développeur</F> →{' '}
-            <F>Load unpacked</F> → le dossier <C>packages/guard/extension</C>.
+            <F>2. Load it:</F> <C>chrome://extensions</C> → <F>developer mode</F> →{' '}
+            <F>Load unpacked</F> → the <C>packages/guard/extension</C> folder.
           </P>
           <P>
-            L’entrée <C>icons</C> du manifeste n’est pas décorative : Chrome{' '}
-            <F>refuse de charger</F> une extension dont l’icône déclarée manque (« Could not load
-            icon 'icon128.png' specified in 'icons' »). Le dossier a été livré sans elle jusqu’au
-            9 septembre 2026 — l’extension était donc non installable, et c’est le défaut qu’aucune
-            suite de tests verte n’attrape, puisqu’aucun test ne charge une extension de
-            navigateur.
+            The <C>icons</C> entry in the manifest is not decorative: Chrome{' '}
+            <F>refuses to load</F> an extension whose declared icon is missing (“Could not load
+            icon 'icon128.png' specified in 'icons'”). The folder shipped without it until
+            September 9, 2026 — so the extension was not installable, and that is the kind of
+            defect no green test suite catches, since no test loads a browser
+            extension.
           </P>
         </Corps>
 
         <Tableau
           min={520}
           gabarit="minmax(150px,200px) minmax(220px,1fr)"
-          entetes={['manifeste', 'ce qu’il déclare']}
+          entetes={['manifest', 'what it declares']}
           lignes={[
             [<C>manifest_version</C>, '3'],
             [<C>permissions</C>, <C>storage</C>],
             [
               <C>content_scripts</C>,
               <>
-                <C>inject.js</C> au <C>document_start</C> en monde <C>MAIN</C>, <C>pont.js</C> au{' '}
-                <C>document_start</C> en monde <C>ISOLATED</C>, dans tous les cadres
+                <C>inject.js</C> at <C>document_start</C> in the <C>MAIN</C> world, <C>pont.js</C> at{' '}
+                <C>document_start</C> in the <C>ISOLATED</C> world, in every frame
               </>,
             ],
             [
               <C>web_accessible_resources</C>,
               <>
-                <C>table.json</C> — la table des mesures, lue depuis la page, sans requête
+                <C>table.json</C> — the measurement table, read from the page, with no request
               </>,
             ],
-            [<C>options_ui</C>, <><C>options.html</C>, ouverte dans un onglet</>],
+            [<C>options_ui</C>, <><C>options.html</C>, opened in a tab</>],
             [<C>background</C>, <><C>worker.js</C>, module</>],
           ]}
         />
 
         <Corps>
           <P>
-            <F>Elle marche sans clé.</F> L’analyse est locale : la table vit dans son service
-            worker et répond sans aucune requête — donc l’extension rend son verdict même si notre
-            serveur est éteint. La clé d’API de portée <C>extension</C> ne sert qu’à déposer ses
-            verdicts dans l’historique du compte, et si l’abonnement a expiré, l’API répond{' '}
-            <C>402</C> en disant de <F>continuer sans journaliser</F> — pas de s’arrêter.
+            <F>It works without a key.</F> The analysis is local: the table lives in its service
+            worker and answers with no request at all — so the extension returns its verdict even
+            when our server is off. The <C>extension</C>-scoped API key only serves to log its
+            verdicts to the account history, and if the subscription has expired, the API returns{' '}
+            <C>402</C> telling it to <F>carry on without logging</F> — not to stop.
           </P>
-          {ext && <P>Prérequis : {ext.prerequis}.</P>}
+          {ext && <P>Requires: {ext.prerequis}.</P>}
         </Corps>
       </Panel>
 
       {/* ------------------------------------------------------------- 3. l’API */}
       <Panel
         index="dev-api"
-        title="L’API du compte"
-        meta={['12 routes', 'deux authentifications', 'jamais mélangées']}
+        title="The account API"
+        meta={['12 routes', 'two authentications', 'never mixed']}
       >
         <Corps>
           <P>
-            Deux authentifications, et elles ne se croisent jamais. Le{' '}
-            <F>jeton de session</F> (<C>authorization: Bearer</C>) appartient à un humain devant un
-            navigateur : il ouvre la lecture du compte et la gestion des clés. La{' '}
-            <F>clé d’API</F> (<C>x-tare-cle</C>) appartient à une machine : elle ouvre l’écriture
-            au journal, <F>et rien d’autre</F>.{' '}
-            <F>Une clé ne peut jamais en créer une autre</F> — il n’existe aucune route qui
-            l’autorise, et il n’existe aucune route qui relise une clé en clair : un secret qu’on
-            peut relire n’est plus un secret.
+            Two authentications, and they never cross. The{' '}
+            <F>session token</F> (<C>authorization: Bearer</C>) belongs to a human in front of a
+            browser: it opens reading the account and managing the keys. The{' '}
+            <F>API key</F> (<C>x-tare-cle</C>) belongs to a machine: it opens writing
+            to the log, <F>and nothing else</F>.{' '}
+            <F>A key can never create another key</F> — no route allows it,
+            and no route reads a key back in clear: a secret you
+            can read back is no longer a secret.
           </P>
         </Corps>
 
         <Tableau
           min={700}
           gabarit="minmax(190px,240px) minmax(130px,170px) minmax(220px,1fr)"
-          entetes={['route', 'authentification', 'ce qu’elle rend']}
+          entetes={['route', 'authentication', 'what it returns']}
           lignes={[
             [
               <C>POST /compte/nonce</C>,
-              <Chip>aucune</Chip>,
-              'un nonce et le TEXTE exact à signer — le client ne le reconstruit pas. Expire en 300 s',
+              <Chip>none</Chip>,
+              'a nonce and the exact TEXT to sign — the client does not rebuild it. Expires in 300 s',
             ],
             [
               <C>POST /compte/session</C>,
-              <Chip>aucune</Chip>,
+              <Chip>none</Chip>,
               <>
-                <C>{'{adresse, nonce, signature}'}</C> vérifiée → un jeton de session, rendu une
-                seule fois (la base n’en garde que le sha256), 7 jours
+                <C>{'{adresse, nonce, signature}'}</C> verified → a session token, returned only
+                once (the database keeps only its sha256), 7 days
               </>,
             ],
-            [<C>DELETE /compte/session</C>, <Chip>Bearer</Chip>, 'la déconnexion'],
+            [<C>DELETE /compte/session</C>, <Chip>Bearer</Chip>, 'signing out'],
             [
               <C>GET /compte</C>,
               <Chip>Bearer</Chip>,
-              'le compte, son abonnement, ses clés (jamais en clair) et ses compteurs',
+              'the account, its subscription, its keys (never in clear) and its counters',
             ],
             [
               <C>POST /compte/cle</C>,
               <Chip>Bearer</Chip>,
               <>
-                une clé de portée <C>extension</C> ou <C>mcp</C>. Le secret est rendu{' '}
-                <F>une fois</F>. <C>402</C> si l’abonnement n’est pas actif
+                a key scoped to <C>extension</C> or <C>mcp</C>. The secret is returned{' '}
+                <F>once</F>. <C>402</C> if the subscription is not active
               </>,
             ],
-            [<C>DELETE /compte/cle/:id</C>, <Chip>Bearer</Chip>, 'la clé, révoquée'],
+            [<C>DELETE /compte/cle/:id</C>, <Chip>Bearer</Chip>, 'the key, revoked'],
             [
               <C>POST /compte/abonnement</C>,
               <Chip>Bearer</Chip>,
-              'l’échéance LUE sur la chaîne, jamais crue sur parole ; 402 tant qu’elle n’est pas active',
+              'the expiry READ on-chain, never taken on trust; 402 as long as it is not active',
             ],
             [
               <C>GET /compte/paquets</C>,
               <Chip>Bearer</Chip>,
-              'ce que contiennent les deux paquets — taille, version, sha256 — sans les télécharger',
+              'what the two packages contain — size, version, sha256 — without downloading them',
             ],
             [
               <C>GET /compte/extension.zip</C>,
               <>
-                <Chip>Bearer</Chip> <Chip>abonnement actif</Chip>
+                <Chip>Bearer</Chip> <Chip>active subscription</Chip>
               </>,
               <>
-                l’extension empaquetée, avec son sha256 en en-tête (<C>x-tare-sha256</C>) pour la
-                vérifier sans nous refaire confiance
+                the packaged extension, with its sha256 in a header (<C>x-tare-sha256</C>) so you
+                can check it without trusting us again
               </>,
             ],
             [
               <C>GET /compte/mcp.tgz</C>,
               <>
-                <Chip>Bearer</Chip> <Chip>abonnement actif</Chip>
+                <Chip>Bearer</Chip> <Chip>active subscription</Chip>
               </>,
               <>
-                le serveur MCP, empaqueté par <C>npm pack</C>
+                the MCP server, packaged by <C>npm pack</C>
               </>,
             ],
             [
               <C>GET /compte/journal</C>,
               <Chip>Bearer</Chip>,
-              'l’historique : analyses, verdicts, substitutions. Limite entre 1 et 500, 50 par défaut',
+              'the history: analyses, verdicts, replacements. Limit between 1 and 500, 50 by default',
             ],
             [
               <C>POST /compte/journal</C>,
               <Chip>x-tare-cle</Chip>,
-              'l’extension et le MCP y déposent. La source déclarée doit correspondre à la portée de la clé',
+              'the extension and the MCP write here. The declared source must match the scope of the key',
             ],
           ]}
         />
 
         <Corps>
           <P>
-            La règle tient dans la dernière ligne : une clé d’extension qui se déclarerait{' '}
-            <C>source: "mcp"</C> est refusée, sinon l’historique mentirait sur l’origine de ce
-            qu’il montre. Et l’abonnement est relu <F>en base à chaque appel</F>, pas déduit du
-            fait qu’une session existe : sans ça, une session ouverte pendant l’abonnement lui
-            survivrait, et les téléchargements avec elle.
+            The rule sits in the last row: an extension key that declared itself{' '}
+            <C>source: "mcp"</C> is refused, otherwise the history would lie about the origin of
+            what it shows. And the subscription is re-read <F>from the database on every call</F>,
+            never inferred from the fact that a session exists: without that, a session opened
+            during the subscription would outlive it, and the downloads with it.
           </P>
           <P>
-            <F>Un refus dit toujours sa raison.</F> Sans base configurée (<C>TARE_PG_DSN</C> ou{' '}
-            <C>DATABASE_URL</C>), toutes ces routes rendent <C>503</C> et le disent — le reste de
-            l’API fonctionne sans. Un paquet non construit rend <C>503</C> portant la commande
-            exacte, parce que c’est un défaut de notre côté, pas une erreur de l’appelant : un{' '}
-            <C>404</C> l’enverrait chercher chez lui.
+            <F>A refusal always states its reason.</F> With no database configured (<C>TARE_PG_DSN</C> or{' '}
+            <C>DATABASE_URL</C>), all these routes return <C>503</C> and say so — the rest of
+            the API works without it. A package that has not been built returns <C>503</C> carrying
+            the exact command, because it is a fault on our side, not a mistake by the caller: a{' '}
+            <C>404</C> would send them looking on theirs.
           </P>
         </Corps>
       </Panel>
@@ -588,44 +588,44 @@ export function DeveloppeursPage() {
       {/* -------------------------------------------------------------- 4. x402 */}
       <Panel
         index="dev-x402"
-        title="x402 — payer une mesure sans compte"
-        meta={['POST /measure', `${X.prix_unite_usd} USDC par mesure`, X.reseau]}
+        title="x402 — paying for a measurement without an account"
+        meta={['POST /measure', `${X.prix_unite_usd} USDC per measurement`, X.reseau]}
       >
         <Corps>
           <P>
-            Un agent ne remplit pas un formulaire d’inscription. <C>POST /measure</C> est{' '}
-            <F>la seule route payante</F> : sans paiement elle rend un <C>402</C> qui{' '}
-            <F>annonce son prix avant tout paiement</F>, dans un corps qui nomme l’unité (
-            <C>measurement</C>), le modèle (<C>per-measurement</C>), le prix unitaire, le nombre
-            d’unités <F>de cette requête-là</F> et le total. Le prix n’est pas plat : il est
-            calculé sur le corps de la requête, donc une requête qui demande cinq mesures paie
-            cinq fois le prix unitaire.
+            An agent does not fill in a sign-up form. <C>POST /measure</C> is{' '}
+            <F>the only paid route</F>: without payment it returns a <C>402</C> that{' '}
+            <F>announces its price before any payment</F>, in a body that names the unit (
+            <C>measurement</C>), the model (<C>per-measurement</C>), the unit price, the number
+            of units <F>in that particular request</F> and the total. The price is not flat: it is
+            computed from the request body, so a request asking for five measurements pays
+            five times the unit price.
           </P>
           <P>
-            Le péage encaisse <F>avant</F> que le moteur ne tourne : le prix est figé au{' '}
-            <C>402</C>, l’argent bouge au règlement, l’étiquette n’existe qu’après. Une unité non
-            facturable déjà payée n’est donc pas gratuite — elle devient un <F>crédit</F> :{' '}
-            <C>amount_usd</C> dit ce qui est dû, <C>amount_settled_usd</C> ce qui a réellement été
-            prélevé on-chain, <C>credit_usd</C> l’écart que le service doit. Côté en-têtes, x402 v2
-            envoie <C>PAYMENT-SIGNATURE</C> et v1 <C>X-PAYMENT</C> : les deux sont lus.
+            The toll collects <F>before</F> the engine runs: the price is frozen at the{' '}
+            <C>402</C>, the money moves at settlement, the label only exists afterwards. A
+            non-billable unit already paid for is therefore not free — it becomes a <F>credit</F>:{' '}
+            <C>amount_usd</C> says what is owed, <C>amount_settled_usd</C> what was actually
+            taken on-chain, <C>credit_usd</C> the gap the service owes. On the header side, x402 v2
+            sends <C>PAYMENT-SIGNATURE</C> and v1 <C>X-PAYMENT</C>: both are read.
           </P>
           <P>
-            Le règlement n’est pas cru sur parole : il est <F>relu sur le mirror node Hedera</F>.
-            Réseau <C>{X.reseau}</C>, facilitateur <Lien href={X.facilitateur}>{X.facilitateur}</Lien>
-            , jeton <C>{X.jeton}</C>, encaisseur <C>{X.encaisseur}</C>.{' '}
-            <C>GET /usage</C> et <C>GET /usage/hcs</C> rendent ce qui a été compté et ce qui a été
-            ancré.
+            The settlement is not taken on trust: it is <F>re-read on the Hedera mirror node</F>.
+            Network <C>{X.reseau}</C>, facilitator <Lien href={X.facilitateur}>{X.facilitateur}</Lien>
+            , token <C>{X.jeton}</C>, payee <C>{X.encaisseur}</C>.{' '}
+            <C>GET /usage</C> and <C>GET /usage/hcs</C> return what was counted and what was
+            anchored.
           </P>
         </Corps>
 
         <Tableau
           min={620}
           gabarit="minmax(100px,120px) minmax(110px,140px) minmax(110px,150px) minmax(90px,110px) minmax(120px,1fr)"
-          entetes={['réglé le', 'montant', 'clé qui a signé', 'latence', 'sur le mirror node']}
+          entetes={['settled on', 'amount', 'key that signed', 'latency', 'on the mirror node']}
           lignes={X.lignes.map((l) => [
             l.ts.slice(0, 10),
             `${(Number(l.montant) / 1e6).toFixed(6)} USDC`,
-            l.cle === 'ledger-keyring' ? 'scellée dans un Ledger' : 'variable d’environnement',
+            l.cle === 'ledger-keyring' ? 'sealed inside a Ledger' : 'environment variable',
             `${nb(l.latence_ms)} ms`,
             <>
               <Lien href={l.hashscan}>{l.transaction}</Lien> · {l.statut}
@@ -635,12 +635,12 @@ export function DeveloppeursPage() {
 
         <Corps>
           <P>
-            {nb(X.regles)} règlements réglés, {nb(X.vus)} relus sur le mirror node, dont{' '}
-            {nb(X.par_keyring)} signés par une clé <F>scellée dans un Ledger</F>. Source :{' '}
-            <C>{facts.sources.x402}</C>. Et l’agent qui répond a une identité{' '}
-            <F>{facts.agent.standard}</F> publiée sur un topic —{' '}
-            <Lien href={facts.agent.hashscan}>{facts.agent.topic}</Lien> — recalculable depuis six
-            champs : l’appelant peut vérifier <F>qui</F> il appelle avant de payer.
+            {nb(X.regles)} payments settled, {nb(X.vus)} re-read on the mirror node,{' '}
+            {nb(X.par_keyring)} of them signed by a key <F>sealed inside a Ledger</F>. Source:{' '}
+            <C>{facts.sources.x402}</C>. And the agent that answers has an{' '}
+            <F>{facts.agent.standard}</F> identity published on a topic —{' '}
+            <Lien href={facts.agent.hashscan}>{facts.agent.topic}</Lien> — recomputable from six
+            fields: the caller can check <F>who</F> it is calling before paying.
           </P>
         </Corps>
       </Panel>

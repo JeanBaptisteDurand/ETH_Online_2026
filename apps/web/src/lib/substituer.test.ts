@@ -85,20 +85,20 @@ test('le panneau n_invente aucune phrase : les raisons du serveur sont affichees
 })
 
 test('un refus de signature est presente comme une reponse, pas comme une panne', () => {
-  // La source porte une apostrophe echappee : C\'est.
-  assert.match(PANNEAU, /est une reponse, pas une panne/)
+  // L ecran est en anglais : « That is an answer, not a failure. »
+  assert.match(PANNEAU, /an answer, not a failure/)
   assert.match(PANNEAU, /err\.code === 4001/)
 })
 
 test('« envoyee » n_est jamais presente comme « incluse »', () => {
-  assert.match(PANNEAU, /Envoyee n'est pas incluse/)
+  assert.match(PANNEAU, /Sent is not included/)
   // et le panneau ne pretend pas suivre le sort de la transaction
-  assert.match(PANNEAU, /une roue qui\n.*tourne indefiniment serait un silence deguise/s)
+  assert.match(PANNEAU, /will not follow its fate/)
 })
 
 test('le compte des appels RPC est AFFICHE : la promesse doit etre verifiable', () => {
   // « la comparaison ne coute aucune requete » n'est credible que si le compte est a l'ecran.
-  assert.match(PANNEAU, /appel\(s\) RPC/)
+  assert.match(PANNEAU, /RPC call\(s\)/)
   assert.match(CLIENT, /appels_rpc: number/)
 })
 

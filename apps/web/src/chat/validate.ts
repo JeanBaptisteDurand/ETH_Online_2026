@@ -42,34 +42,34 @@ function fail(msg: string): never {
 }
 
 function obj(v: unknown, where: string): Record<string, unknown> {
-  if (typeof v !== 'object' || v === null || Array.isArray(v)) fail(`${where} : objet attendu`)
+  if (typeof v !== 'object' || v === null || Array.isArray(v)) fail(`${where}: object expected`)
   return v as Record<string, unknown>
 }
 
 /** Aucune cle en trop. C'est la regle qui interdit a un nombre de passer en contrebande. */
 function strict(o: Record<string, unknown>, allowed: readonly string[], where: string): void {
   for (const k of Object.keys(o)) {
-    if (!allowed.includes(k)) fail(`${where} : cle inconnue "${k}" (objet strict)`)
+    if (!allowed.includes(k)) fail(`${where}: unknown key "${k}" (strict object)`)
   }
 }
 
 function str(o: Record<string, unknown>, k: string, re: RegExp, where: string): string {
   const v = o[k]
-  if (typeof v !== 'string' || !re.test(v)) fail(`${where}.${k} : ne respecte pas ${re.source}`)
+  if (typeof v !== 'string' || !re.test(v)) fail(`${where}.${k}: does not match ${re.source}`)
   return (v as string).toLowerCase()
 }
 
 function optNullStr(o: Record<string, unknown>, k: string, re: RegExp, where: string): string | null {
   const v = o[k]
   if (v === undefined || v === null) return null
-  if (typeof v !== 'string' || !re.test(v)) fail(`${where}.${k} : ne respecte pas ${re.source}`)
+  if (typeof v !== 'string' || !re.test(v)) fail(`${where}.${k}: does not match ${re.source}`)
   return (v as string).toLowerCase()
 }
 
 function bounded(o: Record<string, unknown>, k: string, lo: number, hi: number, where: string): number {
   const v = o[k]
   if (typeof v !== 'number' || !Number.isFinite(v) || v < lo || v > hi)
-    fail(`${where}.${k} : nombre attendu dans [${lo} ; ${hi}]`)
+    fail(`${where}.${k}: number expected in [${lo} ; ${hi}]`)
   return v as number
 }
 
@@ -95,24 +95,24 @@ export function parseFilter(raw: unknown): Filter {
   if (o.minBps !== undefined) f.minBps = bounded(o, 'minBps', 0, 1_000_000, 'filter')
   if (o.maxBps !== undefined) f.maxBps = bounded(o, 'maxBps', 0, 1_000_000, 'filter')
   if (f.minBps !== undefined && f.maxBps !== undefined && f.minBps > f.maxBps)
-    fail('filter : minBps doit etre <= maxBps')
+    fail('filter: minBps must be <= maxBps')
   if (o.chain !== undefined) {
     if (typeof o.chain !== 'string' || o.chain.length < 1 || o.chain.length > 32)
-      fail('filter.chain : chaine de 1 a 32 caracteres')
+      fail('filter.chain: string of 1 to 32 characters')
     f.chain = o.chain
   }
   if (o.flag !== undefined) {
-    if (!FLAG_NAMES.includes(o.flag as FlagName)) fail(`filter.flag : "${String(o.flag)}" inconnu`)
+    if (!FLAG_NAMES.includes(o.flag as FlagName)) fail(`filter.flag: "${String(o.flag)}" unknown`)
     f.flag = o.flag as FlagName
   }
   if (o.label !== undefined) {
     if (!API_LABELS.includes(o.label as (typeof API_LABELS)[number]))
-      fail(`filter.label : "${String(o.label)}" inconnu`)
+      fail(`filter.label: "${String(o.label)}" unknown`)
     f.label = o.label as Filter['label']
   }
   for (const k of ['allowlisted', 'registryDisagrees', 'nonFlat', 'measuredOnly'] as const) {
     if (o[k] !== undefined) {
-      if (typeof o[k] !== 'boolean') fail(`filter.${k} : booleen attendu`)
+      if (typeof o[k] !== 'boolean') fail(`filter.${k}: boolean expected`)
       f[k] = o[k] as boolean
     }
   }
@@ -120,7 +120,7 @@ export function parseFilter(raw: unknown): Filter {
   if (o.pool !== undefined) f.pool = str(o, 'pool', POOL_RE, 'filter')
   if (o.search !== undefined) {
     if (typeof o.search !== 'string' || o.search.length < 1 || o.search.length > 64)
-      fail('filter.search : chaine de 1 a 64 caracteres')
+      fail('filter.search: string of 1 to 64 characters')
     f.search = o.search
   }
   return f
@@ -129,7 +129,7 @@ export function parseFilter(raw: unknown): Filter {
 function parseOne(raw: unknown): Action {
   const o = obj(raw, 'action')
   const t = o.type
-  if (typeof t !== 'string') fail('action.type : chaine attendue')
+  if (typeof t !== 'string') fail('action.type: string expected')
   const w = `action[${t}]`
   switch (t) {
     case 'filter':
@@ -137,17 +137,17 @@ function parseOne(raw: unknown): Action {
       return { type: 'filter', filter: parseFilter(o.filter) }
     case 'sort': {
       strict(o, ['type', 'col', 'dir'], w)
-      if (!COLUMN_NAMES.includes(o.col as ColumnName)) fail(`${w}.col : "${String(o.col)}" inconnue`)
-      if (!SORT_DIRS.includes(o.dir as SortDir)) fail(`${w}.dir : asc|desc attendu`)
+      if (!COLUMN_NAMES.includes(o.col as ColumnName)) fail(`${w}.col: "${String(o.col)}" unknown`)
+      if (!SORT_DIRS.includes(o.dir as SortDir)) fail(`${w}.dir: asc|desc expected`)
       return { type: 'sort', col: o.col as ColumnName, dir: o.dir as SortDir }
     }
     case 'highlight': {
       strict(o, ['type', 'hooks'], w)
-      if (!Array.isArray(o.hooks) || o.hooks.length > 64) fail(`${w}.hooks : tableau de 64 max`)
+      if (!Array.isArray(o.hooks) || o.hooks.length > 64) fail(`${w}.hooks: array of 64 max`)
       return {
         type: 'highlight',
         hooks: (o.hooks as unknown[]).map((h, i) => {
-          if (typeof h !== 'string' || !ADDRESS_RE.test(h)) fail(`${w}.hooks[${i}] : adresse EVM attendue`)
+          if (typeof h !== 'string' || !ADDRESS_RE.test(h)) fail(`${w}.hooks[${i}]: EVM address expected`)
           return (h as string).toLowerCase()
         }),
       }
@@ -159,7 +159,7 @@ function parseOne(raw: unknown): Action {
       strict(o, ['type', 'hook', 'pool', 'direction'], w)
       const d = o.direction
       if (d !== undefined && d !== null && !DIRECTIONS.includes(d as Direction))
-        fail(`${w}.direction : 0->1 | 1->0 | null`)
+        fail(`${w}.direction: 0->1 | 1->0 | null`)
       return {
         type: 'plotCurve',
         hook: str(o, 'hook', ADDRESS_RE, w),
@@ -173,23 +173,23 @@ function parseOne(raw: unknown): Action {
     case 'measure': {
       strict(o, ['type', 'hook', 'pool', 'sizes', 'directions', 'block'], w)
       const sizes = o.sizes === undefined ? ['1000000000000000'] : o.sizes
-      if (!Array.isArray(sizes) || sizes.length < 1 || sizes.length > 8) fail(`${w}.sizes : 1 a 8 tailles`)
+      if (!Array.isArray(sizes) || sizes.length < 1 || sizes.length > 8) fail(`${w}.sizes: 1 to 8 sizes`)
       const dirs = o.directions === undefined ? ['0->1'] : o.directions
-      if (!Array.isArray(dirs) || dirs.length < 1 || dirs.length > 2) fail(`${w}.directions : 1 ou 2 sens`)
+      if (!Array.isArray(dirs) || dirs.length < 1 || dirs.length > 2) fail(`${w}.directions: 1 or 2 directions`)
       const block = o.block
       if (block !== undefined && block !== null && (!Number.isInteger(block) || (block as number) <= 0))
-        fail(`${w}.block : entier positif ou null`)
+        fail(`${w}.block: positive integer or null`)
       return {
         type: 'measure',
         hook: str(o, 'hook', ADDRESS_RE, w),
         pool: optNullStr(o, 'pool', POOL_RE, w),
         sizes: (sizes as unknown[]).map((s, i) => {
           if (typeof s !== 'string' || !AMOUNT_RE.test(s))
-            fail(`${w}.sizes[${i}] : entier en unites de base, sans zero initial`)
+            fail(`${w}.sizes[${i}]: integer in base units, no leading zero`)
           return s as string
         }),
         directions: (dirs as unknown[]).map((d, i) => {
-          if (!DIRECTIONS.includes(d as Direction)) fail(`${w}.directions[${i}] : 0->1 | 1->0`)
+          if (!DIRECTIONS.includes(d as Direction)) fail(`${w}.directions[${i}]: 0->1 | 1->0`)
           return d as Direction
         }),
         block: (block ?? null) as number | null,
@@ -209,17 +209,17 @@ function parseOne(raw: unknown): Action {
     case 'showEvidence': {
       strict(o, ['type', 'measurementId'], w)
       const v = o.measurementId
-      if (typeof v !== 'string' || !MEASUREMENT_RE.test(v)) fail(`${w}.measurementId : m_ + 16 hex`)
+      if (typeof v !== 'string' || !MEASUREMENT_RE.test(v)) fail(`${w}.measurementId: m_ + 16 hex`)
       return { type: 'showEvidence', measurementId: v as string }
     }
     case 'columns': {
       strict(o, ['type', 'columns'], w)
       if (!Array.isArray(o.columns) || o.columns.length < 1 || o.columns.length > 7)
-        fail(`${w}.columns : 1 a 7 colonnes`)
+        fail(`${w}.columns: 1 to 7 columns`)
       return {
         type: 'columns',
         columns: (o.columns as unknown[]).map((c, i) => {
-          if (!COLUMN_NAMES.includes(c as ColumnName)) fail(`${w}.columns[${i}] : "${String(c)}" inconnue`)
+          if (!COLUMN_NAMES.includes(c as ColumnName)) fail(`${w}.columns[${i}]: "${String(c)}" unknown`)
           return c as ColumnName
         }),
       }
@@ -227,23 +227,23 @@ function parseOne(raw: unknown): Action {
     case 'clarify': {
       strict(o, ['type', 'question'], w)
       const q = o.question
-      if (typeof q !== 'string' || q.length < 1 || q.length > 400) fail(`${w}.question : 1 a 400 caracteres`)
+      if (typeof q !== 'string' || q.length < 1 || q.length > 400) fail(`${w}.question: 1 to 400 characters`)
       return { type: 'clarify', question: q as string }
     }
     case 'export': {
       strict(o, ['type', 'format'], w)
-      if (!EXPORT_FORMATS.includes(o.format as ExportFormat)) fail(`${w}.format : csv|json|jsonl|markdown`)
+      if (!EXPORT_FORMATS.includes(o.format as ExportFormat)) fail(`${w}.format: csv|json|jsonl|markdown`)
       return { type: 'export', format: o.format as ExportFormat }
     }
     default:
-      return fail(`action.type : "${t}" n'est pas une action que ce front sait executer`)
+      return fail(`action.type: "${t}" is not an action this front end knows how to run`)
   }
 }
 
 /** Valide une liste d'actions. Un echec n'est jamais avale : il remonte tel quel. */
 export function parseActions(raw: unknown): ParseResult {
-  if (!Array.isArray(raw)) return { ok: false, error: 'actions invalides', issues: ['tableau attendu'] }
-  if (raw.length > 24) return { ok: false, error: 'actions invalides', issues: ['24 actions au maximum'] }
+  if (!Array.isArray(raw)) return { ok: false, error: 'invalid actions', issues: ['array expected'] }
+  if (raw.length > 24) return { ok: false, error: 'invalid actions', issues: ['24 actions at most'] }
   const actions: Action[] = []
   const issues: string[] = []
   for (let i = 0; i < raw.length; i += 1) {
@@ -253,6 +253,6 @@ export function parseActions(raw: unknown): ParseResult {
       issues.push(`[${i}] ${(e as Error).message}`)
     }
   }
-  if (issues.length) return { ok: false, error: 'actions invalides', issues }
+  if (issues.length) return { ok: false, error: 'invalid actions', issues }
   return { ok: true, actions }
 }

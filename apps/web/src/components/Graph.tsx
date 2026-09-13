@@ -97,7 +97,7 @@ function Missing({ head, detail, cmd }: { head: string; detail: string; cmd: str
   return (
     <Absence
       quoi={head}
-      etat={enCours ? 'en cours' : 'sans réponse'}
+      etat={enCours ? 'in progress' : 'no response'}
       raison={detail}
       cmd={cmd}
       panne={!enCours}
@@ -111,23 +111,23 @@ function Profile({ p }: { p: BpsProfile }) {
   return (
     <>
       <Line
-        k="mesures"
+        k="measurements"
         v={p.n}
-        note={labels.length ? labels.map(([k, v]) => `${k}=${v}`).join(' · ') : 'aucune'}
+        note={labels.length ? labels.map(([k, v]) => `${k}=${v}`).join(' · ') : 'none'}
       />
       <Line
-        k="bps MESURES"
+        k="bps MEASURED"
         v={
           p.n_measured === 0 ? (
-            <span style={{ color: 'var(--ink-2)' }}>aucune mesure cotable</span>
+            <span style={{ color: 'var(--ink-2)' }}>no quotable measurement</span>
           ) : (
             `${fmtBps(p.bps_min, 4)} … ${fmtBps(p.bps_max, 4)}`
           )
         }
         note={
           p.n_measured === 0
-            ? 'pas de nombre a donner — ce n’est pas un zero'
-            : `mediane ${fmtBps(p.bps_median, 4)} sur ${p.n_measured} mesures`
+            ? 'no number to give — this is not a zero'
+            : `median ${fmtBps(p.bps_median, 4)} over ${p.n_measured} measurements`
         }
       />
     </>
@@ -161,16 +161,16 @@ function TwinsBox({ hook }: { hook: string }) {
 
   if (got.state === 'loading')
     return (
-      <Box title="ses jumeaux">
-        <Missing head="lecture du graphe…" detail={`${API_BASE}/graph/twins`} cmd={cmd} />
+      <Box title="its twins">
+        <Missing head="reading the graph…" detail={`${API_BASE}/graph/twins`} cmd={cmd} />
       </Box>
     )
   if (got.state !== 'ready')
     return (
-      <Box title="ses jumeaux">
+      <Box title="its twins">
         <Missing
-          head={got.state === 'absent' ? 'hook absent du graphe' : 'graphe non joignable'}
-          detail={`${got.detail} — aucun clone n’est affiche, et surtout pas « 0 clone » : le graphe n’a pas repondu.`}
+          head={got.state === 'absent' ? 'hook absent from the graph' : 'graph unreachable'}
+          detail={`${got.detail} — no twin is shown, and above all not “0 twins”: the graph did not answer.`}
           cmd={cmd}
         />
       </Box>
@@ -179,10 +179,10 @@ function TwinsBox({ hook }: { hook: string }) {
   const t = got.data
   if (t.status !== 'CODE')
     return (
-      <Box title="ses jumeaux" right={<Chip>{t.status}</Chip>}>
+      <Box title="its twins" right={<Chip>{t.status}</Chip>}>
         <Missing
-          head="bytecode non lu pour ce hook"
-          detail={`${t.reason ?? 'aucun bytecode dans le graphe'}. « Pas lu » n’est pas « pas de clone ».`}
+          head="bytecode not read for this hook"
+          detail={`${t.reason ?? 'no bytecode in the graph'}. “Not read” is not “no twin”.`}
           cmd={cmd}
         />
       </Box>
@@ -190,25 +190,25 @@ function TwinsBox({ hook }: { hook: string }) {
 
   return (
     <Box
-      title="ses jumeaux"
+      title="its twins"
       right={
         <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-          meme keccak(eth_getCode)
+          same keccak(eth_getCode)
         </span>
       }
     >
       <Line
         k="keccak(code)"
         v={<span className="hex">{shortAddr(t.code_hash ?? '—', 10, 6)}</span>}
-        note={t.code_size ? `${groupDigits(String(t.code_size))} octets` : undefined}
+        note={t.code_size ? `${groupDigits(String(t.code_size))} bytes` : undefined}
       />
       <Line
-        k="clones"
+        k="twins"
         v={t.n_twins ?? 0}
         note={
           (t.n_twins ?? 0) === 0
-            ? 'ce bytecode n’est deploye qu’une fois dans le graphe'
-            : 'meme code, autre adresse'
+            ? 'this bytecode is deployed only once in the graph'
+            : 'same code, different address'
         }
       />
       {t.twins.map((x) => (
@@ -216,7 +216,7 @@ function TwinsBox({ hook }: { hook: string }) {
           key={x.id}
           k={<span className="hex">{shortAddr(x.address, 10, 6)}</span>}
           v={x.label ?? '—'}
-          note={`${x.n_pools} pool(s) mesure(s)`}
+          note={`${x.n_pools} measured pool(s)`}
         />
       ))}
       <div className="px-[12px] py-[7px] flex items-center gap-[8px]" style={{ borderTop: '1px solid var(--line)' }}>
@@ -237,19 +237,19 @@ function ImpactBox({ hook }: { hook: string }) {
 
   if (got.state !== 'ready')
     return (
-      <Box title="son rayon de souffle">
+      <Box title="its blast radius">
         <Missing
           head={
             got.state === 'loading'
-              ? 'lecture du graphe…'
+              ? 'reading the graph…'
               : got.state === 'absent'
-                ? 'hook absent du graphe'
-                : 'graphe non joignable'
+                ? 'hook absent from the graph'
+                : 'graph unreachable'
           }
           detail={
             got.state === 'loading'
               ? `${API_BASE}/graph/impact`
-              : `${got.detail} — aucun rayon n’est affiche : un graphe muet n’est pas un rayon nul.`
+              : `${got.detail} — no radius is shown: a silent graph is not a zero radius.`
           }
           cmd={cmd}
         />
@@ -260,27 +260,27 @@ function ImpactBox({ hook }: { hook: string }) {
   const extra = i.n_pools_at_risk - i.n_pools
   return (
     <Box
-      title="son rayon de souffle"
+      title="its blast radius"
       right={
         <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-          ce qu’il faudrait re-mesurer
+          what would have to be re-measured
         </span>
       }
     >
-      <Line k="pools attaches" v={i.n_pools} note="dans le jeu publie" />
-      <Line k="tokens touches" v={i.n_tokens} note="currency0 + currency1 de ces pools" />
+      <Line k="attached pools" v={i.n_pools} note="in the published dataset" />
+      <Line k="tokens touched" v={i.n_tokens} note="currency0 + currency1 of these pools" />
       <Line
-        k="pools des clones"
+        k="twin pools"
         v={i.n_twin_pools}
-        note={`${i.bytecode.n_twins} clone(s) au meme bytecode`}
+        note={`${i.bytecode.n_twins} twin(s) at the same bytecode`}
       />
       <Line
-        k="freres du deployeur"
+        k="deployer siblings"
         v={i.deployer.n_siblings}
         note={
           i.deployer.status === 'CODE'
             ? `${i.deployer.deployers.map((d) => shortAddr(d, 8, 4)).join(', ')} · ${i.sibling_pools.length} pool(s)`
-            : `deployeur ${i.deployer.status} — non compte`
+            : `deployer ${i.deployer.status} — not counted`
         }
       />
       <Profile p={i.measurements} />
@@ -292,11 +292,11 @@ function ImpactBox({ hook }: { hook: string }) {
           {i.n_pools_at_risk}
         </span>
         <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
-          pools a re-mesurer si le defaut est dans le code
+          pools to re-measure if the flaw is in the code
         </span>
         <span className="t-data-xs ml-auto text-right" style={{ color: 'var(--ink-2)' }}>
-          {i.n_pools} direct{i.n_pools > 1 ? 's' : ''}
-          {extra > 0 ? ` + ${extra} par les clones` : ' · aucun clone connu'}
+          {i.n_pools} direct
+          {extra > 0 ? ` + ${extra} through the twins` : ' · no known twin'}
         </span>
       </div>
       <div className="px-[12px] py-[7px] flex items-center gap-[8px]" style={{ borderTop: '1px solid var(--line)' }}>
@@ -317,19 +317,19 @@ function DisagreementBox({ hook }: { hook: string }) {
 
   if (got.state !== 'ready')
     return (
-      <Box title="son desaccord avec le registre">
+      <Box title="its disagreement with the registry">
         <Missing
           head={
             got.state === 'loading'
-              ? 'lecture du graphe…'
+              ? 'reading the graph…'
               : got.state === 'absent'
-                ? 'hook absent du graphe'
-                : 'graphe non joignable'
+                ? 'hook absent from the graph'
+                : 'graph unreachable'
           }
           detail={
             got.state === 'loading'
               ? `${API_BASE}/graph/disagreement`
-              : `${got.detail} — ni accord ni desaccord n’est affiche : les deux se lisent, aucun ne se suppose.`
+              : `${got.detail} — neither agreement nor disagreement is shown: both are read, neither is assumed.`
           }
           cmd={cmd}
         />
@@ -340,7 +340,7 @@ function DisagreementBox({ hook }: { hook: string }) {
   const strong = isDisagreement(d.verdict)
   return (
     <Box
-      title="son desaccord avec le registre"
+      title="its disagreement with the registry"
       right={<Chip title={d.note}>{d.verdict}</Chip>}
     >
       <div className="px-[12px] py-[9px]" style={{ borderBottom: '1px solid var(--line)' }}>
@@ -358,15 +358,15 @@ function DisagreementBox({ hook }: { hook: string }) {
         </p>
       </div>
       <Line
-        k="vanillaSwap declare"
+        k="vanillaSwap declared"
         v={
           d.vanillaSwap_declared.length === 0
             ? '—'
             : d.vanillaSwap_declared.map((v) => String(v)).join(', ')
         }
-        note={`${d.n_registry_entries} fiche(s) au registre`}
+        note={`${d.n_registry_entries} entr${d.n_registry_entries === 1 ? 'y' : 'ies'} in the registry`}
       />
-      <Line k="seuil de platitude" v={`${d.flat_bps} bps`} note="sous ce seuil, bruit d’arrondi du quoter" />
+      <Line k="flatness threshold" v={`${d.flat_bps} bps`} note="below this threshold, quoter rounding noise" />
       <Profile p={d.profile} />
       <div className="px-[12px] py-[7px] flex items-center gap-[8px]" style={{ borderTop: '1px solid var(--line)' }}>
         <code className="t-data-xs hex" style={{ color: 'var(--ink-2)' }}>
@@ -386,18 +386,18 @@ function Findings() {
   if (got.state !== 'ready')
     return (
       <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-        {got.state === 'loading' ? 'lecture du graphe…' : `graphe non joignable · ${API_BASE}`}
+        {got.state === 'loading' ? 'reading the graph…' : `graph unreachable · ${API_BASE}`}
       </span>
     )
   const f = got.data.findings
   const g = got.data.graph
   return (
     <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-      {f.clone_clusters} grappes de clones ({f.hooks_in_clone_clusters} hooks) · {f.orphans}/
-      {f.listed_hooks_on_chain} orphelins · {f.contradictions}/
-      {f.hooks_with_multiple_registry_entries} fiches doubles qui divergent ·{' '}
+      {f.clone_clusters} twin clusters ({f.hooks_in_clone_clusters} hooks) · {f.orphans}/
+      {f.listed_hooks_on_chain} orphans · {f.contradictions}/
+      {f.hooks_with_multiple_registry_entries} duplicate entries that diverge ·{' '}
       {f.registry_says_active_measure_says_flat + f.registry_says_vanilla_measure_says_active}{' '}
-      desaccord(s) · {f.not_comparable} non comparables · bloc{' '}
+      disagreement(s) · {f.not_comparable} not comparable · block{' '}
       {g.block_number === null ? '—' : groupDigits(String(g.block_number))}
     </span>
   )
@@ -405,7 +405,7 @@ function Findings() {
 
 export function GraphPanels({ hook }: { hook: string }) {
   return (
-    <Panel index="08" title="Le graphe autour du hook" right={<Findings />}>
+    <Panel index="08" title="The graph around the hook" right={<Findings />}>
       <div
         className="grid gap-px p-[16px]"
         style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 16 }}
@@ -418,11 +418,11 @@ export function GraphPanels({ hook }: { hook: string }) {
         className="m-0 px-[16px] pb-[14px] t-data-xs"
         style={{ color: 'var(--ink-2)', maxWidth: '96ch' }}
       >
-        Le graphe est bati depuis trois sources et rien d’autre : les mesures publiees, le registre
-        officiel, et <code style={{ fontFamily: 'var(--mono)' }}>eth_getCode</code> au bloc epingle.
-        Il ne calcule aucun bps — il range ceux que le moteur a mesures et les rend avec leur
-        etiquette. Ces encarts viennent de l’API ({API_BASE}) : si elle ne repond pas, ils le disent
-        au lieu d’afficher zero.
+        The graph is built from three sources and nothing else: the published measurements, the
+        official registry, and <code style={{ fontFamily: 'var(--mono)' }}>eth_getCode</code> at the
+        pinned block. It computes no bps — it sorts the ones the engine measured and gives them back
+        with their label. These boxes come from the API ({API_BASE}): if it does not answer, they say
+        so instead of showing zero.
       </p>
     </Panel>
   )

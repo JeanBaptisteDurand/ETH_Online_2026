@@ -156,7 +156,7 @@ export function askStream(
   try {
     es = new EventSource(url)
   } catch (e) {
-    h.onError('flux indisponible', (e as Error).message)
+    h.onError('stream unavailable', (e as Error).message)
     return () => {}
   }
 
@@ -221,7 +221,7 @@ export function askStream(
     settled = true
     stop()
     const d = parse(ev)
-    h.onError(String(d?.error ?? 'flux interrompu'), d?.detail ? String(d.detail) : null)
+    h.onError(String(d?.error ?? 'stream interrupted'), d?.detail ? String(d.detail) : null)
   })
   es.addEventListener('done', (ev) => {
     settled = true
@@ -230,7 +230,7 @@ export function askStream(
     const rows = acc.rows_stage as Record<string, unknown> | undefined
     const cit = acc.citations_stage as Record<string, unknown> | undefined
     if (!rows) {
-      h.onError('reponse incomplete', "le flux s'est termine sans publier de selection.")
+      h.onError('incomplete answer', 'the stream ended without publishing a selection.')
       return
     }
     h.onDone({
@@ -270,14 +270,14 @@ export function askStream(
       fallback = new AbortController()
       askOnce(base, question, sessionId, fallback.signal).then(
         (a) => h.onDone(a),
-        (e) => h.onError("l'assistant n'est pas joignable", (e as Error).message),
+        (e) => h.onError('the assistant is not reachable', (e as Error).message),
       )
       return
     }
     settled = true
     h.onError(
-      'flux interrompu avant la fin',
-      "aucun resultat partiel n'est publie : une reponse coupee n'est pas une reponse.",
+      'stream interrupted before the end',
+      'no partial result is published: a cut answer is not an answer.',
     )
   }
 

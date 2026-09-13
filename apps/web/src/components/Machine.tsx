@@ -57,23 +57,23 @@ function Peage() {
   return (
     <Panel
       index="09"
-      title="Le péage, relu sur le mirror node"
+      title="The toll, re-read on the mirror node"
       meta={['x402 v2', 'Hedera testnet', 'Blocky402']}
     >
       <div className="flex flex-col gap-[14px] p-[16px]">
         {!x ? (
           <Absence
             quoi="docs/x402-settlements.jsonl"
-            raison="le journal des règlements n’a pas été lu au build. Aucun chiffre n’est affiché à la place : un péage non relu n’est pas un péage à zéro."
+            raison="the settlements log was not read at build time. No number is shown in its place: a toll that has not been re-read is not a toll at zero."
             cmd="npm run data"
           />
         ) : (
           <>
             <p className="t-data-sm" style={{ color: 'var(--ink-2)', maxWidth: '78ch' }}>
-              Lire une mesure deja faite est gratuit. En declencher une neuve coute du calcul
-              reel — un fork, deux cotations, une reecriture de bytecode — et se paie a
-              l'unite. L'unite facturee est <strong>la mesure</strong>, pas la requete : cinq
-              tailles coutent cinq fois.
+              Reading a measurement that already exists is free. Triggering a new one costs
+              real compute — a fork, two quotes, a bytecode rewrite — and is paid for by the
+              unit. The unit billed is <strong>the measurement</strong>, not the request: five
+              sizes cost five times.
             </p>
 
             <div className="flex flex-wrap gap-[24px]">
@@ -82,7 +82,7 @@ function Peage() {
                   {x.regles}
                 </div>
                 <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                  paiements <strong>regles</strong> et relus sur le mirror node
+                  payments <strong>settled</strong> and re-read on the mirror node
                 </div>
               </div>
               <div>
@@ -90,8 +90,8 @@ function Peage() {
                   {x.par_keyring}
                 </div>
                 <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                  signes par une cle servie par le <strong>Ledger Key Ring</strong>, pas par un
-                  fichier
+                  signed by a key served by the <strong>Ledger Key Ring</strong>, not by a
+                  file
                 </div>
               </div>
               <div>
@@ -99,26 +99,26 @@ function Peage() {
                   {x.prix_unite_usd ?? '—'}
                 </div>
                 <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                  USDC par <strong>mesure</strong> — les montants regles vont de{' '}
+                  USDC per <strong>measurement</strong> — the settled amounts range from{' '}
                   {x.montants.length
-                    ? `${Number(x.montants[0]) / 1e6} a ${Number(x.montants[x.montants.length - 1]) / 1e6}`
+                    ? `${Number(x.montants[0]) / 1e6} to ${Number(x.montants[x.montants.length - 1]) / 1e6}`
                     : '—'}{' '}
-                  USDC, parce que cinq tailles coutent cinq fois
+                  USDC, because five sizes cost five times
                 </div>
               </div>
             </div>
 
             <p className="t-data-xs" style={{ color: 'var(--ink-2)', maxWidth: '78ch' }}>
-              « Regle » veut dire relu sur le mirror node : un paiement envoye n'est pas un
-              paiement regle, et les compter ensemble serait la meme faute que compter un
-              silence pour un zero. {x.vus !== x.regles ? `${x.vus} lignes au journal, ${x.regles} confirmees.` : ''}
+              “Settled” means re-read on the mirror node: a payment that was sent is not a
+              payment that settled, and counting them together would be the same mistake as
+              counting a silence for a zero. {x.vus !== x.regles ? `${x.vus} lines in the log, ${x.regles} confirmed.` : ''}
             </p>
 
-            <div className="scroll" tabIndex={0} role="region" aria-label="journal des règlements" style={{ overflowX: 'auto' }}>
+            <div className="scroll" tabIndex={0} role="region" aria-label="settlements log" style={{ overflowX: 'auto' }}>
               <table className="w-full border-collapse" style={{ minWidth: 720 }}>
                 <thead>
                   <tr style={{ background: 'var(--bg-2)' }}>
-                    {['quand', 'transaction Hedera', 'statut', 'montant', 'latence', 'clé', 'lien'].map((h) => (
+                    {['when', 'Hedera transaction', 'status', 'amount', 'latency', 'key', 'link'].map((h) => (
                       <th
                         key={h}
                         className="t-data-sm px-[10px] py-[6px] text-left"
@@ -143,7 +143,7 @@ function Peage() {
                         {l.transaction}
                       </td>
                       <td className="px-[10px] py-[5px]">
-                        <Chip>{l.statut ?? 'NON RELU'}</Chip>
+                        <Chip>{l.statut ?? 'NOT RE-READ'}</Chip>
                       </td>
                       <td className="t-data-xs px-[10px] py-[5px] text-right" style={{ color: 'var(--ink-2)' }}>
                         {l.montant ? `${Number(l.montant) / 1e6} USDC` : '—'}
@@ -152,10 +152,10 @@ function Peage() {
                         {l.latence_ms ? `${(l.latence_ms / 1000).toFixed(1)} s` : '—'}
                       </td>
                       <td className="t-data-xs px-[10px] py-[5px]" style={{ color: 'var(--ink-2)' }}>
-                        {l.cle === 'ledger-keyring' ? 'anneau Ledger' : 'fichier .env'}
+                        {l.cle === 'ledger-keyring' ? 'Ledger key ring' : '.env file'}
                       </td>
                       <td className="px-[10px] py-[5px]">
-                        {l.hashscan ? <Lien href={l.hashscan}>verifier</Lien> : null}
+                        {l.hashscan ? <Lien href={l.hashscan}>verify</Lien> : null}
                       </td>
                     </tr>
                   ))}
@@ -164,10 +164,10 @@ function Peage() {
             </div>
 
             <div className="flex flex-wrap gap-[16px] t-data-xs" style={{ color: 'var(--ink-2)' }}>
-              <span>facilitateur {x.facilitateur ?? '—'}</span>
-              <span>jeton {x.jeton ?? '—'}</span>
-              <span>payeur {x.payeur ?? '—'}</span>
-              <span>encaisseur {x.encaisseur ?? '—'}</span>
+              <span>facilitator {x.facilitateur ?? '—'}</span>
+              <span>token {x.jeton ?? '—'}</span>
+              <span>payer {x.payeur ?? '—'}</span>
+              <span>payee {x.encaisseur ?? '—'}</span>
             </div>
           </>
         )}
@@ -183,25 +183,25 @@ function Identite() {
   return (
     <Panel
       index="10"
-      title="Qui mesure : l’identité d’agent"
+      title="Who measures: the agent identity"
       meta={[
         'HCS-14',
-        a?.etat ?? 'non lu',
+        a?.etat ?? 'not read',
         ...(a?.sequence ? [`message #${a.sequence}`] : []),
       ]}
     >
       <div className="flex flex-col gap-[14px] p-[16px]">
         {!a ? (
           <p className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
-            Identite non lue : <code>docs/dataset/agent-identity.json</code> est absent du build.
+            Identity not read: <code>docs/dataset/agent-identity.json</code> is absent from this build.
           </p>
         ) : (
           <>
             <p className="t-data-sm" style={{ color: 'var(--ink-2)', maxWidth: '78ch' }}>
-              Le journal des paiements dit combien, quand, et par qui paye. Il ne disait pas{' '}
-              <strong>quel service</strong>. Un identifiant HCS-14 repond a ca sous une forme
-              qu'un tiers <strong>recalcule</strong> au lieu de nous croire : il est derive de
-              six champs, pas attribue par un annuaire.
+              The payments log says how much, when, and who paid. It did not say{' '}
+              <strong>which service</strong>. An HCS-14 identifier answers that in a form a third
+              party <strong>recomputes</strong> instead of taking our word for it: it is derived
+              from six fields, not handed out by a directory.
             </p>
 
             <div
@@ -217,28 +217,28 @@ function Identite() {
               {a.uaid}
             </div>
             <div className="flex flex-wrap gap-[12px] items-center">
-              <Copy text={a.uaid} label="copier l'identifiant" />
-              {a.hashscan ? <Lien href={a.hashscan}>le voir sur le topic</Lien> : null}
-              {a.spec ? <Lien href={a.spec}>la norme HCS-14</Lien> : null}
+              <Copy text={a.uaid} label="copy the identifier" />
+              {a.hashscan ? <Lien href={a.hashscan}>see it on the topic</Lien> : null}
+              {a.spec ? <Lien href={a.spec}>the HCS-14 standard</Lien> : null}
             </div>
 
             <div className="flex flex-col gap-[5px]">
-              <Ligne quoi="etat" valeur={a.etat}>
+              <Ligne quoi="state" valeur={a.etat}>
                 <span style={{ color: a.etat === 'ANNOUNCED' ? 'var(--ink)' : 'var(--ink-2)' }}>
                   {a.etat === 'ANNOUNCED'
-                    ? 'annonce, et relu octet pour octet sur le mirror node'
-                    : "pas d'annonce trouvee sur le topic"}
+                    ? 'announced, and re-read byte for byte on the mirror node'
+                    : 'no announcement found on the topic'}
                 </span>
               </Ligne>
               <Ligne quoi="topic" valeur={a.topic} />
               <Ligne quoi="message" valeur={a.sequence === null ? null : `#${a.sequence}`} />
               <Ligne quoi="consensus" valeur={a.consensus} />
-              <Ligne quoi="lu le" valeur={a.lu_le?.slice(0, 19).replace('T', ' ')} />
+              <Ligne quoi="read on" valeur={a.lu_le?.slice(0, 19).replace('T', ' ')} />
             </div>
 
             <div className="flex flex-col gap-[6px]">
               <span className="t-label" style={{ color: 'var(--ink-2)' }}>
-                les six champs qui produisent l'empreinte — recalcule-la
+                the six fields that produce the digest — recompute it
               </span>
               <div
                 className="t-data-xs hex"
@@ -253,14 +253,14 @@ function Identite() {
                 {a.canonical_json}
               </div>
               <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                sha384 de ce texte, encode en base58, prefixe <code>uaid:aid:</code>. Les
-                parametres apres le « ; » sont du routage et n'entrent pas dans l'empreinte.
+                sha384 of this text, encoded in base58, prefixed <code>uaid:aid:</code>. The
+                parameters after the “;” are routing and do not enter into the digest.
               </span>
             </div>
 
             <div className="flex flex-col gap-[8px]">
               <span className="t-label" style={{ color: 'var(--ink-2)' }}>
-                ce qui est revendique — chaque code a du code en face
+                what is claimed — every code has code behind it
               </span>
               <div className="flex flex-wrap gap-[6px]">
                 {Object.entries(a.competences).map(([code, nom]) => (
@@ -270,7 +270,7 @@ function Identite() {
                 ))}
               </div>
               <span className="t-label" style={{ color: 'var(--ink-2)', marginTop: 4 }}>
-                et ce qui a ete ecarte, alors que c'etait tentant
+                and what was left out, tempting as it was
               </span>
               <ul
                 className="t-data-xs"
@@ -286,11 +286,11 @@ function Identite() {
                 ))}
               </ul>
               <p className="t-data-xs" style={{ color: 'var(--ink-2)', maxWidth: '78ch', margin: 0 }}>
-                La norme publie deux vecteurs de test avec leurs entrees mais <strong>sans leurs
-                empreintes</strong> : il n'existe aucun resultat de reference contre lequel se
-                comparer. L'encodage est valide contre les vecteurs standard de Bitcoin et contre
-                une bibliotheque independante, la mise en forme regle par regle — mais rien ne
-                prouve que notre lecture du texte est celle qu'un autre implementeur ferait.
+                The standard publishes two test vectors with their inputs but <strong>without
+                their digests</strong>: there is no reference result to compare against. The
+                encoding is validated against Bitcoin’s standard vectors and against an
+                independent library, the formatting rule by rule — but nothing proves that our
+                reading of the text is the one another implementer would arrive at.
               </p>
             </div>
           </>
@@ -307,21 +307,21 @@ function Attestations() {
   return (
     <Panel
       index="11"
-      title="Ce qui est écrit on-chain"
-      meta={['lisible par un autre contrat', 'Hedera testnet', 'contrat deploye']}
+      title="What is written on-chain"
+      meta={['readable by another contract', 'Hedera testnet', 'contract deployed']}
     >
       <div className="flex flex-col gap-[14px] p-[16px]">
         {!a ? (
           <p className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
-            Attestations non lues : <code>docs/dataset/attestations.json</code> est absent du build.
+            Attestations not read: <code>docs/dataset/attestations.json</code> is absent from this build.
           </p>
         ) : (
           <>
             <p className="t-data-sm" style={{ color: 'var(--ink-2)', maxWidth: '78ch' }}>
-              Une mesure qui ne vit que dans un fichier n'est utilisable que par qui lit ce
-              fichier. Ecrite dans un contrat, elle devient lisible par{' '}
-              <strong>un autre contrat</strong> — un agregateur, un routeur, une garde — sans
-              nous demander la permission.
+              A measurement that lives only in a file is usable only by whoever reads that
+              file. Written into a contract, it becomes readable by{' '}
+              <strong>another contract</strong> — an aggregator, a router, a guard — without
+              asking us for permission.
             </p>
 
             <div className="flex flex-wrap gap-[24px]">
@@ -330,8 +330,8 @@ function Attestations() {
                   {nb(a.ecrits) ?? '—'}
                 </div>
                 <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                  hooks <strong>reellement ecrits on-chain</strong>, avec leur mediane et leur
-                  maximum — sur {nb(a.tentes) ?? '—'} transactions envoyees
+                  hooks <strong>actually written on-chain</strong>, with their median and their
+                  maximum — out of {nb(a.tentes) ?? '—'} transactions sent
                 </div>
               </div>
               <div>
@@ -339,8 +339,8 @@ function Attestations() {
                   {nb(a.calcules) ?? '—'}
                 </div>
                 <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                  calcules sur le corpus — l'ecart avec ce qui est ecrit attend du gaz, et il
-                  est publie plutot que lisse
+                  computed over the corpus — the gap with what is written is waiting on gas,
+                  and it is published rather than smoothed over
                 </div>
               </div>
               <div>
@@ -348,35 +348,35 @@ function Attestations() {
                   {nb(a.ecartes) ?? '—'}
                 </div>
                 <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                  <strong>ecartes faute de mesure</strong> — pas ecrits a zero
+                  <strong>left out for lack of a measurement</strong> — not written at zero
                 </div>
               </div>
             </div>
 
             <div className="flex flex-col gap-[5px]">
-              <Ligne quoi="contrat">
+              <Ligne quoi="contract">
                 <span className="hex">{a.contrat}</span>
               </Ligne>
-              <Ligne quoi="empreinte du corpus">
+              <Ligne quoi="corpus digest">
                 <span className="hex">{a.corpus_digest}</span>
               </Ligne>
-              <Ligne quoi="corpus atteste" valeur={(a.corpus ?? []).join(' · ')} />
+              <Ligne quoi="attested corpus" valeur={(a.corpus ?? []).join(' · ')} />
             </div>
             <div className="flex flex-wrap gap-[12px] items-center">
-              {a.hashscan ? <Lien href={a.hashscan}>ouvrir le contrat</Lien> : null}
-              {a.contrat ? <Copy text={a.contrat} label="copier l'adresse" /> : null}
+              {a.hashscan ? <Lien href={a.hashscan}>open the contract</Lien> : null}
+              {a.contrat ? <Copy text={a.contrat} label="copy the address" /> : null}
             </div>
 
             {a.pire.length > 0 && (
               <div className="flex flex-col gap-[6px]">
                 <span className="t-label" style={{ color: 'var(--ink-2)' }}>
-                  les trois plus gros prelevements attestes
+                  the three largest attested takes
                 </span>
                 {a.pire.map((h) => (
                   <div key={h.hook} className="flex flex-wrap gap-[14px] t-data-xs" style={{ color: 'var(--ink-2)' }}>
                     <span className="hex">{h.hook}</span>
                     <span>max {h.max_bps?.toFixed(2)} bps</span>
-                    <span style={{ color: 'var(--ink-2)' }}>mediane {h.median_bps?.toFixed(2)} bps</span>
+                    <span style={{ color: 'var(--ink-2)' }}>median {h.median_bps?.toFixed(2)} bps</span>
                     <span style={{ color: 'var(--ink-2)' }}>{nb(h.pools)} pools</span>
                   </div>
                 ))}
@@ -384,9 +384,9 @@ function Attestations() {
             )}
 
             <p className="t-data-xs" style={{ color: 'var(--ink-2)', maxWidth: '78ch', margin: 0 }}>
-              Un hook ecarte n'est pas un hook a zero : il n'a simplement aucune mesure a
-              attester. Ecrire zero pour lui serait exactement la faute que tout cet instrument
-              refuse.
+              A hook that was left out is not a hook at zero: it simply has no measurement to
+              attest. Writing zero for it would be exactly the mistake this whole instrument
+              refuses.
             </p>
           </>
         )}
@@ -402,20 +402,20 @@ function Independante() {
   return (
     <Panel
       index="12"
-      title="Une source indépendante, confrontée"
-      meta={['The Graph', 'subgraph officiel Uniswap V4 Base']}
+      title="An independent source, cross-checked"
+      meta={['The Graph', 'official Uniswap V4 Base subgraph']}
     >
       <div className="flex flex-col gap-[14px] p-[16px]">
         {!g ? (
           <p className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
-            Volume non lu : <code>docs/dataset/volume-base.json</code> est absent du build.
+            Volume not read: <code>docs/dataset/volume-base.json</code> is absent from this build.
           </p>
         ) : (
           <>
             <p className="t-data-sm" style={{ color: 'var(--ink-2)', maxWidth: '78ch' }}>
-              Tout le reste de cet instrument vient de <em>nos</em> mesures. Un recensement fait
-              soi-meme peut etre faux de la meme facon partout. On est donc alle le confronter,
-              pool par pool, a une source qui ne nous doit rien.
+              Everything else in this instrument comes from <em>our</em> measurements. A census
+              taken in-house can be wrong the same way everywhere. So we went and checked it,
+              pool by pool, against a source that owes us nothing.
             </p>
 
             <div className="flex flex-wrap gap-[24px]">
@@ -424,7 +424,7 @@ function Independante() {
                   {nb(g.retrouves)} / {nb(g.pools_du_recensement)}
                 </div>
                 <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                  de nos pools <strong>existent</strong> dans le subgraph officiel
+                  of our pools <strong>exist</strong> in the official subgraph
                 </div>
               </div>
               <div>
@@ -432,7 +432,7 @@ function Independante() {
                   {usd(g.volume_usd) ?? '—'}
                 </div>
                 <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                  de volume cumule · {nb(g.transactions)} transactions
+                  of cumulative volume · {nb(g.transactions)} transactions
                 </div>
               </div>
               <div>
@@ -440,7 +440,7 @@ function Independante() {
                   {usd(g.au_taux_median_usd) ?? '—'}
                 </div>
                 <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                  retenus par les hooks, <strong>au taux median mesure</strong>
+                  withheld by hooks, <strong>at the measured median rate</strong>
                 </div>
               </div>
             </div>
@@ -453,28 +453,28 @@ function Independante() {
               }}
             >
               <div className="t-label" style={{ color: 'var(--ink-2)', marginBottom: 6 }}>
-                pourquoi « estimation » et pas « constate »
+                why “estimate” and not “observed”
               </div>
               <p className="t-data-xs" style={{ color: 'var(--ink-2)', margin: 0, maxWidth: '78ch' }}>
-                {g.hypothese ?? <NonLu quoi="hypothese" />}
+                {g.hypothese ?? <NonLu quoi="hypothesis" />}
               </p>
               <p className="t-data-xs" style={{ color: 'var(--ink-2)', margin: '8px 0 0' }}>
-                Le chiffre est donc <strong>borne</strong> : de {usd(g.au_taux_median_usd)} au taux
-                median a {usd(g.au_taux_maximum_usd)} au taux maximum mesure. L'hypothese est
-                ecrite dans le fichier lui-meme, pas en note de bas de page.
+                The number is therefore <strong>bounded</strong>: from {usd(g.au_taux_median_usd)} at
+                the median rate to {usd(g.au_taux_maximum_usd)} at the measured maximum rate. The
+                hypothesis is written in the file itself, not in a footnote.
               </p>
             </div>
 
             {g.top_hooks.length > 0 && (
               <div className="flex flex-col gap-[6px]">
                 <span className="t-label" style={{ color: 'var(--ink-2)' }}>
-                  les cinq hooks par montant estime retenu
+                  the five hooks by estimated amount withheld
                 </span>
                 {g.top_hooks.map((h) => (
                   <div key={h.hook} className="flex flex-wrap gap-[14px] t-data-xs" style={{ color: 'var(--ink-2)' }}>
                     <span className="hex">{h.hook}</span>
                     <span>{usd(h.estime_usd)}</span>
-                    <span style={{ color: 'var(--ink-2)' }}>sur {usd(h.volume_usd)} de volume</span>
+                    <span style={{ color: 'var(--ink-2)' }}>on {usd(h.volume_usd)} of volume</span>
                     <span style={{ color: 'var(--ink-2)' }}>{nb(h.pools)} pools</span>
                   </div>
                 ))}
@@ -482,8 +482,8 @@ function Independante() {
             )}
 
             <p className="t-data-xs" style={{ color: 'var(--ink-2)', maxWidth: '78ch', margin: 0 }}>
-              Un pool non retrouve serait <strong>absent</strong> de ce fichier, jamais present a
-              volume zero. Aucun ne l'est : la couverture est de{' '}
+              A pool that was not found would be <strong>absent</strong> from this file, never
+              present at zero volume. None is: coverage is{' '}
               {g.part === null ? '—' : `${(g.part * 100).toFixed(1)} %`}.
             </p>
           </>
@@ -501,85 +501,85 @@ function Surfaces() {
   return (
     <Panel
       index="14"
-      title="Les autres surfaces"
-      meta={['extension', 'serveur MCP', 'depot']}
+      title="The other surfaces"
+      meta={['extension', 'MCP server', 'repository']}
     >
       <div className="flex flex-col gap-[16px] p-[16px]">
         <div className="flex flex-col gap-[6px]">
           <span className="t-label" style={{ color: 'var(--ink-2)' }}>
-            avant que tu signes — la garde de navigateur
+            before you sign — the browser guard
           </span>
           <p className="t-data-sm" style={{ color: 'var(--ink-2)', margin: 0, maxWidth: '78ch' }}>
-            Une extension Manifest V3 intercepte l'ordre d'envoyer une transaction — et rien
-            d'autre — decode la <code>PoolKey</code> dans le calldata de l'Universal Router, et
-            dit ce que ce hook a pris <strong>la derniere fois qu'il a ete mesure</strong>, avant
-            la signature. Elle ne mesure rien au moment de signer : mesurer prend ~9 s a froid.
-            C'est une consultation, et chaque nombre porte le bloc d'ou il vient.
+            A Manifest V3 extension intercepts the order to send a transaction — and nothing
+            else — decodes the <code>PoolKey</code> in the Universal Router calldata, and says
+            what that hook took <strong>the last time it was measured</strong>, before the
+            signature. It measures nothing at signing time: measuring takes ~9 s cold. It is a
+            lookup, and every number carries the block it comes from.
           </p>
           {gd ? (
             <>
               <div className="flex flex-wrap gap-[16px] t-data-xs" style={{ color: 'var(--ink-2)' }}>
                 <span>
-                  decodage verifie sur <strong style={{ color: 'var(--ink-2)' }}>{gd.transactions_reelles}</strong>{' '}
-                  transactions reelles capturees sur Base
+                  decoding verified on <strong style={{ color: 'var(--ink-2)' }}>{gd.transactions_reelles}</strong>{' '}
+                  real transactions captured on Base
                 </span>
-                <span>routeur {gd.universal_router?.slice(0, 12)}…</span>
-                <span>capture le {gd.capture_le?.slice(0, 10)}</span>
+                <span>router {gd.universal_router?.slice(0, 12)}…</span>
+                <span>captured on {gd.capture_le?.slice(0, 10)}</span>
               </div>
               <div className="flex flex-wrap gap-[12px]">
                 {gd.exemples.map((e) => (
                   <Lien key={e.hash} href={e.basescan}>
-                    tx {e.hash.slice(0, 10)}… (bloc {nb(e.bloc)})
+                    tx {e.hash.slice(0, 10)}… (block {nb(e.bloc)})
                   </Lien>
                 ))}
               </div>
             </>
           ) : (
             <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-              fixtures de calldata non lues
+              calldata fixtures not read
             </span>
           )}
           <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-            Installable en local ; elle n'est pas publiee sur un store, et elle ne voit que le
-            portefeuille d'un navigateur de bureau.
+            Installable locally; it is not published to a store, and it only ever sees a
+            desktop browser wallet.
           </span>
         </div>
 
         <div className="flex flex-col gap-[6px]" style={{ borderTop: '1px solid var(--line)', paddingTop: 14 }}>
           <span className="t-label" style={{ color: 'var(--ink-2)' }}>
-            pour un agent — le serveur MCP
+            for an agent — the MCP server
           </span>
           <p className="t-data-sm" style={{ color: 'var(--ink-2)', margin: 0, maxWidth: '78ch' }}>
-            La meme machine, exposee a un modele. Il choisit quoi interroger et repete ce qui
-            revient — il ne produit aucun nombre. L'outil qui mesure passe par le meme peage :
-            un agent paie ses mesures comme un humain.
+            The same machine, exposed to a model. It chooses what to query and repeats what
+            comes back — it produces no number of its own. The tool that measures goes through
+            the same toll: an agent pays for its measurements like a human.
           </p>
           <div className="flex flex-wrap gap-[6px]">
-            {m ? m.outils.map((o) => <Chip key={o}>{o}</Chip>) : <NonLu quoi="serveur MCP" />}
+            {m ? m.outils.map((o) => <Chip key={o}>{o}</Chip>) : <NonLu quoi="MCP server" />}
           </div>
         </div>
 
         <div className="flex flex-col gap-[6px]" style={{ borderTop: '1px solid var(--line)', paddingTop: 14 }}>
           <span className="t-label" style={{ color: 'var(--ink-2)' }}>
-            tout est verifiable
+            everything is verifiable
           </span>
           <p className="t-data-sm" style={{ color: 'var(--ink-2)', margin: 0, maxWidth: '78ch' }}>
-            Les {nb(dataset.totals.rows)} mesures sont versionnees dans le depot, chacune avec la
-            commande qui la reproduit. Ce n'est pas la donnee qui est vendue : c'est le droit de
-            faire tourner la machine sur un pool que personne n'a encore mesure.
+            The {nb(dataset.totals.rows)} measurements are versioned in the repository, each with
+            the command that reproduces it. What is sold is not the data: it is the right to run
+            the machine on a pool nobody has measured yet.
           </p>
           <div className="flex flex-wrap gap-[14px]">
-            <Lien href={F.depot}>le depot</Lien>
-            {F.agent?.hashscan ? <Lien href={F.agent.hashscan}>le journal d'audit HCS</Lien> : null}
+            <Lien href={F.depot}>the repository</Lien>
+            {F.agent?.hashscan ? <Lien href={F.agent.hashscan}>the HCS audit log</Lien> : null}
             {F.attestations?.hashscan ? (
-              <Lien href={F.attestations.hashscan}>les attestations on-chain</Lien>
+              <Lien href={F.attestations.hashscan}>the on-chain attestations</Lien>
             ) : null}
           </div>
         </div>
 
         {F.manquants.length > 0 && (
           <p className="t-data-xs" style={{ color: 'var(--ink-2)', margin: 0 }}>
-            Sources absentes de ce build, dont les chiffres ne sont pas affiches :{' '}
+            Sources absent from this build, whose numbers are not shown:{' '}
             {F.manquants.join(', ')}.
           </p>
         )}
@@ -597,40 +597,40 @@ function Execution() {
   return (
     <Panel
       index="13"
-      title="La preuve d’exécution sur l’appareil"
-      meta={['porte A4', 'EIP-712 sur Speculos']}
+      title="Proof of execution on the device"
+      meta={['door A4', 'EIP-712 on Speculos']}
     >
       <div className="flex flex-col gap-[16px] p-[16px]">
         <div className="flex flex-col gap-[8px]">
           <span className="t-label" style={{ color: 'var(--ink-2)' }}>
-            tout ce qui est publie ici vient d'une SIMULATION — alors on a execute le swap
+            everything published here comes from a SIMULATION — so we executed the swap
           </span>
           <p className="t-data-sm" style={{ color: 'var(--ink-2)', margin: 0, maxWidth: '78ch' }}>
-            Chaque nombre de cet instrument vient de <code>V4Quoter</code>, appele en{' '}
-            <code>eth_call</code>. C'est une simulation, et elle pourrait diverger d'une
-            execution reelle : autre chemin de code, aucun jeton reellement deplace, un hook qui
-            lit des soldes qu'un appel statique n'a jamais changes. Toute la these repose sur la
-            fidelite du cotateur, et rien ne l'avait verifiee.
+            Every number in this instrument comes from <code>V4Quoter</code>, called through{' '}
+            <code>eth_call</code>. That is a simulation, and it could diverge from a real
+            execution: a different code path, no token actually moved, a hook reading balances a
+            static call never changed. The whole thesis rests on the quoter’s fidelity, and
+            nothing had verified it.
           </p>
           <p className="t-data-sm" style={{ color: 'var(--ink-2)', margin: 0, maxWidth: '78ch' }}>
-            Alors un contrat sonde <strong>execute</strong> le swap sur le fork —{' '}
-            <code>unlock</code>, <code>swap</code>, <code>settle</code>, <code>take</code> — puis
-            lit son propre solde. Ce qu'un utilisateur recoit, pas ce qu'une comptabilite annonce.
-            Deux fois : avec le bytecode du hook, puis avec le talon inerte a sa place.
+            So a probe contract <strong>executes</strong> the swap on the fork —{' '}
+            <code>unlock</code>, <code>swap</code>, <code>settle</code>, <code>take</code> — then
+            reads its own balance. What a user receives, not what an accounting entry announces.
+            Twice: with the hook’s bytecode, then with the inert stub in its place.
           </p>
 
           {!e ? (
             <p className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
-              Resultat de la porte A4 <NonLu quoi="engine/tare/gates/a4.py" /> — aucun chiffre
-              n'est affiche a la place.
+              Result of door A4 <NonLu quoi="engine/tare/gates/a4.py" /> — no number is shown
+              in its place.
             </p>
           ) : (
             <>
-              <div className="scroll" tabIndex={0} role="region" aria-label="exécuté contre coté" style={{ overflowX: 'auto', marginTop: 4 }}>
+              <div className="scroll" tabIndex={0} role="region" aria-label="executed against quoted" style={{ overflowX: 'auto', marginTop: 4 }}>
                 <table className="w-full border-collapse" style={{ minWidth: 620 }}>
                   <thead>
                     <tr style={{ background: 'var(--bg-2)' }}>
-                      {['mesure', 'exécuté (wei reçus)', 'coté (eth_call)', 'écart'].map((h, i) => (
+                      {['measurement', 'executed (wei received)', 'quoted (eth_call)', 'gap'].map((h, i) => (
                         <th
                           key={h + i}
                           className="t-data-sm px-[10px] py-[6px] text-left"
@@ -643,8 +643,8 @@ function Execution() {
                   </thead>
                   <tbody>
                     {[
-                      ['avec le hook', e.avec_hook],
-                      ['avec le talon inerte', e.avec_talon],
+                      ['with the hook', e.avec_hook],
+                      ['with the inert stub', e.avec_talon],
                     ].map(([nom, v]) => {
                       const j = v as { execute: string; cote: string; egal: boolean }
                       return (
@@ -659,7 +659,7 @@ function Execution() {
                             {j.cote}
                           </td>
                           <td className="px-[10px] py-[5px]">
-                            <Chip>{j.egal ? 'IDENTIQUE' : 'DIVERGENT'}</Chip>
+                            <Chip>{j.egal ? 'IDENTICAL' : 'DIVERGENT'}</Chip>
                           </td>
                         </tr>
                       )
@@ -669,10 +669,10 @@ function Execution() {
               </div>
               <p className="t-data-sm" style={{ color: 'var(--ink)', margin: '4px 0 0' }}>
                 <strong>
-                  {e.bps_executes.toFixed(4)} bps executes contre {e.bps_publies.toFixed(4)} publies
+                  {e.bps_executes.toFixed(4)} bps executed against {e.bps_publies.toFixed(4)} published
                 </strong>{' '}
-                — au wei pres, sur les deux jambes. Si les deux avaient diverge, ce corpus
-                decrirait un simulateur et non des echanges.
+                — to the wei, on both legs. If the two had diverged, this corpus would be
+                describing a simulator and not swaps.
               </p>
             </>
           )}
@@ -680,36 +680,36 @@ function Execution() {
 
         <div className="flex flex-col gap-[8px]" style={{ borderTop: '1px solid var(--line)', paddingTop: 14 }}>
           <span className="t-label" style={{ color: 'var(--ink-2)' }}>
-            et le verdict lu sur un appareil, ecran par ecran, avant la signature
+            and the verdict read on a device, screen by screen, before the signature
           </span>
           {!l ? (
             <p className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
-              Preuve <NonLu quoi="docs/ledger/guard-speculos.json" />.
+              Proof <NonLu quoi="docs/ledger/guard-speculos.json" />.
             </p>
           ) : (
             <>
               <p className="t-data-sm" style={{ color: 'var(--ink-2)', margin: 0, maxWidth: '78ch' }}>
-                Le rapport de la garde n'est pas un message dans un navigateur : il est encode en{' '}
-                <strong>EIP-712</strong> et rendu <strong>{l.ecrans} ecrans</strong> sur
-                l'appareil, sur une vraie transaction Base. Ce qui est signe est ce qui a ete lu.
+                The guard’s report is not a message in a browser: it is encoded as{' '}
+                <strong>EIP-712</strong> and rendered across <strong>{l.ecrans} screens</strong> on
+                the device, on a real Base transaction. What is signed is what was read.
               </p>
               <div className="flex flex-col gap-[5px]">
                 <Ligne quoi="verdict" valeur={l.verdict?.toUpperCase()} />
-                <Ligne quoi="ce qui est affiche" valeur={l.titre} />
-                <Ligne quoi="type EIP-712" valeur={l.type_712} />
-                <Ligne quoi="ecrans" valeur={l.ecrans === null ? null : `${l.ecrans} sur l'appareil`} />
+                <Ligne quoi="what is displayed" valeur={l.titre} />
+                <Ligne quoi="EIP-712 type" valeur={l.type_712} />
+                <Ligne quoi="screens" valeur={l.ecrans === null ? null : `${l.ecrans} on the device`} />
                 <Ligne quoi="signature" valeur={l.signature_v === null ? null : `v = ${l.signature_v}`} />
                 <Ligne quoi="transaction" >
                   <span className="hex">{l.tx}</span>
                 </Ligne>
-                <Ligne quoi="appareil" valeur={l.appareil} />
+                <Ligne quoi="device" valeur={l.appareil} />
               </div>
               <p className="t-data-xs" style={{ color: 'var(--ink-2)', margin: 0, maxWidth: '78ch' }}>
                 {l.physique
-                  ? "Appareil physique."
-                  : "Ce n'est pas un Nano branche : c'est Speculos, l'emulateur officiel, servant l'application Ethereum de Ledger. On le dit plutot que de laisser croire au materiel."}
+                  ? 'Physical device.'
+                  : 'This is not a plugged-in Nano: it is Speculos, the official emulator, running Ledger’s Ethereum app. We say so rather than let anyone assume hardware.'}
               </p>
-              {l.basescan ? <Lien href={l.basescan}>la transaction sur Basescan</Lien> : null}
+              {l.basescan ? <Lien href={l.basescan}>the transaction on Basescan</Lien> : null}
             </>
           )}
         </div>

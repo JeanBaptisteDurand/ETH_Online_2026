@@ -5,10 +5,10 @@ import { dataset } from '../lib/dataset'
 import { Chip, Copy, Panel } from './Prim'
 
 const EXAMPLES = [
-  { addr: '0x985c14baa2a18316ffda0aefb3a632fadfca2acc', note: 'mesure 100,00 bps' },
-  { addr: '0xdda9bc41e324ef379e774ae1f7b062d23ea8aacc', note: 'absent du registre' },
-  { addr: '0x1aea38f06dece45c252ef1ac5af989d51dc8e8cc', note: 'porte A3' },
-  { addr: '0xc71b7fa56c92b05fbe2448a8bfeb2e9c085fe000', note: 'mesure 0,00 bps' },
+  { addr: '0x985c14baa2a18316ffda0aefb3a632fadfca2acc', note: 'measures 100.00 bps' },
+  { addr: '0xdda9bc41e324ef379e774ae1f7b062d23ea8aacc', note: 'absent from the registry' },
+  { addr: '0x1aea38f06dece45c252ef1ac5af989d51dc8e8cc', note: 'door A3' },
+  { addr: '0xc71b7fa56c92b05fbe2448a8bfeb2e9c085fe000', note: 'measures 0.00 bps' },
 ]
 
 /** Chargement paresseux de l'instantane du registre : les LED n'en dependent pas. */
@@ -55,21 +55,21 @@ export function LedWidget() {
   return (
     <Panel
       index="04"
-      title="Les permissions, lues sur la chaîne"
-      meta={['14 bits', 'BigInt(adresse) & 0x3FFF', 'aucun appel réseau']}
+      title="The permissions, read on-chain"
+      meta={['14 bits', 'BigInt(address) & 0x3FFF', 'no network call']}
     >
       <div className="p-[16px] flex flex-col gap-[16px]">
         <p className="prose t-data-sm" style={{ fontFamily: 'var(--prose)', fontSize: 14 }}>
-          Les 14 permissions d'un hook Uniswap v4 <strong>sont</strong> les 14 bits de poids faible
-          de son adresse — <code style={{ fontFamily: 'var(--mono)' }}>Hooks.sol</code> lit
-          l'adresse, pas un registre. Verifie sur l'instantane du registre officiel&nbsp;:{' '}
+          The 14 permissions of a Uniswap v4 hook <strong>are</strong> the 14 low bits of its
+          address — <code style={{ fontFamily: 'var(--mono)' }}>Hooks.sol</code> reads the
+          address, not a registry. Verified against the official registry snapshot:{' '}
           <strong>
             {dataset.provenance.registry.flag_bit_check.entries_matching_low14bits}/
-            {dataset.provenance.registry.flag_bit_check.entries} fiches,{' '}
-            {dataset.provenance.registry.flag_bit_check.comparisons} comparaisons de bits, zero
-            ecart.
+            {dataset.provenance.registry.flag_bit_check.entries} entries,{' '}
+            {dataset.provenance.registry.flag_bit_check.comparisons} bit comparisons, zero
+            mismatch.
           </strong>{' '}
-          Ce panneau ne fait aucune requete&nbsp;: colle une adresse, la reponse est deja la.
+          This panel makes no request: paste an address, the answer is already there.
         </p>
 
         <div className="flex flex-wrap items-center gap-[8px]">
@@ -77,8 +77,8 @@ export function LedWidget() {
             value={input}
             spellCheck={false}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="0x0469… l'adresse d'un hook"
-            aria-label="adresse du hook"
+            placeholder="0x0469… a hook address"
+            aria-label="hook address"
             name="hook"
             autoComplete="off"
             translate="no"
@@ -92,10 +92,10 @@ export function LedWidget() {
           />
           <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
             {value === ''
-              ? 'en attente'
+              ? 'waiting'
               : valid
-                ? `masque 0x${mask!.toString(16).padStart(4, '0')} · ${bits!.filter(Boolean).length}/14 actives`
-                : 'adresse invalide — 40 hexa apres 0x'}
+                ? `mask 0x${mask!.toString(16).padStart(4, '0')} · ${bits!.filter(Boolean).length}/14 active`
+                : 'invalid address — 40 hex digits after 0x'}
           </span>
         </div>
 
@@ -123,7 +123,7 @@ export function LedWidget() {
         <ul
           className="flex flex-wrap gap-[4px] m-0 p-0"
           style={{ listStyle: 'none' }}
-          aria-label="permissions du hook, quatorze bits"
+          aria-label="hook permissions, fourteen bits"
         >
           {FLAGS.map((f, i) => {
             const on = bits ? bits[i] : false
@@ -162,41 +162,41 @@ export function LedWidget() {
           <div className="flex flex-col gap-[6px]">
             <div className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
               {touchesSwap(bits)
-                ? 'Ce hook s’execute sur le chemin du swap. Il peut prendre.'
-                : 'Aucun bit de swap : ce hook ne s’execute pas sur le chemin du swap.'}
+                ? 'This hook runs on the swap path. It can take.'
+                : 'No swap bit: this hook does not run on the swap path.'}
             </div>
             <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-              Ce que la permission dit, c’est ce que le hook <em>a le droit</em> de faire.
-              Elle ne dit rien de ce qu’il prend. Le tableau 02 dit ce qu’il prend.
+              What the permission says is what the hook <em>is allowed</em> to do. It says
+              nothing about what it takes. Table 02 says what it takes.
             </div>
             <div className="flex flex-wrap items-center gap-[8px] pt-[4px]">
               <Copy
-                text={FLAGS.filter((_, i) => bits[i]).map((f) => f.key).join(',') || '(aucune)'}
-                label="copier les permissions"
+                text={FLAGS.filter((_, i) => bits[i]).map((f) => f.key).join(',') || '(none)'}
+                label="copy the permissions"
               />
               {measured && (
-                <Chip title={`ce hook figure dans nos ${dataset.totals.rows.toLocaleString('fr')} mesures`}>
-                  mesure : {measured.bpsMax === null ? 'aucune' : `${measured.bpsMax.toFixed(2)} bps max`}
+                <Chip title={`this hook appears in our ${dataset.totals.rows.toLocaleString('fr')} measurements`}>
+                  measurement: {measured.bpsMax === null ? 'none' : `${measured.bpsMax.toFixed(2)} bps max`}
                 </Chip>
               )}
               {state === 'ready' &&
                 (reg.length > 0 ? (
                   <Chip title={reg.map((r) => `${r.chain}: ${r.name}`).join(' · ')}>
-                    registre : {reg[0].name} ({reg.map((r) => r.chain).join(', ')})
+                    registry: {reg[0].name} ({reg.map((r) => r.chain).join(', ')})
                   </Chip>
                 ) : (
-                  <Chip title="aucune fiche dans Uniswap/hooklist a ce commit">
-                    registre : absent
+                  <Chip title="no entry in Uniswap/hooklist at this commit">
+                    registry: absent
                   </Chip>
                 ))}
               {state === 'loading' && (
                 <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                  registre en cours de chargement — les LED n'en dependent pas
+                  registry still loading — the LEDs do not depend on it
                 </span>
               )}
               {state === 'error' && (
                 <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                  instantane du registre indisponible — LED inchangees
+                  registry snapshot unavailable — LEDs unchanged
                 </span>
               )}
             </div>

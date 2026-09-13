@@ -1,32 +1,31 @@
 /**
- * PANNEAU 16 — SUBSTITUER.
+ * PANEL 16 — SUBSTITUTE THE TRANSACTION.
  *
- * La question qui vient juste apres « ce que cette porte prend » : et ailleurs ? Ce panneau
- * la pose a `POST /alternative`, montre la reponse telle qu'elle vient, et — seulement
- * lorsqu'une porte mesuree moins chere existe — propose de construire la transaction de
- * remplacement.
+ * The question that comes right after « what this door takes »: and elsewhere? This panel
+ * asks `POST /alternative`, shows the answer exactly as it comes, and — only when a measured
+ * cheaper door exists — offers to build the replacement transaction.
  *
- * TROIS CHOSES QU'IL NE FAIT JAMAIS :
+ * THREE THINGS IT NEVER DOES:
  *
- *   1. IL N'ENVOIE PAS. Il rend un `{to, data, value}` et un bouton qui le passe au
- *      portefeuille. La derniere main sur la transaction est celle de l'utilisateur — c'est
- *      la regle dure n.4 de packages/guard/src/alternative.ts, tenue jusqu'a l'ecran.
+ *   1. IT DOES NOT SEND. It returns a `{to, data, value}` and a button that hands it to the
+ *      wallet. The last hand on the transaction is the user's — that is hard rule n.4 of
+ *      packages/guard/src/alternative.ts, held all the way to the screen.
  *
- *   2. IL NE JUGE PAS. Ni « cette porte est meilleure », ni « la transaction est envoyable ».
- *      Les deux jugements viennent du serveur, qui les prend sur la table des 125 072
- *      mesures. Les refaire ici en produirait une seconde version, et deux versions
- *      divergent.
+ *   2. IT DOES NOT JUDGE. Neither « this door is better », nor « the transaction is
+ *      sendable ». Both judgements come from the server, which takes them from the table of
+ *      125 072 measurements. Redoing them here would produce a second version, and two
+ *      versions diverge.
  *
- *   3. IL N'INVENTE AUCUNE PHRASE. Chaque etat a son texte dans ../compte/substitution.ts,
- *      et la RAISON rendue par le serveur est affichee telle quelle. Un ecran qui reformule
- *      un refus finit par le reformuler faux.
+ *   3. IT INVENTS NO SENTENCE. Every state has its text in ../compte/substitution.ts, and
+ *      the REASON returned by the server is displayed as it stands. A screen that rephrases
+ *      a refusal ends up rephrasing it wrong.
  *
- * ET IL AFFICHE LE COMPTE DES APPELS RPC. Sur 125 072 lignes du corpus, 124 704 rendent « il
- * n'y a qu'une porte » et coutent ZERO requete : la route ne touche au reseau qu'apres avoir
- * verifie qu'il y a quelque chose a proposer. Ce compte a l'ecran est ce qui rend cette
- * promesse verifiable au lieu d'etre a croire.
+ * AND IT SHOWS THE RPC CALL COUNT. Out of 125 072 rows of the corpus, 124 704 answer « there
+ * is only one door » and cost ZERO request: the route only touches the network after it has
+ * checked that there is something to propose. That count on screen is what makes the promise
+ * verifiable instead of something to be believed.
  */
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { Panel, Copy, NonLu, Replay, Chip, Absence } from './Prim'
 import { dataset } from '../lib/dataset'
 import { Refus, ecouterPortefeuilles, type Fournisseur, type PortefeuilleAnnonce } from '../compte/api'
@@ -38,24 +37,24 @@ import {
 } from '../compte/substitution'
 import { useEffect } from 'react'
 
-/* ------------------------------------------------ les couples proposes a l'ecran */
+/* ------------------------------------------------ the pairs offered on screen */
 
 /**
- * Les quatre couples du corpus ou une porte mesuree est moins chere, a la meme taille et
- * dans le meme sens.
+ * The four pairs of the corpus where a measured door is cheaper, at the same size and in the
+ * same direction.
  *
- * On les CALCULE depuis le corpus embarque au lieu de les ecrire : la liste change a chaque
- * balayage, et une liste ecrite deviendrait fausse en silence. C'est la meme logique que
- * `chercherAlternative` — memes deux monnaies, meme sens, meme taille — et le serveur
- * refera le calcul de toute facon : ceci ne sert qu'a proposer des exemples cliquables.
+ * We COMPUTE them from the embedded corpus instead of writing them down: the list changes at
+ * every sweep, and a written list would silently go wrong. It is the same logic as
+ * `chercherAlternative` — same two currencies, same direction, same size — and the server
+ * will redo the computation anyway: this only serves to offer clickable examples.
  */
 function couplesInteressants(limite = 8) {
   const parEchange = new Map<string, { pool: string; dir: '0->1' | '1->0'; taille: string; bps: number }[]>()
   for (const r of dataset.rows) {
-    // Le corpus du front porte les etiquettes en francais : MESURE, INTERPOLE,
-    // NON_MESURABLE, NON_COTABLE. `MEASURED` est la forme de l'API et du paquet guard, et
-    // tsc a attrape la confusion — sans lui, ce filtre n'aurait retenu AUCUNE ligne et la
-    // liste d'exemples serait restee vide sans que rien ne le dise.
+    // The front corpus carries its labels in French: MESURE, INTERPOLE, NON_MESURABLE,
+    // NON_COTABLE. `MEASURED` is the form used by the API and by the guard package, and tsc
+    // caught the confusion — without it this filter would have kept NO row at all and the
+    // example list would have stayed empty without anything saying so.
     if (r.label !== 'MESURE' || r.bps === null) continue
     const dir: '0->1' | '1->0' = r.zero_for_one ? '0->1' : '1->0'
     const entree = (r.zero_for_one ? r.currency0 : r.currency1).toLowerCase()
@@ -86,7 +85,48 @@ const L = ({ k, v }: { k: string; v: React.ReactNode }) => (
   </div>
 )
 
-function Bouton({
+/**
+ * A NAMED STATE, AND THE REASON THAT GOES WITH IT.
+ *
+ * Exported because panel 00 shows the very same states — `PRET` and the eight others of
+ * packages/guard/src/envoi.ts — at the moment the user pastes a token address. A second
+ * rendering of the same states would be a second vocabulary, and the two would drift apart.
+ * `encadre: false` drops the frame for a caller that already provides its own padding.
+ */
+export function EtatNomme({
+  etat,
+  suite,
+  raison,
+  ton = 'var(--ink)',
+  encadre = true,
+}: {
+  etat: string
+  suite?: string | null
+  raison: ReactNode
+  ton?: string
+  encadre?: boolean
+}) {
+  return (
+    <div
+      className={encadre ? 'px-[16px] pt-[13px] pb-[8px]' : ''}
+      style={encadre ? { borderTop: '1px solid var(--line-strong)' } : undefined}
+    >
+      <div className="t-valeur" style={{ color: ton }}>
+        {etat}
+        {suite && <span style={{ color: 'var(--ink-2)' }}> — {suite}</span>}
+      </div>
+      <div
+        className="t-data-xs mt-[6px]"
+        style={{ color: 'var(--ink-2)', maxWidth: '78ch', lineHeight: 1.55, overflowWrap: 'anywhere' }}
+      >
+        {raison}
+      </div>
+    </div>
+  )
+}
+
+/** A button whose inactive form stays visible, with the reason next to it. */
+export function Bouton({
   children,
   onClick,
   actif = true,
@@ -125,7 +165,7 @@ const TON: Record<'neutre' | 'bon' | 'attention', string> = {
   attention: 'var(--m-5)',
 }
 
-/* --------------------------------------------------------------------- l'ecran */
+/* --------------------------------------------------------------------- the screen */
 
 export function SubstituerPanel() {
   const exemples = useMemo(() => couplesInteressants(), [])
@@ -142,12 +182,12 @@ export function SubstituerPanel() {
   const fournisseur: Fournisseur | null = portefeuilles[0]?.provider ?? null
 
   const demander = async (construire: boolean) => {
-    setOccupe(construire ? 'lecture de la chaine' : 'comparaison, sans reseau')
+    setOccupe(construire ? 'reading the chain' : 'comparing, no network')
     setRefus(null)
     setEnvoye(null)
     try {
-      // L'adresse n'est demandee que pour CONSTRUIRE : l'etat Permit2 d'un ERC-20 depend de
-      // qui signe. La comparaison, elle, ne depend de personne.
+      // The address is only asked for when BUILDING: the Permit2 state of an ERC-20 depends
+      // on who signs. The comparison depends on nobody.
       let proprietaire: string | undefined
       if (construire && fournisseur) {
         const c = (await fournisseur.request({ method: 'eth_requestAccounts' })) as string[]
@@ -173,7 +213,7 @@ export function SubstituerPanel() {
   const envoyer = async () => {
     const tx = r?.envoi.transaction
     if (!tx || !fournisseur) return
-    setOccupe('signature dans le portefeuille')
+    setOccupe('signature in the wallet')
     try {
       const c = (await fournisseur.request({ method: 'eth_requestAccounts' })) as string[]
       const hash = (await fournisseur.request({
@@ -187,8 +227,8 @@ export function SubstituerPanel() {
         new Refus(
           'erreur',
           err.code === 4001
-            ? 'refuse dans le portefeuille. C\'est une reponse, pas une panne.'
-            : `envoi impossible : ${err.message ?? 'sans message'}`,
+            ? 'declined in the wallet. That is an answer, not a failure.'
+            : `could not send: ${err.message ?? 'no message'}`,
         ),
       )
     } finally {
@@ -199,7 +239,7 @@ export function SubstituerPanel() {
   const approuver = async () => {
     const a = r?.envoi.permit2?.approbation
     if (!a || !fournisseur) return
-    setOccupe('approbation dans le portefeuille')
+    setOccupe('approval in the wallet')
     try {
       const c = (await fournisseur.request({ method: 'eth_requestAccounts' })) as string[]
       const hash = (await fournisseur.request({
@@ -208,7 +248,7 @@ export function SubstituerPanel() {
       })) as string
       setEnvoye(hash)
     } catch (e) {
-      setRefus(new Refus('erreur', `approbation impossible : ${(e as Error).message}`))
+      setRefus(new Refus('erreur', `could not approve: ${(e as Error).message}`))
     } finally {
       setOccupe(null)
     }
@@ -222,10 +262,10 @@ export function SubstituerPanel() {
   return (
     <Panel
       index="16"
-      title="Et ailleurs ? La porte de remplacement"
+      title="And elsewhere? The replacement door"
       right={
         <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-          {r ? `${r.appels_rpc} appel(s) RPC` : 'la comparaison ne coute aucune requete'}
+          {r ? `${r.appels_rpc} RPC call(s)` : 'the comparison costs no request'}
         </span>
       }
     >
@@ -233,18 +273,19 @@ export function SubstituerPanel() {
         className="m-0 px-[16px] py-[12px]"
         style={{ fontFamily: 'var(--prose)', fontSize: 15, lineHeight: 1.6, maxWidth: '78ch', color: 'var(--ink-2)' }}
       >
-        Sur les <strong style={{ color: 'var(--ink)' }}>125 072</strong> lignes du corpus,{' '}
-        <strong style={{ color: 'var(--ink)' }}>124 704</strong> repondent « il n'y a qu'une porte »
-        — et c'est une reponse, pas un echec de recherche. <strong style={{ color: 'var(--ink)' }}>Quinze</strong> passent
-        le seuil d'un point de base, sur <strong>quatre</strong> couples de pools ; la meilleure fait
-        passer de 295,59 a 216,92 bps, deux pools de memes monnaies, memes frais et meme{' '}
-        <code style={{ fontFamily: 'var(--mono)' }}>tickSpacing</code>, qui ne different que par leur
-        hook. Aucune ne depasse 100 bps. La vraie variable actionnable reste la taille.
+        Out of the <strong style={{ color: 'var(--ink)' }}>125 072</strong> rows of the corpus,{' '}
+        <strong style={{ color: 'var(--ink)' }}>124 704</strong> answer « there is only one door »
+        — and that is an answer, not a failed search.{' '}
+        <strong style={{ color: 'var(--ink)' }}>Fifteen</strong> clear the one basis point
+        threshold, over <strong>four</strong> pairs of pools; the best one takes you from 295.59
+        down to 216.92 bps, two pools with the same currencies, the same fee and the same{' '}
+        <code style={{ fontFamily: 'var(--mono)' }}>tickSpacing</code>, differing only by their
+        hook. None of them exceeds 100 bps. The real actionable variable is still the size.
       </p>
 
       {exemples.length > 0 && (
         <L
-          k="couples du corpus"
+          k="pairs from the corpus"
           v={
             <span className="flex flex-wrap gap-[6px]">
               {exemples.map((e) => (
@@ -283,7 +324,7 @@ export function SubstituerPanel() {
             value={pool}
             onChange={(ev) => setPool(ev.target.value.trim())}
             spellCheck={false}
-            aria-label="identifiant du pool actuel"
+            aria-label="identifier of the current pool"
             name="pool"
             autoComplete="off"
             translate="no"
@@ -302,7 +343,7 @@ export function SubstituerPanel() {
         }
       />
       <L
-        k="sens · taille"
+        k="direction · size"
         v={
           <span className="flex flex-wrap items-center gap-[8px]">
             {(['0->1', '1->0'] as const).map((d) => (
@@ -326,14 +367,14 @@ export function SubstituerPanel() {
               value={taille}
               onChange={(ev) => setTaille(ev.target.value.replace(/[^0-9]/g, ''))}
               spellCheck={false}
-              aria-label="taille dépensée, en unités du jeton d'entrée"
+              aria-label="size spent, in units of the input token"
               name="taille"
               autoComplete="off"
               inputMode="numeric"
               className="t-data-sm"
               style={{
-                // `width: 230` fixe debordait a 400 px : une largeur fixe dans une ligne qui
-                // se replie n'est pas une largeur, c'est un plancher.
+                // A fixed `width: 230` overflowed at 400 px: a fixed width inside a row that
+                // wraps is not a width, it is a floor.
                 flex: '1 1 200px',
                 minWidth: 0,
                 maxWidth: 230,
@@ -343,7 +384,7 @@ export function SubstituerPanel() {
                 color: 'var(--ink)',
                 fontFamily: 'var(--mono)',
               }}
-              placeholder="1000000000000000000… en unités du jeton d'entrée"
+              placeholder="1000000000000000000… in units of the input token"
             />
           </span>
         }
@@ -351,24 +392,24 @@ export function SubstituerPanel() {
 
       <div className="px-[16px] py-[11px] flex flex-wrap items-center gap-[10px]" style={{ borderTop: '1px solid var(--line)' }}>
         <Bouton onClick={() => demander(false)} actif={Boolean(pool) && !occupe}>
-          comparer
+          compare
         </Bouton>
         <Bouton
           onClick={() => demander(true)}
           actif={Boolean(pool) && !occupe}
-          titre="lit la cotation vivante et l'etat Permit2 : jusqu'a trois eth_call factures"
+          titre="reads the live quote and the Permit2 state: up to three billed eth_call"
         >
-          comparer et construire
+          compare and build
         </Bouton>
         <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-          {occupe ?? "« comparer » ne touche a aucun noeud. « construire » en lit un, et le dit."}
+          {occupe ?? '« compare » touches no node. « build » reads one, and says so.'}
         </span>
       </div>
 
       {refus && (
         <Absence
-          quoi={refus.genre === 'api_absente' ? 'l’API de substitution' : refus.genre.replace(/_/g, ' ')}
-          etat={refus.genre === 'api_absente' ? undefined : 'refus'}
+          quoi={refus.genre === 'api_absente' ? 'the substitution API' : refus.genre.replace(/_/g, ' ')}
+          etat={refus.genre === 'api_absente' ? undefined : 'refused'}
           panne={refus.genre !== 'api_absente'}
           raison={refus.message}
           cmd={refus.genre === 'api_absente' ? 'cd apps/api && npm start' : undefined}
@@ -377,88 +418,73 @@ export function SubstituerPanel() {
 
       {alt && aff && (
         <>
-          <div className="px-[16px] pt-[13px] pb-[8px]" style={{ borderTop: '1px solid var(--line-strong)' }}>
-            <div className="t-label" style={{ color: TON[aff.ton] }}>
-              {alt.etat} — {aff.titre}
-            </div>
-            <div className="t-data-xs mt-[6px]" style={{ color: 'var(--ink-2)', maxWidth: '78ch', lineHeight: 1.55 }}>
-              {alt.raison}
-            </div>
-          </div>
+          <EtatNomme etat={alt.etat} suite={aff.titre} raison={alt.raison} ton={TON[aff.ton]} />
 
           <L
-            k="porte actuelle"
+            k="current door"
             v={
               <>
                 {alt.actuelle.poolId.slice(0, 14)}… · hook {alt.actuelle.hook.slice(0, 12) || '—'}… ·{' '}
-                {alt.actuelle.bps === null ? <NonLu quoi="mesure a cette taille" /> : `${alt.actuelle.bps.toFixed(4)} bps`}
+                {alt.actuelle.bps === null ? <NonLu quoi="measurement at this size" /> : `${alt.actuelle.bps.toFixed(4)} bps`}
               </>
             }
           />
           {alt.proposee && (
             <>
               <L
-                k="porte proposee"
+                k="proposed door"
                 v={
                   <>
                     {alt.proposee.poolId.slice(0, 14)}… · hook {alt.proposee.hook.slice(0, 12)}… ·{' '}
-                    {alt.proposee.bps === null ? <NonLu quoi="mesure" /> : `${alt.proposee.bps.toFixed(4)} bps`} ·{' '}
-                    frais {alt.proposee.poolKey.fee} · tickSpacing {alt.proposee.poolKey.tickSpacing}
+                    {alt.proposee.bps === null ? <NonLu quoi="measurement" /> : `${alt.proposee.bps.toFixed(4)} bps`} ·{' '}
+                    fee {alt.proposee.poolKey.fee} · tickSpacing {alt.proposee.poolKey.tickSpacing}
                   </>
                 }
               />
               <L
-                k="economie mesuree"
+                k="measured saving"
                 v={
                   <>
-                    {alt.economie_bps === null ? <NonLu quoi="ecart" /> : `${alt.economie_bps.toFixed(4)} bps`}
-                    <span style={{ color: 'var(--ink-2)' }}> · seuil de publication {alt.seuil_bps} bps</span>
+                    {alt.economie_bps === null ? <NonLu quoi="gap" /> : `${alt.economie_bps.toFixed(4)} bps`}
+                    <span style={{ color: 'var(--ink-2)' }}> · publication threshold {alt.seuil_bps} bps</span>
                   </>
                 }
               />
             </>
           )}
           <L
-            k="portes examinees"
+            k="doors examined"
             v={
               alt.examinees.length === 0 ? (
-                'aucune : rien d\'autre ne fait cet echange dans le corpus'
+                'none: nothing else makes this swap in the corpus'
               ) : (
                 <span className="flex flex-wrap gap-[6px]">
                   {alt.examinees.map((p) => (
-                    <Chip key={p.poolId} title={`${p.poolId} · ${p.label ?? 'non mesure'}`}>
-                      {p.poolId.slice(0, 8)}… {p.bps === null ? 'non mesuree' : `${p.bps.toFixed(2)} bps`}
+                    <Chip key={p.poolId} title={`${p.poolId} · ${p.label ?? 'not measured'}`}>
+                      {p.poolId.slice(0, 8)}… {p.bps === null ? 'not measured' : `${p.bps.toFixed(2)} bps`}
                     </Chip>
                   ))}
                 </span>
               )
             }
           />
-          <L k="bloc du corpus" v={`${alt.block_number} · chaine ${alt.chain_id}`} />
+          <L k="corpus block" v={`${alt.block_number} · chain ${alt.chain_id}`} />
 
-          {/* --------------------------------------------------------- l'envoi */}
+          {/* --------------------------------------------------------- the send */}
           {env && (
             <>
-              <div className="px-[16px] pt-[13px] pb-[8px]" style={{ borderTop: '1px solid var(--line-strong)' }}>
-                <div className="t-valeur" style={{ color: env.etat === 'PRET' ? 'var(--ink)' : 'var(--ink)' }}>
-                  {env.etat}
-                  {suite && <span style={{ color: 'var(--ink-2)' }}> — {suite}</span>}
-                </div>
-                <div className="t-data-xs mt-[6px]" style={{ color: 'var(--ink-2)', maxWidth: '78ch', lineHeight: 1.55 }}>
-                  {env.raison}
-                </div>
-              </div>
+              <EtatNomme etat={env.etat} suite={suite} raison={env.raison} />
 
               {env.monnaieEntree && (
                 <L
-                  k="monnaie depensee"
+                  k="currency spent"
                   v={
                     <>
                       {env.monnaieEntree}
                       <span style={{ color: 'var(--ink-2)' }}>
                         {env.native
-                          ? " · ETH natif : rien a autoriser, le montant part dans `value`"
-                          : ' · ERC-20 : Permit2 est necessaire'}
+                          ? ' · native ETH: nothing to authorise, the amount travels in `value`'
+                          : ' · ERC-20: Permit2 is required'}
                       </span>
                     </>
                   }
@@ -466,12 +492,12 @@ export function SubstituerPanel() {
               )}
               {env.amountOutMinimum && (
                 <L
-                  k="plancher de sortie"
+                  k="output floor"
                   v={
                     <>
                       {env.amountOutMinimum}
                       <span style={{ color: 'var(--ink-2)' }}>
-                        {' '}· cotation vivante {env.cotation} moins {env.toleranceBps} bps
+                        {' '}· live quote {env.cotation} minus {env.toleranceBps} bps
                       </span>
                     </>
                   }
@@ -479,23 +505,23 @@ export function SubstituerPanel() {
               )}
               {env.deadline && (
                 <L
-                  k="echeance"
+                  k="deadline"
                   v={
                     <>
                       {new Date(Number(env.deadline) * 1000).toISOString().slice(0, 19).replace('T', ' ')} UTC
-                      <span style={{ color: 'var(--ink-2)' }}> · pas l'an 2106</span>
+                      <span style={{ color: 'var(--ink-2)' }}> · not the year 2106</span>
                     </>
                   }
                 />
               )}
               {env.commandes && (
                 <L
-                  k="commandes du routeur"
+                  k="router commands"
                   v={
                     <>
                       {env.commandes}
                       <span style={{ color: 'var(--ink-2)' }}>
-                        {env.commandes === '0x0a10' ? ' · le permit AVANT le swap' : ' · swap seul'}
+                        {env.commandes === '0x0a10' ? ' · the permit BEFORE the swap' : ' · swap alone'}
                       </span>
                     </>
                   }
@@ -505,7 +531,7 @@ export function SubstituerPanel() {
               {r.lectures.length > 0 && (
                 <div className="px-[16px] py-[9px]" style={{ borderTop: '1px solid var(--line)' }}>
                   <div className="t-label mb-[6px]" style={{ color: 'var(--ink-2)' }}>
-                    les {r.appels_rpc} lecture(s) on-chain, chacune rejouable
+                    the {r.appels_rpc} on-chain read(s), each replayable
                   </div>
                   {r.lectures.map((l) => (
                     <div key={l.quoi} className="mb-[6px]">
@@ -520,53 +546,53 @@ export function SubstituerPanel() {
               )}
 
               <div className="px-[16px] py-[11px] flex flex-wrap items-center gap-[10px]" style={{ borderTop: '1px solid var(--line)' }}>
-                {/* Le bouton n'est ACTIF que sur PRET. Sur les autres etats il reste visible
-                    et grise, avec la raison a cote : un bouton absent ferait croire a
-                    l'utilisateur qu'il a rate une etape. */}
+                {/* The button is ACTIVE only on PRET. On every other state it stays visible
+                    and greyed, with the reason next to it: a missing button would make the
+                    user think they skipped a step. */}
                 <Bouton
                   onClick={envoyer}
                   actif={env.etat === 'PRET' && Boolean(fournisseur) && !occupe}
                   fort
                   titre={
                     env.etat !== 'PRET'
-                      ? `indisponible : ${env.etat}`
+                      ? `unavailable: ${env.etat}`
                       : !fournisseur
-                        ? 'aucun portefeuille annonce'
-                        : 'la transaction part de TON portefeuille, apres TA signature'
+                        ? 'no wallet announced'
+                        : 'the transaction leaves YOUR wallet, after YOUR signature'
                   }
                 >
-                  signer et envoyer
+                  sign and send
                 </Bouton>
                 {env.etat === 'APPROBATION_REQUISE' && env.permit2?.approbation && (
                   <Bouton onClick={approuver} actif={Boolean(fournisseur) && !occupe}>
-                    approuver le jeton vers Permit2
+                    approve the token to Permit2
                   </Bouton>
                 )}
                 {env.transaction && (
                   <>
-                    <Copy text={env.transaction.data} label="copier le calldata" />
+                    <Copy text={env.transaction.data} label="copy the calldata" />
                     <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                      vers {env.transaction.to.slice(0, 12)}… · value {env.transaction.value}
+                      to {env.transaction.to.slice(0, 12)}… · value {env.transaction.value}
                     </span>
                   </>
                 )}
                 {!fournisseur && (
                   <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                    aucun portefeuille annonce : le calldata reste copiable, et verifiable
+                    no wallet announced: the calldata stays copyable, and checkable
                   </span>
                 )}
               </div>
 
               {envoye && (
                 <div className="px-[16px] py-[11px]" style={{ borderTop: '1px solid var(--line)', background: 'var(--bg-2)' }}>
-                  <div className="t-label" style={{ color: 'var(--ink)' }}>transaction envoyee</div>
+                  <div className="t-label" style={{ color: 'var(--ink)' }}>transaction sent</div>
                   <div className="t-data-xs mt-[5px]" style={{ color: 'var(--ink-2)', wordBreak: 'break-all' }}>
                     {envoye}
                   </div>
                   <div className="t-data-xs mt-[6px]" style={{ color: 'var(--ink-2)', maxWidth: '76ch' }}>
-                    Envoyee n'est pas incluse. Ce panneau ne suivra pas son sort : il n'a pas de
-                    quoi le faire honnetement sans lire la chaine en boucle, et une roue qui
-                    tourne indefiniment serait un silence deguise.
+                    Sent is not included. This panel will not follow its fate: it has no way to do
+                    that honestly without reading the chain in a loop, and a spinner that turns
+                    forever would be silence in disguise.
                   </div>
                 </div>
               )}

@@ -11,22 +11,22 @@ const PAGE = 200
 /** La phrase de desaccord. Elle n'invente rien : elle rapproche deux lectures. */
 function disagreement(h: Hook): string {
   if (h.bpsMax === null)
-    return "Aucune cotation exploitable sur ce hook a ce bloc. Une lecture bornee est un NON_MESURABLE, jamais une valeur."
+    return "No usable quote on this hook at this block. A bounded read is a NON_MESURABLE, never a value."
   if (h.bpsMax <= 0)
-    return "La mesure ne trouve rien : le meme swap rend la meme quantite avec et sans le hook. Le hook ne prend pas sur ce chemin."
+    return "The measurement finds nothing: the same swap returns the same amount with and without the hook. The hook takes nothing on this path."
   const fee = h.storedLpFees.every((f) => f === 0)
   const parts: string[] = []
   parts.push(
-    `Le meme swap, cote deux fois au bloc ${fmtBlock(h.blocks[0])}, rend ${h.bpsMax.toFixed(2)} bps de moins avec le hook que sans lui.`,
+    `The same swap, quoted twice at block ${fmtBlock(h.blocks[0])}, returns ${h.bpsMax.toFixed(2)} bps less with the hook than without it.`,
   )
-  if (fee) parts.push("La commission LP lue on-chain pour ces pools vaut ZERO : rien dans l'etat du pool n'annonce ce prelevement.")
-  if (!h.registry) parts.push("Et ce hook n'a aucune fiche dans le registre officiel.")
+  if (fee) parts.push("The LP fee read on-chain for these pools is ZERO: nothing in the pool state announces this take.")
+  if (!h.registry) parts.push("And this hook has no entry in the official registry.")
   else {
     const d: string[] = []
     if (!h.registry.dynamicFee) d.push('dynamicFee = false')
-    if (!h.registry.auditUrl) d.push('aucun audit')
-    if (h.registry.verifiedSource) d.push('source verifiee')
-    parts.push(`Le registre, lui, dit : ${d.join(', ')} — et pas un seul champ numerique.`)
+    if (!h.registry.auditUrl) d.push('no audit')
+    if (h.registry.verifiedSource) d.push('verified source')
+    parts.push(`The registry, for its part, says: ${d.join(', ')} — and not a single numeric field.`)
   }
   return parts.join(' ')
 }
@@ -97,12 +97,12 @@ export function Detail({
     <div className="flex flex-col gap-[16px]">
       <Panel
         index="05"
-        title="La fiche du hook choisi"
+        title="The record of the selected hook"
         meta={[<span className="hex" key="a">{shortAddr(hook.address, 12, 8)}</span>]}
         right={
           <div className="flex gap-[6px]">
             <Chip>{hook.label}</Chip>
-            <Chip>{hook.inRegistry ? 'au registre' : 'absent du registre'}</Chip>
+            <Chip>{hook.inRegistry ? 'in the registry' : 'absent from the registry'}</Chip>
           </div>
         }
       >
@@ -117,21 +117,21 @@ export function Detail({
                 {hook.bpsMax === null ? '—' : hook.bpsMax.toFixed(2)}
               </div>
               <div className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
-                bps maximum observes
+                maximum bps observed
               </div>
               <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                sur {hook.measuredCount} observations · bloc {fmtBlock(hook.blocks[0])}
+                over {hook.measuredCount} observations · block {fmtBlock(hook.blocks[0])}
               </div>
             </div>
             <div className="flex flex-col justify-center gap-[2px]">
               <div className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
-                {hook.registry ? hook.registry.name : 'aucune fiche au registre'}
+                {hook.registry ? hook.registry.name : 'no entry in the registry'}
               </div>
               <p
                 className="t-data-sm m-0"
                 style={{ fontFamily: 'var(--prose)', maxWidth: '68ch', color: 'var(--ink-2)' }}
               >
-                {hook.registry?.description || 'Le registre officiel ne decrit pas ce hook.'}
+                {hook.registry?.description || 'The official registry does not describe this hook.'}
               </p>
             </div>
           </div>
@@ -147,12 +147,12 @@ export function Detail({
 
       <Panel
         index="06"
-        title="Le profil taille vers bps"
+        title="The size-to-bps profile"
         right={
           <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
             {focus && series.length < toutes.length
-              ? `assistant : ${series.length}/${toutes.length} serie(s), pool ${shortAddr(focus.pool, 8, 6)}${focus.direction ? `, ${focus.direction}` : ''}`
-              : 'canvas nu, aucune spline, aucune valeur animee'}
+              ? `assistant: ${series.length}/${toutes.length} series, pool ${shortAddr(focus.pool, 8, 6)}${focus.direction ? `, ${focus.direction}` : ''}`
+              : 'bare canvas, no spline, no animated value'}
           </span>
         }
       >
@@ -161,9 +161,9 @@ export function Detail({
 
       <Panel
         index="07"
-        title="Les lignes brutes de ce hook"
+        title="The raw rows of this hook"
         meta={[
-          `${rows.length} lignes`,
+          `${rows.length} rows`,
           dataset.provenance.measurements.path,
           dataset.provenance.measurements.engine_ver,
         ]}
@@ -172,13 +172,13 @@ export function Detail({
           className="overflow-auto"
           tabIndex={0}
           role="region"
-          aria-label="les lignes brutes de ce hook, tableau defilant"
+          aria-label="the raw rows of this hook, scrolling table"
           style={{ maxHeight: 420 }}
         >
           <table className="w-full border-collapse" style={{ minWidth: 980 }}>
             <thead>
               <tr style={{ background: 'var(--bg-2)' }}>
-                {['pool', 'sens', 'taille (unités du jeton entrant)', 'bps', 'étiquette', 'raison', 'bloc'].map(
+                {['pool', 'direction', 'size (units of the input token)', 'bps', 'label', 'reason', 'block'].map(
                   (h) => (
                     <th
                       key={h}
@@ -259,11 +259,11 @@ export function Detail({
                 cursor: page === 0 ? 'default' : 'pointer',
               }}
             >
-              ‹ precedentes
+              ‹ previous
             </button>
             <span>
-              lignes {groupDigits(String(debut + 1))} a{' '}
-              {groupDigits(String(Math.min(debut + PAGE, rows.length)))} sur{' '}
+              rows {groupDigits(String(debut + 1))} to{' '}
+              {groupDigits(String(Math.min(debut + PAGE, rows.length)))} of{' '}
               {groupDigits(String(rows.length))} · page {page + 1}/{nbPages}
             </span>
             <button
@@ -278,7 +278,7 @@ export function Detail({
                 cursor: page >= nbPages - 1 ? 'default' : 'pointer',
               }}
             >
-              suivantes ›
+              next ›
             </button>
             {hook.worstRowId !== null && (
               <button
@@ -292,7 +292,7 @@ export function Detail({
                   cursor: 'pointer',
                 }}
               >
-                aller a la pire ligne
+                go to the worst row
               </button>
             )}
           </div>
@@ -302,29 +302,29 @@ export function Detail({
           <div className="p-[16px] flex flex-col gap-[10px]" style={{ borderTop: '1px solid var(--line-strong)' }}>
             <div className="flex flex-wrap gap-x-[24px] gap-y-[4px] t-data-sm" style={{ color: 'var(--ink-2)' }}>
               <span>
-                valeur <span style={{ color: 'var(--ink)' }}>{current.bps === null ? '—' : `${current.bps.toFixed(4)} bps`}</span>
+                value <span style={{ color: 'var(--ink)' }}>{current.bps === null ? '—' : `${current.bps.toFixed(4)} bps`}</span>
               </span>
               <span>
-                taille <span style={{ color: 'var(--ink)' }}>{powerOfTen(current.amount_in) ?? groupDigits(current.amount_in)}</span>
+                size <span style={{ color: 'var(--ink)' }}>{powerOfTen(current.amount_in) ?? groupDigits(current.amount_in)}</span>
               </span>
               <span>
-                sens <span style={{ color: 'var(--ink)' }}>{current.zero_for_one ? 'currency0 → currency1' : 'currency1 → currency0'}</span>
+                direction <span style={{ color: 'var(--ink)' }}>{current.zero_for_one ? 'currency0 → currency1' : 'currency1 → currency0'}</span>
               </span>
               <span>
-                bloc <span style={{ color: 'var(--ink)' }}>{fmtBlock(current.block_number)}</span>
+                block <span style={{ color: 'var(--ink)' }}>{fmtBlock(current.block_number)}</span>
               </span>
               <span>
                 lp fee on-chain <span style={{ color: 'var(--ink)' }}>{String(current.stored_lp_fee)}</span>
               </span>
             </div>
             <div className="flex flex-wrap gap-x-[24px] gap-y-[4px] t-data-xs hex" style={{ color: 'var(--ink-2)' }}>
-              <span>avec le hook : {current.out_with ?? '—'}</span>
-              <span>sans le hook : {current.out_without ?? '—'}</span>
-              <span>empreinte du stub : {shortAddr(current.stub_hash, 10, 8)}</span>
+              <span>with the hook: {current.out_with ?? '—'}</span>
+              <span>without the hook: {current.out_without ?? '—'}</span>
+              <span>stub fingerprint: {shortAddr(current.stub_hash, 10, 8)}</span>
             </div>
             <Replay
               cmd={replayCommand(current)}
-              note={`A lancer depuis la racine du depot, apres « docker compose up -d anvil » (fork Base epingle au bloc ${fmtBlock(current.block_number)}). Le moteur remplace le bytecode du hook par le stub inerte, cote deux fois, puis restaure le bytecode d'origine. Verifie : cette commande rend out_with, out_without et bps identiques a la ligne ci-dessus.`}
+              note={`Run from the root of the repository, after “docker compose up -d anvil” (Base fork pinned at block ${fmtBlock(current.block_number)}). The engine replaces the hook bytecode with the inert stub, quotes twice, then restores the original bytecode. Verified: this command returns out_with, out_without and bps identical to the row above.`}
             />
           </div>
         )}

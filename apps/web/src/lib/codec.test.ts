@@ -131,9 +131,9 @@ test('le tableau des lignes brutes est pagine, et dit combien il en cache', () =
   assert.ok(!/\{rows\.map\(/.test(src), 'plus aucun rendu de la totalite des lignes')
   // Pagine n est pas tronque : le titre du panneau annonce toujours le TOTAL, la barre du bas
   // dit quelles lignes sont a l ecran sur combien, et la pire ligne reste a un clic.
-  assert.ok(src.includes('lignes brutes de ce hook'))
+  assert.ok(src.includes('raw rows of this hook'))
   assert.ok(src.includes('groupDigits(String(rows.length))'), 'le total est affiche')
-  assert.ok(src.includes('aller a la pire ligne'))
+  assert.ok(/go to the worst row/i.test(src), 'la pire ligne reste a un clic')
 })
 
 test('la completion des jetons est bornee, et le dit au lieu de faire croire a un filtre', () => {
@@ -141,5 +141,7 @@ test('la completion des jetons est bornee, et le dit au lieu de faire croire a u
   assert.match(src, /const PROPOSES_MAX = \d+/)
   assert.ok(src.includes('tokens.slice(0, PROPOSES_MAX)'))
   assert.ok(!/\{tokens\.map\(/.test(src), 'le datalist ne rend plus les 8 583 jetons')
-  assert.ok(src.includes('toute autre adresse peut etre tapee'))
+  // L ecran est en anglais. La regle gardee est la meme : la liste est BORNEE, et la page dit
+  // qu elle l est — sinon une completion tronquee se lit comme un filtre.
+  assert.ok(src.includes('any other address can be typed in'))
 })

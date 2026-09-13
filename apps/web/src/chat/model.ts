@@ -115,34 +115,34 @@ export function judge(
   maxBps: number | null,
   measured: number,
 ): Disagreement {
-  if (!registryAvailable) return { is: null, kind: null, note: 'aucun registre charge : rien a confronter' }
+  if (!registryAvailable) return { is: null, kind: null, note: 'no registry loaded: nothing to put it against' }
   if (!inRegistry)
     return {
       is: null,
       kind: null,
-      note: "hook absent du registre officiel : il n'y a pas d'affirmation a contredire",
+      note: 'hook missing from the official registry: there is no claim to contradict',
     }
   if (vanillaSwap === null)
-    return { is: null, kind: null, note: 'le registre ne se prononce pas sur vanillaSwap' }
+    return { is: null, kind: null, note: 'the registry takes no position on vanillaSwap' }
   if (measured === 0 || maxBps === null)
     return {
       is: null,
       kind: null,
-      note: "aucune mesure MESURE sur ce hook : NON_MESURABLE, pas un zero",
+      note: 'no MESURE measurement on this hook: NON_MESURABLE, not a zero',
     }
   if (vanillaSwap === false && maxBps < NEGLIGIBLE_BPS)
     return {
       is: true,
       kind: 'registry-says-not-vanilla-but-nothing-measured',
-      note: `le registre dit vanillaSwap=false, et le maximum mesure reste sous le seuil de ${NEGLIGIBLE_BPS} bps`,
+      note: `the registry says vanillaSwap=false, and the measured maximum stays below the ${NEGLIGIBLE_BPS} bps threshold`,
     }
   if (vanillaSwap === true && maxBps >= NEGLIGIBLE_BPS)
     return {
       is: true,
       kind: 'registry-says-vanilla-but-measured-takes',
-      note: `le registre dit vanillaSwap=true, et la mesure voit passer au moins ${NEGLIGIBLE_BPS} bps`,
+      note: `the registry says vanillaSwap=true, and the measurement sees at least ${NEGLIGIBLE_BPS} bps go through`,
     }
-  return { is: false, kind: null, note: 'le registre et la mesure vont dans le meme sens' }
+  return { is: false, kind: null, note: 'the registry and the measurement point the same way' }
 }
 
 function emptyCounts(): Record<FrLabel, number> {

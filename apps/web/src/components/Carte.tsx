@@ -26,6 +26,7 @@ import { MONNAIES_DE_COTATION } from '../lib/exit'
 import { ouAcheter, aMontrer, lpFeeBps } from '../lib/portes'
 import { groupDigits } from '../lib/format'
 import facts from '../data/facts.json'
+import { Raisonnement } from './Raisonnement'
 
 /**
  * La couleur d'une famille, prise sur ses jetons propres et non sur la rampe de mesure.
@@ -298,9 +299,14 @@ export function Carte({
    * la porte A4. Un refus motive (« il n'y a qu'une porte ») prend la meme place que le
    * succes : c'est une reponse, pas un trou.
    */
+  const recherche = useMemo(
+    () => (valide ? ouAcheter(dataset.rows, jeton) : null),
+    [jeton, valide],
+  )
+
   const reponse = useMemo(() => {
-    if (!valide) return null
-    const r = ouAcheter(dataset.rows, jeton)
+    const r = recherche
+    if (!r) return null
     const vue = aMontrer(r)
     const g = vue.montres.find((x) => x.classees.length >= 2 && x.ecart_bps !== null)
     if (g) {
@@ -314,7 +320,7 @@ export function Carte({
       }
     }
     return { quoi: 'refus' as const, etat: r.etat.replace(/_/g, ' ').toLowerCase(), raison: r.raison }
-  }, [jeton, valide])
+  }, [recherche])
 
   /** La carte est dans le premier écran : le repère de défilement mène donc à ce qui vient
       après elle, l'opération. Le defilement doux est un mouvement : sous
@@ -454,6 +460,10 @@ export function Carte({
                 avant tout le reste. Les deux cotations viennent de `facts.execution`, la porte
                 A4 — un swap réellement exécuté sur Base, coté deux fois sur le fork. */}
             <div className="hero-mesure flex flex-col" style={{ gap: 6 }} aria-live="polite">
+              {/* L'AGENT AU TRAVAIL. Les cinq etapes que `ouAcheter()` execute vraiment,
+                  rendues visibles. Ce n'est pas une decoration : chaque ligne correspond a une
+                  passe que le code fait, avec le nombre qu'elle a produit. */}
+              {valide && <Raisonnement jeton={jeton} recherche={recherche} />}
               {reponse?.quoi === 'refus' ? (
                 <>
                   <p className="t-title m-0" style={{ color: 'var(--ink)' }}>

@@ -23,13 +23,13 @@ import { askStream, assistantBase, assistantNonPublie, health, sessionId, START_
 //   - retarder le verdict : il est replie au chargement et n'ouvre aucune connexion avant
 //     que quelqu'un ne l'ouvre.
 
-const DEMO = 'montre-moi les hooks que le registre dit vanillaSwap=false mais qui mesurent moins de 1 bps'
+const DEMO = 'show me the hooks the registry says vanillaSwap=false but that measure less than 1 bps'
 
 const SUGGESTIONS = [
   DEMO,
-  'les hooks qui prennent plus de 100 bps',
-  'montre les contradictions',
-  'montre les orphelins',
+  'the hooks that take more than 100 bps',
+  'show the contradictions',
+  'show the orphans',
 ]
 
 type Turn =
@@ -91,17 +91,17 @@ function Cite({ c }: { c: Citation }) {
         </span>
         {c.label && (
           <span className="ml-auto">
-            <Chip title="etiquette de la mesure citee, jamais promue">{c.label}</Chip>
+            <Chip title="label of the cited measurement, never promoted">{c.label}</Chip>
           </span>
         )}
       </div>
       <div className="px-[8px] py-[5px] flex flex-col gap-[2px]" style={{ borderTop: '1px solid var(--line)' }}>
-        {c.block_number != null && <Ligne k="bloc" v={fmtBlock(c.block_number)} />}
-        {c.amount_in && <Ligne k="taille" v={powerOfTen(c.amount_in) ?? groupDigits(c.amount_in)} />}
-        {c.direction && <Ligne k="sens" v={c.direction === '0->1' ? 'currency0 → currency1' : 'currency1 → currency0'} />}
+        {c.block_number != null && <Ligne k="block" v={fmtBlock(c.block_number)} />}
+        {c.amount_in && <Ligne k="size" v={powerOfTen(c.amount_in) ?? groupDigits(c.amount_in)} />}
+        {c.direction && <Ligne k="direction" v={c.direction === '0->1' ? 'currency0 → currency1' : 'currency1 → currency0'} />}
         {c.pool_id && <Ligne k="pool" v={shortAddr(c.pool_id, 12, 8)} />}
-        {c.measurement_id && <Ligne k="id de mesure" v={c.measurement_id} />}
-        {c.derived_from && <Ligne k="recette" v={c.derived_from} />}
+        {c.measurement_id && <Ligne k="measurement id" v={c.measurement_id} />}
+        {c.derived_from && <Ligne k="recipe" v={c.derived_from} />}
         <Ligne k="source" v={c.source} />
         {c.replay ? (
           <>
@@ -111,13 +111,13 @@ function Cite({ c }: { c: Citation }) {
               style={{ border: '1px solid var(--line-strong)', background: 'var(--bg-2)', color: 'var(--ink-2)' }}
               onClick={() => setOuvert((o) => !o)}
             >
-              {ouvert ? 'masquer le rejeu' : 'rejouer cette valeur'}
+              {ouvert ? 'hide the replay' : 'replay this value'}
             </button>
-            {ouvert && <Replay cmd={c.replay} note="Le fork doit etre en marche : docker compose up -d anvil." />}
+            {ouvert && <Replay cmd={c.replay} note="The fork must be running: docker compose up -d anvil." />}
           </>
         ) : (
           <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-            denombrement : il se rejoue par sa recette, pas par une commande de mesure.
+            count: it replays through its recipe, not through a measurement command.
           </div>
         )}
       </div>
@@ -131,8 +131,8 @@ function Reponse({ t }: { t: Extract<Turn, { kind: 'reponse' }> }) {
   return (
     <div className="flex flex-col gap-[8px]">
       <div className="flex flex-wrap items-baseline gap-[8px]">
-        <Chip title="l'intention lue dans la question">{a.intent || 'sans intention'}</Chip>
-        {a.label && <Chip title="etiquette de la reponse">{a.label}</Chip>}
+        <Chip title="the intent read in the question">{a.intent || 'no intent'}</Chip>
+        {a.label && <Chip title="label of the answer">{a.label}</Chip>}
         <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
           {a.reading}
         </span>
@@ -155,7 +155,7 @@ function Reponse({ t }: { t: Extract<Turn, { kind: 'reponse' }> }) {
         </p>
       )}
 
-      <Bloc titre={`${t.results.length} action(s) executee(s) sur le tableau`}>
+      <Bloc titre={`${t.results.length} action(s) run on the table`}>
         {t.results.map((r, i) => (
           <div key={i} className="flex flex-col gap-[2px]">
             <div className="flex items-baseline gap-[6px]">
@@ -171,12 +171,12 @@ function Reponse({ t }: { t: Extract<Turn, { kind: 'reponse' }> }) {
             ))}
             {r.lines.length > 8 && (
               <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                … {r.lines.length - 8} de plus, dans le tableau
+                … {r.lines.length - 8} more, in the table
               </div>
             )}
             {r.payload && r.action.type !== 'clarify' && (
               <div className="self-start">
-                <Copy text={r.payload} label={r.action.type === 'permalink' ? 'copier le permalien' : "copier l'export"} />
+                <Copy text={r.payload} label={r.action.type === 'permalink' ? 'copy the permalink' : 'copy the export'} />
               </div>
             )}
           </div>
@@ -185,13 +185,13 @@ function Reponse({ t }: { t: Extract<Turn, { kind: 'reponse' }> }) {
 
       {mesures.length === 0 && a.citations.length === 0 && (
         <div className="t-data-xs px-[8px] py-[5px]" style={{ color: 'var(--ink-2)', border: '1px solid var(--line)' }}>
-          Aucun nombre n'est cite dans cette reponse. Il n'y a donc rien a rejouer : l'assistant n'a
-          pas de mesure a produire ici, et il ne l'invente pas.
+          No number is cited in this answer. There is therefore nothing to replay: the assistant has
+          no measurement to produce here, and it does not invent one.
         </div>
       )}
 
       {a.citations.length > 0 && (
-        <Bloc titre={`${a.citations.length} nombre(s) cite(s), chacun avec sa provenance`}>
+        <Bloc titre={`${a.citations.length} number(s) cited, each with its provenance`}>
           <div className="flex flex-col gap-[6px]">
             {a.citations.map((c, i) => (
               <Cite key={`${c.token}-${i}`} c={c} />
@@ -201,7 +201,7 @@ function Reponse({ t }: { t: Extract<Turn, { kind: 'reponse' }> }) {
       )}
 
       {t.withheld.length > 0 && (
-        <Bloc titre={`${t.withheld.length} ligne(s) ecartee(s) — jamais en silence`}>
+        <Bloc titre={`${t.withheld.length} row(s) set aside — never in silence`}>
           {t.withheld.map((w) => (
             <div key={w.hook} className="flex flex-col">
               <div className="flex items-baseline gap-[6px]">
@@ -224,7 +224,7 @@ function Reponse({ t }: { t: Extract<Turn, { kind: 'reponse' }> }) {
         a.data.warnings.length > 0 ||
         a.data.truncated ||
         a.degraded) && (
-        <Bloc titre="ce qu'il faut savoir avant de citer cette reponse">
+        <Bloc titre="what to know before citing this answer">
           {t.divergence && (
             <div className="t-data-xs" style={{ color: 'var(--ink)' }}>
               {t.divergence}
@@ -247,7 +247,7 @@ function Reponse({ t }: { t: Extract<Turn, { kind: 'reponse' }> }) {
           ))}
           {a.data.truncated && (
             <div className="t-data-xs" style={{ color: 'var(--ink)' }}>
-              LECTURE PARTIELLE cote serveur : aucune conclusion chiffree ne tient sur cette reponse.
+              PARTIAL READ on the server side: no numeric conclusion holds on this answer.
             </div>
           )}
           {a.degraded && (
@@ -260,9 +260,9 @@ function Reponse({ t }: { t: Extract<Turn, { kind: 'reponse' }> }) {
 
       <div className="flex flex-wrap gap-x-[12px] t-data-xs" style={{ color: 'var(--ink-2)' }}>
         <span>
-          serveur : {a.dataset?.measurements ?? '—'} mesures · registre {a.registry?.entries ?? '—'} fiches
+          server: {a.dataset?.measurements ?? '—'} measurements · registry {a.registry?.entries ?? '—'} entries
         </span>
-        {a.quota && <span>quota : {a.quota.questions_left} question(s), {a.quota.measures_left} mesure(s)</span>}
+        {a.quota && <span>quota: {a.quota.questions_left} question(s), {a.quota.measures_left} measurement(s)</span>}
         {a.timings_ms && <span>{a.timings_ms.total} ms</span>}
       </div>
     </div>
@@ -335,7 +335,7 @@ export function Chat({
             id: nextId++,
             text,
             detail,
-            command: detail && /joignable|Failed|NetworkError|fetch/i.test(`${text} ${detail}`) ? START_COMMAND : null,
+            command: detail && /reachable|Failed|NetworkError|fetch/i.test(`${text} ${detail}`) ? START_COMMAND : null,
           },
         ])
       }
@@ -351,7 +351,7 @@ export function Chat({
               {
                 kind: 'systeme',
                 id: nextId++,
-                text: "l'assistant a renvoye des actions que ce front refuse d'executer",
+                text: 'the assistant returned actions this front end refuses to run',
                 detail: parsed.issues.join(' · '),
                 command: null,
               },
@@ -375,7 +375,7 @@ export function Chat({
               divergence: crossCheck(out.selection, a.data.selection, out.view.filter, a.data.criteria),
               registryNote:
                 fichesServeur !== null && fichesServeur !== model.registryEntries
-                  ? `le serveur lit ${fichesServeur} fiches de registre, ce navigateur ${model.registryEntries} : les listes d'ecartes peuvent differer. La selection, elle, est comparee ligne a ligne.`
+                  ? `the server reads ${fichesServeur} registry entries, this browser ${model.registryEntries}: the set-aside lists may differ. The selection itself is compared row by row.`
                   : null,
             },
           ])
@@ -395,7 +395,7 @@ export function Chat({
         type="button"
         onClick={() => setOuvert(true)}
         aria-expanded={false}
-        aria-label="ouvrir l’assistant, qui pilote le tableau"
+        aria-label="open the assistant, which drives the table"
         className="fixed t-data cursor-pointer chat-pave"
         style={{
           right: 16,
@@ -414,7 +414,7 @@ export function Chat({
         }}
       >
         <span aria-hidden="true">?</span>
-        <span className="chat-pave-mot">l’assistant pilote le tableau</span>
+        <span className="chat-pave-mot">the assistant drives the table</span>
       </button>
     )
 
@@ -443,10 +443,10 @@ export function Chat({
         </span>
         <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
           {sante
-            ? `${sante.dataset.measurements} mesures · ${sante.registry.entries} fiches${sante.complete ? '' : ' · LECTURE PARTIELLE'}`
+            ? `${sante.dataset.measurements} measurements · ${sante.registry.entries} entries${sante.complete ? '' : ' · PARTIAL READ'}`
             : santeErreur
-              ? 'hors ligne'
-              : 'contact…'}
+              ? 'offline'
+              : 'contacting…'}
         </span>
         <button
           type="button"
@@ -457,7 +457,7 @@ export function Chat({
           className="ml-auto t-label px-[6px] py-[2px] cursor-pointer"
           style={{ border: '1px solid var(--line-strong)', background: 'var(--bg-1)', color: 'var(--ink-2)' }}
         >
-          replier
+          collapse
         </button>
       </header>
 
@@ -465,18 +465,18 @@ export function Chat({
         {tours.length === 0 && (
           <div className="flex flex-col gap-[8px]">
             <p className="m-0 t-data-sm" style={{ color: 'var(--ink-2)' }}>
-              Pose une question. L'assistant ne repond pas par un nombre : il rend des actions, ce
-              panneau les execute sur le tableau, et chaque valeur citee porte son bloc et sa
-              commande de rejeu.
+              Ask a question. The assistant does not answer with a number: it returns actions, this
+              panel runs them on the table, and every cited value carries its block and its replay
+              command.
             </p>
             {santeErreur && (
-              <Bloc titre={assistantNonPublie(base) ? 'aucun assistant publie' : 'assistant injoignable'}>
-                <Ligne k="adresse" v={base} />
-                <Ligne k="motif" v={santeErreur} />
+              <Bloc titre={assistantNonPublie(base) ? 'no assistant published' : 'assistant unreachable'}>
+                <Ligne k="address" v={base} />
+                <Ligne k="reason" v={santeErreur} />
                 <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
                   {assistantNonPublie(base)
-                    ? "Cette version du site est servie sans assistant : l'adresse ci-dessus est le repli local, et il n'y a rien a joindre depuis ici. Ce n'est pas une panne — tout le reste de cet ecran vient du paquet et ne demande aucun serveur. Pour l'essayer : lance la commande, puis reviens avec ?assistant=http://127.0.0.1:8788/assistant"
-                    : "Rien n'est fabrique localement pour compenser : sans l'assistant, il n'y a pas de reponse. Demarre-le, ou passe une autre adresse avec ?assistant="}
+                    ? 'This version of the site is served without an assistant: the address above is the local fallback, and there is nothing to reach from here. This is not a breakage — everything else on this screen comes from the bundle and asks for no server. To try it: run the command, then come back with ?assistant=http://127.0.0.1:8788/assistant'
+                    : 'Nothing is fabricated locally to make up for it: without the assistant, there is no answer. Start it, or pass another address with ?assistant='}
                 </div>
                 <Replay cmd={START_COMMAND} />
               </Bloc>
@@ -502,7 +502,7 @@ export function Chat({
                   </div>
                 )}
                 <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                  Le tableau a ete remis exactement comme il etait : rien de partiel n'est publie.
+                  The table has been put back exactly as it was: nothing partial is published.
                 </div>
                 {t.command && <Replay cmd={t.command} />}
               </div>
@@ -514,7 +514,7 @@ export function Chat({
 
         {enCours !== null && (
           <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-            lecture en cours · rien ne s'affiche avant que la reponse soit entiere
+            reading in progress · nothing shows before the answer is whole
           </div>
         )}
       </div>
@@ -534,7 +534,7 @@ export function Chat({
               maxWidth: '100%',
             }}
           >
-            {s === DEMO ? 'la demo · vanillaSwap=false mais moins de 1 bps' : s}
+            {s === DEMO ? 'the demo · vanillaSwap=false but less than 1 bps' : s}
           </button>
         ))}
         <button
@@ -543,7 +543,7 @@ export function Chat({
             onView(EMPTY_VIEW)
             setTours((t) => [
               ...t,
-              { kind: 'systeme', id: nextId++, text: 'tableau remis a plat', detail: null, command: null },
+              { kind: 'systeme', id: nextId++, text: 'table reset', detail: null, command: null },
             ])
           }}
           className="t-data-xs px-[6px] py-[3px] cursor-pointer"
@@ -561,7 +561,7 @@ export function Chat({
           className="t-data-xs px-[6px] py-[3px] cursor-pointer"
           style={{ border: '1px solid var(--line)', background: 'var(--bg-2)', color: 'var(--ink-2)' }}
         >
-          permalien
+          permalink
         </button>
       </div>
 
@@ -577,10 +577,10 @@ export function Chat({
           value={texte}
           onChange={(e) => setTexte(e.target.value)}
           maxLength={600}
-          aria-label="une question sur les hooks mesurés"
+          aria-label="a question about the measured hooks"
           name="question"
           autoComplete="off"
-          placeholder="quels hooks prennent plus de 100 bps ?…"
+          placeholder="which hooks take more than 100 bps?…"
           className="flex-1 t-data px-[8px] py-[6px]"
           style={{ border: '1px solid var(--line-strong)', background: 'var(--bg-1)', color: 'var(--ink)' }}
         />
@@ -594,7 +594,7 @@ export function Chat({
             color: enCours === null && texte.trim() !== '' ? 'var(--ink)' : 'var(--ink-4)',
           }}
         >
-          envoyer
+          send
         </button>
       </form>
     </aside>

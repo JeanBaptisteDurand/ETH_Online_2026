@@ -58,13 +58,13 @@ export function applyFilter(hooks: HookNode[], f: Filter): FilterOutcome {
       if (h.disagreement.is !== f.registryDisagrees) continue
     }
     if (f.measuredOnly === true && h.measured === 0) {
-      drop(h, 'aucune mesure MESURE sur ce hook')
+      drop(h, 'no MESURE measurement on this hook')
       continue
     }
     // Un hook sans mesure n'est PAS "sous le seuil" : c'est une absence de mesure.
     if (f.minBps !== undefined || f.maxBps !== undefined) {
       if (h.bpsMax === null) {
-        drop(h, 'pas de valeur mesuree : ce hook ne peut etre ni au-dessus ni en dessous d’un seuil')
+        drop(h, 'no measured value: this hook can be neither above nor below a threshold')
         continue
       }
       if (f.minBps !== undefined && h.bpsMax < f.minBps) continue
@@ -193,8 +193,8 @@ export function crossCheck(
   const b = [...server].sort().join(',')
   if (a === b) return null
   return (
-    `lecture locale et lecture serveur divergent sur le meme critere : ` +
-    `${local.length} ligne(s) ici, ${server.length} la-bas. Rien n'est conclu tant que les deux ne disent pas la meme chose.`
+    `local reading and server reading diverge on the same criterion: ` +
+    `${local.length} row(s) here, ${server.length} there. Nothing is concluded until the two say the same thing.`
   )
 }
 
@@ -246,7 +246,7 @@ export function applyActions(actions: Action[], model: Model, base: ChatView = E
         withheld = []
         runCriteria = null
         touchedFilter = true
-        results.push(res(action, true, 'tableau remis a plat'))
+        results.push(res(action, true, 'table reset'))
         break
       }
       case 'filter': {
@@ -260,7 +260,7 @@ export function applyActions(actions: Action[], model: Model, base: ChatView = E
           res(
             action,
             true,
-            `${out.kept.length} hook(s) retenu(s), ${out.withheld.length} ecarte(s) faute de mesure`,
+            `${out.kept.length} hook(s) kept, ${out.withheld.length} set aside for lack of measurement`,
             Object.entries(merged).map(([k, v]) => ({ k, v: String(v) })),
             out.kept.map((h) => h.address),
           ),
@@ -269,12 +269,12 @@ export function applyActions(actions: Action[], model: Model, base: ChatView = E
       }
       case 'sort': {
         view = { ...view, sort: { col: action.col, dir: action.dir } }
-        results.push(res(action, true, `tri sur ${action.col}, ${action.dir}`))
+        results.push(res(action, true, `sorted on ${action.col}, ${action.dir}`))
         break
       }
       case 'columns': {
         view = { ...view, columns: action.columns }
-        results.push(res(action, true, `colonnes : ${action.columns.join(', ')}`))
+        results.push(res(action, true, `columns: ${action.columns.join(', ')}`))
         break
       }
       case 'highlight': {
@@ -286,9 +286,9 @@ export function applyActions(actions: Action[], model: Model, base: ChatView = E
             action,
             true,
             unknown.length === 0
-              ? `${known.length} ligne(s) surlignee(s)`
-              : `${known.length} ligne(s) surlignee(s), ${unknown.length} adresse(s) absente(s) du jeu charge`,
-            unknown.map((h) => ({ k: 'absent du jeu', v: h })),
+              ? `${known.length} row(s) highlighted`
+              : `${known.length} row(s) highlighted, ${unknown.length} address(es) missing from the loaded dataset`,
+            unknown.map((h) => ({ k: 'missing from the dataset', v: h })),
             known,
           ),
         )
@@ -298,7 +298,7 @@ export function applyActions(actions: Action[], model: Model, base: ChatView = E
         const h = model.byHook.get(action.hook)
         if (!h) {
           results.push(
-            res(action, false, "aucune mesure publiee pour ce hook : c'est une absence, pas un zero", [
+            res(action, false, 'no measurement published for this hook: it is an absence, not a zero', [
               { k: 'hook', v: action.hook },
             ]),
           )
@@ -310,12 +310,12 @@ export function applyActions(actions: Action[], model: Model, base: ChatView = E
           res(
             action,
             true,
-            action.pool && pool === null ? "ce pool n'est pas dans le jeu pour ce hook" : 'fiche ouverte',
+            action.pool && pool === null ? 'this pool is not in the dataset for this hook' : 'entry opened',
             [
-              { k: 'etiquette', v: h.answerLabel },
-              { k: 'maximum mesure', v: h.bpsMax === null ? '—' : `${nf(h.bpsMax)} bps` },
-              { k: 'bloc', v: h.blocks.join(', ') },
-              { k: 'pools', v: `${h.poolCount} dont ${h.poolCountMeasured} cotes` },
+              { k: 'label', v: h.answerLabel },
+              { k: 'measured maximum', v: h.bpsMax === null ? '—' : `${nf(h.bpsMax)} bps` },
+              { k: 'block', v: h.blocks.join(', ') },
+              { k: 'pools', v: `${h.poolCount}, ${h.poolCountMeasured} of them quoted` },
             ],
             [h.address],
           ),
@@ -326,7 +326,7 @@ export function applyActions(actions: Action[], model: Model, base: ChatView = E
         const h = model.byHook.get(action.hook)
         const p = h?.profiles.find((x) => x.poolId === action.pool)
         if (!h || !p) {
-          results.push(res(action, false, "ce couple hook/pool n'existe pas dans le jeu"))
+          results.push(res(action, false, 'this hook/pool pair does not exist in the dataset'))
           break
         }
         view = {
@@ -339,14 +339,14 @@ export function applyActions(actions: Action[], model: Model, base: ChatView = E
           res(
             action,
             p.measured > 0,
-            p.measured === 0 ? 'aucun point cotable sur ce profil' : `${p.measured} point(s) cotes`,
+            p.measured === 0 ? 'no quotable point on this profile' : `${p.measured} point(s) quoted`,
             [
               { k: 'pool', v: p.poolId },
-              { k: 'sens', v: action.direction ?? 'les deux' },
+              { k: 'direction', v: action.direction ?? 'both' },
               { k: 'max / min', v: `${nf(p.maxBps)} / ${nf(p.minBps)} bps` },
-              { k: 'ecart a sens constant', v: p.spreadBps === null ? '—' : `${nf(p.spreadBps)} bps` },
+              { k: 'gap at constant direction', v: p.spreadBps === null ? '—' : `${nf(p.spreadBps)} bps` },
               { k: 'lp fee on-chain', v: String(p.storedLpFee) },
-              { k: 'bloc', v: p.blocks.join(', ') },
+              { k: 'block', v: p.blocks.join(', ') },
             ],
             [h.address],
           ),
@@ -357,12 +357,12 @@ export function applyActions(actions: Action[], model: Model, base: ChatView = E
         const a = model.byHook.get(action.a)
         const b = model.byHook.get(action.b)
         if (!a || !b) {
-          results.push(res(action, false, "au moins un des deux hooks n'a aucune mesure publiee"))
+          results.push(res(action, false, 'at least one of the two hooks has no published measurement'))
           break
         }
         view = { ...view, compare: [a.address, b.address], highlight: [a.address, b.address] }
         results.push(
-          res(action, true, 'deux hooks cote a cote', [
+          res(action, true, 'two hooks side by side', [
             { k: a.name ?? a.address, v: `${a.bpsMax === null ? '—' : nf(a.bpsMax)} bps · ${a.answerLabel}` },
             { k: b.name ?? b.address, v: `${b.bpsMax === null ? '—' : nf(b.bpsMax)} bps · ${b.answerLabel}` },
           ], [a.address, b.address]),
@@ -375,14 +375,14 @@ export function applyActions(actions: Action[], model: Model, base: ChatView = E
           res(
             action,
             false,
-            'demande de mesure : le navigateur ne mesure pas. Un seul mesureur par anvil.',
+            'measurement request: the browser does not measure. One measurer per anvil.',
             [
               { k: 'hook', v: action.hook },
-              { k: 'pool', v: action.pool ?? 'non precise' },
-              { k: 'tailles', v: action.sizes.join(', ') },
-              { k: 'sens', v: action.directions.join(', ') },
-              { k: 'bloc', v: action.block === null ? 'au choix du moteur' : String(action.block) },
-              { k: 'route', v: 'POST /measure — peage x402, une unite = une mesure' },
+              { k: 'pool', v: action.pool ?? 'not specified' },
+              { k: 'sizes', v: action.sizes.join(', ') },
+              { k: 'directions', v: action.directions.join(', ') },
+              { k: 'block', v: action.block === null ? "the engine's choice" : String(action.block) },
+              { k: 'route', v: 'POST /measure — x402 toll, one unit = one measurement' },
             ],
             [action.hook],
           ),
@@ -396,8 +396,8 @@ export function applyActions(actions: Action[], model: Model, base: ChatView = E
             action,
             model.byHook.has(action.hook),
             model.byHook.has(action.hook)
-              ? `${t.length} hook(s) declarent exactement les memes 14 permissions`
-              : 'ce hook n’est pas dans le jeu charge',
+              ? `${t.length} hook(s) declare exactly the same 14 permissions`
+              : 'this hook is not in the loaded dataset',
             t.map((o) => ({ k: o.name ?? o.address, v: `${o.address} · ${o.answerLabel}` })),
             t.map((o) => o.address),
           ),
@@ -408,16 +408,16 @@ export function applyActions(actions: Action[], model: Model, base: ChatView = E
       case 'showBlastRadius': {
         const h = model.byHook.get(action.hook)
         if (!h) {
-          results.push(res(action, false, "ce hook n'apparait dans aucune mesure du jeu"))
+          results.push(res(action, false, 'this hook does not appear in any measurement in the dataset'))
           break
         }
         view = { ...view, highlight: [h.address] }
         results.push(
-          res(action, true, 'pools et jetons atteints par ce hook, dans le jeu charge', [
-            { k: 'pools', v: `${h.poolCount} dont ${h.poolCountMeasured} cotes` },
-            { k: 'jetons distincts', v: String(h.tokens.length) },
-            { k: 'mesures', v: `${h.rowCount} lignes, ${h.measured} etiquetees MESURE` },
-            { k: 'profils non plats', v: `${h.nonFlatProfiles} / ${h.profiles.length}` },
+          res(action, true, 'pools and tokens reached by this hook, in the loaded dataset', [
+            { k: 'pools', v: `${h.poolCount}, ${h.poolCountMeasured} of them quoted` },
+            { k: 'distinct tokens', v: String(h.tokens.length) },
+            { k: 'measurements', v: `${h.rowCount} rows, ${h.measured} labeled MESURE` },
+            { k: 'non-flat profiles', v: `${h.nonFlatProfiles} / ${h.profiles.length}` },
           ], [h.address]),
         )
         break
@@ -425,14 +425,14 @@ export function applyActions(actions: Action[], model: Model, base: ChatView = E
       case 'showDeployer': {
         const h = model.byHook.get(action.hook)
         if (!h) {
-          results.push(res(action, false, 'ce hook n’est pas dans le jeu charge'))
+          results.push(res(action, false, 'this hook is not in the loaded dataset'))
           break
         }
         results.push(
-          res(action, true, h.inRegistry ? 'ce que le registre dit du deployeur' : 'hook absent du registre officiel', [
-            { k: 'deployeur', v: h.deployer ?? 'le registre ne le dit pas' },
-            { k: 'source verifiee', v: h.verifiedSource === null ? 'inconnu' : h.verifiedSource ? 'oui' : 'non' },
-            { k: 'audit', v: h.auditUrl ?? 'aucun' },
+          res(action, true, h.inRegistry ? 'what the registry says about the deployer' : 'hook missing from the official registry', [
+            { k: 'deployer', v: h.deployer ?? 'the registry does not say' },
+            { k: 'verified source', v: h.verifiedSource === null ? 'unknown' : h.verifiedSource ? 'yes' : 'no' },
+            { k: 'audit', v: h.auditUrl ?? 'none' },
           ], [h.address]),
         )
         break
@@ -447,10 +447,10 @@ export function applyActions(actions: Action[], model: Model, base: ChatView = E
           res(
             action,
             true,
-            `${c.confirmed.length} desaccord(s) etabli(s), ${c.unknowable.length} cas non tranchables`,
+            `${c.confirmed.length} established disagreement(s), ${c.unknowable.length} case(s) that cannot be settled`,
             [
               ...c.confirmed.map((h) => ({ k: h.name ?? h.address, v: h.disagreement.note })),
-              ...c.unknowable.map((u) => ({ k: u.hook.name ?? u.hook.address, v: `non tranchable — ${u.note}` })),
+              ...c.unknowable.map((u) => ({ k: u.hook.name ?? u.hook.address, v: `cannot be settled — ${u.note}` })),
             ],
             c.confirmed.map((h) => h.address),
           ),
@@ -466,10 +466,10 @@ export function applyActions(actions: Action[], model: Model, base: ChatView = E
           res(
             action,
             true,
-            `${o.measuredNotInRegistry.length} hook(s) mesures absents du registre, ${o.poolsWithoutMeasurement.length} pool(s) sans mesure cotable`,
+            `${o.measuredNotInRegistry.length} measured hook(s) missing from the registry, ${o.poolsWithoutMeasurement.length} pool(s) with no quotable measurement`,
             o.measuredNotInRegistry.map((h) => ({
               k: h.address,
-              v: `${h.rowCount} lignes · ${h.bpsMax === null ? '—' : `${nf(h.bpsMax)} bps`} · ${h.answerLabel}`,
+              v: `${h.rowCount} rows · ${h.bpsMax === null ? '—' : `${nf(h.bpsMax)} bps`} · ${h.answerLabel}`,
             })),
             o.measuredNotInRegistry.map((h) => h.address),
           ),
@@ -480,8 +480,8 @@ export function applyActions(actions: Action[], model: Model, base: ChatView = E
         // Les ids m_xxxx appartiennent au modele du serveur : le jeu local numerote ses lignes
         // autrement. On ne fabrique pas de correspondance — le serveur publie la ligne brute.
         results.push(
-          res(action, false, 'la ligne brute et sa commande de rejeu sont publiees par le serveur', [
-            { k: 'id de mesure', v: action.measurementId },
+          res(action, false, 'the raw row and its replay command are published by the server', [
+            { k: 'measurement id', v: action.measurementId },
           ]),
         )
         break
@@ -489,13 +489,13 @@ export function applyActions(actions: Action[], model: Model, base: ChatView = E
       case 'export': {
         const rows = select(model, view).rows
         results.push(
-          res(action, true, `${rows.length} ligne(s) a exporter en ${action.format}`, [], rows.map((h) => h.address), exportRows(rows, action.format)),
+          res(action, true, `${rows.length} row(s) to export as ${action.format}`, [], rows.map((h) => h.address), exportRows(rows, action.format)),
         )
         break
       }
       case 'permalink': {
         const rows = select(model, view).rows
-        results.push(res(action, true, `${rows.length} ligne(s) figees dans l'URL`, [], rows.map((h) => h.address), encodeView(view)))
+        results.push(res(action, true, `${rows.length} row(s) frozen in the URL`, [], rows.map((h) => h.address), encodeView(view)))
         break
       }
       case 'clarify': {
@@ -509,7 +509,7 @@ export function applyActions(actions: Action[], model: Model, base: ChatView = E
   const notes: string[] = []
   if (!touchedFilter && view.filter !== null)
     notes.push(
-      "cette reponse ne touche pas au filtre : le tableau garde celui de la question precedente, alors que le serveur, lui, a relu le jeu complet.",
+      'this answer does not touch the filter: the table keeps the one from the previous question, while the server re-read the whole dataset.',
     )
   return {
     view,

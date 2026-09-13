@@ -11,7 +11,7 @@ import { GraphPanels } from './components/Graph'
 import { MachinePanels } from './components/Machine'
 import { ComptePanel } from './components/Compte'
 import { SubstituerPanel } from './components/Substituer'
-import { AccesPanel, DonneesPanel, Pourquoi } from './components/Accueil'
+import { AccesPanel, DonneesPanel, Pourquoi, Promesse } from './components/Accueil'
 import { IndexPanneaux } from './components/Index'
 import { Carte } from './components/Carte'
 import { OutilPanel } from './components/Outil'
@@ -119,11 +119,20 @@ function MenuOutils({ n, aller }: { n: number | null; aller: (n: number) => void
 
   return (
     <details ref={ref} className="relative menu-outils">
-      <summary className="nav-lien cursor-pointer list-none inline-flex items-center" style={{ gap: 7 }}>
-        the tools
-        <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>{OUTILS.length}</span>
+      {/* Le libelle nomme L'AGENT, pas « les outils » : le proprietaire avait raison, une barre
+          qui listait « outil » a cote d'« instrument » donnait deux freres jumeaux au lieu du
+          produit. L'agent est le sujet ; les quatorze outils sont ce qu'il tient. Le compte
+          reste dans le `.t-data-sm` que le CSS masque sous 640 px — a cette largeur le menu le
+          dit deja en s'ouvrant. */}
+      <summary
+        className="nav-lien cursor-pointer list-none inline-flex items-center"
+        style={{ gap: 7 }}
+        aria-current={n !== null ? 'page' : undefined}
+      >
+        the agent
+        <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>{OUTILS.length} tools</span>
       </summary>
-      <div className="menu-panneau" role="group" aria-label="the fourteen tools">
+      <div className="menu-panneau" role="group" aria-label="the agent’s fourteen tools">
         {ORDRE_FAM.map((f) => (
           <div key={f} className="flex flex-col" style={{ gap: 2 }}>
             <span className="t-data-sm flex items-center" style={{ gap: 8, color: 'var(--ink-2)', padding: '2px 0 6px' }}>
@@ -174,14 +183,46 @@ function Head({
     ['stub', P.measurements.stub_hash],
     ['registry', `${P.registry.commit.slice(0, 7)}, ${P.registry.entries} entries`],
   ]
+  /**
+   * LES ROUTES, dans l'ordre ou on comprend le produit en les lisant.
+   *
+   * Elle disait « les outils 14 · la carte · l'instrument · le deck » — et « outil » a cote
+   * d'« instrument » se lit comme deux fois la meme chose. On ne comprenait nulle part qu'un
+   * AGENT tient les quatorze outils, ni que l'instrument n'est pas leur frere mais ce qu'ils
+   * ont rendu. L'ordre dit maintenant l'histoire : on verifie un jeton, un agent tient
+   * quatorze outils, et voici les pieces. AUCUNE ROUTE N'EST RENOMMEE — le deck, les liens
+   * internes et les autres surfaces en dependent ; seuls les libelles et l'ordre bougent.
+   *
+   * L'entree du menu des outils s'intercale APRES la premiere : elle est rendue a part, plus
+   * bas, parce que c'est un depliant et non un lien.
+   */
   const routes = [
-    { h: '/', t: 'the map', actif: vue.quoi === 'accueil' || vue.quoi === 'outil' },
-    { h: '/instrument', t: 'the instrument', actif: vue.quoi === 'instrument' },
+    // L'operation, et c'est la premiere chose qu'on fait : coller un jeton, lire par ou l'acheter.
+    { h: '/', t: 'check a token', actif: vue.quoi === 'accueil' },
+    // « the evidence » plutot que « l'instrument » : ce sont les donnees brutes, panneau par
+    // panneau, ce que les outils ont rendu — pas un second catalogue d'outils.
+    { h: '/instrument', t: 'the evidence', actif: vue.quoi === 'instrument' },
     { h: '/deck', t: 'the deck', actif: vue.quoi === 'deck' },
     { h: '/developpeurs', t: 'developers', actif: vue.quoi === 'developpeurs' },
     { h: '/roadmap', t: 'roadmap', actif: vue.quoi === 'feuille' },
     { h: '/reglages', t: 'settings', actif: vue.quoi === 'reglages' },
   ]
+  const lienRoute = (x: { h: string; t: string; actif: boolean }) => (
+    <a
+      key={x.h}
+      href={`#${x.h}`}
+      aria-current={x.actif ? 'page' : undefined}
+      className="nav-lien"
+      onClick={(e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
+        e.preventDefault()
+        window.location.hash = x.h
+        window.scrollTo({ top: 0 })
+      }}
+    >
+      {x.t}
+    </a>
+  )
   return (
     <header
       className="sticky top-0 z-10"
@@ -196,23 +237,10 @@ function Head({
             page. Elle defile donc DANS elle-meme, comme le bandeau d'onglets, au lieu de
             pousser la fenetre. */}
         <nav className="flex items-center gap-[2px] ml-[12px] nav-routes" aria-label="the views">
+          {/* 1. l'operation — 2. l'agent et ses quatorze outils — 3. les pieces — puis le reste. */}
+          {routes.slice(0, 1).map(lienRoute)}
           <MenuOutils n={vue.quoi === 'outil' ? vue.n : null} aller={versOutil} />
-          {routes.map((x) => (
-            <a
-              key={x.h}
-              href={`#${x.h}`}
-              aria-current={x.actif ? 'page' : undefined}
-              className="nav-lien"
-              onClick={(e) => {
-                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
-                e.preventDefault()
-                window.location.hash = x.h
-                window.scrollTo({ top: 0 })
-              }}
-            >
-              {x.t}
-            </a>
-          ))}
+          {routes.slice(1).map(lienRoute)}
         </nav>
         <details className="ml-auto relative nav-provenance">
           <summary className="bouton-ghost cursor-pointer list-none inline-flex items-center" style={{ minHeight: 32 }}>
@@ -281,7 +309,7 @@ function Verdict() {
     [
       String(T.hooks),
       'hooks measured',
-      `${T.pools.toLocaleString('fr')} pools, ${T.rows.toLocaleString('fr')} measurements, ${T.measured.toLocaleString('fr')} of them labelled MESURE`,
+      `${T.pools.toLocaleString('fr')} pools, ${T.rows.toLocaleString('fr')} measurements, ${T.measured.toLocaleString('fr')} of them labeled MESURE`,
     ],
     // Ce nombre est calcule contre l'instantane EPINGLE du registre. Contre un tirage plus
     // recent il en vaut un autre, et le taire reviendrait a publier le plus flatteur des deux :
@@ -455,10 +483,16 @@ function AppInterne() {
             className="flex flex-col px-[24px] pt-[40px] pb-[24px] mx-auto w-full"
             style={{ maxWidth: 1360, gap: 'clamp(4rem, 8vw, 7rem)' }}
           >
-            {/* LA CARTE D'ABORD. Le système en une image, et chaque nœud est une porte.
-                Elle n'est pas sous un `Reveal` : elle est dans le premier écran, et faire
-                monter ce qu'on regarde déjà est un effet, pas une lecture. */}
-            <Carte surOutil={versOutil} saisie={saisie} setSaisie={setSaisie} />
+            {/* LA PHRASE, PUIS LA CARTE. Le système en une image, et chaque nœud est une porte.
+                Elles ne sont pas sous un `Reveal` : elles sont dans le premier écran, et faire
+                monter ce qu'on regarde déjà est un effet, pas une lecture.
+                Les deux tiennent dans UN bloc a petite gouttiere : la gouttiere de `main` est
+                un `clamp(4rem, 8vw, 7rem)`, elle separe les SECTIONS et pousserait la carte
+                hors du premier ecran si la phrase devenait une section de plus. */}
+            <div className="flex flex-col" style={{ gap: 20 }}>
+              <Promesse />
+              <Carte surOutil={versOutil} saisie={saisie} setSaisie={setSaisie} />
+            </div>
             <Reveal>
               <Pourquoi />
             </Reveal>
@@ -537,10 +571,13 @@ function AppInterne() {
       <main id="contenu" className="px-[24px] pt-[24px] pb-[24px] mx-auto w-full" style={{ maxWidth: 1360 }}>
         <div className="flex flex-wrap items-end justify-between gap-x-[40px] gap-y-[12px] pb-[28px]">
           <div className="flex flex-col" style={{ gap: 12, maxWidth: '52ch' }}>
-            <h1 className="t-display m-0">The instrument</h1>
+            {/* Le titre suit la barre : « the evidence ». La page n'a jamais ete un second
+                catalogue d'outils — c'est ce que les outils ont RENDU, panneau par panneau. */}
+            <h1 className="t-display m-0">The evidence</h1>
             <p className="t-body t-body-muted m-0">
               The whole corpus, panel by panel: what the registry declares, what the measurement
-              finds, and everything it takes to check it. The contents follow your reading.
+              finds, and everything it takes to check it. Every number below was returned by one
+              of the fourteen tools. The contents follow your reading.
             </p>
           </div>
           <span className="flex flex-wrap items-baseline t-data-sm" style={{ gap: 14, color: 'var(--ink-2)' }}>

@@ -171,8 +171,10 @@ test("les competences ecartees sont montrees — c est ce qui rend credibles cel
 })
 
 test("la limite de la norme HCS-14 est ecrite a l ecran, pas seulement dans un README", () => {
-  assert.match(src, /sans leurs\s*<\/strong>?\s*|sans leurs/)
-  assert.ok(src.includes('aucun resultat de reference'))
+  // L ecran est en anglais. La LIMITE avouee n a pas bouge : la norme se relit sans ses
+  // condenses, et il n existe aucun resultat de reference auquel se comparer.
+  assert.match(src, /their digests/)
+  assert.ok(src.includes('no reference result'))
 })
 
 /* ------------------------------------------- 5. les attestations disent l ecart */
@@ -181,7 +183,7 @@ test('les hooks ecartes faute de mesure sont affiches a cote de ceux qui sont ec
   assert.ok(typeof f.attestations.ecrits === 'number' && f.attestations.ecrits > 0)
   assert.ok(typeof f.attestations.ecartes === 'number')
   assert.ok(src.includes('a.ecartes'), 'les ecartes doivent etre rendus')
-  assert.ok(src.includes('pas ecrits a zero'))
+  assert.ok(src.includes('not written at zero'))
 })
 
 test('le contrat atteste porte son lien et son empreinte de corpus', () => {
@@ -308,7 +310,8 @@ test("les pools a sens unique sont COMPTES, pas seulement donnes en exemple", ()
   const src = readFileSync(resolve(ICI, '../components/Exit.tsx'), 'utf8')
   assert.ok(src.includes('FA.sens_unique.pools_deux_sens'), 'le denominateur doit etre a l ecran')
   assert.ok(src.includes('seuil_lourd_bps'), 'le seuil doit etre a l ecran')
-  assert.ok(src.includes('pas une'), "et dit comme un choix, pas comme une frontiere")
+  // L ecran est en anglais : « a publication choice, not a natural border ».
+  assert.ok(src.includes('not a'), "et dit comme un choix, pas comme une frontiere")
 })
 
 /* ------------------ 11. le README ne doit pas annoncer une taille perimee */

@@ -25,13 +25,13 @@ test('les actions de la demo passent telles que le planificateur les emet', () =
 test('un resultat de mesure glisse dans un filtre fait echouer la validation', () => {
   const r = parseActions([{ type: 'filter', filter: { maxBps: 1, bps: 42 } }])
   assert.equal(r.ok, false)
-  assert.ok(!r.ok && r.issues[0].includes('cle inconnue "bps"'))
+  assert.ok(!r.ok && r.issues[0].includes('unknown key "bps"'))
 })
 
 test('une cle inconnue au niveau de l’action est refusee, pas ignoree', () => {
   const r = parseActions([{ type: 'sort', col: 'mesure', dir: 'asc', valeur: 1176.46 }])
   assert.equal(r.ok, false)
-  assert.ok(!r.ok && r.issues[0].includes('cle inconnue "valeur"'))
+  assert.ok(!r.ok && r.issues[0].includes('unknown key "valeur"'))
 })
 
 test('un type d’action inconnu ne s’execute pas', () => {

@@ -19,6 +19,33 @@ import { DONNEES, taille } from '../lib/donnees'
 import type { Volume } from '../lib/donnees'
 import facts from '../data/facts.json'
 
+/* ------------------------------------------------- ce que le produit EST, en une ligne */
+
+/**
+ * LA PHRASE DU HAUT — avant la carte, avant le premier chiffre.
+ *
+ * La barre raconte maintenant le produit en trois entrees (verifier un jeton, l'agent et ses
+ * quatorze outils, les pieces). Mais personne n'arrive en LISANT une barre : on arrive par un
+ * lien, et on lit la premiere ligne. Elle dit donc les trois choses qui font ce produit et
+ * rien d'autre — un agent, des outils nommes, et la regle qu'il ne contourne pas.
+ *
+ * UNE phrase. Un paragraphe ici redeviendrait la page d'accueil qu'on a justement enlevee.
+ * Et le compte des outils n'est pas ecrit a la main : il vient de `OUTILS`, comme partout —
+ * si le catalogue change, cette ligne change avec lui.
+ */
+export function Promesse() {
+  return (
+    <p
+      className="t-body m-0"
+      style={{ maxWidth: '72ch', color: 'var(--ink-2)', fontFamily: 'var(--prose)' }}
+    >
+      TARE is an agent with{' '}
+      <strong style={{ color: 'var(--ink)', fontWeight: 500 }}>{OUTILS.length} named tools</strong>
+      , and it never states a number that a tool did not return.
+    </p>
+  )
+}
+
 /* ------------------------------------------------- pourquoi ce produit existe */
 
 /**
@@ -255,7 +282,7 @@ function Matrice({ surOutil }: { surOutil?: (n: number) => void }) {
           {ecritures} writes
         </span>
         <span className="t-body" style={{ fontSize: 13.5, color: 'var(--ink-2)' }}>
-          a cell’s colour is that of its tool’s family
+          a cell’s color is that of its tool’s family
         </span>
       </div>
 

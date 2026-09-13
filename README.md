@@ -2,12 +2,23 @@
 
 **Measures what a Uniswap v4 hook actually takes from your swap.**
 
+### Live demo — **<https://tare-hooks.tech>**
+
+The instrument is at the root, the one-page verdict is under
+[`/landing/`](https://tare-hooks.tech/landing/), and the pitch deck is at
+[`#/deck`](https://tare-hooks.tech/#/deck). No wallet, no account, **not one network request** to
+read a verdict: the corpus is compiled into the page. [Route by route](#the-site-route-by-route).
+
+What that domain does *not* serve is the x402 measurement API — no endpoint answers there, and
+that limit is stated in full at the
+[end of this file](#what-we-could-not-do-and-where-the-fix-belongs-upstream).
+
 Uniswap asks hooks to declare what they charge, through the `HookSwap` and `HookFee` events its own
 developer guide recommends. Over the 200,000 Base blocks this corpus is built from, the PoolManager
 initialised pools carrying **1,559 distinct hooks — and 9 of them emit either event, 0.58 %**
 (16 contracts in total do, hooks or not). And an emitted `HookFee` carries an absolute amount on
 one past swap, not the rate you would pay at your size. Re-run it yourself:
-`python3 -m tare.declare --scan` — the offline half costs no requests, and the artefact is
+`PYTHONPATH=engine python3 -m tare.declare --scan` — the offline half costs no requests, and the artefact is
 [`docs/dataset/declarations.json`](docs/dataset/declarations.json).
 
 The official registry describes 978 entries — 866 distinct addresses, the rest declared on more
@@ -18,7 +29,7 @@ a quantity.** The only number in the whole record is `chainId`, and it names a n
 And it does not see most of what takes something. Of the **112 hooks measured here, 78 are absent
 from that registry entirely — 69.64 %.** Only 34 are listed. The 78 addresses are enumerated in
 [`docs/dataset/registre-couverture.json`](docs/dataset/registre-couverture.json) — counted from
-the two files by `python3 -m tare.registre`, never typed.
+the two files by `PYTHONPATH=engine python3 -m tare.registre`, never typed.
 
 So TARE measures it.
 
@@ -45,7 +56,7 @@ make replay POOL=0x010d0023c9e072f62720b6627a13973b9505a3d80dccd59acdb2ca803826c
 | | |
 |---|---|
 | **The findings** | [What we found](#what-we-found) · [What the graph reveals](#what-the-graph-reveals) · [The graph cache](#the-graph-cache) |
-| **Running it** | [Run it locally](#run-it-locally) · [What has to be running, and what breaks without it](#what-has-to-be-running-and-what-breaks-without-it) · [Reproduce any number](#reproduce-any-number) |
+| **Running it** | [The site, route by route](#the-site-route-by-route) · [Run it locally](#run-it-locally) · [What has to be running, and what breaks without it](#what-has-to-be-running-and-what-breaks-without-it) · [Reproduce any number](#reproduce-any-number) |
 | **The agent** | [The agent, and its fourteen tools](#the-agent-and-its-fourteen-tools) · [The five ways in](#the-five-ways-in) · [The twenty-seven datasets](#the-twenty-seven-datasets) |
 | **The method** | [The honesty rules](#the-honesty-rules) · [What each piece is for](#what-each-piece-is-for) · [Layout](#layout) · [Where to look in the code](#where-to-look-in-the-code) |
 | **The record** | [Prompts, specs and planning artifacts](#prompts-specs-and-planning-artifacts) · [AI attribution](#ai-attribution) · [What we could not do, and where the fix belongs upstream](#what-we-could-not-do-and-where-the-fix-belongs-upstream) · [License](#license) |
@@ -167,6 +178,27 @@ PYTHONPATH=engine python3 -m tare.graph.cachebench
 
 ---
 
+## The site, route by route
+
+Seven routes, all behind the hash, so the whole thing stays one static bundle — and every one of
+them answers with no network request, because the 125,072 measurements are in the page.
+
+| Route | What it is |
+|---|---|
+| [`#/`](https://tare-hooks.tech/#/) | **check a token** — paste an address, read which door to buy it through, and what that door takes |
+| [`#/instrument`](https://tare-hooks.tech/#/instrument) | **the evidence** — the panels, one per question: the hook table, the 14 permission LEDs, the size curve, and the raw rows with their replay commands |
+| [`#/outil/<n>`](https://tare-hooks.tech/#/outil/1) | one page per tool, `1` to `14` — what it takes in, what it runs, what it gives back, what it costs |
+| [`#/deck`](https://tare-hooks.tech/#/deck) | **the deck** — nine full-screen beats, with the real app running inside the boards. `?presenter=1` adds the clock, the beat counter and the keyboard shortcuts; the public URL carries none of them |
+| [`#/developpeurs`](https://tare-hooks.tech/#/developpeurs) | **developers** — the two pieces you install (the MCP server, the browser extension) and the two network doors (the account API, the x402 toll). Every figure on it names the file it was read from |
+| [`#/roadmap`](https://tare-hooks.tech/#/roadmap) | **roadmap** — the fourteen tools sorted by their *real* state, read from `outils.ts`, not retyped: running · written and tested but not deployed, each with its reason · not built. No dates, and the word "soon" appears nowhere |
+| [`#/reglages`](https://tare-hooks.tech/#/reglages) | **settings** — everything that needs a wallet: the RainbowKit connection, the signature that opens a session, the two kinds of API key, and the subscription read on chain |
+
+The nav bar carries them in that order: *check a token · the agent (14 tools) · the evidence ·
+the deck · developers · roadmap · settings*. `#/feuille` still resolves, as an alias of
+`#/roadmap`: the route was renamed and the old links were not broken.
+
+---
+
 ## Run it locally
 
 Python 3 and Node are the only prerequisites for everything except a **new** measurement, which
@@ -251,7 +283,9 @@ node apps/web/scripts/build-dataset.mjs               # the instrument's data
 ```
 
 The two published surfaces need none of this: `apps/web` and `apps/landing` regenerate their own
-data as the first step of `npm run build`, which is why GitHub Pages deploys from a clean checkout.
+data as the first step of `npm run build`, which is why <https://tare-hooks.tech> builds from a
+clean checkout — the instrument at the root, the landing under `/landing/`, behind a Let's Encrypt
+certificate.
 
 ---
 
@@ -264,7 +298,7 @@ an empty result.
 | you want | you need | without it |
 |---|---|---|
 | `/hooks`, `/hook/:addr`, `/measurement/:id`, `/route`, the instrument | nothing — the 125,072 measurements are in the repo | works |
-| `POST /measure` (a **new** measurement) | `docker compose up -d anvil` + a `BASE_RPC_URL` | `503 moteur indisponible`, never a fabricated number |
+| `POST /measure` (a **new** measurement) | `docker compose up -d anvil` + a `BASE_RPC_URL` | `503 moteur indisponible` ("engine unavailable" — the API's own wording), never a fabricated number |
 | `/graph` and its traversals | nothing — rebuilt by `scripts/regenerate.sh` | says the graph file is missing |
 | `/rag/search` (the **vector** retriever) | `docker compose up -d db`, **plus** `ollama serve` with `granite-embedding:278m` | `503 INDEX_UNAVAILABLE`, or `503 DIM_MISMATCH` |
 | a settled x402 payment | a funded Hedera account, associated with `0.0.429274` | `402` forever, which is correct |
@@ -279,6 +313,11 @@ the wrong space are not worse answers, they are meaningless ones. So the route r
 { "status": "DIM_MISMATCH",
   "error": "question en dimension 1536, index en 768 : deux espaces vectoriels ne se comparent pas" }
 ```
+
+That `error` string is quoted as the API emits it — "question in 1,536 dimensions, index in 768:
+two vector spaces do not compare". It is generated in
+[`apps/api/src/rag/store.ts`](apps/api/src/rag/store.ts), so it is reproduced here rather than
+translated.
 
 `GET /rag/meta` shows both dimensions, `dimension_match`, and which embedder was chosen and why.
 
@@ -306,8 +345,8 @@ The aggregates, all offline, all from files already in the repo:
 ```bash
 PYTHONPATH=engine python3 -m tare.dataset.stats --lp-fee-zero --above-bps 1   # the "What we found" table
 PYTHONPATH=engine python3 -m tare.graph.cli disagreement                      # the graph traversals
-python3 -m tare.registre                                                      # the 78 absent hooks
-python3 -m tare.declare --scan                                                # the 9 hooks that declare
+PYTHONPATH=engine python3 -m tare.registre                                    # the 78 absent hooks
+PYTHONPATH=engine python3 -m tare.declare --scan                              # the 9 hooks that declare
 make readme                                                                   # regenerate the table, then check it
 ```
 
@@ -343,24 +382,32 @@ with no reason, is an empty box no one remembers to fill.
 
 | # | Tool | Family | The user question it answers | In → what it runs | Fields it returns | Cost | State |
 |---|---|---|---|---|---|---|---|
-| 1 | **Measure** (`Mesurer`) | collect | "this hook, on this pool, at this size — what does it actually take?" | a full `PoolKey`, a size, a direction, a block → pins an anvil fork; quotes the swap as-is; rewrites the **hook's** bytecode with an inert 89-byte stub (same address, so same `poolId`, same liquidity, same `slot0`); quotes again; restores | `out_with`, `out_without`, `bps`, `label`, `block_number`, `stub_hash`, `replay` | 0.001 USDC per measurement, settled over x402 on Hedera | ready |
-| 2 | **Look up** (`Consulter`) | analyse | "what is already measured on this hook?" | a hook address or a pool id → searches the corpus already in memory; computes nothing and completes nothing; returns the rows as measured, each with its label | `lignes`, `median`/`max` (on `MEASURED` rows only), `n_mesures`, `label` | nothing — the corpus is embedded in the page | ready |
-| 3 | **Situate** (`Situer`) | analyse | "I put 100 € into this token — how much is left if I get out?" | a token address, an amount → finds the measured pools carrying it; takes the levy on the way in, **then on the way out**; composes the two instead of adding them; returns an interval, not a point, when the exit varies with size | `entree_bps`, `sortie_bps`, `aller_retour`, `intervalle`, `sens_unique` | nothing | ready |
-| 4 | **Understand** (`Comprendre`) | analyse | "is this hook one of a kind, or are there copies?" | a hook address, or nothing at all for the whole picture → confronts the registry with the hooks seen running; confronts the corpus with an independent source (The Graph) and publishes the **divergences**, not the agreements; groups identical bytecodes | `absents`, `divergents`, `declarants`, `grappes` | one API call; the graph is not in the bundle | **pending** — the graph is rebuilt by `tare.graph.cli build`, not shipped. Unreachable, the three cards say "not reachable" and give the command; they never display zero clones |
-| 5 | **Decide** (`Décider`) | analyse | "to swap A for B, which pool do I go through?" | two currency addresses (or one), a size → keeps only the gates that really **buy** the token asked for; groups by currency paid, because a price in WETH and a price in USDC do not compare; ranks by total levy, LP fee included; refuses to rank when only one gate is measured | `etat` (`PLUSIEURS_PORTES`, `PORTE_UNIQUE`, `AUCUNE_MESUREE`, `JETON_INCONNU`, `MONNAIE_DE_COTATION`), `groupes`, `total_bps`, `ecart`, `raison` | nothing | ready |
-| 6 | **Offer another gate** (`Proposer une autre porte`) | analyse | "and elsewhere, would it be cheaper?" | the transaction about to be signed → looks for **sibling** pools (same currencies, same direction — not "the same token elsewhere", which would compare prices paid in different currencies); compares at equal size, never at an interpolated one; proposes only above a 1 bps threshold | `etat` (one of six named states, including `PORTE_UNIQUE`, which is an answer), `alternative`, `part_porte_unique` | zero RPC calls: the comparison is local | ready |
-| 7 | **Substitute the transaction** (`Substituer la transaction`) | **action** | "build me the transaction that goes through the cheapest gate" | the chosen alternative, the user address, the Permit2 state **read on chain**, a live quote → reads the token's allowance to Permit2 then to the router; reads the Permit2 nonce instead of guessing it; quotes the target gate live to set the output floor (−50 bps tolerance), never from the block-pinned corpus; encodes the `0x0a10` command list (`PERMIT2_PERMIT` then `V4_SWAP`); **re-reads its own calldata** and refuses if the re-read does not give back the same values | `to`/`data`/`value`, `etat` (`PRET`, or one of eight states naming what is missing), `plancher`, `echeance` (now + 20 min — the router default was the year 2106), `appels_rpc` | up to three `eth_call`, and only if a cheaper gate exists | ready |
-| 8 | **Intercept** (`Intercepter`) | collect | "what am I about to sign?" | the calldata the exchange site is about to have signed, caught **before** the wallet → traps the provider's request method; decodes the Universal Router calldata and extracts the `PoolKey`; **re-derives the `poolId` and rejects the row if it does not come back**; queries the table embedded in its service worker — no request, so nothing to watch leak; gives its verdict before the signature, and leaves the last word to the human | `pool_id` (re-derived, not the one announced), `hook`, `bps`, `verdict`, `delai` | nothing, and no request: the table is in the extension | **offline by construction** — the extension is installed, not served; the API key only files its verdicts into the account history |
-| 9 | **Approve** (`Approuver`) | **action** | "do I confirm, or do I cancel?" | the guard's report and a device, when there is one → encodes the report as EIP-712, typed and named; renders it **screen by screen** on the device — you do not sign an opaque hash; waits for the human, with no default; a refusal returns code 4001 and **nothing is called** | `ecrans`, `signature`, `refus` (4001) | one signature | ready |
-| 10 | **Pay per unit** (`Payer à l'unité`) | collect | "I want a fresh measurement, with no account" | a measurement request with no account and no key; a Hedera account with test USDC → answers `402` **announcing the price** instead of refusing; takes payment, then runs the measurement; **re-reads the settlement on the Hedera mirror node** — a server that says "paid" is not enough, it is the server being checked; writes the settlement to the ledger only if the mirror node returns it | the `402` payload (price, network, token, payee), `mesure`, `tx_hash`, `relu` | 0.001 USDC per measurement | ready |
-| 11 | **Subscribe** (`S'abonner`) | **action** | "I want the extension, the MCP server and my history" | a connected wallet; the expiry **read on the contract**, never the one our database announces → sends the price to the contract, which computes the duration itself (the site sends no calldata); re-reads the expiry on chain after the transaction; refuses to activate anything if that read fails | `abonneJusquA`, `actif` (false until the on-chain read confirms), `surfaces` | the contract's price, read on chain | **pending** — 182 lines of Solidity, 20 forge tests, checked against a local fork where 1.5 × the price buys exactly 45.00 days, but **not deployed** on a public network. Until it is, the account answers "subscription unverified, therefore not active" |
-| 12 | **Authenticate** (`Authentifier`) | **action** | "how do I log in, without a password?" | a wallet address found by EIP-6963; a signature over a text the server renders **in full** → asks the server for a nonce; has the user sign a text they can read entirely — you do not sign a hash; verifies server-side and opens a session; writes no password anywhere | `nonce` (single use), `session`, `adresse` — an address, not an email | one signature, free | ready |
-| 13 | **Prove** (`Prouver`) | **action** | "who measured this, when, and how do I check it without trusting you?" | nothing — the proof has to verify without asking us → publishes the agent's six canonical fields in canonical order; gives their SHA-384 hash in base58, so the caller **recomputes** the identity instead of believing us; anchors the usage log on a Hedera HCS topic, and re-reads it | `uaid` (HCS-14), `canonical_json`, `topic` + sequence number, `historique` | nothing | ready |
-| 14 | **Attest** (`Attester`) | **action** | "can another contract read these measurements?" | the corpus, filtered to hooks with enough measurements → computes median and maximum levy per hook on `MEASURED` rows only; **discards** hooks without enough measurement instead of writing them as zero; writes the retained values into a contract with the corpus digest; publishes the gap between what is computed and what is really written | `median_bps`/`max_bps` (readable on chain by another contract), `corpusDigest`, `ecrits`/`ecartes` | the write gas, already paid for 16 hooks | **pending** — **99 attestations are computed; 16 are actually written** on chain. The rest are waiting on gas, and the gap is published rather than smoothed over |
+| 1 | **Measure** | collect | "this hook, on this pool, at this size — what does it actually take?" | a full `PoolKey`, a size, a direction, a block → pins an anvil fork; quotes the swap as-is; rewrites the **hook's** bytecode with an inert 89-byte stub (same address, so same `poolId`, same liquidity, same `slot0`); quotes again; restores | `out_with`, `out_without`, `bps`, `label`, `block_number`, `stub_hash`, `replay` | 0.001 USDC per measurement, settled over x402 on Hedera | ready |
+| 2 | **Look up** | analyse | "what is already measured on this hook?" | a hook address or a pool id → searches the corpus already in memory; computes nothing and completes nothing; returns the rows as measured, each with its label | `lignes`, `median`/`max` (on `MEASURED` rows only), `n_mesures`, `label` | nothing — the corpus is embedded in the page | ready |
+| 3 | **Gauge** | analyse | "I put 100 € into this token — how much is left if I get out?" | a token address, an amount → finds the measured pools carrying it; takes the levy on the way in, **then on the way out**; composes the two instead of adding them; returns an interval, not a point, when the exit varies with size | `entree_bps`, `sortie_bps`, `aller_retour`, `intervalle`, `sens_unique` | nothing | ready |
+| 4 | **Understand** | analyse | "is this hook one of a kind, or are there copies?" | a hook address, or nothing at all for the whole picture → confronts the registry with the hooks seen running; confronts the corpus with an independent source (The Graph) and publishes the **divergences**, not the agreements; groups identical bytecodes | `absents`, `divergents`, `declarants`, `grappes` | one API call; the graph is not in the bundle | **pending** — the graph is rebuilt by `tare.graph.cli build`, not shipped. Unreachable, the three cards say "not reachable" and give the command; they never display zero clones |
+| 5 | **Decide** | analyse | "to swap A for B, which pool do I go through?" | two currency addresses (or one), a size → keeps only the doors that really **buy** the token asked for; groups by currency paid, because a price in WETH and a price in USDC do not compare; ranks by total levy, LP fee included; refuses to rank when only one door is measured | `etat` (`PLUSIEURS_PORTES`, `PORTE_UNIQUE`, `AUCUNE_MESUREE`, `JETON_INCONNU`, `MONNAIE_DE_COTATION`), `groupes`, `total_bps`, `ecart`, `raison` | nothing | ready |
+| 6 | **Propose another door** | analyse | "and elsewhere, would it be cheaper?" | the transaction about to be signed → looks for **sibling** pools (same currencies, same direction — not "the same token elsewhere", which would compare prices paid in different currencies); compares at equal size, never at an interpolated one; proposes only above a 1 bps threshold | `etat` (one of six named states, including `PORTE_UNIQUE`, which is an answer), `alternative`, `part_porte_unique` | zero RPC calls: the comparison is local | ready |
+| 7 | **Substitute the transaction** | **action** | "build me the transaction that goes through the cheapest door" | the chosen alternative, the user address, the Permit2 state **read on chain**, a live quote → reads the token's allowance to Permit2 then to the router; reads the Permit2 nonce instead of guessing it; quotes the target door live to set the output floor (−50 bps tolerance), never from the block-pinned corpus; encodes the `0x0a10` command list (`PERMIT2_PERMIT` then `V4_SWAP`); **re-reads its own calldata** and refuses if the re-read does not give back the same values | `to`/`data`/`value`, `etat` (`PRET`, or one of eight states naming what is missing), `plancher`, `echeance` (now + 20 min — the router default was the year 2106), `appels_rpc` | up to three `eth_call`, and only if a cheaper door exists | ready |
+| 8 | **Intercept** | collect | "what am I about to sign?" | the calldata the exchange site is about to have signed, caught **before** the wallet → traps the provider's request method; decodes the Universal Router calldata and extracts the `PoolKey`; **re-derives the `poolId` and rejects the row if it does not come back**; queries the table embedded in its service worker — no request, so nothing to watch leak; gives its verdict before the signature, and leaves the last word to the human | `pool_id` (re-derived, not the one announced), `hook`, `bps`, `verdict`, `delai` | nothing, and no request: the table is in the extension | **offline by construction** — the extension is installed, not served; the API key only files its verdicts into the account history |
+| 9 | **Approve** | **action** | "do I confirm, or do I cancel?" | the guard's report and a device, when there is one → encodes the report as EIP-712, typed and named; renders it **screen by screen** on the device — you do not sign an opaque hash; waits for the human, with no default; a refusal returns code 4001 and **nothing is called** | `ecrans`, `signature`, `refus` (4001) | one signature | ready |
+| 10 | **Pay per call** | collect | "I want a fresh measurement, with no account" | a measurement request with no account and no key; a Hedera account with test USDC → answers `402` **announcing the price** instead of refusing; takes payment, then runs the measurement; **re-reads the settlement on the Hedera mirror node** — a server that says "paid" is not enough, it is the server being checked; writes the settlement to the ledger only if the mirror node returns it | the `402` payload (price, network, token, payee), `mesure`, `tx_hash`, `relu` | 0.001 USDC per measurement | ready |
+| 11 | **Subscribe** | **action** | "I want the extension, the MCP server and my history" | a connected wallet; the expiry **read on the contract**, never the one our database announces → sends the price to the contract, which computes the duration itself (the site sends no calldata); re-reads the expiry on chain after the transaction; refuses to activate anything if that read fails | `abonneJusquA`, `actif` (false until the on-chain read confirms), `surfaces` | the contract's price, read on chain | **pending** — 182 lines of Solidity, 20 forge tests, checked against a local fork where 1.5 × the price buys exactly 45.00 days, but **not deployed** on a public network. Until it is, the account answers "subscription unverified, therefore not active" |
+| 12 | **Authenticate** | **action** | "how do I log in, without a password?" | a wallet connected through **RainbowKit**; a signature over a text the server renders **in full** → asks the server for a single-use nonce; has the user sign a text they can read entirely — you do not sign a hash; verifies the signature server-side and returns a session token. That token is a **JWT, HS256, signed with `node:crypto` and no library**, carrying `sub`, `adresse`, `iat`, `exp` and a `jti`. The `sessions` table stores the **sha256 of that `jti`**, never the token — so the session stays **revocable** even though its signature remains valid, which a JWT alone cannot do | `jeton` (the JWT, returned once), `nonce` (single use), `adresse` — an address, not an email | one signature, free | ready |
+| 13 | **Prove** | **action** | "who measured this, when, and how do I check it without trusting you?" | nothing — the proof has to verify without asking us → publishes the agent's six canonical fields in canonical order; gives their SHA-384 hash in base58, so the caller **recomputes** the identity instead of believing us; anchors the usage log on a Hedera HCS topic, and re-reads it | `uaid` (HCS-14), `canonical_json`, `topic` + sequence number, `historique` | nothing | ready |
+| 14 | **Attest** | **action** | "can another contract read these measurements?" | the corpus, filtered to hooks with enough measurements → computes median and maximum levy per hook on `MEASURED` rows only; **discards** hooks without enough measurement instead of writing them as zero; writes the retained values into a contract with the corpus digest; publishes the gap between what is computed and what is really written | `median_bps`/`max_bps` (readable on chain by another contract), `corpusDigest`, `ecrits`/`ecartes` | the write gas, already paid for 16 hooks | **pending** — **99 attestations are computed; 16 are actually written** on chain. The rest are waiting on gas, and the gap is published rather than smoothed over |
 
 Tool 14 is the one to read twice. The honest figure is **16 written on chain**, out of 99 computed
 and 13 discarded for want of measurement — [`docs/dataset/attestations.json`](docs/dataset/attestations.json)
-carries both numbers and the corpus digest they were derived from.
+carries both numbers and the corpus digest they were derived from. "99 attestations" is never the
+number to quote: 99 is what the corpus supports, 16 is what a block explorer can show you.
+
+Tool 12 is the second one. A JWT that verifies on signature alone cannot be revoked, and an opaque
+token cannot be read by the client that holds it. This one is both: the client reads `adresse` and
+`exp` without calling anyone, and the server can still kill the session by marking one `jti` —
+[`apps/api/src/compte/jwt.ts`](apps/api/src/compte/jwt.ts) signs and checks it (`alg` must be
+exactly `HS256`, signature compared in constant time), [`apps/api/src/compte/store.ts`](apps/api/src/compte/store.ts)
+is where the `jti` is hashed and revoked.
 
 ### The five ways in
 
@@ -372,7 +419,7 @@ The same fourteen tools are reachable five ways, and each way exists for a reaso
 | **The extension** | someone who already swaps elsewhere and will never come to our site | the right moment to know what a hook takes is not when you are researching: it is **three seconds before signing**, on the site where you swap. It sits between the page and the wallet, reads Universal Router calldata, and rules before the signature. The measurement table lives in its service worker and answers with no request — so it works even if our server is off | install it; an API key only for history | 2, 6, 8, 9 |
 | **The MCP server** | an agent, not a human | a model asked "what does this hook take?" **invents a plausible number**. The MCP server gives it four tools whose descriptions say, in as many words, never to state a figure the tool did not return — and every answer carries its label, block, size, direction and replay command. It reads the 125,072 measurements off disk and answers offline | Claude Desktop or any MCP client | 1, 2, 3, 5, 6, 13 |
 | **x402, live, on Hedera** | an autonomous agent with no account and no wish for one | an agent does not fill in a signup form. It makes a request, gets a **402 that announces the price**, pays, and gets the measurement — 0.001 USDC, settled and re-read on the Hedera mirror node, not on our word. The signing key is sealed in a Ledger, and the answering agent has an HCS-14 identity published on a topic: the caller can check **who** it is calling before paying | a Hedera account and test USDC | 1, 10, 13 |
-| **The account** | someone who uses the product more than once | it adds no measurement — it opens **surfaces**: one API key per surface, the extension and MCP downloads, and the history of what they did. Login is by wallet signature, no password, and the subscription is read **on chain** rather than believed | a wallet, and an active subscription for the keys | 11, 12 |
+| **The account** | someone who uses the product more than once | it adds no measurement — it opens **surfaces**: one API key per surface, the extension and MCP downloads, and the history of what they did. Login is a wallet signature — RainbowKit for the connection, a JWT for the session, revocable by its `jti` — and the subscription is read **on chain** rather than believed | a wallet, and an active subscription for the keys | 11, 12 |
 
 ---
 
@@ -394,13 +441,16 @@ display zero.
 Twenty-five of the twenty-seven are versioned — **123 MiB in the repository**. Two are derived and
 gitignored because they recompute from the repo with no network and no RPC.
 
+Every `python3 -m tare.…` below runs from `engine/`, or from the repository root with
+`PYTHONPATH=engine` in front of it — `engine/` is a source tree, not an installed package.
+
 | Dataset | File | Size | What it holds | Produced by | Read by | Written by |
 |---|---|---|---|---|---|---|
 | the corpus of measurements | [`docs/dataset/measurements.jsonl`](docs/dataset/measurements.jsonl) | 125,072 rows | one line per counterfactual swap: pool, hook, size, direction, both quotes, the gap in bps, and the label saying whether it is measured, interpolated or not measurable | `python3 -m tare.sweep`, on a pinned anvil fork | 2, 3, 5, 6, 7, 14 | 1 |
 | the corpus summary | [`docs/dataset/summary.json`](docs/dataset/summary.json) | 125,072 summarised | thresholds, sizes, directions, stub hash, block, and the count per label — enough to check a published figure really comes from *this* corpus | `python3 -m tare.cli summary` | 2, 4 | 1 |
 | the column-encoded corpus | `apps/web/src/data/dataset.json` | *derived*, 7.9 MB | the same corpus, column by column, so it fits in a web page: it is what the site loads, and why the site answers without one network request | `node apps/web/scripts/build-dataset.mjs` | 2, 3, 5, 6 | — |
 | the guard's table | `packages/guard/data/table.json` | *derived*, 21 MB | the corpus flattened for lookup by pool key, embedded as-is in the extension and the MCP server — this is what lets them answer offline | `node packages/guard/scripts/build-table.mjs` | 2, 6, 7, 8 | — |
-| the alternative-gate figures | [`packages/guard/data/chiffres-alternative.json`](packages/guard/data/chiffres-alternative.json) | 125,072 weighed | the real weight of each state of the alternative search, including the share of cases where the answer is "there is only one gate" — the figure we refused to type by hand | `node packages/guard/scripts/chiffres-alternative.mjs` | 6, 7 | — |
+| the alternative-door figures | [`packages/guard/data/chiffres-alternative.json`](packages/guard/data/chiffres-alternative.json) | 125,072 weighed | the real weight of each state of the alternative search, including the share of cases where the answer is "there is only one door" — the figure we refused to type by hand | `node packages/guard/scripts/chiffres-alternative.mjs` | 6, 7 | — |
 | the one-way pools | [`docs/dataset/one-way.json`](docs/dataset/one-way.json) | 6 pools | pools that let you in free and do not let you back out: zero bps in, up to 9,999 out — the case only a round trip reveals | `python3 -m tare.oneway`, from the corpus | 3, 6 | 1 |
 | gate A4 — the swap really executed | [`docs/dataset/porte-a4.json`](docs/dataset/porte-a4.json) | 3 executed swaps | swaps actually run on a fork, set against what the quote announced: the only proof the counterfactual does not lie, divergence included | `python3 -m tare.gates.a4 --write` | 1, 5 | 1 |
 | the gate A4 log | [`docs/dataset/porte-a4.jsonl`](docs/dataset/porte-a4.jsonl) | 1 probe | the raw trace of each probe, with its replay command | `python3 -m tare.gates.a4 --write` | 1 | 1 |
@@ -419,7 +469,7 @@ gitignored because they recompute from the repo with no network and no RPC.
 | the x402 settlements | [`docs/x402-settlements.jsonl`](docs/x402-settlements.jsonl) | 5 settlements | each measurement payment: amount, hash, and its re-read on the Hedera mirror node — a settlement counts only if the mirror node returns it | `apps/api/src/x402.ts`, at each paid measurement | 13 | 10 |
 | the agent's identity | [`docs/dataset/agent-identity.json`](docs/dataset/agent-identity.json) | 5 declared skills | the HCS-14 UAID, the six canonical fields it is the hash of, and the message published on the Hedera topic — a caller can recompute the identity before paying | `npx tsx apps/api/src/agent/cli.ts export`, published on the HCS topic | 10, 13 | 13 |
 | the on-chain attestations | [`docs/dataset/attestations.json`](docs/dataset/attestations.json) | **16 written** (99 computed) | median and maximum levy per hook, computed on the corpus, and the real state of their writing: computed, discarded for want of measurement, or actually written | `python3 -m tare.attest`, from the corpus | 2 | 14 |
-| the full chain | [`docs/dataset/chaine-complete.json`](docs/dataset/chaine-complete.json) | 6 steps | the six end-to-end steps — real transaction, verdict, gate search, paid measurement, HCS anchor, on-device signature — with their duration and state | `apps/api/src/chaine/run.ts` | 8, 13 | — |
+| the full chain | [`docs/dataset/chaine-complete.json`](docs/dataset/chaine-complete.json) | 6 steps | the six end-to-end steps — real transaction, verdict, door search, paid measurement, HCS anchor, on-device signature — with their duration and state | `apps/api/src/chaine/run.ts` | 8, 13 | — |
 | source ↔ measurement agreement | [`docs/hooks-source/analysis.json`](docs/hooks-source/analysis.json) | 112 hooks | the 112 hooks set against their own source code, where it is public: where the code announces a rate, does the measurement confirm it — and the cases where it does not are published too | `python3 -m tare.source.cli analyze` | 4 | — |
 | the bytecode graph cache | [`engine/tare/graph/data/chain-cache.json`](engine/tare/graph/data/chain-cache.json) | 99 KB | what the graph rebuild keeps of the chain: the full graph is not shipped, it is rebuilt, and this cache is what makes rebuilding possible without re-reading everything | `python3 -m tare.graph.cli build` | 4 | — |
 | the device's screens | [`docs/ledger/guard-speculos.json`](docs/ledger/guard-speculos.json) | 9 screens | the EIP-712 report exactly as it renders, screen by screen, on the Ledger — you do not sign an opaque hash, you read what you sign | `packages/keyring`, against a Speculos | 9 | 9 |
@@ -493,6 +543,7 @@ are those lines.
 | **The fourteen tools, declared once** — question, input, output fields, cost, state | [`apps/web/src/lib/outils.ts`](apps/web/src/lib/outils.ts) |
 | **The twenty-seven datasets, declared once** — and the two invariants that keep the list honest | [`apps/web/src/lib/donnees.ts`](apps/web/src/lib/donnees.ts) |
 | **The Ledger Key Ring, driven without a physical device** | [`packages/keyring/src/ring.ts`](packages/keyring/src/ring.ts) — the seal/open cycle, and [`sdk-node.ts`](packages/keyring/src/sdk-node.ts) for the transport the packaged CLI hardcodes |
+| **The session token: a JWT that stays revocable** — HS256 by hand, `jti` known to the table by its sha256 | [`apps/api/src/compte/jwt.ts`](apps/api/src/compte/jwt.ts) and [`apps/api/src/compte/store.ts`](apps/api/src/compte/store.ts) |
 | **The payment key is sealed, not in a file** — and the service says which | [`apps/api/src/pay/secret.ts`](apps/api/src/pay/secret.ts) |
 | **The x402 resource server on Hedera** | [`apps/api/src/x402.ts`](apps/api/src/x402.ts) |
 | **The client that actually pays**, and the four steps it keeps visible | [`apps/api/src/pay/client.ts`](apps/api/src/pay/client.ts) — settled transfers in [`docs/x402-settlements.jsonl`](docs/x402-settlements.jsonl) |
@@ -548,7 +599,11 @@ attached — [`packages/keyring/`](packages/keyring/). Production refuses a loca
 app's attestation, correctly, so staging is what this runs against; that limit is stated
 there and not smoothed over.
 
-The x402 service is **not hosted yet**: no domain answers. The image is built, runs, and has
+The x402 service is **still not hosted**. <https://tare-hooks.tech> is live, but it serves the two
+static surfaces and nothing else: every API path — `/measure`, `/graph`, `/rag/search`, the twelve
+account routes — falls through to the page instead of reaching a server. The site says so rather
+than failing quietly: ask it for anything that needs one and it answers *"no API is published for
+this build of the site"*, and names what that costs you. The image is built, runs, and has
 been paid — the last settlement in [`docs/x402-settlements.jsonl`](docs/x402-settlements.jsonl)
 was served by the container, not by a dev process — and [`scripts/deploy.sh`](scripts/deploy.sh)
 brings it up behind TLS in one command ([`DEPLOY.md`](DEPLOY.md)). But one command not yet run

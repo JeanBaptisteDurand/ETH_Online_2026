@@ -140,11 +140,11 @@ function DeckStyles() {
 .dk-scroll{position:relative;height:calc(100dvh - 56px);overflow-y:auto;overflow-x:hidden;scroll-snap-type:y mandatory;scroll-behavior:smooth;overscroll-behavior-y:contain;background:var(--bg)}
 @media (prefers-reduced-motion: reduce){.dk-scroll{scroll-behavior:auto}}
 
-.dk-beat{height:calc(100dvh - 56px);scroll-snap-align:start;display:flex;align-items:center;justify-content:center;padding:min(2vh,20px);box-sizing:border-box}
-.dk-planche{width:min(98vw,calc((100dvh - 96px) * 16 / 9));max-width:100%;aspect-ratio:16 / 9;container-type:size;container-name:planche;display:flex;flex-direction:column;border:1px solid var(--line-strong);background:var(--bg-1);overflow:hidden;position:relative;box-sizing:border-box}
+.dk-beat{height:calc(100dvh - 56px);scroll-snap-align:start;display:flex;align-items:stretch;justify-content:center;padding:0;box-sizing:border-box}
+.dk-planche{width:100%;height:100%;max-width:100%;container-type:size;container-name:planche;display:flex;flex-direction:column;border:0;border-top:1px solid var(--line);background:var(--bg);overflow:hidden;position:relative;box-sizing:border-box}
 @media (max-width:900px){
   .dk-beat{height:auto;min-height:calc(100dvh - 56px);padding:12px;align-items:stretch}
-  .dk-planche{width:100%;aspect-ratio:auto;min-height:calc(100dvh - 80px);container-type:inline-size}
+  .dk-planche{width:100%;height:auto;min-height:calc(100dvh - 80px);container-type:inline-size}
 }
 
 .dk-tete,.dk-pied{display:flex;align-items:center;gap:1.2cqi;padding:1.7cqi 2.6cqi;flex:0 0 auto}

@@ -129,7 +129,7 @@ function MenuOutils({ n, aller }: { n: number | null; aller: (n: number) => void
         style={{ gap: 7 }}
         aria-current={n !== null ? 'page' : undefined}
       >
-        the agent
+        what it can do
         <span className="t-data-sm" style={{ color: 'var(--ink-2)' }}>{OUTILS.length} tools</span>
       </summary>
       <div className="menu-panneau" role="group" aria-label="the agent’s fourteen tools">
@@ -196,16 +196,30 @@ function Head({
    * L'entree du menu des outils s'intercale APRES la premiere : elle est rendue a part, plus
    * bas, parce que c'est un depliant et non un lien.
    */
+  /**
+   * LA BARRE DIT CE QU'ON OBTIENT, PAS CE QUE C'EST.
+   *
+   * Elle a porte « the tools » et « the instrument » cote a cote, puis « the agent » et « the
+   * evidence ». Les deux fois, le meme defaut : DEUX entrees voulaient dire « explore plus en
+   * detail », et rien ne disait laquelle donne quoi. Un utilisateur ne choisit pas entre deux
+   * synonymes — il abandonne.
+   *
+   * Chaque entree nomme donc son RESULTAT :
+   *   check a token        -> une reponse sur mon jeton
+   *   what it can do       -> ce que l'agent sait faire (ses quatorze outils, deplies)
+   *   the measurements     -> les donnees brutes, panneau par panneau
+   *   the deck             -> le pitch, plein ecran
+   *   developers           -> comment on s'en sert depuis son code
+   *
+   * `roadmap` et `settings` quittent la barre : la premiere est un lien depuis `developers`,
+   * la seconde vit a droite, contre le portefeuille — c'est la ou on cherche ses reglages.
+   * Sept entrees et un bouton de portefeuille ne tiennent pas dans 390 px.
+   */
   const routes = [
-    // L'operation, et c'est la premiere chose qu'on fait : coller un jeton, lire par ou l'acheter.
     { h: '/', t: 'check a token', actif: vue.quoi === 'accueil' },
-    // « the evidence » plutot que « l'instrument » : ce sont les donnees brutes, panneau par
-    // panneau, ce que les outils ont rendu — pas un second catalogue d'outils.
-    { h: '/instrument', t: 'the evidence', actif: vue.quoi === 'instrument' },
+    { h: '/instrument', t: 'the measurements', actif: vue.quoi === 'instrument' },
     { h: '/deck', t: 'the deck', actif: vue.quoi === 'deck' },
-    { h: '/developpeurs', t: 'developers', actif: vue.quoi === 'developpeurs' },
-    { h: '/roadmap', t: 'roadmap', actif: vue.quoi === 'feuille' },
-    { h: '/reglages', t: 'settings', actif: vue.quoi === 'reglages' },
+    { h: '/developpeurs', t: 'developers', actif: vue.quoi === 'developpeurs' || vue.quoi === 'feuille' },
   ]
   const lienRoute = (x: { h: string; t: string; actif: boolean }) => (
     <a

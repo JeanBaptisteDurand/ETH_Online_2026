@@ -1,3 +1,11 @@
+> **Internal working document — written in French, kept for the record.**
+>
+> What it is: an audit of the front-end as it stood on 12 September 2026 — what the `design/tare` branch had done, what was still missing for a judge to understand the product, and the full specification of the account, the API keys, the MCP server and the extension.
+>
+> It is a snapshot, not documentation. Most of what it lists as missing has since been built (the deck, the developers page, the roadmap, the wallet connection and the session token), so read it as the brief that produced that work, not as a description of the product. For the product as it stands, read the [root `README.md`](../../README.md) and the live site at <https://tare-hooks.tech>.
+
+---
+
 # TARE — l'état du front, ce qui manque, et comment câbler le compte
 
 > **À qui ce document s'adresse.** Au Claude qui fait le design, et à JB. Il dit trois choses :

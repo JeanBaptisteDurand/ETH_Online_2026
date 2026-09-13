@@ -1,3 +1,11 @@
+> **Internal working document — written in French, kept for the record.**
+>
+> What it is: the literal prompt given to the agent that redesigned the front-end, on 12 September 2026. It is committed for the same reason as everything under [`docs/prompts/`](../prompts/): ETHGlobal asks submissions to include the prompts and planning artifacts they were built from.
+>
+> It is an instruction to an agent, not documentation. The state of the product is in the [root `README.md`](../../README.md).
+
+---
+
 # Le prompt à donner au Claude qui fait le front
 
 > Copie tout ce qui est entre les deux lignes. Rien d'autre.

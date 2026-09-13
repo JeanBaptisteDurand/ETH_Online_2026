@@ -1,3 +1,11 @@
+> **Internal working document — written in French, kept for the record.**
+>
+> What it is: the brief handed to the developer who took over the front-end on 12 September 2026 — what the product is, which dataset feeds which tool, and in what order to present them to a jury.
+>
+> It is a brief, not documentation, and parts of it have been overtaken: it still says the site deploys from GitHub Pages (it is now served from <https://tare-hooks.tech>) and it quotes a test count from that day. The figures that must stay true are the ones in the [root `README.md`](../../README.md), where a test recomputes them.
+
+---
+
 # TARE — le brief front
 
 > Ce fichier est écrit pour **le Claude de l'ami de JB**, qui reprend le front. Il dit ce que le

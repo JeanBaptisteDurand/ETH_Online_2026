@@ -59,7 +59,7 @@ test('les six etats de comparaison ont chacun leur texte', () => {
   assert.deepEqual(proposent, ['MEILLEURE_PORTE'])
   // et PORTE_UNIQUE n'est pas presente comme un probleme
   assert.equal(AFFICHAGE.PORTE_UNIQUE.ton, 'neutre')
-  assert.match(AFFICHAGE.PORTE_UNIQUE.titre, /qu'une porte/)
+  assert.match(AFFICHAGE.PORTE_UNIQUE.titre, /only one door/)
 })
 
 test('le panneau n_envoie jamais tout seul : chaque envoi part d_un clic', () => {

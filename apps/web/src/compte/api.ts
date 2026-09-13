@@ -162,9 +162,9 @@ export function pasDApi(): boolean {
 }
 
 const RAISON_SANS_API =
-  "aucune API n'est publiee pour cette version du site : le compte, l'abonnement et les cles " +
-  "demandent un serveur, et il n'y en a pas a joindre depuis ici. Ce n'est pas une panne — le " +
-  'reste de cet ecran vient du paquet. En local : cd apps/api && npm start'
+  "no API is published for this build of the site: the account, the subscription and the keys " +
+  "need a server, and there is none to reach from here. This is not an outage — the " +
+  'rest of this screen comes from the bundle. Locally: cd apps/api && npm start'
 
 async function appeler<T>(
   chemin: string,
@@ -300,7 +300,7 @@ export interface Session {
 export async function connecter(fournisseur: Fournisseur): Promise<Session> {
   const comptes = (await fournisseur.request({ method: 'eth_requestAccounts' })) as string[]
   const adresse = comptes?.[0]
-  if (!adresse) throw new Refus('non_authentifie', 'le portefeuille n\'a rendu aucune adresse')
+  if (!adresse) throw new Refus('non_authentifie', 'the wallet returned no address')
 
   const n = await appeler<{ adresse: string; nonce: string; message: string }>('/compte/nonce', {
     methode: 'POST',
@@ -317,8 +317,8 @@ export async function connecter(fournisseur: Fournisseur): Promise<Session> {
   } catch (e) {
     const err = e as { code?: number; message?: string }
     if (err.code === 4001)
-      throw new Refus('non_authentifie', 'signature refusee dans le portefeuille')
-    throw new Refus('non_authentifie', `signature impossible : ${err.message ?? 'sans message'}`)
+      throw new Refus('non_authentifie', 'signature refused in the wallet')
+    throw new Refus('non_authentifie', `signature impossible : ${err.message ?? 'no message'}`)
   }
 
   const s = await appeler<Session>('/compte/session', {
@@ -344,7 +344,7 @@ export async function connecterAvecSigneur(
   adresse: string,
   signer: (message: string) => Promise<string>,
 ): Promise<Session> {
-  if (!adresse) throw new Refus('non_authentifie', "aucune adresse connectee")
+  if (!adresse) throw new Refus('non_authentifie', "no connected address")
 
   const n = await appeler<{ adresse: string; nonce: string; message: string }>('/compte/nonce', {
     methode: 'POST',
@@ -358,8 +358,8 @@ export async function connecterAvecSigneur(
     const err = e as { code?: number; name?: string; message?: string }
     // wagmi enveloppe le refus de l'utilisateur : le code 4001 n'est pas toujours en surface.
     if (err.code === 4001 || /reject|denied|UserRejected/i.test(`${err.name} ${err.message}`))
-      throw new Refus('non_authentifie', 'signature refusee dans le portefeuille')
-    throw new Refus('non_authentifie', `signature impossible : ${err.message ?? 'sans message'}`)
+      throw new Refus('non_authentifie', 'signature refused in the wallet')
+    throw new Refus('non_authentifie', `signature impossible : ${err.message ?? 'no message'}`)
   }
 
   const s = await appeler<Session>('/compte/session', {
@@ -469,8 +469,8 @@ export async function payerAbonnement(
   if (!contrat)
     throw new Refus(
       'indisponible',
-      "aucun contrat d'abonnement n'est configure pour cette version du site " +
-        "(VITE_ABONNEMENT_CONTRAT absente au build) : il n'y a rien a payer",
+      "no subscription contract is configured for this build of the site " +
+        "(VITE_ABONNEMENT_CONTRAT missing at build time): there is nothing to pay",
     )
   const hash = (await fournisseur.request({
     method: 'eth_sendTransaction',
@@ -500,8 +500,8 @@ export async function lirePrixAbonnement(
   if (!contrat)
     return {
       raison:
-        "aucun contrat d'abonnement n'est configure pour cette version du site " +
-        '(VITE_ABONNEMENT_CONTRAT absente au build)',
+        "no subscription contract is configured for this build of the site " +
+        '(VITE_ABONNEMENT_CONTRAT missing at build time)',
     }
   // Les deux selecteurs des getters publics.
   //
@@ -523,7 +523,7 @@ export async function lirePrixAbonnement(
     const prixWei = BigInt(p)
     const dureeS = BigInt(d)
     if (prixWei === 0n || dureeS === 0n)
-      return { raison: 'le contrat rend un prix ou une duree nuls : il n\'est pas initialise' }
+      return { raison: 'the contract returns a zero price or duration: it is not initialised' }
     return { prixWei, dureeS }
   } catch (e) {
     return { raison: `lecture du prix impossible : ${(e as Error).message.slice(0, 120)}` }

@@ -83,7 +83,7 @@ const parTaille = (a: Ligne, b: Ligne): number => (BigInt(a.amount_in) < BigInt(
 export function testDeSortie(token: string, lignes: Ligne[]): TestSortie | RefusSortie {
   const t = token.toLowerCase()
   const premiere = lignes[0]
-  if (!premiere) return { ok: false, raison: 'aucune mesure pour ce jeton', sensMesures: [] }
+  if (!premiere) return { ok: false, raison: 'no measurement for this token', sensMesures: [] }
 
   // Acheter le jeton = recevoir le jeton = aller vers le cote de la PoolKey qui le porte.
   // Inverser ce test donnerait le conseil CONTRAIRE, et c'est une simple erreur de signe.
@@ -106,7 +106,7 @@ export function testDeSortie(token: string, lignes: Ligne[]): TestSortie | Refus
       ok: false,
       raison:
         sens.length === 0
-          ? "aucune mesure chiffree sur ce jeton, dans aucun sens"
+          ? "no figured measurement on this token, in either direction"
           : `un seul sens est mesure (${sens[0]}). L'autre n'est pas gratuit : il est INCONNU, ` +
             `et le composer avec zero rendrait un nombre faux.`,
       sensMesures: sens,

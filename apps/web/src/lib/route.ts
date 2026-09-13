@@ -315,8 +315,8 @@ function asAside(g: Json, why: string | null, whyFr: string | null): PresentedAs
 
 /** Le motif que l'ECRAN ajoute quand il degrade une porte que l'API avait classee. */
 export const DEMOTED_WHY = 'NO_MEASURED_TOTAL_IN_ANSWER'
-export const DEMOTED_WHY_FR =
-  "cette porte est arrivee dans le classement de l'API sans cout total chiffre. L'ecran la sort du classement : un cout illisible n'est pas un cout de zero, et il ne se classe pas."
+export const DEMOTED_WHY_TEXT =
+  "this door came back inside the API ranking with no figured total cost. The screen takes it out of the ranking: an unreadable cost is not a cost of zero, and it does not rank."
 
 export type Partition = {
   /** classables, du cout total mesure le plus faible au plus eleve */
@@ -340,7 +340,7 @@ export function partitionAnswer(a: RouteAnswer): Partition {
     const total = num(g['total_bps'])
     if (total === null) {
       demoted += 1
-      aside.push(asAside(g, DEMOTED_WHY, DEMOTED_WHY_FR))
+      aside.push(asAside(g, DEMOTED_WHY, DEMOTED_WHY_TEXT))
       continue
     }
     gates.push({
@@ -386,9 +386,9 @@ export type Mode =
   | 'PEAGE'
   /** au moins deux couts mesures : un classement a un sens */
   | 'CLASSEMENT'
-  /** plusieurs portes mais un seul cout mesure : ce n'est pas un classement */
+  /** plusieurs portes mais a single measured cost: this is not a ranking */
   | 'UNE_SEULE_MESURE'
-  /** plusieurs portes, aucun cout mesure dans ce sens a cette taille */
+  /** plusieurs portes, no measured cost in this direction at this size */
   | 'AUCUN_COUT'
   /** la paire n'est couverte par aucune mesure */
   | 'AUCUNE_MESURE'
@@ -436,7 +436,7 @@ export function presentationOf(a: RouteAnswer, p: Partition): Presentation {
       doors: inCensus,
       doorsSource: inCensus === null ? null : 'recensement',
       tollSupported,
-      title: 'aucune mesure pour cette paire',
+      title: 'no measurement for this pair',
     }
 
   if (doors === 1)
@@ -446,7 +446,7 @@ export function presentationOf(a: RouteAnswer, p: Partition): Presentation {
       doors,
       doorsSource,
       tollSupported,
-      title: tollSupported ? 'une seule porte — un peage, pas un prix' : 'une seule porte mesuree',
+      title: tollSupported ? 'one door only — a toll, not a price' : 'one measured door only',
     }
 
   if (p.gates.length >= 2)
@@ -466,7 +466,7 @@ export function presentationOf(a: RouteAnswer, p: Partition): Presentation {
       doors,
       doorsSource,
       tollSupported,
-      title: "un seul cout mesure : ce n'est pas un classement",
+      title: "a single measured cost: this is not a ranking",
     }
 
   return {
@@ -475,7 +475,7 @@ export function presentationOf(a: RouteAnswer, p: Partition): Presentation {
     doors,
     doorsSource,
     tollSupported,
-    title: 'aucun cout mesure dans ce sens a cette taille',
+    title: 'no measured cost in this direction at this size',
   }
 }
 

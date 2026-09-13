@@ -74,7 +74,7 @@ test('aucune mesure chiffree : refus sans aucun sens, pas un zero', () => {
   assert.equal(r.ok, false)
   if (!r.ok) {
     assert.deepEqual(r.sensMesures, [])
-    assert.match(r.raison, /aucun sens/)
+    assert.match(r.raison, /either direction/)
   }
 })
 

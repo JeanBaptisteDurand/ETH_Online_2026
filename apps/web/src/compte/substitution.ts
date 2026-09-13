@@ -109,9 +109,9 @@ export interface DemandeAlternative {
 }
 
 const RAISON_SANS_API =
-  "aucune API n'est publiee pour cette version du site. La comparaison des portes vit dans le " +
-  "paquet de l'extension et dans le corpus, mais la COTATION VIVANTE dont depend le plancher de " +
-  'sortie demande un noeud, et il n\'y en a pas a joindre depuis ici. En local : cd apps/api && npm start'
+  "no API is published for this build of the site. Door comparison lives in the " +
+  "extension bundle and in the corpus, but the LIVE QUOTE the exit floor depends on needs a " +
+  'node, and there is none to reach from here. Locally: cd apps/api && npm start'
 
 export async function demanderAlternative(d: DemandeAlternative): Promise<ReponseAlternative> {
   if (pasDApi()) throw new Refus('api_absente', RAISON_SANS_API)
@@ -152,32 +152,32 @@ export const AFFICHAGE: Record<
   { titre: string; ton: 'neutre' | 'bon' | 'attention'; action: string | null }
 > = {
   MEILLEURE_PORTE: {
-    titre: 'une autre porte est mesuree moins chere, a la meme taille',
+    titre: 'another door is measured cheaper, at the same size',
     ton: 'bon',
-    action: 'construire la transaction de remplacement',
+    action: 'build the replacement transaction',
   },
   PORTE_UNIQUE: {
-    titre: "il n'y a qu'une porte pour cet echange",
+    titre: "there is only one door for this swap",
     ton: 'neutre',
     action: null,
   },
   DEJA_LA_MEILLEURE: {
-    titre: "d'autres portes existent, celle-ci est deja la moins chere",
+    titre: "other doors exist, this one is already the cheapest",
     ton: 'bon',
     action: null,
   },
   AUTRES_NON_MESUREES: {
-    titre: "d'autres portes existent, mais aucune n'est mesuree a cette taille",
+    titre: "other doors exist, but none is measured at this size",
     ton: 'attention',
     action: null,
   },
   ACTUELLE_NON_MESUREE: {
-    titre: "cette porte n'est pas mesuree a cette taille : rien a comparer",
+    titre: "this door is not measured at this size: nothing to compare",
     ton: 'attention',
     action: null,
   },
   POOL_INCONNU: {
-    titre: "ce pool n'est pas dans le corpus",
+    titre: "this pool is not in the corpus",
     ton: 'attention',
     action: null,
   },
@@ -187,10 +187,10 @@ export const AFFICHAGE: Record<
 export const SUITE: Record<EtatEnvoi, string | null> = {
   PRET: 'signer et envoyer',
   PAS_DE_PROPOSITION: null,
-  NON_DEMANDE: 'lire la chaine et construire',
+  NON_DEMANDE: 'read the chain and build',
   SANS_PLANCHER: null,
-  APPROBATION_REQUISE: 'approuver le jeton vers Permit2 (une vraie transaction, une fois)',
-  SIGNATURE_REQUISE: 'signer le permit (hors chaine, gratuit)',
+  APPROBATION_REQUISE: 'approve the token to Permit2 (a real transaction, once)',
+  SIGNATURE_REQUISE: 'sign the permit (off-chain, free)',
   NONCE_NON_LU: null,
   ETAT_PERMIT2_INCONNU: null,
   PERMIT_SUR_MONNAIE_NATIVE: null,

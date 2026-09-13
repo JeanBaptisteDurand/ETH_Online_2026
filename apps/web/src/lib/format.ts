@@ -81,7 +81,7 @@ export function replayCommand(row: {
  * rien de plus : un selecteur inconnu reste un selecteur, jamais une explication inventee.
  */
 const REVERT_SELECTORS: Record<string, string> = {
-  '7a5ed734': 'NotEnoughLiquidity — le pool ne peut pas absorber cette taille',
+  '7a5ed734': 'NotEnoughLiquidity — the pool cannot absorb this size',
 }
 
 export function explainReason(reason: string | null): string | null {

@@ -103,7 +103,7 @@ test("regle 1 — une porte sans cout total chiffre n'entre jamais dans le class
   for (const g of p.gates) assert.ok(Number.isFinite(g.total_bps))
   for (const g of p.aside) {
     assert.equal(g.why, DEMOTED_WHY)
-    assert.ok(/pas un cout de zero/.test(g.why_fr ?? ''), 'le motif dit que ce n est pas un zero')
+    assert.ok(/not a cost of zero/.test(g.why_fr ?? ''), 'le motif dit que ce n est pas un zero')
   }
   // Et surtout : aucune des portes degradees ne recoit un cout, meme implicite.
   assert.ok(!p.aside.some((g) => 'total_bps' in (g as unknown as Record<string, unknown>)))

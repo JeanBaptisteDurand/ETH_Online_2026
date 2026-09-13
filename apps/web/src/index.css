@@ -173,15 +173,23 @@ body::before {
     3px 3px;
 }
 
-/* LE CHAMP (couche 2) — le canevas du shader `releve`. Derriere tout, devant rien : il est en
-   z-index 0 comme la trame, et #root monte a 1. `opacity` est mise a 1 par le composant une
-   fois le programme lie ; tant qu'il ne l'est pas, il n'y a rien a voir et rien de casse. */
+/* LE CHAMP (couche 2) — le canevas du shader `releve`.
+
+   z-index: -1, ET C'EST LA TOUT LE SUJET. A 0, un element POSITIONNE se peint au-dessus du
+   contenu en flux normal, qui n'a pas de z-index du tout : le canevas passait donc devant les
+   panneaux de l'instrument et devant les titres, qui etaient bien dans le DOM et invisibles a
+   l'ecran. A -1 il passe derriere le contenu, tout en restant DANS #root, donc toujours
+   au-dessus du damier de body::before. Les trois couches sont alors dans le bon ordre :
+   damier, champ, page.
+
+   `opacity` est mise a 1 par le composant une fois le programme lie ; tant qu'il ne l'est pas,
+   il n'y a rien a voir et rien de casse. */
 .fond-shader {
   position: fixed;
   inset: 0;
   width: 100%;
   height: 100%;
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
   display: block;
   transition: opacity var(--t-view, 280ms) linear;
@@ -504,8 +512,16 @@ summary::-webkit-details-marker {
   text-wrap: balance; /* pas de mot orphelin sur la derniere ligne de la plaque */
 }
 
+/* LES TITRES PRENNENT L'ACCENT (lock 29). C'est un elargissement assume de la regle des trois
+   usages ecrite dans DESIGN.md -> Colors (valeur mesuree, action primaire, badge « mesuré ») :
+   les titres de route et de section deviennent le quatrieme.
+   LA PLAQUE DU HERO RESTE A L'ENCRE, elle. Trois lignes de 56 px en orange ecraseraient la
+   valeur mesuree, qui est la seule chose que l'accent est cense vouloir dire — et la reference
+   choisie, apps/landing, met elle aussi sa hero en blanc et son « 100.00 » en orange. */
+
 /* LE TITRE DE ROUTE — l'instrument, le deck, un outil. Meme police, un cran sous la plaque. */
 .t-display {
+  color: var(--m-4);
   font-family: var(--mono);
   font-size: clamp(1.75rem, 4.2vw, 3.5rem);
   line-height: 1;
@@ -526,6 +542,7 @@ summary::-webkit-details-marker {
   font-variant-numeric: tabular-nums;
 }
 .t-headline {
+  color: var(--m-4);
   font-family: var(--mono);
   font-weight: 700;
   font-size: clamp(1.25rem, 2.2vw, 1.75rem);
@@ -641,8 +658,11 @@ summary::-webkit-details-marker {
 }
 .menu-panneau {
   position: absolute;
-  left: 0;
-  right: auto;
+  /* ANCRE A DROITE depuis que « les outils » est la derniere entree de la barre (lock 31) :
+     ancre a gauche, le panneau de 536 px sortait par la droite de la fenetre et sa troisieme
+     colonne etait coupee. */
+  left: auto;
+  right: 0;
   top: calc(100% + 6px);
   z-index: 20;
   display: grid;
@@ -1571,7 +1591,10 @@ span a[href] {
   scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
   overscroll-behavior-y: contain;
-  background: var(--bg);
+  /* TRANSPARENT, pour que le champ passe derriere le deck comme derriere le reste (lock 28).
+     Un fond opaque ici faisait du deck la seule page sans fond. La lisibilite est portee par
+     `.deck-cadre`, qui est opaque, lui. */
+  background: transparent;
 }
 .deck-beat {
   min-height: calc(100dvh - 56px);
@@ -1613,12 +1636,13 @@ span a[href] {
   min-height: 0;
 }
 .deck-titre {
-  font-family: var(--titre);
-  font-weight: 600;
+  font-family: var(--mono);
+  font-weight: 700;
   font-size: clamp(1.35rem, 2.6vw, 2.1rem);
   line-height: 1.16;
-  letter-spacing: -0.02em;
-  color: var(--ink);
+  letter-spacing: -0.025em;
+  /* Le titre d'un temps du deck est un titre : il prend l'accent comme les autres (lock 29). */
+  color: var(--m-4);
   margin: 0 0 10px;
   max-width: 30ch;
   text-wrap: balance;

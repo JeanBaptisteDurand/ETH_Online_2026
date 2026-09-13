@@ -202,7 +202,6 @@ function Head({
             page. Elle defile donc DANS elle-meme, comme le bandeau d'onglets, au lieu de
             pousser la fenetre. */}
         <nav className="flex items-center gap-[2px] ml-[12px] nav-routes" aria-label="les vues">
-          <MenuOutils n={vue.quoi === 'outil' ? vue.n : null} aller={versOutil} />
           {routes.map((x) => (
             <a
               key={x.h}
@@ -220,6 +219,13 @@ function Head({
             </a>
           ))}
         </nav>
+        {/* « LES OUTILS » EN DERNIERE POSITION (lock 31), ET HORS DU DEFILEMENT DE LA NAV.
+            Les deux demandes n'en font qu'une : `.nav-routes` porte `overflow-x: auto` pour que
+            la barre defile dans elle-meme sous 400 px, et un conteneur qui defile CLIPPE ce qui
+            en sort — le panneau deroulant du menu etait donc rendu, ouvert, mesurable a
+            536x291 px, et invisible. C'est le lock 30. Le sortir du defilement le repare et le
+            met en dernier du meme geste. */}
+        <MenuOutils n={vue.quoi === 'outil' ? vue.n : null} aller={versOutil} />
         <details className="ml-auto relative nav-provenance">
           <summary className="bouton-ghost cursor-pointer list-none inline-flex items-center" style={{ minHeight: 32 }}>
             provenance
@@ -374,19 +380,6 @@ function AppInterne() {
     document.documentElement.setAttribute('data-theme', theme)
   }, [theme])
 
-  // LES TROIS COULEURS DU FOND, LUES SUR LES JETONS et non ecrites ici : le shader doit suivre
-  // le theme, et `--line` n'a pas la meme valeur en clair qu'en sombre. Relues a chaque
-  // changement de theme, apres que l'attribut est pose.
-  const [couleursFond, setCouleursFond] = useState({ bg: '#08090a', c1: '#24272b', c2: '#383c42' })
-  useEffect(() => {
-    const s = getComputedStyle(document.documentElement)
-    const lu = (n: string, secours: string) => s.getPropertyValue(n).trim() || secours
-    setCouleursFond({
-      bg: lu('--bg', '#08090a'),
-      c1: lu('--line-strong', '#383c42'),
-      c2: lu('--ink-4', '#454a50'),
-    })
-  }, [theme])
 
   // Le bouton « précédent » du navigateur doit marcher : on écoute le fragment plutôt que de
   // garder l'état seul. Sans ça, revenir en arrière quitte le site au lieu de la page outil.
@@ -428,12 +421,6 @@ function AppInterne() {
   if (vue.quoi === 'accueil') {
     return (
       <div className="min-h-full">
-        {/* LE FOND ANIME (locks 23 a 25) : le preset `releve` des briques de da-kit — des
-            courbes de niveau sur un plan en perspective, que le pointeur DEPLACE au lieu de
-            l'eclairer. Sur la route d'accueil seulement : la table des fonds de DESIGN.md ne
-            donne de champ qu'a la hero, et un fond anime sous les dix-sept panneaux de
-            l'instrument serait un fond sans hierarchie. */}
-        <FondShader preset="releve" bg={couleursFond.bg} c1={couleursFond.c1} c2={couleursFond.c2} />
         <Evitement />
         <Head theme={theme} setTheme={setTheme} vue={vue} versOutil={versOutil} />
         <RouteMotion cle="accueil">
@@ -659,8 +646,27 @@ export default function App() {
     o.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
     return () => o.disconnect()
   }, [])
+  // LES TROIS COULEURS DU FOND, LUES SUR LES JETONS et non ecrites ici : le shader doit suivre
+  // le theme, et --line n'a pas la meme valeur en clair qu'en sombre.
+  const [couleursFond, setCouleursFond] = useState({ bg: '#08090a', c1: '#383c42', c2: '#454a50' })
+  useEffect(() => {
+    const s = getComputedStyle(document.documentElement)
+    const lu = (n: string, secours: string) => s.getPropertyValue(n).trim() || secours
+    setCouleursFond({
+      bg: lu('--bg', '#08090a'),
+      c1: lu('--line-strong', '#383c42'),
+      c2: lu('--ink-4', '#454a50'),
+    })
+  }, [theme])
+
   return (
     <Portefeuilles theme={theme}>
+      {/* LE FOND, SUR TOUTES LES PAGES (lock 28). Il vivait dans la seule route d'accueil ;
+          il est monte ici, au-dessus du routeur, donc il ne se demonte plus d'une vue a
+          l'autre — le terrain ne se reinitialise pas quand on change de page, ce qui serait
+          un saut visible. Le preset est `releve` : les courbes de niveau de `topo` sur un plan
+          en perspective, que le pointeur DEPLACE au lieu de l'eclairer (locks 23 a 26). */}
+      <FondShader preset="releve" bg={couleursFond.bg} c1={couleursFond.c1} c2={couleursFond.c2} />
       <AppInterne />
     </Portefeuilles>
   )

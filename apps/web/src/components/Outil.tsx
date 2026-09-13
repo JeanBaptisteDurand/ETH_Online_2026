@@ -725,7 +725,8 @@ export function OutilPanel({ n, surOutil }: { n: number; surOutil?: (n: number) 
             {o.cout}
           </span>
         </div>
-        <h1 className="t-display m-0" style={{ color: 'var(--ink)', maxWidth: '20ch' }}>
+        {/* Plus de couleur en dur : le role `display` porte l'accent depuis index.css (lock 29). */}
+        <h1 className="t-display m-0" style={{ maxWidth: '20ch' }}>
           <span style={{ color: 'var(--ink-3)', paddingRight: 18 }}>{o.n}</span>
           {o.nom}
         </h1>

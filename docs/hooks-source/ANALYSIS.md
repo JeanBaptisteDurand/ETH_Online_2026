@@ -1,6 +1,6 @@
 # ANALYSIS — what the hooks' own code says, and what the instrument measured
 
-[`LIMITS.md`](../LIMITS.md) §6(c) said, in as many words: **"We have not read a single line of any hook's source. Not one."** This file is the answer to that sentence. It does not replace LIMITS.md — it closes one paragraph of it and opens several new ones (§5 below).
+`LIMITS.md` §6(c) said, in as many words: **"We have not read a single line of any hook's source. Not one."** This file is the answer to that sentence. It does not replace LIMITS.md — it closes one paragraph of it and opens several new ones (§5 below).
 
 Three separable, replayable steps:
 
@@ -143,7 +143,7 @@ python3 -m tare.source.cli report                           # write this file
 
 Provider: [Sourcify v2](https://sourcify.dev), `/v2/contract/8453/<address>?fields=sources`. Every file returned is stored under `docs/hooks-source/<address>/sources/` and hashed in `provenance.json`; "own files" counts the ones that are not a vendored copy of OpenZeppelin, v4-core, Solady and friends (`engine/tare/source/fetch.py`, `VENDOR_SEGMENTS`).
 
-The Etherscan v2 fallback exists in `fetch.py` and **could not be asked**: no `ETHERSCAN_API_KEY` is configured in this environment. That is recorded as `UNAVAILABLE` in each `provenance.json`, never as `NOT_FOUND`. A provider we could not reach is not evidence about a contract — honesty rule 3, and the reason [`HONESTY.md`](../HONESTY.md) exists at all.
+The Etherscan v2 fallback exists in `fetch.py` and **could not be asked**: no `ETHERSCAN_API_KEY` is configured in this environment. That is recorded as `UNAVAILABLE` in each `provenance.json`, never as `NOT_FOUND`. A provider we could not reach is not evidence about a contract — honesty rule 3, and the reason `HONESTY.md` exists at all.
 
 ## 2. Hook by hook
 
@@ -1788,5 +1788,5 @@ A Sourcify `NOT_FOUND` means: Sourcify holds no verified source for that address
 5. **These hooks do more during a swap than take a fee.** Several claim accrued fees or call a pool extension inside the same callback; those calls move the pool's state before the swap runs with the hook and do not run at all with the stub. The models do not price them, and that is a candidate explanation for a residual gap — a candidate, not a finding.
 6. **`hookData` is always empty** (`engine/tare/quote.py`), so any router-driven branch is unexercised: LaunchHook's referrals, Clanker's MEV-module payload, Doppler's swap data.
 
-Unchanged: [`LIMITS.md`](../LIMITS.md) for what the measurement cannot tell you, [`HONESTY.md`](../HONESTY.md) for the labels and the eight false results that produced them, [`METHOD.md`](../METHOD.md) for how the number is made.
+Unchanged: `LIMITS.md` for what the measurement cannot tell you, `HONESTY.md` for the labels and the eight false results that produced them, [`METHOD.md`](../METHOD.md) for how the number is made.
 

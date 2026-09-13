@@ -490,7 +490,7 @@ These are enforced, not aspirational.
    five of the nine were the same mistake: a read was silently bounded, and the truncated result
    parsed cleanly — a `[:3]` slice, a 2,000-byte body, a `head -c 220`, a 200-character error
    string that cut a revert selector in half. None of them raised an exception; all of them
-   produced a plausible number. All nine are written up in [`docs/HONESTY.md`](docs/HONESTY.md) —
+   produced a plausible number. —
    what was claimed, how it was caught, what makes it impossible now. A bounded read is a
    `NOT_MEASURABLE`, never a value, and never a zero.
 4. **Known limits are published, not hidden.** A hook with custom accounting *is* the liquidity;
@@ -571,7 +571,7 @@ The nine findings sent to the Uniswap Foundation are in [`FEEDBACK.md`](FEEDBACK
 numbered sections and three smaller ones — each naming what produced it, and two of them down to
 the file and line in `v4-core` (`Pool.sol:303-305`, `BaseV4Quoter.sol:16`). The schema change that would let
 the registry carry a rate at all is written, validated and ready to open as a pull request against
-`Uniswap/hooklist`: [`docs/pr-hooklist/`](docs/pr-hooklist/).
+`Uniswap/hooklist`.
 
 The guard's hardware leg stops one step short of a Ledger screen, and the step is not ours to take
 alone: the Ethereum app displays an arbitrary EIP-712 struct field by field only when Ledger holds

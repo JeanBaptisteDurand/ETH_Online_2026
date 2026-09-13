@@ -89,7 +89,7 @@ selector echoed back (`:153`), exactly 96 from `beforeSwap` (`:166`), exactly 64
 `swap`, `settle`, `take` — and reads its own balance.
 
 **Result: 8 pools out of 9 agree to the wei. One diverges** — quoted 3.5669 bps, executed 0.00.
-Both legs are printed in [`LIMITS.md` §10b](LIMITS.md).
+Both legs are printed in `LIMITS.md` §10b.
 
 Without that probe, the thesis rested on the fidelity of a simulator nothing had checked.
 
@@ -270,6 +270,6 @@ A bounded read, a timeout, a rate limit all give `NOT_MEASURABLE` — never a va
 That rule **survives from the Python engine all the way to the Ledger screen** you sign from, and
 it is written into the on-chain contract, which reverts rather than write a zero.
 
-[`docs/HONESTY.md`](HONESTY.md) lists **nine false findings** this project produced before its
+`docs/HONESTY.md` lists **nine false findings** this project produced before its
 rules were absolute. Five were the same mistake: a bounded read, an invisible bound, a truncated
 result that parsed cleanly.

@@ -3,8 +3,8 @@
 Every claim in this file names a file **and a line**. If a line number does not say what this file
 says it says, this file is wrong and the code is right.
 
-Companion documents: what the method **cannot** say is [`LIMITS.md`](LIMITS.md); the four labels and
-the eight false results this project produced are [`HONESTY.md`](HONESTY.md).
+Companion documents: what the method **cannot** say is `LIMITS.md`; the four labels and
+the eight false results this project produced are `HONESTY.md`.
 
 ---
 
@@ -62,7 +62,7 @@ hook stubbed.
 A negative result is **not** negative extraction. Below −100 bps the row is `NOT_MEASURABLE` with
 reason `custom accounting` and carries no number at all
 ([`engine/tare/measure.py:28`](../engine/tare/measure.py) for the threshold,
-[`:97-99`](../engine/tare/measure.py) for the branch). Why, in [`LIMITS.md`](LIMITS.md), section 4.
+[`:97-99`](../engine/tare/measure.py) for the branch). Why, in `LIMITS.md`, section 4.
 
 ## 3. The stub, and the invariants it has to satisfy
 
@@ -110,7 +110,7 @@ not vendored here.)
 
 `anvil_setCode` returning cleanly does not prove the code was written. If the write is accepted and
 not applied — or if a second process restores the hook between the write and the quote, which is
-exactly [false finding #5](HONESTY.md) — then the "without hook" quote runs against the **real
+exactly false finding #5 — then the "without hook" quote runs against the **real
 hook**. The two quotes are identical, the difference is exactly zero, and the row is published as
 `MEASURED 0.00 bps`.
 
@@ -201,7 +201,7 @@ price per swap ([`engine/tare/consts.py:22`](../engine/tare/consts.py),
 [`engine/tare/poolid.py:29-31`](../engine/tare/poolid.py)). That flag is recorded per row as
 `fee_is_dynamic`. It is the difference between "the fee field reads zero because nothing was set"
 and "the fee field reads zero because the protocol expects the hook to set it" — see
-[`LIMITS.md`](LIMITS.md), section 6.
+`LIMITS.md`, section 6.
 
 ## 6. The quote
 
@@ -220,7 +220,7 @@ identifying selector sits deep inside the error string. Both selectors are const
 [`:20`](../engine/tare/quote.py)) and the second is derived from its signature in a test rather than
 trusted ([`engine/tests/test_quote.py:40-42`](../engine/tests/test_quote.py)). The full wire format,
 and the false finding it produced, are in
-[`HONESTY.md`](HONESTY.md), false result #7.
+`HONESTY.md`, false result #7.
 
 ## 7. The sweep
 
@@ -246,7 +246,7 @@ stated in [`engine/tare/sweep.py:1-46`](../engine/tare/sweep.py):
    `stub_is_installed` checks whether the hook already wears the stub
    ([`engine/tare/sweep.py:176-181`](../engine/tare/sweep.py)); if it still does after a backoff the
    row is `NOT_MEASURABLE` with reason `concurrent_measurer:` and **no number**
-   ([`:220-229`](../engine/tare/sweep.py)). This is false result #5 in [`HONESTY.md`](HONESTY.md).
+   ([`:220-229`](../engine/tare/sweep.py)). This is false result #5 in `HONESTY.md`.
 5. **One direction per pool was a sampling decision, not a fact about the pool.** The probe of
    fact 1 recovered the pools an earlier sweep had thrown away, but it also meant the corpus could
    never answer *does this hook take the same cut both ways?* — and it can differ, because
@@ -355,7 +355,7 @@ profiles travel more than 5 bps across the size ramp; the sharpest runs 689.95 b
 dynamic-fee flag, which means the protocol *expects* the hook to set the price and `slot0.lpFee` is
 *supposed* to read zero. That is the point rather than a caveat: the protocol has a legitimate
 mechanism whose magnitude nothing anywhere records, and this corpus is a reading of the magnitude.
-What that does and does not license you to say is [`LIMITS.md`](LIMITS.md), section 6.
+What that does and does not license you to say is `LIMITS.md`, section 6.
 
 ## 9. Replay
 

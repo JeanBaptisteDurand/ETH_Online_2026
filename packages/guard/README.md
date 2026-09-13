@@ -5,7 +5,7 @@ calldata, looks the pool up in the pre-computed TARE table, and says what the ho
 time it was measured — with the block, the size, the direction and the command that replays it.
 
 It measures nothing at signing time. Measuring takes ~9 s cold and demands **one measurer per anvil**
-([`src/guard.ts`](src/guard.ts) header, [`docs/LIMITS.md` §9](../../docs/LIMITS.md)); the guard is a
+([`src/guard.ts`](src/guard.ts) header, `docs/LIMITS.md` §9); the guard is a
 *lookup*, and every number it shows carries the block it came from.
 
 ```ts
@@ -140,7 +140,7 @@ fine; `require()` works too.
 **The Ledger path has never been executed against a physical device, and never against Speculos.**
 It is verified against a fake device only ([`test/ledger.test.ts`](test/ledger.test.ts)). Nobody has
 seen these fields on a real screen. That is limitation §11 in
-[`docs/LIMITS.md`](../../docs/LIMITS.md), and it is written there for the same reason it is written
+`docs/LIMITS.md`, and it is written there for the same reason it is written
 here: hiding it would cost more than admitting it.
 
 Specifically unverified:

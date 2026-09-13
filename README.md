@@ -103,7 +103,7 @@ PYTHONPATH=engine python3 -m tare.dataset.stats --lp-fee-zero --above-bps 1   # 
 
 `engine/tare/graph/` joins the three sources into one graph — **143,788 nodes, 149,904 edges** — and `apps/api/src/graph-routes.ts` serves it. Nodes: 1,019 hooks, 7,817 pools, 8,586 tokens, 158 distinct bytecodes, 158 deployers, 125,072 measurements, 978 registry entries. Every number below is a traversal, not a model output, and each replays with one command.
 
-Its measurements are every one this repository publishes — `docs/dataset/measurements.jsonl` (125,072) + `docs/dataset/measurements-contestes.jsonl` (368) — against `docs/hooklist-live-20260905.json`. The table above counts the main sweep only, which is why its total is the smaller of the two.
+Its measurements are every one this repository publishes — `docs/dataset/measurements.jsonl` (125,072) + `docs/dataset/measurements-contestes.jsonl` (368) — against `docs/hooklist-live-20260905.json`. The 368 contested rows are re-measurements of rows already in the main sweep, so `sweep.dedupe` folds them back in and **both totals are the same 125,072**: the contested file is a second look, not extra data.
 
 | What the traversal asks | What it finds |
 |---|---|
@@ -207,7 +207,7 @@ is how the graph once came to carry ten numbers the dataset had already retracte
 
 The instrument's dataset is the same 125,072 rows as the corpus, written **by column** rather than
 by object — the same stub hash repeated 125,072 times costs one string, not 125,072. It went from
-87 MB to 7.9 MB that way, which is why the page paints in 2.7 s instead of 10.3 s. The encoder
+86 MB to 7.9 MB that way, which is why the page paints in 2.7 s instead of 10.3 s. The encoder
 decodes what it just wrote and compares all 125,072 rows before emitting: a codec that is wrong in
 silence would turn one measurement into another.
 
@@ -301,8 +301,9 @@ and [`engine/tare/gates/a3.py`](engine/tare/gates/a3.py) recomputes five of them
 
 ## What we could not do, and where the fix belongs upstream
 
-The eleven findings sent to the Uniswap Foundation are in [`FEEDBACK.md`](FEEDBACK.md), each with
-the file and line in `v4-core` or `v4-periphery` that produced it. The schema change that would let
+The nine findings sent to the Uniswap Foundation are in [`FEEDBACK.md`](FEEDBACK.md) — six
+numbered sections and three smaller ones — each naming what produced it, and two of them down to
+the file and line in `v4-core` (`Pool.sol:303-305`, `BaseV4Quoter.sol:16`). The schema change that would let
 the registry carry a rate at all is written, validated and ready to open as a pull request against
 `Uniswap/hooklist`: [`docs/pr-hooklist/`](docs/pr-hooklist/).
 

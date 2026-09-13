@@ -15,8 +15,8 @@ only thing that changed is the code that runs during the swap. The same swap is 
 ## Setup
 
 ```bash
-cd /Users/beorlor/Documents/ethonline/ETH_Online_2026/apps/mcp && npm install && npm run build
-claude mcp add tare -- node /Users/beorlor/Documents/ethonline/ETH_Online_2026/apps/mcp/dist/src/index.js
+cd $TARE/apps/mcp && npm install && npm run build
+claude mcp add tare -- node $TARE/apps/mcp/dist/src/index.js
 docker compose up -d anvil   # optional: only needed to measure swaps absent from the dataset
 ```
 

@@ -490,7 +490,7 @@ const MULTI = JSON.parse(`{
   "pairs_with_a_single_pool": 7794,
   "share_pct": 0.1025,
   "block_number": 50614000,
-  "source": "/Users/beorlor/Documents/ethonline/ETH_Online_2026/docs/dataset/pools-liquides-full.json",
+  "source": "docs/dataset/pools-liquides-full.json",
   "is_lower_bound": true,
   "caveat": "le balayage de decouverte n'a pas pu lire 64 pools (voir pools-liquides-full.json.scan.json, unknown_pools) et le manifeste ne dit pas a quelles paires ils appartiennent : ce recensement est un MINORANT.",
   "sentence": "Sur 7802 paires decouvertes au bloc 50614000, 8 offrent un choix de pool (0.1025 %). Pour les 7794 autres, il n'existe qu'une porte : un prelevement n'y est pas un prix concurrentiel, c'est un peage sur la seule route."
@@ -665,7 +665,7 @@ const MULTI = JSON.parse(`{
  },
  "sources": [
   {
-   "path": "/Users/beorlor/Documents/ethonline/ETH_Online_2026/docs/dataset/measurements.jsonl",
+   "path": "docs/dataset/measurements.jsonl",
    "kind": "jsonl",
    "exists": true,
    "rows_read": 74115,
@@ -673,7 +673,7 @@ const MULTI = JSON.parse(`{
    "measurements": 74115
   },
   {
-   "path": "/Users/beorlor/Documents/ethonline/ETH_Online_2026/docs/dataset/measurements-contestes.jsonl",
+   "path": "docs/dataset/measurements-contestes.jsonl",
    "kind": "contestes",
    "exists": true,
    "rows_read": 368,
@@ -682,7 +682,7 @@ const MULTI = JSON.parse(`{
   }
  ],
  "census_source": {
-  "path": "/Users/beorlor/Documents/ethonline/ETH_Online_2026/docs/dataset/pools-liquides-full.json",
+  "path": "docs/dataset/pools-liquides-full.json",
   "available": true,
   "pools": 7817,
   "rejected_rows": 0,
@@ -690,7 +690,7 @@ const MULTI = JSON.parse(`{
   "block_number": 50614000,
   "unreadable_pools": 64,
   "unreadable_pools_note": "pools que le balayage de decouverte n'a pas pu lire. Leurs paires sont inconnues : ils ne peuvent pas etre ecartes d'une paire donnee.",
-  "rescan_command": "python3 -m tare.rescan /Users/beorlor/Documents/ethonline/ETH_Online_2026/docs/dataset/init-logs-200k.json /Users/beorlor/Documents/ethonline/ETH_Online_2026/docs/dataset/pools-liquides-full.json 50614000 12"
+  "rescan_command": "python3 -m tare.rescan docs/dataset/init-logs-200k.json docs/dataset/pools-liquides-full.json 50614000 12"
  },
  "dataset_notes": {
   "duplicates_dropped": 0,
@@ -752,7 +752,7 @@ const SINGLE = JSON.parse(`{
   "pairs_with_a_single_pool": 7794,
   "share_pct": 0.1025,
   "block_number": 50614000,
-  "source": "/Users/beorlor/Documents/ethonline/ETH_Online_2026/docs/dataset/pools-liquides-full.json",
+  "source": "docs/dataset/pools-liquides-full.json",
   "is_lower_bound": true,
   "caveat": "le balayage de decouverte n'a pas pu lire 64 pools (voir pools-liquides-full.json.scan.json, unknown_pools) et le manifeste ne dit pas a quelles paires ils appartiennent : ce recensement est un MINORANT.",
   "sentence": "Sur 7802 paires decouvertes au bloc 50614000, 8 offrent un choix de pool (0.1025 %). Pour les 7794 autres, il n'existe qu'une porte : un prelevement n'y est pas un prix concurrentiel, c'est un peage sur la seule route."
@@ -817,7 +817,7 @@ const SINGLE = JSON.parse(`{
  },
  "sources": [
   {
-   "path": "/Users/beorlor/Documents/ethonline/ETH_Online_2026/docs/dataset/measurements.jsonl",
+   "path": "docs/dataset/measurements.jsonl",
    "kind": "jsonl",
    "exists": true,
    "rows_read": 74851,
@@ -825,7 +825,7 @@ const SINGLE = JSON.parse(`{
    "measurements": 74851
   },
   {
-   "path": "/Users/beorlor/Documents/ethonline/ETH_Online_2026/docs/dataset/measurements-contestes.jsonl",
+   "path": "docs/dataset/measurements-contestes.jsonl",
    "kind": "contestes",
    "exists": true,
    "rows_read": 368,
@@ -834,7 +834,7 @@ const SINGLE = JSON.parse(`{
   }
  ],
  "census_source": {
-  "path": "/Users/beorlor/Documents/ethonline/ETH_Online_2026/docs/dataset/pools-liquides-full.json",
+  "path": "docs/dataset/pools-liquides-full.json",
   "available": true,
   "pools": 7817,
   "rejected_rows": 0,
@@ -842,7 +842,7 @@ const SINGLE = JSON.parse(`{
   "block_number": 50614000,
   "unreadable_pools": 64,
   "unreadable_pools_note": "pools que le balayage de decouverte n'a pas pu lire. Leurs paires sont inconnues : ils ne peuvent pas etre ecartes d'une paire donnee.",
-  "rescan_command": "python3 -m tare.rescan /Users/beorlor/Documents/ethonline/ETH_Online_2026/docs/dataset/init-logs-200k.json /Users/beorlor/Documents/ethonline/ETH_Online_2026/docs/dataset/pools-liquides-full.json 50614000 12"
+  "rescan_command": "python3 -m tare.rescan docs/dataset/init-logs-200k.json docs/dataset/pools-liquides-full.json 50614000 12"
  },
  "dataset_notes": {
   "duplicates_dropped": 0,

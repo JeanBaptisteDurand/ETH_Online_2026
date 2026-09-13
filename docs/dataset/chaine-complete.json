@@ -69,7 +69,7 @@
     "hook": "0x0469a4bd3724dc86c9542f4694c976da13c450c0",
     "statut_402": 402,
     "montant": "1000",
-    "cle_du_payeur": "trousseau Ledger (/Users/beorlor/Documents/ethonline/ETH_Online_2026/var/keyring.json) — ouvert sans appareil",
+    "cle_du_payeur": "trousseau Ledger (var/keyring.json) — ouvert sans appareil",
     "transaction": "0.0.7162784@1789032594.863222677",
     "consensus": "1789032605.185167393",
     "hashscan": "https://hashscan.io/testnet/transaction/0.0.7162784@1789032594.863222677",

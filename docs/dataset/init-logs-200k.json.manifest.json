@@ -13,7 +13,7 @@
  "n_events": 22896,
  "n_hooked": 18307,
  "n_hooks": 1559,
- "replay": "python3 -m tare.collect 50614000 200000 /Users/beorlor/Documents/ethonline/ETH_Online_2026/docs/dataset/init-logs-200k.json 10 16",
+ "replay": "python3 -m tare.collect 50614000 200000 docs/dataset/init-logs-200k.json 10 16",
  "repaired": true,
  "repaired_chunks": 35,
  "recovered_events": 55

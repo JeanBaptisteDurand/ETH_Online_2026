@@ -1,6 +1,6 @@
 {
  "block_number": 50614000,
- "source_logs": "/Users/beorlor/Documents/ethonline/ETH_Online_2026/docs/dataset/init-logs-200k.json",
+ "source_logs": "docs/dataset/init-logs-200k.json",
  "n_hooked_pools": 18307,
  "n_readable": 18243,
  "n_liquid": 7817,
@@ -336,5 +336,5 @@
    "reason": "HTTP 429 from https://base-mainnet.g.alchemy.com/v2/<redacted>"
   }
  ],
- "replay": "python3 -m tare.rescan /Users/beorlor/Documents/ethonline/ETH_Online_2026/docs/dataset/init-logs-200k.json /Users/beorlor/Documents/ethonline/ETH_Online_2026/docs/dataset/pools-liquides-full.json 50614000 12"
+ "replay": "python3 -m tare.rescan docs/dataset/init-logs-200k.json docs/dataset/pools-liquides-full.json 50614000 12"
 }

@@ -56,3 +56,20 @@ s0.png
 section03-*.png
 # Playwright CLI output (may contain credentials)
 .playwright-cli/
+
+# LES COULISSES, ET POURQUOI ELLES N'ONT RIEN A FAIRE ICI.
+#
+# Un juge qui clone ce depot tombait d'abord sur 87 Mo de coulisses : 338 dumps de console
+# Playwright, 34 Mo de captures de design en quatre exemplaires quasi identiques, 55 images
+# d'inspiration, et sept .DS_Store. La preuve du projet — les 86 Mo de mesures — se retrouvait
+# noyee dans le bruit de sa fabrication.
+#
+# Ces dossiers restent sur le disque de qui travaille dessus, et le travail de design vit sur
+# ses propres branches. Ce qui est publie ici est ce qui se defend devant un jury.
+.DS_Store
+.playwright-cli/
+project/
+design/
+inspi/
+skills-lock.json
+.claude/

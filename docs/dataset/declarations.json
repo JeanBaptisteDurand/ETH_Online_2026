@@ -18,7 +18,7 @@
     "bloc_fin": 50614000,
     "span_blocs": 200000,
     "couverture_des_logs": 1.0,
-    "rejeu_des_logs": "python3 -m tare.collect 50614000 200000 /Users/beorlor/Documents/ethonline/ETH_Online_2026/docs/dataset/init-logs-200k.json 10 16"
+    "rejeu_des_logs": "python3 -m tare.collect 50614000 200000 docs/dataset/init-logs-200k.json 10 16"
   },
   "hooks": [
     "0x00000000000000000000000000000000dead0030",

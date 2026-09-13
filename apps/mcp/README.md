@@ -9,8 +9,11 @@ with its block, its size, its direction, its label and a command that reproduces
 
 ## Plug it into Claude Desktop (3 lines)
 
+> `$TARE` below is wherever you cloned this repository. Set it once —
+> `export TARE=$(pwd)` from the repo root — and the commands paste as they are.
+
 ```bash
-cd /Users/beorlor/Documents/ethonline/ETH_Online_2026/apps/mcp && npm install && npm run build
+cd $TARE/apps/mcp && npm install && npm run build
 ```
 
 Then add this to `~/Library/Application Support/Claude/claude_desktop_config.json`
@@ -21,7 +24,7 @@ Then add this to `~/Library/Application Support/Claude/claude_desktop_config.jso
   "mcpServers": {
     "tare": {
       "command": "node",
-      "args": ["/Users/beorlor/Documents/ethonline/ETH_Online_2026/apps/mcp/dist/src/index.js"]
+      "args": ["$TARE/apps/mcp/dist/src/index.js"]
     }
   }
 }
@@ -30,7 +33,7 @@ Then add this to `~/Library/Application Support/Claude/claude_desktop_config.jso
 Claude Code, same thing in one line:
 
 ```bash
-claude mcp add tare -- node /Users/beorlor/Documents/ethonline/ETH_Online_2026/apps/mcp/dist/src/index.js
+claude mcp add tare -- node $TARE/apps/mcp/dist/src/index.js
 ```
 
 Nothing else is required. With no fork, no API and no network the server still answers from the
@@ -134,7 +137,7 @@ used only by `docker compose` to start the fork.
 ## Tests
 
 ```bash
-cd /Users/beorlor/Documents/ethonline/ETH_Online_2026/apps/mcp && npm test
+cd $TARE/apps/mcp && npm test
 ```
 
 37 tests. Among them:

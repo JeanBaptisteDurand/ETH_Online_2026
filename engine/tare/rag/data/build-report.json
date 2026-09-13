@@ -169,11 +169,11 @@
  "cache": {
   "hits": 4089,
   "misses": 13,
-  "path": "/Users/beorlor/Documents/ethonline/ETH_Online_2026/engine/tare/rag/var/embed-cache.jsonl"
+  "path": "engine/tare/rag/var/embed-cache.jsonl"
  },
  "elapsed_s": 9.34,
  "loaded": true,
- "index_file": "/Users/beorlor/Documents/ethonline/ETH_Online_2026/engine/tare/rag/var/index.jsonl",
+ "index_file": "engine/tare/rag/var/index.jsonl",
  "db": {
   "dsn": "postgresql://tare:***@127.0.0.1:55432/tare",
   "rows_in_db": 4102,

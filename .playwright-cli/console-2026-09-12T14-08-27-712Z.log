@@ -1,9 +1,0 @@
-[     674ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8787/route?currency0=0x4200000000000000000000000000000000000006&currency1=0xb20000000000000000000078ee7ce2fe4908108c:0
-[     675ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8787/graph:0
-[     675ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8787/graph/impact/0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc:0
-[     675ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8787/graph/twins/0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc:0
-[     675ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8787/route?currency0=0x4200000000000000000000000000000000000006&currency1=0x0000000000000000000000000000000000000000:0
-[     675ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8787/graph:0
-[     675ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8787/graph/twins/0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc:0
-[     675ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8787/graph/impact/0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc:0
-[     675ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8787/graph/disagreement/0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc:0

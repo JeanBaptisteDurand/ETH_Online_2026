@@ -45,6 +45,11 @@ const QUOI: Record<Famille, string> = {
 
 const ORDRE: Famille[] = ['collecte', 'analyse', 'action']
 
+/** Les totaux et la provenance du corpus. Tous les nombres du hero sortent d'ici. */
+const T = dataset.totals
+const PROV = dataset.provenance.measurements
+const EXEC = (facts as { execution: { source: string } }).execution
+
 /** « 13 680 ms » — en millisecondes, comme la chaine les mesure. Arrondir a « 13,7 s »
     perdrait la precision que le fichier porte, sur un produit dont c'est tout le propos. */
 const msFr = (ms: number | null): string => (ms === null ? '—' : `${ms.toLocaleString('fr')} ms`)
@@ -350,12 +355,32 @@ export function Carte({
         <div className="flex flex-col" style={{ gap: 24 }}>
           <div className="hero">
             <div className="flex flex-col" style={{ gap: 16 }}>
-              {/* Deux lignes, pas trois : le premier ecran doit porter AUSSI la carte entiere,
-                  et c'est elle qui ne se reduit pas. La glose qui suivait le titre disait ce que
-                  la mesure, a droite, montre deja. */}
-              <h1 id="carte-titre" className="t-display m-0" style={{ maxWidth: '21ch' }}>
-                Ce qu’un hook prend vraiment sur un swap.
+              {/* L'EYEBROW : ou et quand la mesure a ete prise, avant de dire ce qu'elle dit.
+                  Les deux nombres viennent de `provenance.measurements`, jamais tapes. */}
+              <p className="eyebrow t-valeur m-0">
+                corpus · base {PROV.chain_ids[0]} · bloc {PROV.blocks[0].toLocaleString('fr')}
+              </p>
+
+              {/* LA PLAQUE. Le premier ecran n'annonce plus une mesure, il EST une mesure
+                  (design/BRIEF.md, lock 15 « A »). Le chiffre et la phrase sont le meme objet
+                  typographique : c'est le dispositif de apps/landing, avec le contenu de
+                  l'instrument. Le nombre sort de `totals`, la phrase dit sa definition —
+                  38 857 mesures au-dessus de 1 bps sur des pools dont la commission LP lue
+                  on-chain vaut zero. Rien n'est arrondi, rien n'est anime. */}
+              <h1 id="carte-titre" className="t-hero m-0">
+                {T.over1bpsWithZeroStoredFee.toLocaleString('fr')} fois,
+                <br />
+                le pool dit zéro
+                <br />
+                et le hook prend.
               </h1>
+
+              <p className="t-body m-0" style={{ color: 'var(--ink-2)', maxWidth: '68ch' }}>
+                Un hook peut prendre sur ton swap sans que le pool l’affiche&nbsp;: la commission
+                lue on-chain vaut zéro, et l’écart est ailleurs. TARE ne change pas le pool, il
+                change le hook — même swap, coté deux fois, une fois avec le code du hook et une
+                fois avec un talon inerte. La différence est ce qu’il a pris.
+              </p>
 
               {/* PREMIÈRE INTERACTION : coller une adresse. C'est l'action primaire de la page,
                   et le seul bouton orange du site. La recherche se fait sur le corpus embarqué :
@@ -421,12 +446,60 @@ export function Carte({
                     ))}
                 </span>
               </form>
+
+              {/* LES TROIS CHIFFRES DU CORPUS, sous la prose : le dispositif de apps/landing,
+                  avec les totaux de l'instrument. Trois blocs colles, separes par un filet de
+                  1 px et non par un ecart — un ecart dirait qu'ils sont sans rapport. Aucun
+                  n'est tape : tous sortent de `dataset.totals`. */}
+              <dl
+                className="hero-chiffres grid gap-px m-0"
+                style={{ background: 'var(--line)', border: '1px solid var(--line)' }}
+              >
+                {(
+                  [
+                    ['corpus', `${T.rows.toLocaleString('fr')} mesures`, `${T.pools.toLocaleString('fr')} pools`],
+                    ['hooks mesurés', String(T.hooks), `${T.hooksAbsentFromRegistry} absents du registre`],
+                    [
+                      'étiquettes',
+                      `${T.measured.toLocaleString('fr')} mesuré`,
+                      `${(T.rows - T.measured).toLocaleString('fr')} non cotable ou non mesurable`,
+                    ],
+                  ] as [string, string, string][]
+                ).map(([quoi, valeur, sous]) => (
+                  <div key={quoi} style={{ background: 'var(--bg)', padding: '10px 14px' }}>
+                    <dt className="t-valeur m-0" style={{ color: 'var(--ink-3)' }}>
+                      {quoi}
+                    </dt>
+                    <dd className="t-data m-0" style={{ color: 'var(--ink)', marginTop: 4 }}>
+                      {valeur}
+                    </dd>
+                    <dd className="t-data-sm m-0" style={{ color: 'var(--ink-3)' }}>
+                      {sous}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
             </div>
 
             {/* L'ÉCART, dans le premier écran : c'est ce que le produit mesure, et il se lit
                 avant tout le reste. Les deux cotations viennent de `facts.execution`, la porte
                 A4 — un swap réellement exécuté sur Base, coté deux fois sur le fork. */}
-            <div className="hero-mesure flex flex-col" style={{ gap: 6 }} aria-live="polite">
+            <div className="hero-mesure panneau-mesure flex flex-col" aria-live="polite">
+              {/* L'EN-TETE DU PANNEAU : ce qu'on lit a gauche, l'etat a droite. Le badge est un
+                  rectangle au filet, jamais une pilule, et seul « mesuré » prend le fond de la
+                  rampe — l'etat mesure est la seule chose qui s'allume (DESIGN.md -> Colors). */}
+              <div
+                className="flex items-center justify-between"
+                style={{ gap: 12, padding: '10px 16px', borderBottom: '1px solid var(--line)' }}
+              >
+                <span className="t-valeur" style={{ color: 'var(--ink-2)' }}>
+                  {reponse?.quoi === 'ecart' ? 'écart entre ses portes' : 'mesure de référence'}
+                </span>
+                <span className={`t-valeur badge${reponse?.quoi === 'refus' ? '' : ' badge-mesure'}`}>
+                  {reponse?.quoi === 'refus' ? 'non mesurable' : 'mesuré'}
+                </span>
+              </div>
+              <div className="flex flex-col" style={{ gap: 6, padding: 16 }}>
               {reponse?.quoi === 'refus' ? (
                 <>
                   <p className="t-title m-0" style={{ color: 'var(--ink)' }}>
@@ -438,7 +511,7 @@ export function Carte({
                 </>
               ) : reponse?.quoi === 'ecart' ? (
                 <>
-                  <output className="t-number m-0" style={{ color: 'var(--ink)' }}>
+                  <output className="t-number m-0" style={{ color: 'var(--m-4)' }}>
                     {reponse.ecart}
                   </output>
                   <p className="t-body m-0 t-body-muted" style={{ maxWidth: '34ch' }}>
@@ -450,7 +523,7 @@ export function Carte({
               ) : (
                 paire && (
                   <>
-                    <output className="t-number m-0" style={{ color: 'var(--ink)' }}>
+                    <output className="t-number m-0" style={{ color: 'var(--m-4)' }}>
                       {paire.bps}
                     </output>
                     <p className="t-body m-0 t-body-muted" style={{ maxWidth: '34ch' }}>
@@ -458,9 +531,50 @@ export function Carte({
                       <span className="t-data" style={{ color: 'var(--ink)' }}>{paire.avec}</span> au
                       lieu de <span className="t-data">{paire.sans}</span>, à 89 octets inertes près.
                     </p>
+
+                    {/* CE QUI A ETE MESURE, exactement : les deux cotations en wei, le bloc, la
+                        chaine, et le fichier qui les produit. Le dispositif vient de
+                        apps/landing (cle a gauche, valeur a droite, tout en mono) et il porte
+                        ici la donnee de l'instrument. Aucun nombre n'est tape : les deux
+                        cotations viennent de `facts.execution`, le bloc de `provenance`. */}
+                    <dl className="kv m-0">
+                      {(
+                        [
+                          ['reçu avec le hook', `${paire.avecWei} wei`],
+                          ['reçu avec le talon', `${paire.sansWei} wei`],
+                          ['bloc', `${PROV.blocks[0].toLocaleString('fr')} · chaîne ${PROV.chain_ids[0]}`],
+                          ['talon', '89 octets, conforme à Hooks.sol'],
+                          ['source', EXEC.source],
+                        ] as [string, string][]
+                      ).map(([k, v]) => (
+                        <div key={k}>
+                          <dt className="t-valeur" style={{ color: 'var(--ink-3)' }}>
+                            {k}
+                          </dt>
+                          <dd className="t-data-sm m-0" translate="no" style={{ color: 'var(--ink-2)' }}>
+                            {v}
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
+
+                    {/* REJOUER CETTE LIGNE. La commande qui reproduit ce nombre-la, pas une
+                        commande d'exemple : gate A4 execute les swaps et compare l'execution a
+                        la cotation. C'est le dispositif « REPLAY THIS ROW » de la landing. */}
+                    <div className="rejouer">
+                      <span className="t-valeur" style={{ color: 'var(--ink-3)' }}>
+                        rejouer cette ligne
+                      </span>
+                      <code className="t-data-sm" translate="no" style={{ color: 'var(--ink-2)', display: 'block' }}>
+                        docker compose up -d anvil
+                        <br />
+                        make gate-a4
+                      </code>
+                    </div>
                   </>
                 )
               )}
+              </div>
             </div>
           </div>
 

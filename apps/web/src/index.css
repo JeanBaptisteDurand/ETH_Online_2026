@@ -16,7 +16,9 @@
 
   --ink: #e8eaed;
   --ink-2: #a2a9b0;
-  --ink-3: #6b7178;
+  /* DESIGN.md -> Colors : #6b7178 mesurait 4,04:1 sur le fond et 3,28:1 sur bg-3, sous AA,
+     sur des legendes qui sont du texte courant. La valeur de la landing passe partout. */
+  --ink-3: #868d96;
   --ink-4: #454a50;
 
   /* inferno tronquee [0,18 ; 0,90], 7 paliers logarithmiques */
@@ -42,13 +44,15 @@
   --fam-analyse: #dfc24d;
   --fam-action: #eb6628;
 
-  /* LA PLAQUE (design/DESIGN.md, direction A) : quatre surfaces et un liseré, aucune ombre.
-     surface-1 l'enceinte de la carte, surface-2 la plaque, surface-3 la plaque survolée,
-     highlight le liseré haut de 1 px qui fait la plaque usinée. */
-  --surface-1: #0e1013;
-  --surface-2: #161a1e;
-  --surface-3: #1c2126;
-  --highlight: #2a3037;
+  /* LA PLAQUE EST DEPOSEE (design/DESIGN.md, direction A « la mesure deja faite »).
+     Elle fabriquait une SECONDE echelle de profondeur a cote de --bg-1..3 : deux echelles
+     pour une page, dont une qui n'encodait rien. Les jetons restent, parce que sept fichiers
+     les nomment, mais ils pointent desormais sur l'echelle unique. La profondeur est un
+     palier de surface plus un filet de 1 px, et rien d'autre. */
+  --surface-1: var(--bg-1);
+  --surface-2: var(--bg-2);
+  --surface-3: var(--bg-3);
+  --highlight: var(--line-strong);
 
   --mix: 22%;
 
@@ -60,9 +64,11 @@
 
   --mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
   --prose: 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;
-  /* LES TITRES. Archivo est plus large et plus affirmee qu'Instrument Sans : a 64 px elle
-     tient le premier ecran, la ou une grotesque neutre se contente de le remplir. */
-  --titre: 'Archivo Variable', 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;
+  /* PLUS DE POLICE D'AFFICHAGE. Le titre est mis dans la police du TABLEAU, a douze fois la
+     taille de l'etiquette : une chasse fixe a 132 px produit la plaque gravee d'un appareil
+     de mesure, ce qu'aucune grotesque ne fait. Le jeton reste, alias du mono, pour les sept
+     regles qui le nomment. */
+  --titre: var(--mono);
 
   color-scheme: dark;
 }
@@ -76,7 +82,9 @@
   --line-strong: #b4b4ae;
   --ink: #14171a;
   --ink-2: #4a4f55;
-  --ink-3: #767c83;
+  /* Meme correction qu'en sombre : #767c83 mesurait 3,93:1 sur le fond et 3,40:1 sur bg-3,
+     sous AA. #5f656c passe partout (5,49 / 5,89 / 5,16 / 4,75). */
+  --ink-3: #5f656c;
   --ink-4: #a8adb3;
   /* YlOrRd [0,05 ; 0,80] — inferno inversee serait illisible sur papier */
   --m-0: #fff8bb;
@@ -87,17 +95,19 @@
   --m-5: #f23924;
   --m-6: #d41020;
   --focus: #1b4fc4;
-  --baseline: #767c83;
+  --baseline: #5f656c;
   --mix: 30%;
 
   /* Meme ecart entre les trois familles, sur un fond clair. */
   --fam-collecte: #1b4fc4;
   --fam-analyse: #9a7b00;
   --fam-action: #c2410c;
-  --surface-1: #f0f0ed;
-  --surface-2: #ffffff;
-  --surface-3: #f7f7f5;
-  --highlight: #ffffff;
+  /* Meme echelle unique qu'en sombre : le panneau est un cran PLUS CLAIR que la page, ce qui
+     est la bonne polarite sur papier. */
+  --surface-1: var(--bg-1);
+  --surface-2: var(--bg-2);
+  --surface-3: var(--bg-3);
+  --highlight: var(--line-strong);
 
   color-scheme: light;
 }
@@ -135,6 +145,31 @@ body {
   line-height: 1.55;
   font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
+}
+
+/* LE DAMIER — la matiere de la page, reprise telle quelle de apps/landing (DESIGN.md ->
+   Elevation & Depth). Deux couches `linear-gradient` utilisees en trame 1 bit DURE, pas en
+   fondu : un degrade sur une surface serait un encodage fantome, et la seule chose qui a le
+   droit d'encoder ici est la rampe. Sur un pseudo-element FIXE et sans pointeur, jamais dans
+   un conteneur qui defile — sinon c'est un repeint GPU continu. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image:
+    linear-gradient(45deg, var(--line) 25%, transparent 25%, transparent 75%, var(--line) 75%),
+    linear-gradient(45deg, var(--line) 25%, transparent 25%, transparent 75%, var(--line) 75%);
+  background-size: 6px 6px;
+  background-position:
+    0 0,
+    3px 3px;
+}
+#root {
+  position: relative;
+  z-index: 1;
 }
 
 .t-data-xs,
@@ -255,17 +290,8 @@ summary::-webkit-details-marker {
   font-weight: 700;
 }
 
-/* L'ECART, et lui seul, une fois par ecran.
-   L'echelle de l'instrument plafonnait a 44 px contre 13 px de base, soit 3,4:1. La charte
-   mesure elle-meme 17:1 a 22:1 sur six sites primes ; 10,5:1 est le palier qu'un instrument
-   dense supporte sans devenir une affiche. Interlettrage 0 : c'est une monospace. */
-.t-display {
-  font-family: var(--mono);
-  font-size: clamp(3.5rem, 8vw, 8.5rem);
-  line-height: 0.92;
-  letter-spacing: 0;
-  font-weight: 500;
-}
+/* (Le role `display` est defini plus bas, avec le reste de l'echelle : une seule declaration
+   par role, sinon la derniere gagne en silence — c'est ce qui se passait ici.) */
 
 /* LA PISTE — une arete de graphe sans canevas.
    Orthogonale, 1 px, jamais une courbe : a quarante et un noeuds les Bezier font des
@@ -393,53 +419,102 @@ summary::-webkit-details-marker {
   }
 }
 
-/* Le titre de la page. L'echelle de l'instrument plafonnait a 28 px pour un titre de section :
-   la carte est le premier ecran, elle a droit a une presence. Le role `display` (mono, 136 px)
-   reste reserve a l'ecart en bps, une fois par ecran. */
-.t-hero {
-  font-family: var(--titre);
-  font-weight: 700;
-  font-size: clamp(2.25rem, 4.6vw, 3.5rem);
-  line-height: 1.02;
-  letter-spacing: -0.03em;
-  font-weight: 600;
-  text-wrap: balance; /* pas de mot orphelin sur la derniere ligne */
+/* L'ECHELLE, refaite depuis design/DESIGN.md -> Typography.
+   Elle plafonnait a 56 px de titre contre 11 px d'etiquette, soit 3,5:1 ; les six sites primes
+   mesures par la charte tiennent 17:1 et 22:1. Elle monte a 132/11 = 12:1, ce qu'un instrument
+   dense supporte sans devenir une affiche. Deux familles et non trois : Archivo est partie.
+   Interlettrage negatif sur la plaque, 0 sur les donnees — une chasse fixe espace deja.
+
+   L'EYEBROW — un filet de 32 px, puis l'etiquette. Dispositif repris de sstr.tech par
+   apps/landing (son DESIGN.md §1.1) : il DIT ou commence une section sans ajouter un titre de
+   plus, ce qui est la seule raison d'exister d'une etiquette au-dessus d'un contenu. */
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--ink-3);
+}
+.eyebrow::before {
+  content: '';
+  width: 32px;
+  height: 1px;
+  background: var(--line-strong);
+  flex: none;
 }
 
-/* design/DESIGN.md → Typography : display (le titre de route), number (l'écart, une fois par
-   écran), headline (titre de section), title (nom d'un outil sur sa plaque), body. */
+/* UN BADGE D'ETAT — un rectangle au filet, jamais une pilule. Seul « mesuré » prend le fond de
+   la rampe : l'etat mesure est la seule chose qui s'allume (DESIGN.md -> Colors, 3 usages). */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border: 1px solid var(--line-strong);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.badge-mesure {
+  background: var(--m-4);
+  border-color: var(--m-4);
+  color: var(--bg);
+}
+
+/* LA PLAQUE — le verdict du premier ecran, une fois par page. C'est la police du TABLEAU a
+   plusieurs fois la taille de l'etiquette : la chasse fixe grave au lieu d'ecrire.
+
+   ELLE NE MONTE PAS A 132 PX comme celle de apps/landing, et c'est un arbitrage, pas un
+   renoncement. La landing ne porte que le verdict et sa prose dans le premier ecran ; celui
+   de l'instrument porte AUSSI le champ, la mesure et la carte des 14 outils — le verrou
+   ecrit plus bas sur `.hero-cadre`. A 132 px la plaque faisait cinq lignes et poussait la
+   carte hors de l'ecran. A 72 px elle en fait trois, l'ecart avec l'etiquette reste de
+   6,5:1 (contre 3,5:1 avant), et les trois choses tiennent ensemble. */
+.t-hero {
+  font-family: var(--mono);
+  font-weight: 800;
+  font-size: clamp(2.5rem, 8vw, 4.5rem);
+  line-height: 0.86;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  text-wrap: balance; /* pas de mot orphelin sur la derniere ligne de la plaque */
+}
+
+/* LE TITRE DE ROUTE — l'instrument, le deck, un outil. Meme police, un cran sous la plaque. */
 .t-display {
-  font-family: var(--titre);
-  font-size: clamp(2rem, 3.1vw, 2.75rem);
+  font-family: var(--mono);
+  font-size: clamp(1.75rem, 4.2vw, 3.5rem);
   line-height: 1;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.03em;
   font-weight: 700;
+  text-transform: uppercase;
   text-wrap: balance;
 }
+
+/* LA VALEUR MESUREE, une fois par ecran. Seul endroit de la page ou la rampe a le droit
+   d'etre une couleur de TEXTE (DESIGN.md -> Colors, trois usages). */
 .t-number {
   font-family: var(--mono);
-  font-size: clamp(2.5rem, 4.4vw, 4rem);
-  line-height: 1;
-  letter-spacing: -0.02em;
-  font-weight: 500;
+  font-size: clamp(3rem, 7vw, 6rem);
+  line-height: 0.82;
+  letter-spacing: -0.05em;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 .t-headline {
-  font-family: var(--titre);
+  font-family: var(--mono);
   font-weight: 700;
-  font-size: 2rem;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  font-weight: 600;
+  font-size: clamp(1.25rem, 2.2vw, 1.75rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
 }
 .t-title {
-  font-family: var(--titre);
+  font-family: var(--mono);
   font-weight: 600;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.01em;
 }
 .t-body {
   font-family: var(--prose);
   font-size: 1rem;
-  line-height: 1.55;
+  line-height: 1.6;
 }
 .t-body-muted {
   color: var(--ink-2);
@@ -653,7 +728,9 @@ summary::-webkit-details-marker {
   border-color: var(--ink-3);
 }
 .champ::placeholder {
-  /* Une invite EST du texte : `--ink-3` donne 4,04:1 sur le fond de page, sous le seuil. */
+  /* Une invite EST du texte. `--ink-3` valait 4,04:1 et ne passait pas ; il vaut maintenant
+     5,94:1 (DESIGN.md -> Colors), mais l'invite reste en --ink-2 : elle porte un exemple
+     d'adresse, qui se lit. */
   color: var(--ink-2);
 }
 
@@ -756,19 +833,23 @@ summary::-webkit-details-marker {
   font-family: var(--prose);
   font-size: 0.9375rem;
   font-weight: 500;
-  background: var(--fam-action);
+  background: var(--m-4);
   color: var(--bg);
-  border: 1px solid var(--fam-action);
+  border: 1px solid var(--m-4);
   min-height: 44px;
   padding: 0 18px;
   cursor: pointer;
+  /* LE SEUL ELEMENT FACONNE DE TOUT LE PRODUIT, et c'est un chanfrein, pas un rayon : les
+     aretes restent vives. `border-radius: 0 !important` est global (§4.5), donc la forme ne
+     peut pas venir d'un rayon de toute facon — elle vient d'un clip-path. */
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
   transition:
     background var(--t-feedback) var(--e-out),
     border-color var(--t-feedback) var(--e-out);
 }
 .bouton-primaire:hover {
-  background: #f27d45;
-  border-color: #f27d45;
+  background: var(--m-5);
+  border-color: var(--m-5);
 }
 .bouton-primaire:active {
   transform: translateY(1px);
@@ -866,6 +947,67 @@ summary::-webkit-details-marker {
     grid-template-columns: 7fr 5fr;
     gap: 56px;
   }
+}
+
+/* LE PANNEAU DE MESURE — l'outil reel, a droite du verdict. Un palier de surface et un filet
+   de 1 px : c'est toute la profondeur du produit, il n'y a ni ombre ni rayon (DESIGN.md ->
+   Elevation & Depth, niveau 1). */
+.panneau-mesure {
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+}
+
+/* LES TROIS CHIFFRES DU CORPUS. Colles, separes au filet : `gap: 1px` sur un fond de filet,
+   la technique du damier de grille — aucune bordure a declarer, et la separation est exacte.
+   Deux colonnes des 560 px, trois au-dela : en dessous, le troisieme libelle ne tient pas. */
+.hero-chiffres {
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 560px) {
+  .hero-chiffres {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  /* Le dernier bloc prend la ligne entiere quand il est seul dessus : un bloc orphelin a
+     demi-largeur laisse un trou que le filet dessine. */
+  .hero-chiffres > div:last-child {
+    grid-column: 1 / -1;
+  }
+}
+@media (min-width: 1100px) {
+  .hero-chiffres {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .hero-chiffres > div:last-child {
+    grid-column: auto;
+  }
+}
+
+/* LE TABLEAU CLE / VALEUR du panneau de mesure : la cle en etiquette, la valeur en mono
+   dessous, et les lignes separees par un filet. Pas de deux colonnes a 1440 — les valeurs
+   sont des entiers de 26 chiffres, elles ont besoin de la largeur entiere. */
+.kv > div {
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+}
+.kv > div:first-child {
+  border-top: 1px solid var(--line-strong);
+  margin-top: 6px;
+}
+.kv dd {
+  word-break: break-all;
+  margin-top: 2px;
+}
+
+/* LA COMMANDE QUI REJOUE la ligne qu'on vient de lire. Un cran plus clair que le panneau :
+   c'est du texte a copier, pas du texte a lire. */
+.rejouer {
+  margin-top: 6px;
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 /* La barre haute : 56 px, la voix en sans, les routes en liens texte. */

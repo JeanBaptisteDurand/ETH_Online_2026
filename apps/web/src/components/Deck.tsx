@@ -43,22 +43,6 @@ const reduit = (): boolean =>
 
 /* ============================================================== les outils communs */
 
-/** L'étiquette que porte toute scène rejouée. Elle n'est jamais facultative. */
-function Rejeu({ quoi, action }: { quoi: string; action?: React.ReactNode }) {
-  return (
-    <div
-      className="flex flex-wrap items-center gap-[10px] px-[14px] py-[8px]"
-      style={{ border: '1px solid var(--line)', background: 'var(--surface-1)' }}
-    >
-      <span className="t-label" style={{ color: 'var(--m-5)' }}>rejeu</span>
-      <span className="t-data-sm" style={{ color: 'var(--ink-2)', maxWidth: '78ch', lineHeight: 1.5 }}>
-        {quoi}
-      </span>
-      {action && <span className="ml-auto">{action}</span>}
-    </div>
-  )
-}
-
 /**
  * LA FRAPPE, isolée dans son propre composant.
  *
@@ -214,87 +198,66 @@ function SceneMcp() {
   const etiquette = { humain: 'utilisateur', outil: 'appel d’outil · mcp', agent: 'tare · mcp' } as const
 
   return (
-    <div className="flex flex-col gap-[12px]" style={{ minWidth: 0 }}>
-      <Rejeu quoi="un échange dans Claude Desktop. Le serveur ne tourne pas dans cet onglet — il vit à côté du modèle et lit les mesures sur disque. Le déroulé est rejoué ; les valeurs sortent du corpus." />
-      <div className="deck-mcp">
-        <div className="deck-mcp-transcript">
-          <div
-            className="flex items-center gap-[9px] px-[12px] py-[8px]"
-            style={{ borderBottom: '1px solid var(--line)', background: 'var(--surface-1)' }}
+    <div className="deck-grille deck-grille-12">
+      <div className="deck-carte" style={{ padding: 0 }}>
+        <div
+          className="flex items-center gap-[1cqi] px-[1.4cqi] py-[1cqi]"
+          style={{ borderBottom: '1px solid var(--line)', background: 'var(--bg-2)' }}
+        >
+          <span className="deck-pastille" />
+          <span className="t-label" style={{ color: 'var(--ink-2)' }}>claude desktop · mcp · tare</span>
+          <button
+            type="button"
+            className="bouton-ghost ml-auto t-label"
+            style={{ cursor: 'pointer' }}
+            onClick={() => { setBulles(depart); setReplay(null); setOccupe(false) }}
           >
-            <span className="deck-pastille" />
-            <span className="t-label" style={{ color: 'var(--ink-2)' }}>claude desktop · mcp · tare</span>
-            <button
-              type="button"
-              className="bouton-ghost ml-auto t-label"
-              style={{ cursor: 'pointer' }}
-              onClick={() => { setBulles(depart); setReplay(null); setOccupe(false) }}
-            >
-              ↻ reprendre
-            </button>
-          </div>
-
-          <div ref={zone} className="deck-mcp-zone">
-            {bulles.map((b, i) => (
-              <div key={i} className="flex flex-col gap-[4px]" style={{ animation: 'deck-entre 240ms ease-out both' }}>
-                <span className="t-label" style={{ color: couleur[b.role] }}>{etiquette[b.role]}</span>
-                <div
-                  className="t-data-sm"
-                  style={{
-                    fontFamily: 'var(--mono)',
-                    color: b.role === 'humain' ? 'var(--ink)' : 'var(--ink-2)',
-                    border: `1px solid ${b.role === 'agent' ? 'var(--line)' : couleur[b.role]}`,
-                    background: b.role === 'agent' ? 'var(--bg-1)' : 'transparent',
-                    padding: '9px 12px',
-                    lineHeight: 1.55,
-                    overflowX: 'auto',
-                  }}
-                >
-                  {b.frappe ? (
-                    <Frappe texte={b.texte} onFini={() => setOccupe(false)} />
-                  ) : (
-                    <span style={{ whiteSpace: 'pre-wrap' }}>{b.texte}</span>
-                  )}
-                </div>
-              </div>
-            ))}
-            {occupe && (
-              <div className="flex items-center gap-[8px]">
-                <span className="deck-pastille" />
-                <span className="t-label" style={{ color: 'var(--ink-2)' }}>tare répond…</span>
-              </div>
-            )}
-          </div>
+            ↻ reprendre
+          </button>
         </div>
-
-        <div className="deck-mcp-cote">
-          <div className="t-label" style={{ color: 'var(--ink-2)' }}>questions prêtes</div>
-          {echanges.map((e, i) => (
-            <button
-              key={e.cle}
-              type="button"
-              disabled={occupe}
-              onClick={() => void jouer(i)}
-              className="deck-prompt t-data-sm"
-            >
-              ▶ {e.bouton}
-            </button>
-          ))}
-          <div className="t-label mt-[6px]" style={{ color: 'var(--ink-2)' }}>4 outils · 3 gratuits · 1 payant</div>
-          {[
-            ['tare_lookup', 'gratuit'],
-            ['tare_impact', 'gratuit'],
-            ['tare_twins', 'gratuit'],
-            ['tare_measure', '0,001 USDC'],
-          ].map(([o, p]) => (
-            <div key={o} className="flex items-baseline gap-[8px]">
-              <code className="t-data-sm" style={{ fontFamily: 'var(--mono)', color: 'var(--ink-2)' }}>{o}</code>
-              <span className="t-label ml-auto" style={{ color: p === 'gratuit' ? 'var(--ink-2)' : 'var(--m-4)' }}>{p}</span>
+        <div ref={zone} className="deck-mcp-zone" style={{ padding: '1.4cqi' }}>
+          {bulles.map((b, i) => (
+            <div key={i} className="flex flex-col gap-[0.5cqi]" style={{ animation: 'deck-entre 240ms ease-out both' }}>
+              <span className="t-label" style={{ color: couleur[b.role] }}>{etiquette[b.role]}</span>
+              <div className="deck-bulle" data-role={b.role}>
+                {b.frappe ? <Frappe texte={b.texte} onFini={() => setOccupe(false)} /> : b.texte}
+              </div>
             </div>
           ))}
+          {occupe && (
+            <div className="flex items-center gap-[0.8cqi]">
+              <span className="deck-pastille" />
+              <span className="t-label" style={{ color: 'var(--ink-2)' }}>tare répond…</span>
+            </div>
+          )}
         </div>
       </div>
-      {replay && <Replay cmd={replay} note="la réponse de l’outil porte toujours de quoi la refaire — c’est ce qui empêche le modèle d’inventer" />}
+
+      <div className="deck-carte">
+        <div className="deck-carte-titre">questions prêtes — clique</div>
+        {echanges.map((e, i) => (
+          <button key={e.cle} type="button" disabled={occupe} onClick={() => void jouer(i)} className="deck-prompt">
+            ▶ {e.bouton}
+          </button>
+        ))}
+        <div className="deck-carte-titre" style={{ marginTop: '0.6cqi' }}>4 outils · 3 gratuits · 1 payant</div>
+        {[
+          ['tare_lookup', 'gratuit'],
+          ['tare_impact', 'gratuit'],
+          ['tare_twins', 'gratuit'],
+          ['tare_measure', '0,001 USDC'],
+        ].map(([o, p]) => (
+          <div key={o} className="flex items-baseline gap-[0.8cqi]">
+            <code style={{ fontFamily: 'var(--mono)', color: 'var(--ink-2)' }}>{o}</code>
+            <span className="t-label ml-auto" style={{ color: p === 'gratuit' ? 'var(--ink-2)' : 'var(--m-4)' }}>{p}</span>
+          </div>
+        ))}
+        <div className="deck-prose" style={{ marginTop: 'auto' }}>
+          Le serveur ne tourne pas dans cet onglet : il vit à côté du modèle. Le déroulé est
+          <strong style={{ color: 'var(--m-5)' }}> rejoué</strong> ; les valeurs sortent du corpus.
+        </div>
+        {replay && <Replay cmd={replay} />}
+      </div>
     </div>
   )
 }
@@ -316,11 +279,11 @@ function SceneExtension({ actif }: { actif: boolean }) {
   const g = facts.garde as Record<string, unknown> | undefined
 
   return (
-    <div className="flex flex-col gap-[12px]" style={{ minWidth: 0 }}>
-      <Rejeu
-        quoi="l’extension ne tourne pas dans cette page : elle s’installe et se place entre le site et le portefeuille. Voici ce qu’elle affiche, dans les deux cas qui existent."
-        action={
-          <span className="flex gap-[6px]">
+    <div className="deck-grille deck-grille-12">
+      <div className="deck-carte">
+        <div className="flex flex-wrap items-center gap-[0.8cqi]">
+          <span className="deck-carte-titre">ce qu’elle fait, étape par étape</span>
+          <span className="ml-auto flex gap-[0.6cqi]">
             {(['alternative', 'unique'] as const).map((k) => (
               <button
                 key={k}
@@ -333,80 +296,67 @@ function SceneExtension({ actif }: { actif: boolean }) {
               </button>
             ))}
           </span>
-        }
-      />
-
-      <div className="deck-ext">
-        <div className="deck-ext-flux">
-          {etapes.map((t, i) => (
-            <div
-              key={i}
-              className="flex gap-[11px] items-baseline"
-              style={{ opacity: i < etape ? 1 : 0.22, transition: 'opacity 240ms linear' }}
+        </div>
+        {etapes.map((t, i) => (
+          <div key={i} className="deck-etape" style={{ opacity: i < etape ? 1 : 0.2 }}>
+            <span
+              className="t-label"
+              style={{ color: i === 3 ? (chere ? 'var(--m-4)' : 'var(--m-5)') : 'var(--ink-2)', minWidth: '1.6cqi' }}
             >
-              <span className="t-label" style={{ color: i === 3 ? (chere ? 'var(--m-4)' : 'var(--m-5)') : 'var(--ink-2)', minWidth: 18 }}>
-                {i + 1}
-              </span>
-              <span className="t-data-sm" style={{ color: i === 3 ? 'var(--ink)' : 'var(--ink-2)', lineHeight: 1.55 }}>{t}</span>
-            </div>
-          ))}
-        </div>
-
-        <div
-          className="deck-ext-verdict"
-          style={{
-            borderColor: chere ? 'var(--m-4)' : 'var(--line-strong)',
-            opacity: etape >= etapes.length ? 1 : 0,
-            transform: etape >= etapes.length ? 'none' : 'translateY(6px)',
-            transition: 'opacity 280ms ease-out, transform 280ms ease-out',
-          }}
-        >
-          <div className="t-label" style={{ color: chere ? 'var(--m-4)' : 'var(--m-5)' }}>
-            {chere ? 'une porte moins chère existe' : 'il n’y a qu’une porte'}
+              {i + 1}
+            </span>
+            <span className="deck-prose" style={{ color: i === 3 ? 'var(--ink)' : 'var(--ink-2)' }}>{t}</span>
           </div>
-          <div className="t-data-sm" style={{ color: 'var(--ink)', lineHeight: 1.6 }}>
-            {chere ? (
-              <>
-                Le même échange passe par un autre pool. La transaction de remplacement est{' '}
-                <strong>construite et signée par Permit2</strong> — une signature hors chaîne au lieu
-                d’une transaction d’approbation, dans la même transaction que le swap — et{' '}
-                <strong>elle n’est jamais envoyée par nous</strong>. Elle est rendue au portefeuille,
-                qui décide.
-              </>
-            ) : (
-              <>
-                Sur <strong>99,71 %</strong> des lignes du corpus, la recherche d’alternative répond
-                « il n’y a qu’une porte ». Alors l’extension ne propose rien : elle affiche ce que le
-                hook prend, et demande une confirmation.{' '}
-                <strong>Inventer une alternative serait pire que se taire.</strong>
-              </>
-            )}
+        ))}
+        {g && (
+          <div className="deck-prose" style={{ marginTop: 'auto' }}>
+            décodé sur {String(g['transactions_reelles'] ?? '—')} transactions réelles de Base ·
+            12 ko de script · la table vit dans le service worker, donc elle répond{' '}
+            <strong style={{ color: 'var(--ink)' }}>même serveur éteint</strong>.
           </div>
-          <div className="flex flex-wrap gap-[7px]">
-            {(chere ? ['PRÊT — substituer', 'signer tel quel', 'annuler'] : ['confirmer en connaissance', 'annuler']).map(
-              (b, i) => (
-                <span key={b} className="t-label deck-bouton" data-fort={i === 0 ? 'oui' : undefined}>
-                  {b}
-                </span>
-              ),
-            )}
-          </div>
-          {chere && (
-            <div className="t-label" style={{ color: 'var(--ink-2)' }}>
-              liste de commandes <code style={{ fontFamily: 'var(--mono)' }}>0x0a10</code> — PERMIT2_PERMIT puis V4_SWAP,
-              dans cet ordre
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
-      {g && (
-        <div className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
-          décodé sur {String(g['transactions_reelles'] ?? '—')} transactions réelles de Base · 12 ko de
-          script de contenu · la table des mesures vit dans le service worker, donc l’extension répond
-          même serveur éteint.
+      <div
+        className="deck-verdict"
+        data-issue={chere ? 'alternative' : 'unique'}
+        style={{
+          opacity: etape >= etapes.length ? 1 : 0,
+          transform: etape >= etapes.length ? 'none' : 'translateY(0.6cqi)',
+        }}
+      >
+        <div className="t-label" style={{ color: chere ? 'var(--m-4)' : 'var(--m-5)' }}>
+          {chere ? 'une porte moins chère existe' : 'il n’y a qu’une porte'}
         </div>
-      )}
+        <div className="deck-prose" style={{ color: 'var(--ink)' }}>
+          {chere ? (
+            <>
+              Le même échange passe par un autre pool. La transaction de remplacement est{' '}
+              <strong>construite et signée par Permit2</strong> — une signature hors chaîne au lieu
+              d’une transaction d’approbation — et <strong>elle n’est jamais envoyée par nous</strong>.
+            </>
+          ) : (
+            <>
+              Sur <strong>99,71 %</strong> des lignes du corpus, la réponse est « il n’y a qu’une
+              porte ». Alors l’extension ne propose rien : elle affiche ce que le hook prend et
+              demande une confirmation. <strong>Inventer une alternative serait pire que se taire.</strong>
+            </>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-[0.7cqi]">
+          {(chere ? ['PRÊT — substituer', 'signer tel quel', 'annuler'] : ['confirmer en connaissance', 'annuler']).map(
+            (b, i) => (
+              <span key={b} className="t-label deck-bouton" data-fort={i === 0 ? 'oui' : undefined}>{b}</span>
+            ),
+          )}
+        </div>
+        {chere && (
+          <div className="t-label" style={{ color: 'var(--ink-2)', marginTop: 'auto' }}>
+            liste de commandes <code style={{ fontFamily: 'var(--mono)' }}>0x0a10</code> — PERMIT2_PERMIT
+            puis V4_SWAP, dans cet ordre
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -428,39 +378,34 @@ function SceneLedger({ actif }: { actif: boolean }) {
   const { etape, rejouer } = useSequence(ecrans.length, ecrans.map(() => 520), actif)
 
   return (
-    <div className="flex flex-col gap-[12px]" style={{ minWidth: 0 }}>
-      <Rejeu
-        quoi="les écrans rendus par l’appareil, l’un après l’autre. Il n’est pas branché à cette page : ce sont ceux qu’a rendus Speculos, et le dépôt publie leur trace."
-        action={
-          <button type="button" onClick={rejouer} className="bouton-ghost t-label" style={{ cursor: 'pointer' }}>
-            rejouer
-          </button>
-        }
-      />
-      <div className="deck-ecrans">
+    <div className="deck-grille deck-grille-12">
+      <div className="deck-ecrans" style={{ gridColumn: '1 / -1', gridTemplateColumns: 'repeat(4, 1fr)' }}>
         {ecrans.map(([k, v], i) => (
           <div
             key={k}
             className="deck-ecran"
             style={{
-              opacity: i < etape ? 1 : 0.12,
-              transform: i < etape ? 'none' : 'translateY(5px)',
-              transition: 'opacity 220ms linear, transform 220ms ease-out',
+              opacity: i < etape ? 1 : 0.1,
+              transform: i < etape ? 'none' : 'translateY(0.5cqi)',
               borderColor: i === ecrans.length - 1 && i < etape ? 'var(--m-4)' : 'var(--line)',
             }}
           >
             <span className="t-label" style={{ color: 'var(--ink-2)' }}>{k}</span>
-            <span className="t-data-sm" style={{ color: 'var(--ink)', wordBreak: 'break-all' }}>{v}</span>
+            <b>{v}</b>
           </div>
         ))}
       </div>
-      <div className="t-data-sm" style={{ color: 'var(--ink-2)', lineHeight: 1.6, maxWidth: '78ch' }}>
-        Le rapport est encodé en <strong style={{ color: 'var(--ink)' }}>EIP-712</strong> et rendu
-        <strong style={{ color: 'var(--ink)' }}> champ par champ</strong> : on ne signe pas un haché
+      <div className="deck-prose" style={{ gridColumn: '1 / -1', marginTop: '-0.6cqi' }}>
+        Le rapport est encodé en <strong style={{ color: 'var(--ink)' }}>EIP-712</strong> et rendu{' '}
+        <strong style={{ color: 'var(--ink)' }}>champ par champ</strong> : on ne signe pas un haché
         opaque, on lit ce qu’on signe. Une annulation rend le code{' '}
-        <strong style={{ color: 'var(--ink)' }}>4001</strong>, et <strong style={{ color: 'var(--ink)' }}>aucun
-        appel ne part</strong>.
+        <strong style={{ color: 'var(--ink)' }}>4001</strong>, et aucun appel ne part.
         {l ? ` ${String(l['ecrans'] ?? '—')} écrans rendus, type ${String(l['type_712'] ?? '—')}.` : ''}
+        {' '}Le déroulé est <strong style={{ color: 'var(--m-5)' }}>rejoué</strong> ; les écrans sont
+        ceux qu’a rendus Speculos, et le dépôt publie leur trace.{' '}
+        <button type="button" onClick={rejouer} className="bouton-ghost t-label" style={{ cursor: 'pointer' }}>
+          rejouer
+        </button>
       </div>
     </div>
   )
@@ -476,11 +421,29 @@ interface Beat {
   rendu: (actif: boolean) => React.ReactNode
 }
 
-function Chiffre({ v, k }: { v: string; k: string }) {
+/**
+ * UN CHIFFRE QUI REMPLIT SA CASE.
+ *
+ * C'est l'objet de base d'une planche : le nombre est enorme parce que c'est LUI le message,
+ * et les deux lignes en dessous disent ce qu'il compte et d'ou il sort. Un deck ou le chiffre
+ * a la meme taille que la legende ne dit rien de loin — et un jury regarde de loin.
+ */
+function Chiffre({
+  v,
+  k,
+  source,
+  accent,
+}: {
+  v: string
+  k: string
+  source?: string
+  accent?: 'jaune' | 'orange' | 'bleu'
+}) {
   return (
-    <div className="flex flex-col">
-      <span className="deck-metric">{v}</span>
-      <span className="t-label" style={{ color: 'var(--ink-2)' }}>{k}</span>
+    <div className="deck-stat" data-accent={accent ?? 'jaune'} data-long={v.length > 6 ? 'oui' : undefined}>
+      <b>{v}</b>
+      <span>{k}</span>
+      {source && <i>{source}</i>}
     </div>
   )
 }
@@ -501,21 +464,27 @@ export function DeckPage({ surOutil }: { surOutil?: (n: number) => void }) {
         titre: 'Un hook Uniswap v4 peut prélever sur votre swap. Personne ne publie combien.',
         sous: 'Ni le registre officiel, ni les hooks eux-mêmes.',
         rendu: () => (
-          <div className="flex flex-col gap-[22px]">
-            <div className="flex flex-wrap gap-x-[44px] gap-y-[16px]">
-              <Chiffre v="9 / 1 559" k="hooks qui déclarent ce qu’ils prennent" />
-              <Chiffre v="0" k="champ quantitatif dans le registre officiel" />
-              <Chiffre v={reg?.epingle ? `${String(reg.epingle['absents'])} / 112` : '—'} k="hooks mesurés que le registre ignore" />
+          <>
+            <div className="deck-grille deck-grille-3">
+              <Chiffre
+                v="9 / 1 559"
+                k="hooks qui déclarent ce qu’ils prennent"
+                source="docs/dataset/declarations.json · 200 000 blocs Base"
+                accent="orange"
+              />
+              <Chiffre
+                v="0"
+                k="champ quantitatif dans le registre officiel, sur 27"
+                source="son schéma interdit d’en ajouter un"
+              />
+              <Chiffre
+                v={reg?.epingle ? `${String(reg.epingle['absents'])} / 112` : '—'}
+                k="hooks mesurés que le registre ne connaît pas"
+                source="docs/dataset/registre-couverture.json"
+                accent="bleu"
+              />
             </div>
-            <p className="deck-prose">
-              Uniswap demande à ses hooks de déclarer ce qu’ils facturent, par les événements{' '}
-              <code>HookSwap</code> et <code>HookFee</code> que son propre guide recommande. Sur
-              1 559 hooks vus en 200 000 blocs de Base, <strong>neuf</strong> émettent l’un ou
-              l’autre — et ce qu’ils émettent est un montant absolu sur un swap passé, pas le taux
-              que vous paieriez à votre taille. Le registre officiel, lui, a 27 champs dont 19
-              booléens : <strong>son schéma interdit d’ajouter un nombre</strong>.
-            </p>
-          </div>
+          </>
         ),
       },
       {
@@ -524,22 +493,31 @@ export function DeckPage({ surOutil }: { surOutil?: (n: number) => void }) {
         titre: 'On ne peut pas retirer le hook d’un pool. Alors on change son code.',
         sous: 'La clé d’un pool v4 contient l’adresse du hook : « le même pool sans son hook » n’existe pas.',
         rendu: () => (
-          <div className="flex flex-col gap-[20px]">
-            <p className="deck-prose">
-              Sur un fork épinglé à un bloc, <code>anvil_setCode</code> remplace le bytecode du hook
-              par un <strong>talon inerte de 89 octets</strong>. Le <code>poolId</code>, la
-              liquidité, <code>slot0</code> et les réserves restent identiques au bit près : la seule
-              chose qui a changé dans l’univers observable est le code qui s’exécute pendant le swap.
-              On cote le même swap deux fois — <strong>l’écart EST le prélèvement</strong>.
-            </p>
-            <div className="flex flex-wrap gap-x-[44px] gap-y-[16px]">
-              <Chiffre v={nb(t.rows)} k="mesures publiées" />
-              <Chiffre v={nb(t.pools)} k="pools" />
-              <Chiffre v={nb(dataset.hooks.length)} k="hooks" />
-              <Chiffre v="89" k="octets de talon" />
+          <div className="deck-grille deck-grille-12">
+            <div className="deck-carte">
+              <div className="deck-carte-titre">le contrefactuel, en quatre gestes</div>
+              {[
+                'on épingle un fork au bloc 50 614 000',
+                'on cote le swap, hook en place',
+                'anvil_setCode remplace le bytecode du hook par 89 octets inertes',
+                'on cote le MÊME swap contre le talon — l’écart est le prélèvement',
+              ].map((l, i) => (
+                <div key={l} className="deck-etape" style={{ opacity: 1 }}>
+                  <span className="t-label" style={{ color: 'var(--m-6)', minWidth: '1.6cqi' }}>{i + 1}</span>
+                  <span className="deck-prose">{l}</span>
+                </div>
+              ))}
+              <div className="deck-prose" style={{ marginTop: 'auto', color: 'var(--ink)' }}>
+                Le <code>poolId</code>, la liquidité, <code>slot0</code> et les réserves restent
+                identiques au bit près. La seule chose qui change est le code qui s’exécute
+                pendant le swap.
+              </div>
             </div>
-            <div className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
-              8 tailles, les deux sens, un bloc épinglé. Chaque ligne se rejoue en une commande.
+            <div className="deck-grille deck-grille-2" style={{ margin: 0 }}>
+              <Chiffre v={nb(t.rows)} k="mesures publiées" />
+              <Chiffre v={nb(t.pools)} k="pools" accent="bleu" />
+              <Chiffre v={nb(dataset.hooks.length)} k="hooks" accent="bleu" />
+              <Chiffre v="89" k="octets de talon inerte" accent="orange" />
             </div>
           </div>
         ),
@@ -550,17 +528,35 @@ export function DeckPage({ surOutil }: { surOutil?: (n: number) => void }) {
         titre: 'Et quand on l’exécute vraiment, la cotation tient au wei près.',
         sous: 'La porte A4 : un swap réellement passé, reconfronté à ce que la cotation annonçait.',
         rendu: () => (
-          <div className="flex flex-col gap-[20px]">
-            <div className="flex flex-wrap gap-x-[44px] gap-y-[16px]">
-              <Chiffre v={ex ? `${Number(ex['bps_executes']).toFixed(2)}` : '—'} k="bps exécutés" />
-              <Chiffre v={ex ? `${Number(ex['bps_publies']).toFixed(2)}` : '—'} k="bps annoncés par la cotation" />
-              <Chiffre v="6 / 6" k="étapes de la chaîne complète, en 13,7 s" />
+          <div className="deck-grille deck-grille-12">
+            <div className="deck-grille deck-grille-2" style={{ margin: 0 }}>
+              <Chiffre
+                v={ex ? `${Number(ex['bps_executes']).toFixed(2)}` : '—'}
+                k="bps réellement exécutés"
+                accent="orange"
+              />
+              <Chiffre
+                v={ex ? `${Number(ex['bps_publies']).toFixed(2)}` : '—'}
+                k="bps annoncés par la cotation"
+              />
             </div>
-            <p className="deck-prose">
-              C’est l’objection numéro un, et elle est légitime : une cotation sur fork, ça vaut
-              quoi ? On a donc <strong>exécuté</strong> le swap et recollé le résultat à la cotation.
-              Et on publie aussi <strong>le pool où ça ne concorde pas</strong> — un sur trois.
-            </p>
+            <div className="deck-carte">
+              <div className="deck-carte-titre">l’objection, et la réponse</div>
+              <div className="deck-prose">
+                « Une cotation sur un fork, ça vaut quoi ? » On a donc <strong style={{ color: 'var(--ink)' }}>exécuté
+                le swap</strong> et recollé le résultat à ce que la cotation annonçait.{' '}
+                <strong style={{ color: 'var(--ink)' }}>Au wei près.</strong>
+              </div>
+              <div className="deck-prose">
+                Et on publie aussi le pool où ça <strong style={{ color: 'var(--ink)' }}>ne</strong>{' '}
+                concorde pas — un sur trois.
+              </div>
+              <div className="deck-prose" style={{ marginTop: 'auto' }}>
+                La chaîne complète tourne bout en bout : <strong style={{ color: 'var(--ink)' }}>6 étapes
+                sur 6, en 13,7 secondes</strong> — transaction réelle, verdict, recherche de porte,
+                mesure payée en x402, ancrage HCS, signature sur l’appareil.
+              </div>
+            </div>
           </div>
         ),
       },
@@ -591,19 +587,28 @@ export function DeckPage({ surOutil }: { surOutil?: (n: number) => void }) {
         titre: 'Sur 125 072 mesures, 61 916 ne sont pas des valeurs. On les garde quand même.',
         sous: 'Une lecture qui échoue est NON_MESURABLE — jamais un zéro, jamais un blanc.',
         rendu: () => (
-          <div className="flex flex-col gap-[18px]">
-            <div className="flex flex-wrap gap-x-[40px] gap-y-[16px]">
-              <Chiffre v="63 156" k="MESURE" />
-              <Chiffre v="61 466" k="NON_COTABLE" />
-              <Chiffre v="450" k="NON_MESURABLE" />
-              <Chiffre v="0" k="INTERPOLE — l’étiquette existe et ne sert pas" />
+          <div className="deck-grille deck-grille-12">
+            <div className="deck-grille deck-grille-2" style={{ margin: 0 }}>
+              <Chiffre v="63 156" k="MESURE — des valeurs" />
+              <Chiffre v="61 466" k="NON_COTABLE" accent="orange" />
+              <Chiffre v="450" k="NON_MESURABLE" accent="orange" />
+              <Chiffre v="0" k="INTERPOLE — l’étiquette existe et ne sert pas" accent="bleu" />
             </div>
-            <p className="deck-prose">
-              Un blanc se lit « rien », et « rien » se lit « zéro ». Chaque ligne qu’on n’a pas pu
-              mesurer garde donc sa raison. <strong>16 attestations sont écrites on-chain sur 99
-              calculées</strong> — et c’est l’écart qu’on publie, pas le chiffre flatteur. Deux
-              erreurs passées du projet sont publiées avec leur correction.
-            </p>
+            <div className="deck-carte">
+              <div className="deck-carte-titre">pourquoi on les garde</div>
+              <div className="deck-prose">
+                Un blanc se lit « rien », et « rien » se lit « zéro ». Chaque ligne qu’on n’a pas
+                pu mesurer garde donc <strong style={{ color: 'var(--ink)' }}>sa raison</strong>.
+              </div>
+              <div className="deck-prose">
+                <strong style={{ color: 'var(--ink)' }}>16 attestations écrites on-chain sur 99
+                calculées.</strong> C’est l’écart qu’on publie, pas le chiffre flatteur.
+              </div>
+              <div className="deck-prose" style={{ marginTop: 'auto' }}>
+                Deux erreurs passées du projet sont publiées avec leur correction. C’est ce qui
+                rend le reste croyable.
+              </div>
+            </div>
           </div>
         ),
       },
@@ -612,29 +617,36 @@ export function DeckPage({ surOutil }: { surOutil?: (n: number) => void }) {
         marqueur: '08 · essayez',
         titre: 'Cinq façons d’y accéder. Le corpus, lui, est entier dans la page.',
         rendu: () => (
-          <div className="flex flex-col gap-[18px]">
-            <div className="flex flex-wrap gap-x-[40px] gap-y-[16px]">
-              <Chiffre v={String(OUTILS.length)} k="outils" />
-              <Chiffre v={String(DONNEES.length)} k="jeux de données publiés" />
-              <Chiffre v="5" k="accès : site, extension, MCP, x402, compte" />
+          <div className="deck-grille deck-grille-12">
+            <div className="deck-grille deck-grille-3" style={{ margin: 0 }}>
+              <Chiffre v={String(OUTILS.length)} k="outils nommés" />
+              <Chiffre v={String(DONNEES.length)} k="jeux de données publiés" accent="bleu" />
+              <Chiffre v="5" k="façons d’y accéder" accent="orange" />
             </div>
-            <div className="flex flex-wrap gap-[6px]">
-              {OUTILS.map((o) => (
-                <button
-                  key={o.n}
-                  type="button"
-                  onClick={() => surOutil?.(o.n)}
-                  className="t-label deck-puce"
-                  style={{ color: FAMILLES[o.famille].couleur }}
-                  title={o.question}
-                >
-                  {o.n}. {o.nom}
-                </button>
-              ))}
-            </div>
-            <div className="flex flex-wrap items-center gap-[14px]">
-              <Copy text="https://github.com/JeanBaptisteDurand/ETH_Online_2026" label="copier le dépôt" />
-              <a className="t-data-sm" href="#/" style={{ color: 'var(--ink)' }}>ouvrir l’instrument →</a>
+            <div className="deck-carte">
+              <div className="deck-carte-titre">les quatorze outils</div>
+              <div className="flex flex-wrap gap-[0.7cqi]" style={{ overflowY: 'auto', minHeight: 0 }}>
+                {OUTILS.map((o) => (
+                  <button
+                    key={o.n}
+                    type="button"
+                    onClick={() => surOutil?.(o.n)}
+                    className="t-label deck-puce"
+                    style={{ color: FAMILLES[o.famille].couleur }}
+                    title={o.question}
+                  >
+                    {o.n}. {o.nom}
+                  </button>
+                ))}
+              </div>
+              <div className="deck-prose" style={{ marginTop: 'auto' }}>
+                Le site, l’extension, le serveur MCP, le péage x402 sur Hedera, le compte. Tout est
+                publié — le corpus, les commandes de rejeu, et ce qu’on ne sait pas.
+              </div>
+              <div className="flex flex-wrap items-center gap-[1.2cqi]">
+                <Copy text="https://github.com/JeanBaptisteDurand/ETH_Online_2026" label="copier le dépôt" />
+                <a className="deck-prose" href="#/" style={{ color: 'var(--ink)' }}>ouvrir l’instrument →</a>
+              </div>
             </div>
           </div>
         ),
@@ -713,6 +725,7 @@ export function DeckPage({ surOutil }: { surOutil?: (n: number) => void }) {
             </header>
 
             <div className="deck-corps">
+              <div className="deck-eyebrow">{b.marqueur.replace(/^\d+ · /, '')}</div>
               <h2 className="deck-titre">{b.titre}</h2>
               {b.sous && <p className="deck-sous">{b.sous}</p>}
               {b.rendu(actif === i)}

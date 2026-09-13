@@ -655,23 +655,6 @@ export function ComptePanel() {
           <div className="px-[16px] pt-[13px] pb-[6px] t-label" style={{ borderTop: '1px solid var(--line-strong)', color: 'var(--ink-2)' }}>
             les cles d'API — une par surface
           </div>
-          {cleNeuve && (
-            <div className="px-[16px] py-[11px]" style={{ borderTop: '1px solid var(--line)', background: 'var(--bg-2)' }}>
-              <div className="t-label" style={{ color: 'var(--m-5)' }}>
-                note-la maintenant · portee {cleNeuve.portee}
-              </div>
-              <div className="t-data-xs mt-[6px]" style={{ color: 'var(--ink)', wordBreak: 'break-all' }}>
-                {cleNeuve.cle}
-              </div>
-              <div className="mt-[8px] flex items-center gap-[10px]">
-                <Copy text={cleNeuve.cle} label="copier la cle" />
-                <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                  elle n'est rendue qu'une fois : la base n'en detient que le sha256, et aucune route
-                  ne la relit. Perdue, elle se revoque et se recree.
-                </span>
-              </div>
-            </div>
-          )}
           {compte.cles.length === 0 ? (
             <div className="px-[16px] py-[9px] t-data-xs" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-2)' }}>
               aucune cle. L'extension et le MCP fonctionnent sans — ils analysent hors ligne ; une
@@ -696,20 +679,76 @@ export function ComptePanel() {
               </div>
             ))
           )}
-          <div className="px-[16px] py-[11px] flex flex-wrap items-center gap-[10px]" style={{ borderTop: '1px solid var(--line)' }}>
-            <Bouton onClick={() => nouvelleCle('extension')} actif={!occupe && Boolean(ab?.actif)}>
-              une cle pour l'extension
-            </Bouton>
-            <Bouton onClick={() => nouvelleCle('mcp')} actif={!occupe && Boolean(ab?.actif)}>
-              une cle pour le MCP
-            </Bouton>
-            {!ab?.actif && (
-              <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                une cle ne sert a rien sans abonnement : le serveur refuse de la delivrer plutot que
-                de la faire echouer plus tard
-              </span>
-            )}
-          </div>
+          {/* UNE CARTE PAR SURFACE, et elle dit quoi faire de la cle.
+              Les deux boutons etaient en bas d'une liste plate : on voyait les cles existantes
+              sans savoir a quoi chacune sert, ni ou la coller. Ici chaque surface porte son
+              etat, son bouton, et la ligne exacte a recopier. */}
+          {(['extension', 'mcp'] as const).map((portee) => {
+            const vivantes = compte.cles.filter((c) => c.portee === portee && !c.revoquee_le)
+            const neuveIci = cleNeuve?.portee === portee ? cleNeuve.cle : null
+            return (
+              <div key={portee} className="px-[16px] py-[12px] flex flex-col gap-[8px]" style={{ borderTop: '1px solid var(--line)' }}>
+                <div className="flex flex-wrap items-baseline gap-[10px]">
+                  <span className="t-label" style={{ color: 'var(--ink)' }}>
+                    {portee === 'extension' ? "cle « extension »" : "cle « mcp »"}
+                  </span>
+                  <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
+                    {vivantes.length === 0
+                      ? 'aucune pour l’instant'
+                      : `${vivantes.length} active${vivantes.length > 1 ? 's' : ''}`}
+                  </span>
+                  <span className="ml-auto">
+                    <Bouton onClick={() => nouvelleCle(portee)} actif={!occupe} fort={vivantes.length === 0}>
+                      {vivantes.length === 0 ? 'generer la cle' : 'en generer une nouvelle'}
+                    </Bouton>
+                  </span>
+                </div>
+
+                {neuveIci && (
+                  <div className="flex flex-col gap-[7px] p-[12px]" style={{ border: '1px solid var(--m-5)', background: 'var(--bg-2)' }}>
+                    <span className="t-label" style={{ color: 'var(--m-5)' }}>
+                      note-la maintenant — elle ne sera plus jamais affichee
+                    </span>
+                    <code className="t-data-sm" style={{ fontFamily: 'var(--mono)', color: 'var(--ink)', wordBreak: 'break-all' }}>
+                      {neuveIci}
+                    </code>
+                    <div className="flex flex-wrap items-center gap-[10px]">
+                      <Copy text={neuveIci} label="copier la cle" />
+                      <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
+                        la base n’en detient que le sha256, et aucune route ne la relit. Perdue, elle
+                        se revoque et se recree.
+                      </span>
+                    </div>
+                    <div className="t-data-xs" style={{ color: 'var(--ink-2)', lineHeight: 1.55 }}>
+                      {portee === 'extension' ? (
+                        <>ou la coller : la <strong style={{ color: 'var(--ink)' }}>page d’options</strong> de
+                        l’extension, champ « cle d’API ».</>
+                      ) : (
+                        <>ou la coller : la variable <code style={{ fontFamily: 'var(--mono)' }}>TARE_CLE_API</code> du
+                        serveur MCP, dans son entree <code style={{ fontFamily: 'var(--mono)' }}>env</code> de{' '}
+                        <code style={{ fontFamily: 'var(--mono)' }}>claude_desktop_config.json</code>.</>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="t-data-xs" style={{ color: 'var(--ink-2)', lineHeight: 1.55, maxWidth: '76ch' }}>
+                  {portee === 'extension'
+                    ? "l’extension marche SANS : elle analyse hors ligne, la table des mesures vit dans son service worker. La cle ne sert qu’a deposer ses verdicts dans l’historique ci-dessous."
+                    : "le serveur MCP marche SANS : il repond depuis les mesures commitees, sans reseau. La cle ne sert qu’a deposer ses appels dans l’historique."}
+                </div>
+
+                {!ab?.actif && (
+                  <div className="t-data-xs" style={{ color: 'var(--m-5)' }}>
+                    l’abonnement n’est pas verifie sur la chaine — le contrat n’est pas encore
+                    deploye. Le serveur delivre quand meme une cle si{' '}
+                    <code style={{ fontFamily: 'var(--mono)' }}>TARE_CLES_OUVERTES=1</code>, et il
+                    le dit dans sa reponse plutot que d’ouvrir la porte en silence.
+                  </div>
+                )}
+              </div>
+            )
+          })}
 
           {/* --------------------------------------------------- les telechargements */}
           <div className="px-[16px] pt-[13px] pb-[6px] t-label" style={{ borderTop: '1px solid var(--line-strong)', color: 'var(--ink-2)' }}>

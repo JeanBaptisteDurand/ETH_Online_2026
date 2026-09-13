@@ -15,7 +15,8 @@ import { AccesPanel, DonneesPanel, Pourquoi } from './components/Accueil'
 import { IndexPanneaux } from './components/Index'
 import { Carte } from './components/Carte'
 import { OutilPanel } from './components/Outil'
-import { Portefeuilles } from './compte/wallet'
+import { Portefeuilles, ConnectButton } from './compte/wallet'
+import { ReglagesPage } from './components/Reglages'
 import { DeckPage } from './components/Deck'
 import { OUTILS } from './lib/outils'
 import { COULEUR as COULEUR_FAM, ORDRE as ORDRE_FAM } from './components/familles'
@@ -175,6 +176,7 @@ function Head({
     { h: '/', t: 'la carte', actif: vue.quoi === 'accueil' || vue.quoi === 'outil' },
     { h: '/instrument', t: "l'instrument", actif: vue.quoi === 'instrument' },
     { h: '/deck', t: 'le deck', actif: vue.quoi === 'deck' },
+    { h: '/reglages', t: 'réglages', actif: vue.quoi === 'reglages' },
   ]
   return (
     <header
@@ -232,6 +234,37 @@ function Head({
         >
           {theme === 'dark' ? 'clair' : 'sombre'}
         </button>
+        {/* LE PORTEFEUILLE, tout a droite. Le bouton officiel de RainbowKit : un juge le
+            reconnait sans le lire. Il est reduit a sa plus petite forme — pas de chaine, pas
+            de solde, l'avatar seul une fois connecte — parce qu'a 390 px c'est la barre
+            entiere qui doit tenir, pas ce bouton-la. Il ne cede jamais sa largeur : c'est la
+            nav des routes, qui defile dans elle-meme, qui absorbe le manque. */}
+        <div className="nav-portefeuille" style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+          {/* RainbowKit arrive avec sa propre echelle : 40 px de haut, 16 px gras, sans angle
+              coupe. Dans une barre ou tout le reste tient en 32 px et ou le site n'a AUCUN
+              rayon, ce bouton-la est le seul objet d'une autre charte. On ne le remplace pas
+              — c'est justement le bouton qu'on veut voir reconnu — on le remet a l'echelle de
+              la barre. `index.css` n'est pas a nous ici, la regle vit donc avec le composant
+              qu'elle habille, et une seule classe suffit a battre la sienne. */}
+          <style>{`
+            .nav-portefeuille [data-testid='rk-connect-button'],
+            .nav-portefeuille [data-testid='rk-account-button'],
+            .nav-portefeuille button {
+              height: 32px;
+              min-height: 32px;
+              padding: 0 12px;
+              font-size: 14px;
+              border-radius: 0;
+            }
+            @media (max-width: 639px) {
+              .nav-portefeuille button {
+                padding: 0 9px;
+                font-size: 13px;
+              }
+            }
+          `}</style>
+          <ConnectButton chainStatus="none" showBalance={false} accountStatus="avatar" />
+        </div>
       </div>
     </header>
   )
@@ -327,7 +360,12 @@ function Legend() {
  * Le fragment porte déjà l'état de l'assistant, encodé sous `tare=` (voir chat/engine.ts).
  * Les chemins commencent donc par `/`, que ce décodeur-là ne peut pas confondre avec le sien.
  */
-type Vue = { quoi: 'accueil' } | { quoi: 'instrument' } | { quoi: 'deck' } | { quoi: 'outil'; n: number }
+type Vue =
+  | { quoi: 'accueil' }
+  | { quoi: 'instrument' }
+  | { quoi: 'deck' }
+  | { quoi: 'reglages' }
+  | { quoi: 'outil'; n: number }
 
 function lireVue(hash: string): Vue {
   const m = /^#\/outil\/(\d+)/.exec(hash)
@@ -337,6 +375,7 @@ function lireVue(hash: string): Vue {
   }
   if (hash.startsWith('#/instrument')) return { quoi: 'instrument' }
   if (hash.startsWith('#/deck')) return { quoi: 'deck' }
+  if (hash.startsWith('#/reglages')) return { quoi: 'reglages' }
   return { quoi: 'accueil' }
 }
 
@@ -440,6 +479,20 @@ function AppInterne() {
         <main id="contenu">
           <DeckPage surOutil={versOutil} />
         </main>
+      </div>
+    )
+  }
+
+  if (vue.quoi === 'reglages') {
+    return (
+      <div className="min-h-full">
+        <Evitement />
+        <Head theme={theme} setTheme={setTheme} vue={vue} versOutil={versOutil} />
+        <RouteMotion cle="reglages">
+          <main id="contenu" className="px-[24px] pt-[24px] pb-[24px] mx-auto w-full" style={{ maxWidth: 1360 }}>
+            <ReglagesPage />
+          </main>
+        </RouteMotion>
       </div>
     )
   }

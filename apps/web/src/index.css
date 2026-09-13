@@ -1304,15 +1304,19 @@ span a[href] {
 }
 
 /* ============================================================ LE DECK
-   LA MECANIQUE vient d'un deck etudie ailleurs ; LA CHARTE est celle de ce site, sans
-   exception : pas d'arrondi, les jetons `--ink`/`--line`/`--m-*` et rien d'autre, Archivo pour
-   les titres et JetBrains Mono pour les nombres. Aucune couleur nouvelle n'est introduite ici.
 
-   Le conteneur de defilement est `.deck` — PAS la fenetre. C'est important : le deck qu'on a
-   etudie ecoutait `scroll` sur `window` et appelait `window.scrollTo` alors que son conteneur
-   etait un `<main>` ; sa navigation clavier ne bougeait rien et son compteur restait fige sur
-   « 01 ». Ici tout passe par `scrollIntoView` et un IntersectionObserver dont la racine est ce
-   conteneur. */
+   UNE DIAPOSITIVE EST UNE SURFACE 16:9 QUI REMPLIT L'ECRAN — pas une carte qui defile.
+   C'est la difference entre un deck et une page web, et c'est ce qui manquait : le contenu
+   flottait dans une colonne etroite avec du vide autour.
+
+   LE DIMENSIONNEMENT. Le cadre est un CONTENEUR de requete (`container-type: size`), et tout
+   ce qu'il porte se mesure en `cqi` — pour cent de sa largeur. Une diapositive se comporte
+   donc comme une vraie planche : elle grandit et retrecit d'un bloc, les proportions ne
+   bougent jamais, et il n'y a aucun point de rupture a maintenir. Un titre a 4,4cqi fait
+   56 px sur un cadre de 1280 et reste lisible sur un cadre de 900.
+
+   LA CHARTE reste celle de ce site : pas d'arrondi, pas d'ombre portee, les jetons existants.
+   On reprend la MECANIQUE d'un deck etudie, jamais son apparence. */
 .deck {
   height: calc(100dvh - 56px);
   overflow-y: auto;
@@ -1322,141 +1326,288 @@ span a[href] {
   background: var(--bg);
 }
 .deck-beat {
-  min-height: calc(100dvh - 56px);
+  height: calc(100dvh - 56px);
   scroll-snap-align: start;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: min(2vh, 20px);
 }
-/* Le cadre : un filet et de l'air, pas une ombre portee. La profondeur n'est pas dans la
-   charte de ce site — la hierarchie s'y fait par le filet et le vide. */
+/* LE CADRE : 16:9, aussi grand que l'ecran le permet. `min()` prend la plus contraignante des
+   deux limites — la largeur disponible, ou la hauteur convertie en largeur par le ratio. */
 .deck-cadre {
-  width: min(1280px, 100%);
-  max-height: calc(100dvh - 88px);
+  width: min(98vw, calc((100dvh - 96px) * 16 / 9));
+  aspect-ratio: 16 / 9;
+  container-type: size;
+  container-name: planche;
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   background: var(--bg-1);
   overflow: hidden;
+  position: relative;
 }
+/* Sous 900 px, le 16:9 devient illisible : on rend la hauteur au contenu. */
+@media (max-width: 900px) {
+  .deck-beat {
+    height: auto;
+    min-height: calc(100dvh - 56px);
+    padding: 12px;
+  }
+  .deck-cadre {
+    width: 100%;
+    aspect-ratio: auto;
+    min-height: calc(100dvh - 80px);
+    container-type: inline-size;
+  }
+}
+
 .deck-tete,
 .deck-pied {
   display: flex;
-  align-items: baseline;
-  gap: 12px;
-  padding: 10px 20px;
+  align-items: center;
+  gap: 1.2cqi;
+  padding: 1.9cqi 2.8cqi;
   flex: 0 0 auto;
 }
-.deck-tete {
-  border-bottom: 1px solid var(--line);
-}
 .deck-pied {
-  border-top: 1px solid var(--line);
+  padding-top: 0;
 }
 .deck-corps {
-  padding: 26px 20px 24px;
-  overflow-y: auto;
   flex: 1 1 auto;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0.6cqi 2.8cqi 1.4cqi;
+  overflow: hidden;
+}
+@container planche (max-width: 0px) {
+  /* garde-fou : si le conteneur n'est pas supporte, rien ne casse */
+  .deck-corps {
+    overflow: auto;
+  }
+}
+
+.deck-eyebrow {
+  font-family: var(--mono);
+  font-size: 1.05cqi;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--m-5);
+  margin-bottom: 1.4cqi;
 }
 .deck-titre {
   font-family: var(--titre);
-  font-weight: 600;
-  font-size: clamp(1.35rem, 2.6vw, 2.1rem);
-  line-height: 1.16;
-  letter-spacing: -0.02em;
+  font-weight: 700;
+  font-size: 4.1cqi;
+  line-height: 1.06;
+  letter-spacing: -0.025em;
   color: var(--ink);
-  margin: 0 0 10px;
-  max-width: 30ch;
+  margin: 0;
+  max-width: 24ch;
   text-wrap: balance;
 }
 .deck-sous {
   font-family: var(--prose);
-  font-size: 15px;
-  line-height: 1.55;
+  font-size: 1.45cqi;
+  line-height: 1.45;
   color: var(--ink-2);
-  margin: 0 0 22px;
-  max-width: 72ch;
+  margin: 1.3cqi 0 0;
+  max-width: 62ch;
 }
 .deck-prose {
   font-family: var(--prose);
-  font-size: 15px;
-  line-height: 1.65;
+  font-size: 1.42cqi;
+  line-height: 1.55;
   color: var(--ink-2);
   margin: 0;
-  max-width: 76ch;
+  max-width: 66ch;
 }
-.deck-metric {
-  font-family: var(--mono);
-  font-size: clamp(30px, 4.4vw, 52px);
-  line-height: 1.05;
-  letter-spacing: -0.03em;
-  font-weight: 700;
-  color: var(--ink);
-  font-variant-numeric: tabular-nums;
+.deck-corps .t-label {
+  font-size: 1.02cqi;
+}
+.deck-corps .t-data-sm,
+.deck-corps code {
+  font-size: 1.16cqi;
 }
 
-/* LA SCENE MCP — deux colonnes, le transcript et les questions pretes. Sous 900 px elles
-   s'empilent : une colonne de 180 px ne rend pas un bouton cliquable, elle le miniaturise. */
-.deck-mcp {
+/* LA GRILLE DU CORPS : ce qui suit le titre occupe tout le reste, toujours. */
+/* LA GRILLE remplit le reste de la planche, et ses rangees se PARTAGENT la hauteur : sans
+   `grid-auto-rows: 1fr`, une grille 2x2 de chiffres deborde par le bas et perd ses legendes. */
+.deck-grille {
+  flex: 1 1 auto;
+  min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
-  gap: 12px;
+  grid-auto-rows: 1fr;
+  gap: 1.6cqi;
+  margin-top: 1.8cqi;
+}
+.deck-grille > * {
+  min-height: 0;
+  min-width: 0;
+}
+.deck-grille-2 {
+  grid-template-columns: 1fr 1fr;
+}
+.deck-grille-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+.deck-grille-12 {
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
 }
 @media (max-width: 900px) {
-  .deck-mcp {
+  .deck-grille-2,
+  .deck-grille-3,
+  .deck-grille-12 {
     grid-template-columns: minmax(0, 1fr);
   }
 }
-.deck-mcp-transcript {
+
+/* LE PANNEAU DE CHIFFRE — l'objet qui remplit une planche. Le nombre est enorme parce que
+   c'est LUI le message ; le reste l'explique. */
+.deck-stat {
   border: 1px solid var(--line);
+  border-left: 3px solid var(--m-6);
   background: var(--surface-1);
-  min-width: 0;
+  padding: 2.4cqi 2.2cqi;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  min-width: 0;
 }
+.deck-stat[data-accent='orange'] {
+  border-left-color: var(--m-4);
+}
+.deck-stat[data-accent='bleu'] {
+  border-left-color: var(--focus);
+}
+/* Le nombre ne se casse JAMAIS en deux lignes : « 9 / 1 559 » coupe apres le slash se lit
+   comme deux nombres. Il retrecit plutot que de se plier — `data-long` le dit. */
+.deck-stat b {
+  font-family: var(--mono);
+  font-weight: 700;
+  white-space: nowrap;
+  font-size: 7.2cqi;
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.deck-stat[data-accent='orange'] b {
+  color: var(--m-4);
+}
+.deck-stat[data-accent='jaune'] b {
+  color: var(--m-6);
+}
+.deck-stat[data-long='oui'] b {
+  font-size: 4.4cqi;
+}
+/* Quatre chiffres dans la meme colonne : chacun a moitie moins de hauteur, donc moitie moins
+   de corps. Sinon le nombre mange sa propre legende. */
+.deck-grille-2 .deck-stat b,
+.deck-grille-2 .deck-stat[data-long='oui'] b {
+  font-size: 4.6cqi;
+}
+.deck-grille-3 .deck-stat b {
+  font-size: 6cqi;
+}
+.deck-grille-3 .deck-stat[data-long='oui'] b {
+  font-size: 4cqi;
+}
+.deck-stat {
+  overflow: hidden;
+}
+.deck-stat span {
+  margin-top: 1.3cqi;
+  font-family: var(--prose);
+  font-size: 1.35cqi;
+  line-height: 1.35;
+  color: var(--ink);
+}
+.deck-stat i {
+  margin-top: 0.8cqi;
+  font-style: normal;
+  font-family: var(--mono);
+  font-size: 1.02cqi;
+  color: var(--ink-2);
+}
+
+/* LA CARTE : un bloc de contenu qui remplit sa case de grille. */
+.deck-carte {
+  border: 1px solid var(--line);
+  background: var(--surface-1);
+  padding: 1.8cqi;
+  display: flex;
+  flex-direction: column;
+  gap: 1cqi;
+  min-width: 0;
+  min-height: 0;
+  /* `auto` et non `hidden` : une planche trop pleine doit pouvoir se lire en defilant, pas
+     perdre sa derniere phrase en silence. */
+  overflow-y: auto;
+}
+.deck-carte > .deck-carte-titre {
+  font-family: var(--mono);
+  font-size: 1.05cqi;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+/* LA SCENE MCP */
 .deck-mcp-zone {
   display: flex;
   flex-direction: column;
-  gap: 13px;
-  padding: 13px;
-  max-height: 42dvh;
+  gap: 1.1cqi;
   overflow-y: auto;
-  min-width: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-right: 0.6cqi;
 }
-.deck-mcp-cote {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 13px;
+.deck-bulle {
   border: 1px solid var(--line);
-  background: var(--surface-1);
-  min-width: 0;
+  padding: 1cqi 1.2cqi;
+  font-family: var(--mono);
+  font-size: 1.16cqi;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-x: auto;
+  color: var(--ink-2);
+}
+.deck-bulle[data-role='humain'] {
+  border-color: var(--line-strong);
+  color: var(--ink);
+  background: var(--bg-2);
+}
+.deck-bulle[data-role='outil'] {
+  border-color: var(--focus);
+  color: var(--focus);
 }
 .deck-prompt {
   text-align: left;
-  padding: 9px 11px;
+  padding: 1.1cqi 1.2cqi;
   border: 1px solid var(--line-strong);
   background: var(--bg-2);
   color: var(--ink);
   cursor: pointer;
   font-family: var(--mono);
-  transition: border-color var(--t-feedback, 120ms) linear;
+  font-size: 1.16cqi;
+  line-height: 1.35;
+  transition: border-color 120ms linear;
 }
 .deck-prompt:hover:not(:disabled) {
   border-color: var(--m-6);
 }
 .deck-prompt:disabled {
-  opacity: 0.55;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* LA PASTILLE qui bat pendant qu'une reponse arrive. Le seul mouvement continu du deck, et il
-   dit quelque chose : ca travaille. */
 .deck-pastille {
-  width: 7px;
-  height: 7px;
+  width: 0.7cqi;
+  height: 0.7cqi;
+  min-width: 6px;
+  min-height: 6px;
   background: var(--m-6);
   display: inline-block;
   flex: 0 0 auto;
@@ -1468,89 +1619,104 @@ span a[href] {
     opacity: 1;
   }
   50% {
-    opacity: 0.28;
+    opacity: 0.25;
   }
 }
 .deck-curseur {
   color: var(--m-6);
   animation: deck-bat 1s steps(2) infinite;
 }
-
-/* L'EXTENSION */
-.deck-ext {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
-  gap: 14px;
-  align-items: start;
-}
-@media (max-width: 900px) {
-  .deck-ext {
-    grid-template-columns: minmax(0, 1fr);
+@keyframes deck-entre {
+  from {
+    opacity: 0;
+    transform: translateY(0.6cqi);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
-.deck-ext-flux {
+
+/* L'EXTENSION */
+.deck-etape {
   display: flex;
-  flex-direction: column;
-  gap: 11px;
-  padding: 14px;
-  border: 1px solid var(--line);
-  background: var(--surface-1);
+  gap: 1cqi;
+  align-items: baseline;
+  transition: opacity 240ms linear;
 }
-.deck-ext-verdict {
+.deck-verdict {
+  border: 1px solid var(--m-4);
+  background: var(--bg-2);
+  padding: 1.8cqi;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 15px;
-  border: 1px solid var(--line-strong);
-  background: var(--bg-2);
+  gap: 1.1cqi;
+  transition: opacity 280ms ease-out, transform 280ms ease-out;
+}
+.deck-verdict[data-issue='unique'] {
+  border-color: var(--line-strong);
 }
 .deck-bouton {
-  padding: 6px 11px;
+  padding: 0.8cqi 1.2cqi;
   border: 1px solid var(--line);
   color: var(--ink-2);
+  font-size: 1.02cqi;
 }
 .deck-bouton[data-fort='oui'] {
-  border-color: var(--line-strong);
+  border-color: var(--m-4);
   background: var(--bg-3);
   color: var(--ink);
 }
 .deck-onglet {
-  padding: 4px 9px;
+  padding: 0.6cqi 1cqi;
   border: 1px solid var(--line);
   background: transparent;
   color: var(--ink-2);
   cursor: pointer;
+  font-size: 1.02cqi;
 }
 .deck-onglet[aria-pressed='true'] {
-  border-color: var(--line-strong);
+  border-color: var(--m-6);
   background: var(--bg-3);
   color: var(--ink);
 }
+
+/* SPECULOS — les ecrans de l'appareil */
+.deck-ecrans {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 1.1cqi;
+}
+.deck-ecran {
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  padding: 1.3cqi;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.6cqi;
+  min-width: 0;
+  transition: opacity 220ms linear, transform 220ms ease-out, border-color 220ms linear;
+}
+.deck-ecran b {
+  font-family: var(--mono);
+  font-size: 1.5cqi;
+  font-weight: 600;
+  color: var(--ink);
+  word-break: break-all;
+}
 .deck-puce {
-  padding: 5px 9px;
+  padding: 0.7cqi 1cqi;
   border: 1px solid var(--line);
   background: transparent;
   cursor: pointer;
+  font-size: 1.02cqi;
 }
 
-/* SPECULOS — les ecrans de l'appareil, dans l'ordre ou ils s'affichent. */
-.deck-ecrans {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-.deck-ecran {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  padding: 11px 13px;
-  border: 1px solid var(--line);
-  background: var(--bg-2);
-  min-width: 158px;
-}
-
-/* LE MODE PRESENTATEUR, derriere `?presenter=1`. Il n'existe pas sur l'URL publique : un juge
-   qui ouvre le lien ne voit ni chrono ni raccourcis. */
+/* LE MODE PRESENTATEUR, derriere `?presenter=1`. */
 .deck-hud {
   position: fixed;
   top: 66px;
@@ -1598,15 +1764,17 @@ span a[href] {
   .deck-curseur {
     animation: none;
   }
-  .deck-tirets i {
+  .deck-tirets i,
+  .deck-etape,
+  .deck-verdict,
+  .deck-ecran {
     transition: none;
   }
 }
 
-/* LA BARRE DE NAVIGATION porte une entree de plus depuis le deck. Sous 400 px, marque + menu
-   + trois routes + bouton de theme ne tiennent plus dans 342 px utiles : la barre poussait la
-   PAGE de cote. Elle defile donc dans elle-meme — comme le bandeau d'onglets, et sans reprendre
-   son `position: sticky`, qui n'a rien a faire ici. */
+/* LA BARRE DE NAVIGATION porte une entree de plus depuis le deck : sous 400 px elle poussait
+   la PAGE de cote. Elle defile dans elle-meme, sans reprendre le `position: sticky` du
+   bandeau d'onglets, qui n'a rien a faire ici. */
 .nav-routes {
   flex: 1 1 auto;
   min-width: 0;
@@ -1617,4 +1785,3 @@ span a[href] {
 .nav-routes::-webkit-scrollbar {
   display: none;
 }
-

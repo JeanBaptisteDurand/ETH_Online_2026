@@ -203,7 +203,20 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
     // Une cle ne sert a rien sans abonnement, et le dire ici vaut mieux que de la delivrer
     // pour qu'elle soit refusee plus tard, sans qu'on sache pourquoi.
     const ab = await s.abonnement(r.compte.id);
-    if (!ab.actif)
+
+    // LA PORTE OUVERTE, ET POURQUOI ELLE EST NOMMEE.
+    //
+    // Le contrat d'abonnement est ecrit et passe ses tests, mais il n'est DEPLOYE sur aucun
+    // reseau public : sans lui, `ab.actif` est faux pour tout le monde, et personne ne peut
+    // obtenir de cle — pas meme pour essayer l'extension ou le MCP. Une surface qu'on ne peut
+    // pas essayer n'existe pas.
+    //
+    // `TARE_CLES_OUVERTES=1` leve la condition, et la reponse le DIT : `abonnement_exige:
+    // false`. On n'ouvre pas en silence une porte qu'on presente comme fermee — l'ecran
+    // affiche l'etat reel, et le jour ou le contrat est deploye, la variable disparait et la
+    // regle revient sans qu'une ligne de code change.
+    const ouvertes = process.env["TARE_CLES_OUVERTES"] === "1";
+    if (!ab.actif && !ouvertes)
       return c.json({ error: "abonnement inactif", detail: ab.raison, abonnement: ab }, 402);
 
     const { cle, enregistree } = await s.creerCle(r.compte.id, corps.data.nom, corps.data.portee);
@@ -212,6 +225,7 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
         cle,
         note: "notez-la maintenant : elle n'est rendue qu'une fois, la base n'en detient que le sha256",
         enregistree,
+        abonnement_exige: !ouvertes,
       },
       201,
     );

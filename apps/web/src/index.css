@@ -1302,3 +1302,319 @@ span a[href] {
     }
   }
 }
+
+/* ============================================================ LE DECK
+   LA MECANIQUE vient d'un deck etudie ailleurs ; LA CHARTE est celle de ce site, sans
+   exception : pas d'arrondi, les jetons `--ink`/`--line`/`--m-*` et rien d'autre, Archivo pour
+   les titres et JetBrains Mono pour les nombres. Aucune couleur nouvelle n'est introduite ici.
+
+   Le conteneur de defilement est `.deck` — PAS la fenetre. C'est important : le deck qu'on a
+   etudie ecoutait `scroll` sur `window` et appelait `window.scrollTo` alors que son conteneur
+   etait un `<main>` ; sa navigation clavier ne bougeait rien et son compteur restait fige sur
+   « 01 ». Ici tout passe par `scrollIntoView` et un IntersectionObserver dont la racine est ce
+   conteneur. */
+.deck {
+  height: calc(100dvh - 56px);
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  overscroll-behavior-y: contain;
+  background: var(--bg);
+}
+.deck-beat {
+  min-height: calc(100dvh - 56px);
+  scroll-snap-align: start;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+/* Le cadre : un filet et de l'air, pas une ombre portee. La profondeur n'est pas dans la
+   charte de ce site — la hierarchie s'y fait par le filet et le vide. */
+.deck-cadre {
+  width: min(1280px, 100%);
+  max-height: calc(100dvh - 88px);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+  overflow: hidden;
+}
+.deck-tete,
+.deck-pied {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 20px;
+  flex: 0 0 auto;
+}
+.deck-tete {
+  border-bottom: 1px solid var(--line);
+}
+.deck-pied {
+  border-top: 1px solid var(--line);
+}
+.deck-corps {
+  padding: 26px 20px 24px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.deck-titre {
+  font-family: var(--titre);
+  font-weight: 600;
+  font-size: clamp(1.35rem, 2.6vw, 2.1rem);
+  line-height: 1.16;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0 0 10px;
+  max-width: 30ch;
+  text-wrap: balance;
+}
+.deck-sous {
+  font-family: var(--prose);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  margin: 0 0 22px;
+  max-width: 72ch;
+}
+.deck-prose {
+  font-family: var(--prose);
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--ink-2);
+  margin: 0;
+  max-width: 76ch;
+}
+.deck-metric {
+  font-family: var(--mono);
+  font-size: clamp(30px, 4.4vw, 52px);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* LA SCENE MCP — deux colonnes, le transcript et les questions pretes. Sous 900 px elles
+   s'empilent : une colonne de 180 px ne rend pas un bouton cliquable, elle le miniaturise. */
+.deck-mcp {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+  gap: 12px;
+}
+@media (max-width: 900px) {
+  .deck-mcp {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.deck-mcp-transcript {
+  border: 1px solid var(--line);
+  background: var(--surface-1);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.deck-mcp-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  padding: 13px;
+  max-height: 42dvh;
+  overflow-y: auto;
+  min-width: 0;
+}
+.deck-mcp-cote {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 13px;
+  border: 1px solid var(--line);
+  background: var(--surface-1);
+  min-width: 0;
+}
+.deck-prompt {
+  text-align: left;
+  padding: 9px 11px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg-2);
+  color: var(--ink);
+  cursor: pointer;
+  font-family: var(--mono);
+  transition: border-color var(--t-feedback, 120ms) linear;
+}
+.deck-prompt:hover:not(:disabled) {
+  border-color: var(--m-6);
+}
+.deck-prompt:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* LA PASTILLE qui bat pendant qu'une reponse arrive. Le seul mouvement continu du deck, et il
+   dit quelque chose : ca travaille. */
+.deck-pastille {
+  width: 7px;
+  height: 7px;
+  background: var(--m-6);
+  display: inline-block;
+  flex: 0 0 auto;
+  animation: deck-bat 1.4s ease-in-out infinite;
+}
+@keyframes deck-bat {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.28;
+  }
+}
+.deck-curseur {
+  color: var(--m-6);
+  animation: deck-bat 1s steps(2) infinite;
+}
+
+/* L'EXTENSION */
+.deck-ext {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 14px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .deck-ext {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.deck-ext-flux {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  background: var(--surface-1);
+}
+.deck-ext-verdict {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 15px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg-2);
+}
+.deck-bouton {
+  padding: 6px 11px;
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+}
+.deck-bouton[data-fort='oui'] {
+  border-color: var(--line-strong);
+  background: var(--bg-3);
+  color: var(--ink);
+}
+.deck-onglet {
+  padding: 4px 9px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.deck-onglet[aria-pressed='true'] {
+  border-color: var(--line-strong);
+  background: var(--bg-3);
+  color: var(--ink);
+}
+.deck-puce {
+  padding: 5px 9px;
+  border: 1px solid var(--line);
+  background: transparent;
+  cursor: pointer;
+}
+
+/* SPECULOS — les ecrans de l'appareil, dans l'ordre ou ils s'affichent. */
+.deck-ecrans {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.deck-ecran {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  min-width: 158px;
+}
+
+/* LE MODE PRESENTATEUR, derriere `?presenter=1`. Il n'existe pas sur l'URL publique : un juge
+   qui ouvre le lien ne voit ni chrono ni raccourcis. */
+.deck-hud {
+  position: fixed;
+  top: 66px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 11px;
+  border: 1px solid var(--line-strong);
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: blur(6px);
+}
+.deck-hud-gauche {
+  left: 16px;
+}
+.deck-hud-droite {
+  right: 16px;
+}
+.deck-hud[data-fini='oui'] {
+  border-color: var(--m-4);
+}
+.deck-tirets {
+  display: inline-flex;
+  gap: 3px;
+}
+.deck-tirets i {
+  width: 6px;
+  height: 3px;
+  background: var(--ink-4);
+  transition: width 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.deck-tirets i[data-etat='passe'] {
+  background: var(--ink-2);
+}
+.deck-tirets i[data-etat='courant'] {
+  width: 18px;
+  background: var(--m-6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deck {
+    scroll-behavior: auto;
+  }
+  .deck-pastille,
+  .deck-curseur {
+    animation: none;
+  }
+  .deck-tirets i {
+    transition: none;
+  }
+}
+
+/* LA BARRE DE NAVIGATION porte une entree de plus depuis le deck. Sous 400 px, marque + menu
+   + trois routes + bouton de theme ne tiennent plus dans 342 px utiles : la barre poussait la
+   PAGE de cote. Elle defile donc dans elle-meme — comme le bandeau d'onglets, et sans reprendre
+   son `position: sticky`, qui n'a rien a faire ici. */
+.nav-routes {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.nav-routes::-webkit-scrollbar {
+  display: none;
+}
+

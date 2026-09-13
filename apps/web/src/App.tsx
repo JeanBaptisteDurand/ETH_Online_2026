@@ -181,12 +181,15 @@ function Head({
       className="sticky top-0 z-10"
       style={{ background: 'var(--bg)', borderBottom: '1px solid var(--line)' }}
     >
-      <div className="flex items-center gap-[8px] px-[24px] mx-auto w-full" style={{ maxWidth: 1360, minHeight: 56 }}>
+      <div className="flex items-center gap-[8px] px-[12px] sm:px-[24px] mx-auto w-full" style={{ maxWidth: 1360, minHeight: 56 }}>
         {/* La marque : en sans, comme la voix du produit. Plus de capitales chassées. */}
         <a href="#/" className="no-underline" translate="no" style={{ color: 'var(--ink)', fontFamily: 'var(--prose)', fontWeight: 600, fontSize: 20, letterSpacing: '-0.01em' }}>
           TARE
         </a>
-        <nav className="flex items-center gap-[2px] ml-[12px]" aria-label="les vues">
+        {/* La barre porte une entree de plus depuis le deck : sous 400 px elle depassait la
+            page. Elle defile donc DANS elle-meme, comme le bandeau d'onglets, au lieu de
+            pousser la fenetre. */}
+        <nav className="flex items-center gap-[2px] ml-[12px] nav-routes" aria-label="les vues">
           <MenuOutils n={vue.quoi === 'outil' ? vue.n : null} aller={versOutil} />
           {routes.map((x) => (
             <a
@@ -225,7 +228,7 @@ function Head({
           type="button"
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           className="bouton-ghost nav-theme"
-          style={{ minHeight: 32 }}
+          style={{ minHeight: 32, flexShrink: 0 }}
         >
           {theme === 'dark' ? 'clair' : 'sombre'}
         </button>
@@ -432,7 +435,9 @@ function AppInterne() {
       <div className="min-h-full">
         <Evitement />
         <Head theme={theme} setTheme={setTheme} vue={vue} versOutil={versOutil} />
-        <main id="contenu" className="flex flex-col gap-[16px] p-[16px] mx-auto" style={{ maxWidth: 1360 }}>
+        {/* Pas de <main> a marges ici : le deck EST son propre conteneur de defilement, et
+            l'enfermer dans une colonne centree lui volerait la hauteur dont il vit. */}
+        <main id="contenu">
           <DeckPage surOutil={versOutil} />
         </main>
       </div>

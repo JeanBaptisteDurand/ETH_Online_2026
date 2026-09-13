@@ -21,6 +21,7 @@ import type { CSSProperties } from 'react'
 import { OUTILS, type Famille, type Outil } from '../lib/outils'
 import { DONNEES, luPar } from '../lib/donnees'
 import { dataset } from '../lib/dataset'
+import symboles from '../data/symboles.json'
 import { MONNAIES_DE_COTATION } from '../lib/exit'
 import { ouAcheter, aMontrer, lpFeeBps } from '../lib/portes'
 import { groupDigits } from '../lib/format'
@@ -84,6 +85,21 @@ const court = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`
  * pour lesquels DEUX portes au moins sont mesurees dans la meme monnaie et a la meme taille —
  * les seuls ou la comparaison existe. Le tri se fait en UNE passe sur le corpus.
  */
+/**
+ * LE SYMBOLE D'UN JETON — LU SUR LA CHAINE, jamais devine.
+ *
+ * Le corpus ne porte que des adresses. « 0xb200…4199 » a l'ecran ne dit pas quoi coller. Mais
+ * ecrire un nom parce que l'adresse y ressemble serait la faute meme que ce projet reproche au
+ * reste : `scripts/fetch-symboles.mjs` appelle donc `symbol()` et `name()` sur un vrai noeud
+ * Base, une fois, et le resultat est commite. Un jeton illisible reste sans nom — il n'en
+ * recoit pas un joli par defaut.
+ */
+const SYM: Record<string, { symbole: string | null; nom: string | null }> =
+  (symboles as { jetons: Record<string, { symbole: string | null; nom: string | null }> }).jetons
+
+export const symbole = (adresse: string): string | null =>
+  SYM[adresse.toLowerCase()]?.symbole ?? null
+
 function jetonsProposes(max = 3): { adresse: string; ecart: number }[] {
   const groupes = new Map<string, Map<string, number>>()
   for (const r of dataset.rows) {
@@ -402,21 +418,32 @@ export function Carte({
                 <span className="hero-aide flex flex-wrap items-center" style={{ gap: 10, flexBasis: '100%' }}>
                   <span id="jeton-hero-aide" className="t-data-sm" style={{ color: 'var(--ink-2)' }}>
                     {saisie.length > 0 && !valide
-                      ? 'une adresse de contrat : 0x suivi de 40 caractères hexadécimaux'
+                      ? 'une adresse de contrat ERC-20 sur Base : 0x suivi de 40 caractères hexadécimaux'
                       : valide
                         ? 'calculé ici, sur le corpus embarqué — aucune requête'
-                        : 'rien n’est envoyé, le corpus est dans la page — ou essaie'}
+                        : 'rien n’est envoyé, le corpus est dans la page — ou essaie un de ces trois jetons mesurés'}
                   </span>
                   {!saisie &&
                     demos.map((d) => (
                       <button
                         key={d.adresse}
                         type="button"
-                        className="jeton-demo t-data-sm hex"
+                        className="jeton-demo t-data-sm"
                         onClick={() => setSaisie(d.adresse)}
-                        title={`${d.ecart.toFixed(2)} bps entre ses portes`}
+                        title={`${d.adresse} — ${d.ecart.toFixed(2)} bps entre sa porte la moins chère et la plus chère`}
                       >
-                        {court(d.adresse)}
+                        {/* L'ADRESSE SEULE NE DIT PAS QUOI CLIQUER. Le depot n'a aucune table de
+                            symboles : ecrire « USDC » serait invente. On affiche donc ce qu'on
+                            SAIT de ce jeton — l'ecart entre ses portes — et c'est justement la
+                            raison pour laquelle il est propose. */}
+                        {symbole(d.adresse) ? (
+                          <strong style={{ color: 'var(--ink)' }}>{symbole(d.adresse)}</strong>
+                        ) : (
+                          <span className="hex">{court(d.adresse)}</span>
+                        )}
+                        <span style={{ color: 'var(--m-6)', marginLeft: 6 }}>
+                          {d.ecart.toFixed(0)} bps d’écart
+                        </span>
                       </button>
                     ))}
                 </span>

@@ -1465,7 +1465,11 @@ span a[href] {
 
 /* LE PANNEAU DE CHIFFRE — l'objet qui remplit une planche. Le nombre est enorme parce que
    c'est LUI le message ; le reste l'explique. */
+/* Le panneau est son PROPRE conteneur de requete : le corps du nombre se mesure sur la
+   largeur de la case, pas sur celle de la planche. Sans ca, « 125 072 » dans une colonne
+   etroite depasse et se fait couper — mesure faite, il debordait de 40 px. */
 .deck-stat {
+  container-type: inline-size;
   border: 1px solid var(--line);
   border-left: 3px solid var(--m-6);
   background: var(--surface-1);
@@ -1487,7 +1491,7 @@ span a[href] {
   font-family: var(--mono);
   font-weight: 700;
   white-space: nowrap;
-  font-size: 7.2cqi;
+  font-size: 34cqi;
   line-height: 0.98;
   letter-spacing: -0.04em;
   color: var(--ink);
@@ -1500,20 +1504,11 @@ span a[href] {
   color: var(--m-6);
 }
 .deck-stat[data-long='oui'] b {
-  font-size: 4.4cqi;
+  font-size: 15cqi;
 }
 /* Quatre chiffres dans la meme colonne : chacun a moitie moins de hauteur, donc moitie moins
    de corps. Sinon le nombre mange sa propre legende. */
-.deck-grille-2 .deck-stat b,
-.deck-grille-2 .deck-stat[data-long='oui'] b {
-  font-size: 4.6cqi;
-}
-.deck-grille-3 .deck-stat b {
-  font-size: 6cqi;
-}
-.deck-grille-3 .deck-stat[data-long='oui'] b {
-  font-size: 4cqi;
-}
+
 .deck-stat {
   overflow: hidden;
 }
@@ -1784,4 +1779,36 @@ span a[href] {
 }
 .nav-routes::-webkit-scrollbar {
   display: none;
+}
+
+/* LA VITRE — notre propre application, vivante, dans la planche.
+   Le deck voisin met cinq de ses onze temps en `<iframe>` de l'app reelle, et c'est ce qui
+   fait la difference avec une capture : ce qui bouge dans le cadre EST le produit. On peut se
+   le permettre sans reserve ici parce que l'instrument est statique et porte son corpus :
+   l'iframe ne demande rien au reseau, et il n'y a aucun serveur a tenir pendant la demo. */
+.deck-vitre {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line-strong);
+  background: var(--bg);
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+.deck-vitre-barre {
+  display: flex;
+  align-items: center;
+  gap: 0.9cqi;
+  padding: 0.9cqi 1.2cqi;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-2);
+  flex: 0 0 auto;
+}
+.deck-vitre iframe {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  border: 0;
+  display: block;
+  background: var(--bg);
 }

@@ -93,6 +93,31 @@ function useSequence(n: number, delais: number[], actif: boolean): { etape: numb
   return { etape, rejouer: () => { setEtape(0); setTour((t) => t + 1) } }
 }
 
+
+/**
+ * NOTRE PROPRE APPLICATION, DANS LA PLANCHE.
+ *
+ * C'est ce qui manquait, et c'est ce que fait le deck voisin : cinq de ses onze temps sont des
+ * `<iframe>` de l'app reelle. La difference avec une capture est enorme — ce qui bouge dans le
+ * cadre EST le produit, avec ses vraies donnees, et un juge peut le voir repondre.
+ *
+ * On peut se le permettre sans reserve : l'instrument est statique et porte son corpus, donc
+ * l'iframe ne demande RIEN au reseau. Aucun serveur a tenir pendant la demo.
+ */
+function Vitre({ route, titre }: { route: string; titre: string }) {
+  const base = typeof window === 'undefined' ? '/' : window.location.pathname
+  return (
+    <div className="deck-vitre">
+      <div className="deck-vitre-barre">
+        <span className="deck-pastille" style={{ background: 'var(--focus)' }} />
+        <span className="t-label" style={{ color: 'var(--ink-2)' }}>l’instrument, en vrai — {route}</span>
+        <a className="t-label ml-auto" href={`#${route}`} style={{ color: 'var(--ink-2)' }}>ouvrir ↗</a>
+      </div>
+      <iframe src={`${base}#${route}`} title={titre} loading="lazy" />
+    </div>
+  )
+}
+
 /* ============================================================== 1 · le serveur MCP */
 
 interface Bulle {
@@ -513,11 +538,12 @@ export function DeckPage({ surOutil }: { surOutil?: (n: number) => void }) {
                 pendant le swap.
               </div>
             </div>
-            <div className="deck-grille deck-grille-2" style={{ margin: 0 }}>
+            <div className="deck-grille deck-grille-2" style={{ margin: 0, gridTemplateRows: 'auto 1fr' }}>
               <Chiffre v={nb(t.rows)} k="mesures publiées" />
-              <Chiffre v={nb(t.pools)} k="pools" accent="bleu" />
-              <Chiffre v={nb(dataset.hooks.length)} k="hooks" accent="bleu" />
               <Chiffre v="89" k="octets de talon inerte" accent="orange" />
+              <div style={{ gridColumn: '1 / -1', minHeight: 0 }}>
+                <Vitre route="/outil/1" titre="la page de l’outil Mesurer, en vrai" />
+              </div>
             </div>
           </div>
         ),
@@ -622,6 +648,9 @@ export function DeckPage({ surOutil }: { surOutil?: (n: number) => void }) {
               <Chiffre v={String(OUTILS.length)} k="outils nommés" />
               <Chiffre v={String(DONNEES.length)} k="jeux de données publiés" accent="bleu" />
               <Chiffre v="5" k="façons d’y accéder" accent="orange" />
+            </div>
+            <div style={{ minHeight: 0 }}>
+              <Vitre route="/" titre="l’opération : coller un jeton, lire par où l’acheter" />
             </div>
             <div className="deck-carte">
               <div className="deck-carte-titre">les quatorze outils</div>

@@ -18,6 +18,8 @@ import { OutilPanel } from './components/Outil'
 import { Portefeuilles, ConnectButton } from './compte/wallet'
 import { ReglagesPage } from './components/Reglages'
 import { DeckPage } from './components/Deck'
+import { DeveloppeursPage } from './components/Developpeurs'
+import { FeuillePage } from './components/Feuille'
 import { OUTILS } from './lib/outils'
 import { COULEUR as COULEUR_FAM, ORDRE as ORDRE_FAM } from './components/familles'
 import { Reveal, Route as RouteMotion } from './components/Motion'
@@ -176,6 +178,8 @@ function Head({
     { h: '/', t: 'la carte', actif: vue.quoi === 'accueil' || vue.quoi === 'outil' },
     { h: '/instrument', t: "l'instrument", actif: vue.quoi === 'instrument' },
     { h: '/deck', t: 'le deck', actif: vue.quoi === 'deck' },
+    { h: '/developpeurs', t: 'développeurs', actif: vue.quoi === 'developpeurs' },
+    { h: '/roadmap', t: 'feuille de route', actif: vue.quoi === 'feuille' },
     { h: '/reglages', t: 'réglages', actif: vue.quoi === 'reglages' },
   ]
   return (
@@ -364,7 +368,7 @@ type Vue =
   | { quoi: 'accueil' }
   | { quoi: 'instrument' }
   | { quoi: 'deck' }
-  | { quoi: 'reglages' }
+  | { quoi: 'reglages' } | { quoi: 'developpeurs' } | { quoi: 'feuille' }
   | { quoi: 'outil'; n: number }
 
 function lireVue(hash: string): Vue {
@@ -376,6 +380,8 @@ function lireVue(hash: string): Vue {
   if (hash.startsWith('#/instrument')) return { quoi: 'instrument' }
   if (hash.startsWith('#/deck')) return { quoi: 'deck' }
   if (hash.startsWith('#/reglages')) return { quoi: 'reglages' }
+  if (hash.startsWith('#/developpeurs')) return { quoi: 'developpeurs' }
+  if (hash.startsWith('#/roadmap') || hash.startsWith('#/feuille')) return { quoi: 'feuille' }
   return { quoi: 'accueil' }
 }
 
@@ -493,6 +499,18 @@ function AppInterne() {
             <ReglagesPage />
           </main>
         </RouteMotion>
+      </div>
+    )
+  }
+
+  if (vue.quoi === 'developpeurs' || vue.quoi === 'feuille') {
+    return (
+      <div className="min-h-full">
+        <Evitement />
+        <Head theme={theme} setTheme={setTheme} vue={vue} versOutil={versOutil} />
+        <main id="contenu" className="px-[24px] pt-[24px] pb-[24px] mx-auto w-full" style={{ maxWidth: 1360 }}>
+          {vue.quoi === 'developpeurs' ? <DeveloppeursPage /> : <FeuillePage />}
+        </main>
       </div>
     )
   }

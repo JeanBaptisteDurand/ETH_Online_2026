@@ -1,0 +1,250 @@
+{
+ "schema": "tare-symboles/1",
+ "quoi": "symbol() et name() lus sur Base, pour les jetons que le site nomme a l ecran",
+ "chain_id": 8453,
+ "n_jetons": 60,
+ "appels_rpc": 118,
+ "jetons": {
+  "0x4200000000000000000000000000000000000006": {
+   "symbole": "WETH",
+   "nom": "Wrapped Ether"
+  },
+  "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913": {
+   "symbole": "USDC",
+   "nom": "USD Coin"
+  },
+  "0x0000000000000000000000000000000000000000": {
+   "symbole": "ETH",
+   "nom": "Ether",
+   "natif": true
+  },
+  "0xb2000000000000000000007d9640993d01f94199": {
+   "symbole": "POKE",
+   "nom": "POKEWORLD"
+  },
+  "0xb7ebae7b9135b6454a6ba0b5e483317f72ca3356": {
+   "symbole": "PQTEST",
+   "nom": "Flash POKE Sub Quote Test"
+  },
+  "0x07a6a0a4cf7ebc79bdd537b5b681fd00a9cb1b67": {
+   "symbole": "TEST",
+   "nom": "This is a test token"
+  },
+  "0xb2000000000000000000003b6d6e5386bc032d4d": {
+   "symbole": "WFDEV",
+   "nom": "Whalefall Dev"
+  },
+  "0xb20000000000000000000078ee7ce2fe4908108c": {
+   "symbole": "NVDAc",
+   "nom": "NVIDIA Corporation"
+  },
+  "0xb2000000000000000000002d0ba3164cc74f58b7": {
+   "symbole": "GOOGLc",
+   "nom": "Alphabet Inc."
+  },
+  "0xb200000000000000000000c2e324d24d7eecd1fb": {
+   "symbole": "AAPLc",
+   "nom": "Apple Inc."
+  },
+  "0x1111111111166b7fe7bd91427724b487980afc69": {
+   "symbole": "ZORA",
+   "nom": "Zora"
+  },
+  "0xb2000000000000000000008bc8786b856e61707c": {
+   "symbole": "METAc",
+   "nom": "Meta Platforms Inc."
+  },
+  "0x5577a294ae5a21446a11b0e4100ca83803995720": {
+   "symbole": "ba3PUMP",
+   "nom": "Pump (Bankr Bridged)"
+  },
+  "0xe702cb3950d5e6df8486f60d228942ac73baa108": {
+   "symbole": "swapspace",
+   "nom": "swapspace"
+  },
+  "0x22af33fe49fd1fa80c7149773dde5890d3c76f3b": {
+   "symbole": "BNKR",
+   "nom": "BankrCoin"
+  },
+  "0x7df6bcb0788260b0768aded82dcc54c9f40ae09c": {
+   "symbole": "happybanana",
+   "nom": "happybanana"
+  },
+  "0xc11a57d2b2bff33ed9bd60573c62085dff64d25f": {
+   "symbole": "junitv",
+   "nom": "junitv"
+  },
+  "0x62de88b64414932a2284a5a0e2bb3f30132219c8": {
+   "symbole": "acryptocat",
+   "nom": "acryptocat"
+  },
+  "0xdf422044ce8557073be9a38aa2f9c93883739927": {
+   "symbole": "peches67",
+   "nom": "peches67"
+  },
+  "0xb13cf163d916917d9cd6e836905ca5f12a1def4b": {
+   "symbole": "TYD",
+   "nom": "True Yield Dollar"
+  },
+  "0x9427263938124817bcf43b0a7a9523f39e165080": {
+   "symbole": "420goldenage",
+   "nom": "420goldenage"
+  },
+  "0x325c4b40d0dff2a1794e9efbed22d4ba48250c89": {
+   "symbole": "thecoolestjaffar",
+   "nom": "thecoolestjaffar"
+  },
+  "0x49e128e048dc1bcbd1e2bde6786030742acbbf9b": {
+   "symbole": "barkinghotdog",
+   "nom": "barkinghotdog"
+  },
+  "0xca04605c7ca799363514237b89b5afb354c6cfcc": {
+   "symbole": "dunnevo",
+   "nom": "dunnevo"
+  },
+  "0xfc1885306d2dd95b3df8555319828c547a654b9f": {
+   "symbole": "anikauwu",
+   "nom": "anikauwu"
+  },
+  "0x5cda0e1ca4ce2af96315f7f8963c85399c172204": {
+   "symbole": "wtCOIN",
+   "nom": "Wrapped Coinbase Global Inc ST0x"
+  },
+  "0xcebef71839bd15244e37c771439d5cba82ad284a": {
+   "symbole": "art",
+   "nom": "art"
+  },
+  "0xf7c83ac6648888def780dfde11ea6c4d325dd608": {
+   "symbole": "haoguo",
+   "nom": "haoguo"
+  },
+  "0x000000000d564d5be76f7f0d28fe52605afc7cf8": {
+   "symbole": "flETH",
+   "nom": "flETH"
+  },
+  "0xce3cadc64963e20e95074808728641b6848465d6": {
+   "symbole": "metaverseonnfts",
+   "nom": "metaverseonnfts"
+  },
+  "0xc7b70795d45a5d775b7711ce9b09b62d40d7ac0a": {
+   "symbole": "damoncross",
+   "nom": "damoncross"
+  },
+  "0x05a22ffcc99e05a5c0e88212e01c171500fd3c18": {
+   "symbole": "deadburn",
+   "nom": "deadburn"
+  },
+  "0xff9b96d19738a462acc4f980d1eac04c025aa54d": {
+   "symbole": "yulyuly",
+   "nom": "yulyuly"
+  },
+  "0x52232d4674f8dca92216cdfef7ee163c1aee8415": {
+   "symbole": "ismo",
+   "nom": "ismo"
+  },
+  "0x31fa587fbe9770b3df2ba9574931e0e4c6d991b6": {
+   "symbole": "thefungustoe",
+   "nom": "thefungustoe"
+  },
+  "0x40f9f3e123c93903ff62962140a77f20c3b0bf40": {
+   "symbole": "rogblu",
+   "nom": "rogblu"
+  },
+  "0x13ad1c3aa2fce33a8fc5bb308d29ca7bc3416aee": {
+   "symbole": "clawbee",
+   "nom": "clawbee"
+  },
+  "0x68fd527857d0646bfb7feb70c5d8d687ba703730": {
+   "symbole": "jave5672e",
+   "nom": "jave5672e"
+  },
+  "0xf4d97f2da56e8c3098f3a8d538db630a2606a024": {
+   "symbole": "DIEM",
+   "nom": "Diem"
+  },
+  "0x694ce46c64d9d1a5e9376a9febcf85ec05d72e9f": {
+   "symbole": "jaywisdom",
+   "nom": "jaywisdom"
+  },
+  "0xbcfc640fca0504b888098005581aa5cac7f45426": {
+   "symbole": "hyperliquidity",
+   "nom": "hyperliquidity"
+  },
+  "0xcafeb9e52df0c7df7cc3bfc0aa8e5f6fb7e21570": {
+   "symbole": "ilhamgumilar",
+   "nom": "ilhamgumilar"
+  },
+  "0xf2ef7c3715eb23b84e088e192db1da137e6d46bb": {
+   "symbole": "nusnoom",
+   "nom": "nusnoom"
+  },
+  "0xb93a23a2dfd927b03b7a89165ba984625e0a71bd": {
+   "symbole": "speedz",
+   "nom": "speedz"
+  },
+  "0x9afdd50b09c45f70e15e63e5c816bfecec3fe2c8": {
+   "symbole": "penguinweb3",
+   "nom": "penguinweb3"
+  },
+  "0x178e78c42aa4a9bc8501ea39a02b85e8949f9301": {
+   "symbole": "cat",
+   "nom": "cat"
+  },
+  "0x0f61edbfe6cd86024c0f210c0695b08df55fdfc9": {
+   "symbole": "BSTONK",
+   "nom": "BaseStonk"
+  },
+  "0x4d2ebc80b8fa7bc4e86f05c53369262c8672a0d4": {
+   "symbole": "BTC",
+   "nom": "Bitcoin.org"
+  },
+  "0xeee1a78ee4206e3716d3d49ffb9485112631baca": {
+   "symbole": "avmiiibo",
+   "nom": "avmiiibo"
+  },
+  "0xffbee7f9b4190d31bd97d7299100811eb3aa41a7": {
+   "symbole": "jackbeatnicai",
+   "nom": "jackbeatnicai"
+  },
+  "0xeb2d0924a59d089adaf42faaa245b91964fa22fb": {
+   "symbole": "scribbles",
+   "nom": "scribbles"
+  },
+  "0xf2682909af65ae32e2fdaa433dc1b9a9fc7c9b45": {
+   "symbole": "whipofwallstreet",
+   "nom": "whipofwallstreet"
+  },
+  "0xaa6defbcaa18bd66588f780dbcbad64af91a8984": {
+   "symbole": "travy",
+   "nom": "travy"
+  },
+  "0xf3ce676d4cef774728660b21b7d244134b0be0e6": {
+   "symbole": "zora88",
+   "nom": "zora88"
+  },
+  "0x4a90984ad4c7dff7bf19088a7c1c2dbab1d24b60": {
+   "symbole": "toctoc",
+   "nom": "toctoc"
+  },
+  "0xb1d981e68a6a0326e57059ccc0e270ca374818f1": {
+   "symbole": "dmonkeyxsol",
+   "nom": "dmonkeyxsol"
+  },
+  "0xcea26081353401f1350c434fcacde987013a262d": {
+   "symbole": "amaimaiofc",
+   "nom": "amaimaiofc"
+  },
+  "0xff7d3bcc927e08e7219ef6775ddf9404e0979331": {
+   "symbole": "rahmizuki",
+   "nom": "rahmizuki"
+  },
+  "0xd912ae1159374c0a6fd5c9503ffa95ab8493ba0c": {
+   "symbole": "wrappedzora",
+   "nom": "wrappedzora"
+  },
+  "0x0e264383d9a01aa631eb2f377c53e2beeaeef38f": {
+   "symbole": "zosphotos",
+   "nom": "zosphotos"
+  }
+ }
+}

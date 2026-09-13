@@ -1,5 +1,7 @@
 # TARE — what each piece does, and why it exists
 
+> **Note.** `LIMITS.md` and `HONESTY.md`, cited below, are not included in this repository.
+
 This document answers one question per section: *why is this technology here, and what would be
 lost by removing it?* Every figure quoted was read off the repository, not estimated.
 

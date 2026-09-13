@@ -1,5 +1,7 @@
 # ANALYSIS — what the hooks' own code says, and what the instrument measured
 
+> **Note.** `LIMITS.md` and `HONESTY.md`, cited below, are not included in this repository.
+
 `LIMITS.md` §6(c) said, in as many words: **"We have not read a single line of any hook's source. Not one."** This file is the answer to that sentence. It does not replace LIMITS.md — it closes one paragraph of it and opens several new ones (§5 below).
 
 Three separable, replayable steps:

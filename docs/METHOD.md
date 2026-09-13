@@ -1,5 +1,7 @@
 # METHOD — from an `Initialize` log to a basis point
 
+> **Note.** `LIMITS.md` and `HONESTY.md`, cited below, are not included in this repository.
+
 Every claim in this file names a file **and a line**. If a line number does not say what this file
 says it says, this file is wrong and the code is right.
 

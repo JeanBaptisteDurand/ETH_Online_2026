@@ -1,5 +1,7 @@
 # `@tare/guard`
 
+> **Note.** `docs/LIMITS.md`, cited below, is not included in this repository.
+
 Reads a Uniswap v4 swap **before you sign it**, decodes the `PoolKey` out of the Universal Router
 calldata, looks the pool up in the pre-computed TARE table, and says what the hook took the last
 time it was measured — with the block, the size, the direction and the command that replays it.

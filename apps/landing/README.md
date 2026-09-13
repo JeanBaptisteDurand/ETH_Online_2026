@@ -1,5 +1,7 @@
 # apps/landing — the presentation surface
 
+> **Note.** `DESIGN.md`, cited below, is not included in this repository.
+
 The page a judge sees first. It is not a page that leads to a measurement: **the first screen is
 one**, written into the HTML at build time from the corpus the engine produced.
 

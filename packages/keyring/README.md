@@ -1,136 +1,136 @@
-# @tare/keyring — le Ledger Key Ring, sans appareil physique
+# @tare/keyring — the Ledger Key Ring, without a physical device
 
-## Le probleme que ce paquet resout
+## The problem this package solves
 
-TARE paie ses propres requetes. Chaque appel `POST /measure` est regle en x402 par une
-`TransferTransaction` Hedera signee avec `HEDERA_PAYER_PRIVATE_KEY` — et cette cle est **en
-clair dans `.env`**. Un agent autonome qui manipule de l'argent garde sa cle privee dans un
-fichier texte, lisible par n'importe quel processus de la machine.
+TARE pays for its own requests. Every `POST /measure` call is settled over x402 by a Hedera
+`TransferTransaction` signed with `HEDERA_PAYER_PRIVATE_KEY` — and that key is **in clear
+text in `.env`**. An autonomous agent that handles money keeps its private key in a text
+file, readable by any process on the machine.
 
-C'est le probleme que le **Ledger Key Ring Protocol** (LKRP) existe pour resoudre :
-*« Secrets, not coins »* — un secret chiffre sous une cle derivee de la graine Ledger, une
-validation sur l'appareil a l'installation, puis **plus aucune** ensuite. Un agent sans
-tete continue de dechiffrer ; un lecteur du disque ne trouve plus la cle, seulement un
-membre revocable. Ce que cela protege exactement, et ce que cela ne protege pas, est ecrit
-plus bas — sans arrondir.
+That is the problem the **Ledger Key Ring Protocol** (LKRP) exists to solve:
+*"Secrets, not coins"* — a secret encrypted under a key derived from the Ledger seed, one
+validation on the device at install time, then **none at all** afterwards. A headless
+agent keeps decrypting; someone reading the disk no longer finds the key, only a revocable
+member. What this protects exactly, and what it does not protect, is written
+below — without rounding off.
 
-## Ce qui tourne, de bout en bout
+## What runs, end to end
 
-Le CLI package (`@ledgerhq/wallet-cli ring init`) exige un appareil **physique** : il
-construit son Device Management Kit avec un seul transport USB, en dur. Quatre tentatives
-le confirment — a vide, avec Speculos lance et `SPECULOS_API_PORT`, et avec la variable
-non documentee `WALLET_CLI_MOCK=1` (qui simule le backend trustchain, pas l'appareil) :
+The CLI package (`@ledgerhq/wallet-cli ring init`) requires a **physical** device: it
+builds its Device Management Kit with a single USB transport, hard-coded. Four attempts
+confirm it — with nothing attached, with Speculos running and `SPECULOS_API_PORT`, and with the
+undocumented variable `WALLET_CLI_MOCK=1` (which mocks the trustchain backend, not the device):
 
 ```
 {"ok":false,"error":{"command":"ring init","message":"No Ledger device found."}}
 ```
 
-**Mais le CLI n'est pas le protocole.** En dessous, `@ledgerhq/ledger-key-ring-protocol`
-prend un `WithDevice` qu'on fournit, et `@ledgerhq/hw-ledger-key-ring-protocol` expose
-`device.apdu(transport)` avec **n'importe quel** `@ledgerhq/hw-transport`. Il suffisait de
-compiler la bonne application : LKRP ne parle pas a l'app Ethereum mais a **« Ledger
-Sync »** (`TRUSTCHAIN_APP_NAME`), dont le depot `LedgerHQ/app-ledger-sync` est public.
+**But the CLI is not the protocol.** Underneath, `@ledgerhq/ledger-key-ring-protocol`
+takes a `WithDevice` that you supply, and `@ledgerhq/hw-ledger-key-ring-protocol` exposes
+`device.apdu(transport)` with **any** `@ledgerhq/hw-transport`. All it took was
+building the right application: LKRP does not talk to the Ethereum app but to **"Ledger
+Sync"** (`TRUSTCHAIN_APP_NAME`), whose repository `LedgerHQ/app-ledger-sync` is public.
 
-Le cycle complet, obtenu contre Speculos servant Ledger Sync **1.2.2** pour Nano X :
+The complete cycle, obtained against Speculos serving Ledger Sync **1.2.2** for Nano X:
 
-| etape | resultat |
+| step | result |
 |---|---|
-| defi LKRP | `trustchain-backend.api.aws.stg.ldg-tech.com/v1/challenge`, TLV de 183 o signe par Ledger |
-| seed ID | l'appareil signe : `031fbef68de38f9facd182c1bc60c3f17290c294cc0d197f57eb645aa43733440a`, avec attestation |
-| trustchain | creee — `00914e888507dbcb06b27d5fd3e50f3465d632d63fde0b07b587f7ebb99cfae281` |
-| chiffrement | la vraie `HEDERA_PAYER_PRIVATE_KEY`, scellee en 132 octets |
-| **ouverture** | **Speculos eteint, port mort, transport interdit — le secret sort** |
-| **paiement** | une requete x402 reelle reglee avec cette cle : `0.0.7162784@1788855729.911769704` |
+| LKRP challenge | `trustchain-backend.api.aws.stg.ldg-tech.com/v1/challenge`, 183-byte TLV signed by Ledger |
+| seed ID | the device signs: `031fbef68de38f9facd182c1bc60c3f17290c294cc0d197f57eb645aa43733440a`, with attestation |
+| trustchain | created — `00914e888507dbcb06b27d5fd3e50f3465d632d63fde0b07b587f7ebb99cfae281` |
+| encryption | the real `HEDERA_PAYER_PRIVATE_KEY`, sealed into 132 bytes |
+| **opening** | **Speculos off, port dead, transport forbidden — the secret comes out** |
+| **payment** | a real x402 request settled with that key: `0.0.7162784@1788855729.911769704` |
 
-Les ecrans, dans l'ordre — il y a **deux** approbations, pas une :
+The screens, in order — there are **two** approvals, not one:
 
 ```
-Connect to Ledger Sync?  ->  Connect                      <- appui double
+Connect to Ledger Sync?  ->  Connect                      <- double press
 Connection requested
 Turn on sync for Ledger Wallet?
 Ledger Wallet will be able to view and update your synced accounts.
-                         ->  Turn On sync                 <- appui double
+                         ->  Turn On sync                 <- double press
 Sync requested
 ```
 
-## Ce que ca protege, et ce que ca ne protege pas
+## What this protects, and what it does not protect
 
-Sur le disque (`var/keyring.json`, mode 0600) il y a : la cle privee du **membre**, le
-`rootId`, et le secret **scelle**. Il n'y a **pas** la cle de chiffrement — le membre la
-retrouve en s'authentifiant aupres du backend de Ledger, qui lui rend le flux resolu de la
-trustchain (`restoreTrustchain`). Un test le verifie, et `parseRing` **refuse** un fichier
-qui en contiendrait une : ce fichier-la ne protegerait rien.
+On the disk (`var/keyring.json`, mode 0600) there is: the **member's** private key, the
+`rootId`, and the **sealed** secret. The encryption key is **not** there — the member
+recovers it by authenticating with Ledger's backend, which returns the resolved stream of the
+trustchain (`restoreTrustchain`). A test verifies this, and `parseRing` **refuses** a file
+that would contain one: such a file would protect nothing.
 
-Ce qu'on gagne, exactement :
+What we gain, exactly:
 
-- la cle de paiement n'est plus **en clair** sur le disque ;
-- l'acces est **revocable** — `removeMember` coupe cette machine sans toucher la graine,
-  les autres membres, ni le secret ;
-- l'acces est **attribuable** a une machine nommee ;
-- l'amorcage a exige une **approbation materielle**.
+- the payment key is no longer **in clear text** on the disk;
+- access is **revocable** — `removeMember` cuts this machine off without touching the seed,
+  the other members, or the secret;
+- access is **attributable** to a named machine;
+- the bootstrap required a **hardware approval**.
 
-Ce qu'on ne gagne pas : un attaquant qui vole le fichier du membre **et** peut joindre le
-backend de Ledger peut dechiffrer. Ce n'est pas un coffre, c'est une **delegation
-revocable**. C'est deja tres au-dessus d'une ligne de `.env`, et ce n'est pas un coffre.
+What we do not gain: an attacker who steals the member file **and** can reach Ledger's
+backend can decrypt. This is not a vault, it is a **revocable delegation**. It is already
+far above a line in `.env`, and it is not a vault.
 
-## Ou ca se branche dans TARE
+## Where this plugs into TARE
 
-`apps/api/src/pay/secret.ts` resout la cle : trousseau s'il existe, environnement sinon —
-et il **dit toujours lequel**, jusque dans la preuve de reglement
-(`docs/x402-settlements.jsonl`, champ `source_de_la_cle`). Le repli existe pour que le
-projet reste utilisable sans conteneur Speculos, mais il s'annonce : « il marche » et « il
-est protege » ne sont pas la meme phrase.
+`apps/api/src/pay/secret.ts` resolves the key: keyring if it exists, environment otherwise —
+and it **always says which**, all the way into the settlement proof
+(`docs/x402-settlements.jsonl`, field `source_de_la_cle`). The fallback exists so that the
+project stays usable without a Speculos container, but it announces itself: "it works" and "it
+is protected" are not the same sentence.
 
-## Rejouer
+## Replay
 
 ```bash
-scripts/ledger/build-app.sh ledger-sync       # compile depuis LedgerHQ/app-ledger-sync
-scripts/ledger/run-speculos.sh ledger-sync    # Speculos sur http://127.0.0.1:5011
+scripts/ledger/build-app.sh ledger-sync       # builds from LedgerHQ/app-ledger-sync
+scripts/ledger/run-speculos.sh ledger-sync    # Speculos on http://127.0.0.1:5011
 
-npx tsx packages/keyring/scripts/seed-id.ts   # le defi, l'ecran, la signature
+npx tsx packages/keyring/scripts/seed-id.ts   # the challenge, the screen, the signature
 set -a; . ./.env; set +a
-npx tsx packages/keyring/scripts/ring.ts seal # scelle HEDERA_PAYER_PRIVATE_KEY
+npx tsx packages/keyring/scripts/ring.ts seal # seals HEDERA_PAYER_PRIVATE_KEY
 
-docker rm -f tare-speculos-ledger-sync        # on ETEINT l'appareil
-npx tsx packages/keyring/scripts/ring.ts open # et le secret sort quand meme
+docker rm -f tare-speculos-ledger-sync        # we TURN OFF the device
+npx tsx packages/keyring/scripts/ring.ts open # and the secret comes out anyway
 
-# et le paiement, avec la variable retiree de l'environnement :
+# and the payment, with the variable removed from the environment:
 cd apps/api && env -u HEDERA_PAYER_PRIVATE_KEY \
   TARE_POOL_ID=0x… TARE_DIRECTIONS='1->0' npx tsx src/pay/cli.ts payer
 ```
 
-## Le bug amont qui empeche quiconque d'installer ce paquet
+## The upstream bug that prevents anyone from installing this package
 
-`npm install @ledgerhq/ledger-key-ring-protocol` **echoue pour tout le monde** :
+`npm install @ledgerhq/ledger-key-ring-protocol` **fails for everyone**:
 
 ```
 ledger-key-ring-protocol@0.15.2
   -> @ledgerhq/speculos-transport@0.10.6
-       -> @ledgerhq/live-dmk-speculos@0.10.0     <- absent de npm (le nom entier rend 404)
+       -> @ledgerhq/live-dmk-speculos@0.10.0     <- absent from npm (the whole name returns 404)
 ```
 
-`@ledgerhq/live-dmk-speculos` n'est publie a **aucune** version, et **toutes** les versions
-de `speculos-transport` >= 0.9.6 en dependent. Dans le monorepo de Ledger Live la
-resolution passe par un lien de workspace ; hors de lui, elle 404. Or **aucun fichier** du
-protocole ne charge `speculos-transport` : c'est une dependance declaree et inutilisee.
+`@ledgerhq/live-dmk-speculos` is published at **no** version, and **all** the versions
+of `speculos-transport` >= 0.9.6 depend on it. Inside Ledger Live's monorepo the
+resolution goes through a workspace link; outside it, it 404s. Yet **no file** of the
+protocol loads `speculos-transport`: it is a declared and unused dependency.
 
-Notre contournement, dans `package.json`, avec sa raison ecrite a cote :
+Our workaround, in `package.json`, with its reason written next to it:
 
 ```json
 "overrides": { "@ledgerhq/speculos-transport": "npm:@ledgerhq/logs@6.17.0" }
 ```
 
-C'est laid, et c'est assume : le paquet est aliase sur un module qui s'installe et que
-personne ne charge. Le correctif amont est d'une ligne — publier `live-dmk-speculos`, ou
-retirer la dependance — et il est propose dans [`OPEN-SOURCE.md`](../../OPEN-SOURCE.md).
+It is ugly, and we own it: the package is aliased onto a module that installs and that
+nobody loads. The upstream fix is one line — publish `live-dmk-speculos`, or
+remove the dependency — and it is proposed in [`OPEN-SOURCE.md`](../../OPEN-SOURCE.md).
 
-## Ce qui n'est PAS prouve
+## What is NOT proven
 
-- **Aucun appareil physique.** Speculos execute le meme binaire d'application et le meme
-  code d'affichage — c'est pour cela que Ledger le publie — mais un emulateur n'est pas un
-  Nano dans une main.
-- **Le backend est celui de RECETTE.** La production refuse notre attestation
-  (« Attestation is for an unknown application »), et elle a raison : notre `.elf` est
-  compile localement, donc non signe par Ledger. Un Nano de production irait en production.
-- La graine est celle de test par defaut de Speculos. Aucune graine reelle n'a touche cette
+- **No physical device.** Speculos runs the same application binary and the same
+  display code — that is why Ledger publishes it — but an emulator is not a
+  Nano in a hand.
+- **The backend is the STAGING one.** Production refuses our attestation
+  ("Attestation is for an unknown application"), and it is right to: our `.elf` is
+  compiled locally, therefore not signed by Ledger. A production Nano would go to production.
+- The seed is Speculos's default test seed. No real seed has touched this
   machine.

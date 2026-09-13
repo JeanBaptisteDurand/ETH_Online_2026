@@ -1,23 +1,24 @@
-# Ce que l'appareil Ledger affiche, mot pour mot
+# What the Ledger device displays, word for word
 
-**Deux captures.** La seconde, ci-dessous, est celle qui compte : elle part d'une transaction
-REELLE capturee sur Base mainnet, la fait decoder par la garde, et montre a l'appareil le rapport
-qui en sort — pas un objet ecrit a la main. Elle se rejoue en une commande :
+**Two captures.** The second one, below, is the one that counts: it starts from a REAL
+transaction captured on Base mainnet, has the guard decode it, and shows the device the report
+that comes out of it — not a hand-written object. It replays with one command:
 
 ```bash
 scripts/ledger/build-app.sh ethereum
-scripts/ledger/run-speculos.sh ethereum          # puis : Settings -> Raw messages -> Enabled
+scripts/ledger/run-speculos.sh ethereum          # then: Settings -> Raw messages -> Enabled
 cd packages/guard && TX_INDEX=1 npx tsx scripts/speculos-approve.ts
 ```
 
-La preuve complete, avec la signature, est dans [`guard-speculos.json`](guard-speculos.json).
+The complete proof, with the signature, is in [`guard-speculos.json`](guard-speculos.json).
 
-## Capture 2 — une transaction reelle, de bout en bout
+## Capture 2 — a real transaction, end to end
 
-Transaction `0xfa82cb2cf32bf1d7ba8c33d8ae3f6d4787a16e54dbf612cead72da4bd22d9b13`, bloc 50 888 834
-sur Base. La garde en tire le hook `0xb429d62f…` et le pool `0x08f61898…`, et **refuse de donner un
-nombre pour ce pool-la** : il n'est pas dans la table. L'appareil affiche ce refus tel quel —
-`take non mesure — ce n'est pas zero`. C'est la regle dure du projet, rendue sur du materiel.
+Transaction `0xfa82cb2cf32bf1d7ba8c33d8ae3f6d4787a16e54dbf612cead72da4bd22d9b13`, block 50,888,834
+on Base. The guard extracts from it the hook `0xb429d62f…` and the pool `0x08f61898…`, and
+**refuses to give a number for that pool**: it is not in the table. The device displays that
+refusal as it is — `take non mesure — ce n'est pas zero`. That is the project's hard rule,
+rendered on hardware.
 
 ```
 ECRANS (46) :
@@ -52,14 +53,14 @@ ECRANS (46) :
   Sign message
 ```
 
-Signature `v=28`. Les ecrans « Press right button to continue message or press both to skip » sont
-retires de cette liste pour la lisibilite ; ils figurent dans `guard-speculos.json`.
+Signature `v=28`. The screens "Press right button to continue message or press both to skip" are
+removed from this list for readability; they appear in `guard-speculos.json`.
 
-## Capture 1 — la premiere, sur un rapport construit pour le test
+## Capture 1 — the first one, on a report built for the test
 
-Capture brute d'une execution contre Speculos, application Ethereum officielle 1.22.3
-(Nano X), reglage « Raw messages » active. Le rapport montre ici venait d'un cas de test,
-pas d'un decodage de transaction : c'est pour cela que la capture 2 a ete faite.
+Raw capture of a run against Speculos, official Ethereum application 1.22.3
+(Nano X), "Raw messages" setting enabled. The report shown here came from a test case,
+not from a transaction decode: that is why capture 2 was made.
 
 ```
 ECRANS (44) :

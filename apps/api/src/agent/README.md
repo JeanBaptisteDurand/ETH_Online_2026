@@ -1,14 +1,14 @@
-# L'identite d'agent — HCS-14
+# Agent identity — HCS-14
 
-La piste de paiement de TARE vit deja sur un topic HCS : chaque lot de mesures y depose son
-empreinte, son nombre d'unites et son hash de reglement. Il y manquait une chose — **qui** a
-produit ces mesures. « Le compte `0.0.10367920` » repond a *qui a paye*, pas a *quel service*.
+TARE's payment trail already lives on an HCS topic: every batch of measurements deposits its
+digest, its unit count and its settlement hash there. One thing was missing — **who** produced
+those measurements. "The account `0.0.10367920`" answers *who paid*, not *which service*.
 
-[HCS-14](https://hol.org/docs/standards/hcs-14/) donne cette reponse sous une forme qu'un
-tiers peut **recalculer** au lieu de nous croire : un identifiant derive des champs de
-l'agent, pas attribue par un annuaire.
+[HCS-14](https://hol.org/docs/standards/hcs-14/) gives that answer in a form a third party can
+**recompute** instead of taking our word for it: an identifier derived from the agent's fields,
+not assigned by a directory.
 
-## L'identifiant, et il est publie
+## The identifier, and it is published
 
 ```
 uaid:aid:9gmr4c6opC3zeSWSZzv23pjXkfbTvEeRHKdXkgMJqX7FG9133ocwFuCXL6uwBWiTHY;registry=self;proto=mcp;nativeId=hedera:testnet:0.0.10367920;uid=0
@@ -16,15 +16,15 @@ uaid:aid:9gmr4c6opC3zeSWSZzv23pjXkfbTvEeRHKdXkgMJqX7FG9133ocwFuCXL6uwBWiTHY;regi
 
 | | |
 |---|---|
-| Annonce | message **#12** du topic **`0.0.10371106`** (Hedera testnet) |
+| Announcement | message **#12** of topic **`0.0.10371106`** (Hedera testnet) |
 | Transaction | `0.0.10367920@1788963789.956383767` |
-| Horodatage de consensus | `1788963795.977788104` |
-| Cout observe | **433 840 tinybar** (353 octets), soit ~0,0043 HBAR |
-| Etat | `ANNOUNCED` — le mirror node rend le message **octet pour octet** |
+| Consensus timestamp | `1788963795.977788104` |
+| Observed cost | **433,840 tinybar** (353 bytes), i.e. ~0.0043 HBAR |
+| State | `ANNOUNCED` — the mirror node returns the message **byte for byte** |
 | HashScan | <https://hashscan.io/testnet/topic/0.0.10371106> |
 
-Le message publie porte l'identifiant **et les six champs qui l'ont produit**, pour que le
-lecteur refasse le calcul :
+The published message carries the identifier **and the six fields that produced it**, so that
+the reader can redo the computation:
 
 ```json
 {"v":"tare.agent.v1",
@@ -34,85 +34,85 @@ lecteur refasse le calcul :
  "ts":"2026-09-09T14:23:15.547Z"}
 ```
 
-C'est le **meme topic** que la piste de paiement, et c'est voulu : le `nativeId` de l'identite
-est le compte qui figure en `payer` dans les lignes du journal. Les deux se recoupent sans
-qu'on ait a les relier a la main.
+It is the **same topic** as the payment trail, and that is deliberate: the identity's `nativeId`
+is the account that appears as `payer` in the rows of the log. The two cross-check each other
+without anyone having to link them by hand.
 
-## Les six champs, et la justification de chacun
+## The six fields, and the justification for each
 
-| champ | valeur | pourquoi |
+| field | value | why |
 |---|---|---|
-| `registry` | `self` | La norme : *« for self-sovereign agents lacking a specific registry, the registry field shall be set to `self` »*. TARE n'est inscrit dans **aucun** annuaire d'agents ; ecrire `hol` ou `hedera` revendiquerait une inscription qui n'existe pas |
+| `registry` | `self` | The standard: *"for self-sovereign agents lacking a specific registry, the registry field shall be set to `self`"*. TARE is listed in **no** agent directory; writing `hol` or `hedera` would claim a listing that does not exist |
 | `name` | `TARE` | |
-| `version` | `0.1.0` | celle de `apps/api/package.json` — un test l'y compare, pour qu'elle ne derive pas en silence |
-| `protocol` | `mcp` | on expose un serveur MCP reel (`apps/mcp`, quatre outils, 33 tests). **Pas** `hcs-10` : on n'implemente pas ce protocole |
-| `nativeId` | `hedera:testnet:0.0.10367920` | le compte qui paie les ancrages et a cree le topic |
-| `skills` | `[10, 17, 21, 33, 39]` | voir ci-dessous |
+| `version` | `0.1.0` | the one in `apps/api/package.json` — a test compares it against that, so it does not drift silently |
+| `protocol` | `mcp` | we expose a real MCP server (`apps/mcp`, four tools, 33 tests). **Not** `hcs-10`: we do not implement that protocol |
+| `nativeId` | `hedera:testnet:0.0.10367920` | the account that pays for the anchors and created the topic |
+| `skills` | `[10, 17, 21, 33, 39]` | see below |
 
-Chaque code correspond a quelque chose qui **tourne** dans ce depot :
-
-| | | |
-|---|---|---|
-| 10 | Transaction Analytics | le contrefactuel : 125 072 mesures de swaps sur Base |
-| 17 | API Integration | `apps/api`, x402 sur Hedera, peage a la mesure |
-| 21 | Tool Provider | `apps/mcp`, quatre outils exposes a un agent |
-| 33 | Blockchain Integration | fork Base epingle, `anvil_setCode`, lectures on-chain |
-| 39 | Trust Attestation | `contracts/` : 99 hooks et leur prelevement, lisibles on-chain |
-
-Et **volontairement pas revendiques**, alors qu'ils etaient tentants :
+Each code corresponds to something that **runs** in this repository:
 
 | | | |
 |---|---|---|
-| 11 | Smart Contract Audit | on lit du source verifie, on n'audite pas |
-| 34 | Consensus Participation | on **ecrit** sur HCS, on ne participe pas au consensus |
-| 7 | Knowledge Retrieval | l'assistant recherche, mais il ne produit aucun nombre |
+| 10 | Transaction Analytics | the counterfactual: 125,072 swap measurements on Base |
+| 17 | API Integration | `apps/api`, x402 on Hedera, per-measurement toll |
+| 21 | Tool Provider | `apps/mcp`, four tools exposed to an agent |
+| 33 | Blockchain Integration | pinned Base fork, `anvil_setCode`, on-chain reads |
+| 39 | Trust Attestation | `contracts/`: 99 hooks and their extraction, readable on-chain |
 
-## Ce que la norme ne donne pas, et qu'il faut dire
+And **deliberately not claimed**, tempting though they were:
 
-1. **Aucun vecteur de test complet.** La specification publie deux exemples **avec leurs
-   entrees mais sans leurs empreintes**. Il n'existe donc aucun resultat de reference contre
-   lequel se comparer. Nos tests valident le base58 contre les vecteurs standard de Bitcoin
-   **et** contre `bs58@4.0.1` (implementation independante, presente dans
-   `packages/keyring/node_modules`), et la canonicalisation regle par regle contre le
-   pseudo-code. Ce qu'ils ne peuvent pas valider, c'est que notre lecture est celle qu'un
-   autre implementeur ferait. **C'est une limite reelle**, et elle est ecrite dans la reponse
-   de `GET /agent`, pas seulement ici.
-2. **Le texte se contredit.** Son exemple de « JSON canonique » montre les cles dans l'ordre
-   `skills, name, nativeId, protocol, registry, version` — donc **pas trie**. Son pseudo-code
-   fait `JSON.stringify(canonical, Object.keys(canonical).sort())`, qui **trie**. On suit le
-   pseudo-code, parce que c'est lui qui est executable.
-3. **La variante de base58 n'est pas nommee.** On prend l'alphabet de Bitcoin, le seul que
-   « Base58 » designe sans qualificatif.
+| | | |
+|---|---|---|
+| 11 | Smart Contract Audit | we read verified source, we do not audit |
+| 34 | Consensus Participation | we **write** to HCS, we do not take part in consensus |
+| 7 | Knowledge Retrieval | the assistant searches, but it produces no number |
 
-## Les pieges tenus par des tests
+## What the standard does not give, and what has to be said
 
-- **Trier les competences en nombres, pas en chaines.** `[0, 17, 9].sort()` rend `[0, 17, 9]`
-  et non `[0, 9, 17]` : deux agents aux memes competences auraient deux identites.
-- **Les zeros de tete du base58.** Passer par un `BigInt` les avalerait, et deux empreintes
-  differentes se liraient pareil. L'implementation pose la division a la main.
-- **Les parametres de routage n'entrent pas dans l'empreinte.** La norme est explicite :
-  *« Communication details are NOT included in the hash »*. Changer `uid` change la chaine
-  finale mais **pas** le hash.
-- **Un champ requis vide leve** au lieu d'etre remplace par du vide.
-- **On ne republie jamais une identite deja annoncee** — chaque message coute du HBAR, et une
-  piste ou la meme annonce figure deux fois n'est plus une piste. Si la lecture du topic est
-  incomplete, `publish` **s'arrete** plutot que de risquer un doublon permanent.
+1. **No complete test vector.** The specification publishes two examples **with their inputs
+   but without their digests**. There is therefore no reference result to compare against.
+   Our tests validate base58 against the standard Bitcoin vectors **and** against
+   `bs58@4.0.1` (an independent implementation, present in
+   `packages/keyring/node_modules`), and canonicalisation rule by rule against the
+   pseudo-code. What they cannot validate is that our reading is the one another
+   implementer would make. **That is a real limitation**, and it is written into the
+   response of `GET /agent`, not only here.
+2. **The text contradicts itself.** Its "canonical JSON" example shows the keys in the order
+   `skills, name, nativeId, protocol, registry, version` — so **not sorted**. Its pseudo-code
+   does `JSON.stringify(canonical, Object.keys(canonical).sort())`, which **does sort**. We
+   follow the pseudo-code, because that is the one that is executable.
+3. **The base58 variant is not named.** We take the Bitcoin alphabet, the only one that
+   "Base58" designates without a qualifier.
+
+## The traps held down by tests
+
+- **Sort the skills as numbers, not as strings.** `[0, 17, 9].sort()` returns `[0, 17, 9]`
+  and not `[0, 9, 17]`: two agents with the same skills would have two identities.
+- **The leading zeros of base58.** Going through a `BigInt` would swallow them, and two
+  different digests would read the same. The implementation does the division by hand.
+- **Routing parameters do not enter the digest.** The standard is explicit:
+  *"Communication details are NOT included in the hash"*. Changing `uid` changes the final
+  string but **not** the hash.
+- **An empty required field throws** instead of being replaced by emptiness.
+- **An identity already announced is never republished** — every message costs HBAR, and a
+  trail in which the same announcement appears twice is no longer a trail. If the read of the
+  topic is incomplete, `publish` **stops** rather than risk a permanent duplicate.
 
 ## Routes
 
 ```
-GET /agent        l'identite, sa methode, et de quoi la recalculer sans nous
-GET /agent/hcs    les annonces telles qu'elles sont LUES sur le topic
-                  (404 NOT_ANNOUNCED si le topic n'en porte aucune,
-                   503 NOT_READABLE si la pagination du mirror s'interrompt)
+GET /agent        the identity, its method, and what it takes to recompute it without us
+GET /agent/hcs    the announcements as they are READ on the topic
+                  (404 NOT_ANNOUNCED if the topic carries none,
+                   503 NOT_READABLE if the mirror's pagination breaks off)
 ```
 
-## Commandes
+## Commands
 
 ```bash
 cd apps/api
 npx vitest run test/agent.test.ts     # 28 tests
-npx tsx src/agent/cli.ts show         # calcule l'identifiant, sans reseau
-npx tsx src/agent/cli.ts read         # les annonces deja sur le topic
-npx tsx src/agent/cli.ts publish      # publie, puis relit sur le mirror node
+npx tsx src/agent/cli.ts show         # computes the identifier, without the network
+npx tsx src/agent/cli.ts read         # the announcements already on the topic
+npx tsx src/agent/cli.ts publish      # publishes, then reads back on the mirror node
 ```

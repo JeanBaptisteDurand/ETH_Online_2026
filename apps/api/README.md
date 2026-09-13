@@ -1,71 +1,71 @@
-# apps/api — l'API TARE
+# apps/api — the TARE API
 
-Node + Hono + TypeScript. Elle sert les mesures d'extraction des hooks Uniswap v4 et
-vend la mesure a la demande derriere un peage x402 sur Hedera testnet.
+Node + Hono + TypeScript. It serves the extraction measurements of Uniswap v4 hooks and
+sells measurement on demand behind an x402 toll on Hedera testnet.
 
-**Elle ne calcule aucun bps.** Les nombres viennent soit du jeu publie, soit du moteur
-Python (`engine/tare`, 47 tests, porte A3), appele par `scripts/measure_one.py`.
+**It computes no bps.** The numbers come either from the published dataset or from the
+Python engine (`engine/tare`, 47 tests, gate A3), called by `scripts/measure_one.py`.
 
-## Demarrer
+## Getting started
 
 ```bash
-docker compose up -d              # depuis la racine : le fork anvil epingle au bloc
+docker compose up -d              # from the repo root: the anvil fork pinned to the block
 cd apps/api && npm install
 npm start                         # http://127.0.0.1:8787
-npm test                          # 30 tests vitest
+npm test                          # 30 vitest tests
 ```
 
 ## Routes
 
 | | |
 |---|---|
-| `GET /hooks` | le classement : par hook, le bps maximum, le nb de pools, le nb de mesures, la fiche du registre officiel |
-| `GET /hook/:address` | tous les profils du hook : par pool, chaque point avec bloc, taille, sens, etiquette |
-| `GET /measurement/:id` | une mesure et **sa commande de rejeu exacte** |
-| `POST /measure` | la mesure a la demande — **payante, x402** |
-| `GET /usage` · `GET /usage/log` | le compteur : unite = 1 mesure |
-| `GET /meta` | sources, sante du moteur, peage |
-| `GET /replay/:id` | la commande de rejeu, en texte brut |
+| `GET /hooks` | the ranking: per hook, the maximum bps, the number of pools, the number of measurements, the official registry entry |
+| `GET /hook/:address` | all of the hook's profiles: per pool, each point with block, size, direction, label |
+| `GET /measurement/:id` | one measurement and **its exact replay command** |
+| `POST /measure` | measurement on demand — **paid, x402** |
+| `GET /usage` · `GET /usage/log` | the meter: unit = 1 measurement |
+| `GET /meta` | sources, engine health, toll |
+| `GET /replay/:id` | the replay command, as plain text |
 
-## Le peage : facture a la mesure, pas a la requete
+## The toll: billed per measurement, not per request
 
-`@x402/hono` et `@x402/hedera` en **2.23.0** (les deux existent sur npm et s'installent).
-Reseau `hedera:testnet`, facilitateur `https://api.testnet.blocky402.com` — dont
-`/supported` annonce bien `{"scheme":"exact","network":"hedera:testnet","extra":{"feePayer":"0.0.7162784"}}`.
+`@x402/hono` and `@x402/hedera` at **2.23.0** (both exist on npm and install).
+Network `hedera:testnet`, facilitator `https://api.testnet.blocky402.com` — whose
+`/supported` does announce `{"scheme":"exact","network":"hedera:testnet","extra":{"feePayer":"0.0.7162784"}}`.
 
-Le prix **n'est pas fixe** : c'est une fonction du corps de la requete
-(`price: async (context) => …` dans `src/x402.ts`). Une requete qui demande cinq
-tailles paie cinq unites. Sans ce prix dynamique, "compute metering rather than a
-flat per-request charge" ne serait qu'une phrase.
+The price **is not fixed**: it is a function of the request body
+(`price: async (context) => …` in `src/x402.ts`). A request that asks for five
+sizes pays five units. Without this dynamic price, "compute metering rather than a
+flat per-request charge" would be nothing but a sentence.
 
 ```
-1 mesure  ->  accepts[0].amount = "1000"   (USDC Hedera, 6 decimales, 0,001 USD)
-5 mesures ->  accepts[0].amount = "5000"
+1 measurement   ->  accepts[0].amount = "1000"   (Hedera USDC, 6 decimals, 0.001 USD)
+5 measurements  ->  accepts[0].amount = "5000"
 ```
 
-Le corps du 402 recopie `accepts[]` en clair : x402 v2 le met dans l'en-tete
-`payment-required` en base64, illisible dans un `curl`.
+The body of the 402 repeats `accepts[]` in the clear: x402 v2 puts it in the
+`payment-required` header in base64, unreadable in a `curl`.
 
-## Corps de POST /measure
+## Body of POST /measure
 
 ```jsonc
 {
-  "hook":    "0x…",          // un hook connu de docs/pools-liquides.json
-  "pool_id": "0x…",          // ou un pool deja mesure
+  "hook":    "0x…",          // a hook known to docs/pools-liquides.json
+  "pool_id": "0x…",          // or a pool already measured
   "pool":    { "currency0": "0x…", "currency1": "0x…", "fee": 8388608,
-               "tick_spacing": 200, "hooks": "0x…" },   // ou la PoolKey complete
+               "tick_spacing": 200, "hooks": "0x…" },   // or the full PoolKey
   "sizes":      ["100000000000000", "1000000000000000"],
   "directions": ["0->1", "1->0"],
   "block": 50614000
 }
 ```
 
-Le plan est valide **avant** le peage : une requete qu'on ne saurait pas executer
-sort en 400 sans jamais reclamer de paiement.
+The plan is validated **before** the toll: a request we would not know how to execute
+exits with a 400 without ever asking for payment.
 
-## Preuves (curl, 05/09/2026)
+## Evidence (curl, 2026-09-05)
 
-Le classement reproduit les resultats acquis :
+The ranking reproduces the results already obtained:
 
 ```
 $ curl -s localhost:8787/hooks | jq '.hooks[0] | {hook, max_bps, pools, measurements, labels}'
@@ -73,7 +73,7 @@ $ curl -s localhost:8787/hooks | jq '.hooks[0] | {hook, max_bps, pools, measurem
   "pools": 25, "measurements": 100, "labels": {"MEASURED": 52, "NOT_QUOTABLE": 48} }
 ```
 
-Le 402, avec le vrai facilitateur Hedera :
+The 402, with the real Hedera facilitator:
 
 ```
 $ curl -s -X POST localhost:8787/measure -H 'content-type: application/json' \
@@ -86,8 +86,8 @@ HTTP/1.1 402 Payment Required
  "billing":{"unit":"measurement","unit_price_usd":0.001,"units_for_this_request":1}}
 ```
 
-La mesure a la demande, peage coupe (`X402_ENABLED=0`), sur le pool de la porte A3.
-Les quatre premieres valeurs sont celles que la porte attend (99,99 / 99,93 / 99,26 / 93,10) :
+Measurement on demand, toll switched off (`X402_ENABLED=0`), on the gate A3 pool.
+The first four values are the ones the gate expects (99.99 / 99.93 / 99.26 / 93.10):
 
 ```
      100000000000000  MEASURED        99.9926
@@ -97,31 +97,32 @@ Les quatre premieres valeurs sont celles que la porte attend (99,99 / 99,93 / 99
  1000000000000000000  NOT_MEASURABLE  engine_error:empty response from http://127.0.0.1:8545
 ```
 
-La cinquieme n'est **pas** un zero : le RPC amont du fork (`https://base.drpc.org`,
-public) a rate-limite, la lecture est revenue vide, et une lecture vide est un
-`NOT_MEASURABLE`. C'est la regle 3, appliquee par le code et non par la bonne volonte.
+The fifth is **not** a zero: the fork's upstream RPC (`https://base.drpc.org`,
+public) rate-limited, the read came back empty, and an empty read is a
+`NOT_MEASURABLE`. That is rule 3, applied by the code and not by good will.
 
-## Ce qui n'est PAS verifie
+## What is NOT verified
 
-* ~~**Un paiement Hedera reel n'a jamais ete regle** de bout en bout.~~ **Ce n'est plus
-  vrai depuis le 8 septembre 2026**, et la phrase est gardee barree parce qu'une limite
-  levee se raye, elle ne s'efface pas : effacer donnerait a croire qu'elle n'a jamais
-  existe. **5 reglements** ont abouti sur `hedera:testnet`, en USDC (`0.0.429274`), par le
-  facilitateur Blocky402, chacun RELU sur le mirror node avant d'etre appele regle — un
-  200 dit que le serveur a rendu la ressource, pas que l'argent a bouge. Le journal :
-  [`docs/x402-settlements.jsonl`](../../docs/x402-settlements.jsonl), en ajout seul ;
-  le recit : [`X402.md`](../../X402.md). Dont **3** signes par une cle servie par le
-  Ledger Key Ring et non par un fichier. La verification et le reglement restent delegues
-  a `@x402/hono`, non reimplementes ici.
-* `payTo` vaut par defaut `HEDERA_FEE_PAYER` (`0.0.7162784`), c'est-a-dire le compte du
-  facilitateur. **Mets un vrai compte TARE dans `HEDERA_PAY_TO` avant toute demo payante.**
-* `replay.command` (`make measure HOOK=… BLOCK=…`) est la forme courte publiee dans le
-  README de la racine. `engine/tare/cli.py` est apparu pendant ce lot, donc la commande
-  existe — mais mon seul essai (`make measure HOOK=0x1aea38f0… BLOCK=50614000`) s'est
-  arrete sur un `RpcError: empty response` non rattrape, le RPC amont du fork etant
-  rate-limite. **La forme qui tourne aujourd'hui est `replay.command_exact`**
-  (`python3 apps/api/scripts/measure_one.py …`), verifiee a la main et via l'API ;
-  les deux sont servies par `/measurement/:id`.
-* `docs/pools-liquides.json` stocke la liquidite en nombre JSON : au-dela de 2^53 la
-  valeur exacte est deja perdue a la lecture du fichier. Elle ne sert qu'a classer les
-  pools d'un meme hook (`liquidity_approx`), jamais a etre affichee comme une mesure.
+* ~~**A real Hedera payment has never been settled** end to end.~~ **This has not been
+  true since 8 September 2026**, and the sentence is kept struck through because a
+  limitation that has been lifted gets struck out, not erased: erasing it would suggest
+  it never existed. **5 settlements** went through on `hedera:testnet`, in USDC
+  (`0.0.429274`), via the Blocky402 facilitator, each one RE-READ on the mirror node
+  before being called settled — a 200 says the server returned the resource, not that
+  money moved. The log:
+  [`docs/x402-settlements.jsonl`](../../docs/x402-settlements.jsonl), append-only;
+  the account: [`X402.md`](../../X402.md). Of these, **3** were signed by a key served
+  by the Ledger Key Ring and not by a file. Verification and settlement remain delegated
+  to `@x402/hono`, not reimplemented here.
+* `payTo` defaults to `HEDERA_FEE_PAYER` (`0.0.7162784`), that is, the facilitator's
+  account. **Put a real TARE account in `HEDERA_PAY_TO` before any paid demo.**
+* `replay.command` (`make measure HOOK=… BLOCK=…`) is the short form published in the
+  root README. `engine/tare/cli.py` appeared during this batch, so the command
+  exists — but my only attempt (`make measure HOOK=0x1aea38f0… BLOCK=50614000`) stopped
+  on an uncaught `RpcError: empty response`, the fork's upstream RPC being
+  rate-limited. **The form that runs today is `replay.command_exact`**
+  (`python3 apps/api/scripts/measure_one.py …`), verified by hand and through the API;
+  both are served by `/measurement/:id`.
+* `docs/pools-liquides.json` stores liquidity as a JSON number: past 2^53 the exact
+  value is already lost when the file is read. It only serves to rank the pools of a
+  single hook (`liquidity_approx`), never to be displayed as a measurement.

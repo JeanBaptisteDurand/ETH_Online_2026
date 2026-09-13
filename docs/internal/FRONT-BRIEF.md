@@ -1,4 +1,4 @@
-> **Internal working document — written in French, kept for the record.**
+> **Internal working document, kept for the record.**
 >
 > What it is: the brief handed to the developer who took over the front-end on 12 September 2026 — what the product is, which dataset feeds which tool, and in what order to present them to a jury.
 >
@@ -6,218 +6,222 @@
 
 ---
 
-# TARE — le brief front
+# TARE — the front-end brief
 
-> Ce fichier est écrit pour **le Claude de l'ami de JB**, qui reprend le front. Il dit ce que le
-> produit est, quelle donnée sert quel outil, et dans quel ordre les présenter à un jury.
+> This file is written for **JB's friend's Claude**, who is taking over the front-end. It says
+> what the product is, which dataset serves which tool, and in what order to present them to a
+> jury.
 >
-> Il ne demande pas de refaire l'existant. Le plomberie est faite : les données sont typées, les
-> calculs sont purs et testés, les surfaces existent. Ce qui manque est le **design**.
+> It does not ask for the existing work to be redone. The plumbing is finished: the data is
+> typed, the computations are pure and tested, the surfaces exist. What is missing is the
+> **design**.
 
 ---
 
-## 0. Où va le projet — lis ça avant tout le reste
+## 0. Where the project is going — read this before all the rest
 
-**Le produit est figé.** Ce qu'il fait, ce qu'il mesure, les quatorze outils, les vingt-sept jeux
-de données, les cinq accès et les mots employés : c'est décidé, écrit, testé. La question
-« et si on ajoutait… » n'est plus ouverte. Il reste **le design**, et rien d'autre.
+**The product is frozen.** What it does, what it measures, the fourteen tools, the twenty-seven
+datasets, the five ways in and the words used: that is decided, written, tested. The question
+"what if we added…" is no longer open. What is left is **the design**, and nothing else.
 
-**Le cadre.** Soumission à ETHOnline 2026. Le dépôt est public :
-`https://github.com/JeanBaptisteDurand/ETH_Online_2026`. La suite complète est verte — **1 218 tests**
-(`bash scripts/test-all.sh`). Le site se déploie par GitHub Pages depuis `main`.
+**The context.** A submission to ETHOnline 2026. The repository is public:
+`https://github.com/JeanBaptisteDurand/ETH_Online_2026`. The full suite is green — **1,218 tests**
+(`bash scripts/test-all.sh`). The site deploys through GitHub Pages from `main`.
 
-**Ce qui est à toi :** `apps/web/src/components/`, `apps/web/src/styles/`, `apps/landing/`.
-Le design, la mise en page, le mouvement, le responsive.
+**What is yours:** `apps/web/src/components/`, `apps/web/src/styles/`, `apps/landing/`.
+The design, the layout, the motion, the responsive behaviour.
 
-**Ce qui n'est PAS à toi, et qu'il ne faut pas toucher :**
+**What is NOT yours, and must not be touched:**
 
-| n'y touche pas | pourquoi |
+| do not touch it | why |
 |---|---|
-| `engine/`, `contracts/`, `apps/api/`, `packages/` | le moteur, les contrats et les surfaces sont mesurés et testés ; les modifier invalide les chiffres publiés |
-| `apps/web/src/lib/` | calculs purs et testés — `portes.ts`, `exit.ts`, `outils.ts`, `donnees.ts` |
-| `apps/web/src/data/facts.json`, `dataset.json` | **générés** par `npm run data`. Les éditer à la main introduit un chiffre qui ment |
-| les états nommés et les refus | `AUCUNE_MESUREE`, `PORTE_UNIQUE`, `NON_MESURABLE`… Un refus motivé est une fonctionnalité, pas un trou à remplir |
+| `engine/`, `contracts/`, `apps/api/`, `packages/` | the engine, the contracts and the surfaces are measured and tested; changing them invalidates the published figures |
+| `apps/web/src/lib/` | pure, tested computations — `portes.ts`, `exit.ts`, `outils.ts`, `donnees.ts` |
+| `apps/web/src/data/facts.json`, `dataset.json` | **generated** by `npm run data`. Editing them by hand introduces a figure that lies |
+| the named states and the refusals | `AUCUNE_MESUREE`, `PORTE_UNIQUE`, `NON_MESURABLE`… A reasoned refusal is a feature, not a hole to fill |
 
-**La règle qui résume tout :** *aucun nombre écrit à la main dans un composant.* Tout vient de
-`facts.json`, de `dataset.ts` ou de `donnees.ts`. `src/lib/facts.test.ts` fait tomber la suite si
-un chiffre est tapé en dur dans un écran.
+**The rule that sums it all up:** *no number written by hand in a component.* Everything comes
+from `facts.json`, from `dataset.ts` or from `donnees.ts`. `src/lib/facts.test.ts` brings the
+suite down if a figure is hard-coded into a screen.
 
-**Ce qui reste dans les mains de JB** (donc ni les tiennes ni celles de ton Claude) : activer
-GitHub Pages, déployer le contrat d'abonnement sur un réseau public, tourner la vidéo, ouvrir la
-PR `Uniswap/hooklist`. Si un écran dit « en attente », c'est ça qu'il attend — ce n'est pas un
-bug à corriger.
-
----
-
-## 1. Ce que le produit est, en une phrase
-
-Uniswap v4 laisse un « hook » s'exécuter à chaque swap, et il peut prélever. **Personne ne
-publie combien.** Le registre officiel a 27 champs, 19 booléens, et son schéma interdit d'ajouter
-une quantité. Sur 1 559 hooks vus en 200 000 blocs Base, **9 déclarent quoi que ce soit** — et ce
-qu'ils émettent est un montant absolu sur un swap passé, pas le taux qu'on paierait.
-
-Comparer est impossible : la clé d'un pool v4 **contient** l'adresse du hook, donc « le même pool
-sans son hook » n'existe pas. Alors on ne change pas le pool — **on change le code du hook**. Sur
-un fork épinglé, `anvil_setCode` remplace son bytecode par 89 octets inertes, on cote le même swap
-deux fois, et **l'écart est le péage**.
-
-**125 072 mesures · 7 817 pools · 112 hooks · 8 tailles · les deux sens.** Chaque ligne se rejoue
-en une commande.
+**What stays in JB's hands** (so neither yours nor your Claude's): enabling GitHub Pages,
+deploying the subscription contract to a public network, shooting the video, opening the
+`Uniswap/hooklist` PR. If a screen says "pending", that is what it is waiting for — it is not a
+bug to fix.
 
 ---
 
-## 2. L'outil central, et les treize autres
+## 1. What the product is, in one sentence
 
-L'outil central est **1 · Mesurer** : c'est le seul qui produit une donnée qui n'existait pas.
-Tout le reste lit ce qu'il a produit, ou agit dessus.
+Uniswap v4 lets a "hook" run on every swap, and it can take a cut. **Nobody publishes how
+much.** The official registry has 27 fields, 19 booleans, and its schema forbids adding a
+quantity. Out of 1,559 hooks seen across 200,000 Base blocks, **9 declare anything at all** — and
+what they emit is an absolute amount on a past swap, not the rate you would pay.
 
-Les quatorze se rangent en **trois familles**, et la couleur est déjà posée dans le code
-(`src/lib/outils.ts`) :
+Comparing is impossible: a v4 pool's key **contains** the hook's address, so "the same pool
+without its hook" does not exist. So we do not change the pool — **we change the hook's code**. On
+a pinned fork, `anvil_setCode` replaces its bytecode with 89 inert bytes, the same swap is quoted
+twice, and **the gap is the toll**.
 
-| famille | couleur | ce qu'elle fait | outils |
+**125,072 measurements · 7,817 pools · 112 hooks · 8 sizes · both directions.** Every row replays
+in one command.
+
+---
+
+## 2. The central tool, and the other thirteen
+
+The central tool is **1 · Measure**: it is the only one that produces data that did not exist.
+Everything else reads what it produced, or acts on it.
+
+The fourteen sort into **three families**, and the colour is already set in the code
+(`src/lib/outils.ts`):
+
+| family | colour | what it does | tools |
 |---|---|---|---|
-| **collecte** | bleu `--focus` | va chercher une donnée qui n'existait pas | 1, 8, 10 |
-| **analyse** | jaune `--m-6` | lit ce qui est mesuré et en tire une réponse | 2, 3, 4, 5, 6 |
-| **action** | orange `--m-4` | **change quelque chose** — transaction, session, écriture on-chain | 7, 9, 11, 12, 13, 14 |
+| **collection** | blue `--focus` | goes and fetches data that did not exist | 1, 8, 10 |
+| **analysis** | yellow `--m-6` | reads what has been measured and draws an answer from it | 2, 3, 4, 5, 6 |
+| **action** | orange `--m-4` | **changes something** — transaction, session, on-chain write | 7, 9, 11, 12, 13, 14 |
 
-L'orange est la seule famille qui touche à l'argent de quelqu'un. Elle doit se repérer sans lire.
+Orange is the only family that touches somebody's money. It has to be spotted without reading.
 
 ---
 
-## 3. Les outils, classés par importance pour le jury
+## 3. The tools, ranked by importance to the jury
 
-Le critère : **qu'est-ce qui, montré trente secondes, fait comprendre que ce projet existe ?**
+The criterion: **what, shown for thirty seconds, makes someone understand that this project
+exists?**
 
-| rang | outil | famille | pourquoi il passe en premier | où c'est déjà |
+| rank | tool | family | why it goes first | where it already is |
 |---|---|---|---|---|
-| **1** | **1 · Mesurer** | collecte | C'est **la** trouvaille. Le contrefactuel sur le code et non sur la clé, le talon de 89 octets, les deux cotations. Sans lui il n'y a pas de projet. Montrer les deux sorties appariées et l'écart. | page outil 1 |
-| **2** | **7 · Substituer** | action | Transforme un verdict en **décision**. Permit2, une signature au lieu de deux transactions, et **on n'envoie jamais**. C'est ce qui sépare un dashboard d'un produit. | page outil 7, panneau 16 |
-| **3** | **3 · Situer** | analyse | La question d'un humain : « je mets 100 €, il m'en reste combien ? » C'est la porte d'entrée à coût nul. | panneau 00 |
-| **4** | **6 · Proposer une autre porte** | analyse | Le fait contre-intuitif : **99,71 % du temps il n'y a qu'une porte**, et le dire est une réponse. Aucun agrégateur ne le dit. | page outil 6, panneau 16 |
-| **5** | **10 · Payer à l'unité** | collecte | x402 sur Hedera, 5 règlements relus **sur le mirror node**, pas sur notre parole. C'est l'exigence du track et c'est vérifiable par un tiers. | panneau 09 |
-| **6** | **8 · Intercepter** | collecte | Le bon moment n'est pas « quand on cherche », c'est **trois secondes avant de signer**. 12 Ko de script, table hors ligne. | pas encore à l'écran |
-| **7** | **14 · Attester** | action | Un **autre contrat** lit nos mesures. La seule surface qu'une machine consomme sans nous demander. 16 écrites sur 99 calculées — et on le dit. | panneau 11 |
-| **8** | **13 · Prouver** | action | Identité HCS-14 recalculable par n'importe qui depuis six champs. Un appelant sait **qui** il appelle. | panneaux 10, 13 |
-| **9** | **4 · Comprendre** | analyse | Les grappes de bytecode identique et les contradictions registre/mesure. Impressionnant mais demande une API. | panneau 08 |
-| **10** | **9 · Approuver** | action | Le rapport rendu **champ par champ** sur un Ledger : on ne signe pas un hash opaque. | panneau 14 |
-| **11** | **5 · Décider** | analyse | Le classement des portes d'une paire. Utile, mais recoupe 6. | panneau 03 |
-| **12** | **2 · Consulter** | analyse | Le corpus brut. Indispensable, peu spectaculaire. | panneaux 02, 05–07 |
-| **13** | **12 · Authentifier** | action | Connexion par signature, sans mot de passe. Attendu, pas différenciant. | panneau 15 |
-| **14** | **11 · S'abonner** | action | Le contrat existe et passe 20 tests **mais n'est pas déployé**. À montrer en dernier, et à annoncer comme tel. | panneau 15 |
+| **1** | **1 · Measure** | collection | This is **the** find. The counterfactual on the code and not on the key, the 89-byte stub, the two quotes. Without it there is no project. Show the two paired outputs and the gap. | tool page 1 |
+| **2** | **7 · Substitute** | action | Turns a verdict into a **decision**. Permit2, one signature instead of two transactions, and **we never send**. It is what separates a dashboard from a product. | tool page 7, panel 16 |
+| **3** | **3 · Gauge** | analysis | A human's question: "I put in 100 €, how much is left?" It is the way in at zero cost. | panel 00 |
+| **4** | **6 · Propose another door** | analysis | The counter-intuitive fact: **99.71 % of the time there is only one door**, and saying so is an answer. No aggregator says it. | tool page 6, panel 16 |
+| **5** | **10 · Pay per call** | collection | x402 on Hedera, 5 settlements re-read **on the mirror node**, not on our word. It is the track's requirement and a third party can check it. | panel 09 |
+| **6** | **8 · Intercept** | collection | The right moment is not "when you are searching", it is **three seconds before signing**. 12 KB of script, offline table. | not on screen yet |
+| **7** | **14 · Attest** | action | **Another contract** reads our measurements. The only surface a machine consumes without asking us. 16 written out of 99 computed — and we say so. | panel 11 |
+| **8** | **13 · Prove** | action | An HCS-14 identity anyone can recompute from six fields. A caller knows **who** it is calling. | panels 10, 13 |
+| **9** | **4 · Understand** | analysis | The clusters of identical bytecode and the registry/measurement contradictions. Impressive but it needs an API. | panel 08 |
+| **10** | **9 · Approve** | action | The report rendered **field by field** on a Ledger: you do not sign an opaque hash. | panel 14 |
+| **11** | **5 · Decide** | analysis | The ranking of a pair's doors. Useful, but it overlaps 6. | panel 03 |
+| **12** | **2 · Look up** | analysis | The raw corpus. Indispensable, not spectacular. | panels 02, 05–07 |
+| **13** | **12 · Authenticate** | action | Sign-in by signature, no password. Expected, not a differentiator. | panel 15 |
+| **14** | **11 · Subscribe** | action | The contract exists and passes 20 tests **but is not deployed**. To be shown last, and announced as such. | panel 15 |
 
 ---
 
-## 4. Les données, classées par importance pour le jury
+## 4. The data, ranked by importance to the jury
 
-Le critère : **qu'est-ce qu'un juge ne peut trouver nulle part ailleurs ?**
+The criterion: **what can a judge find nowhere else?**
 
-> **Les treize lignes ci-dessous sont les plus fortes, pas les seules.** Le dépôt porte
-> **27 jeux de données**, tous recensés dans `apps/web/src/lib/donnees.ts` avec ce qu'ils
-> contiennent, la commande qui les a produits, et **les outils qui les lisent ou les écrivent**.
-> Le tableau complet s'affiche sur le site, panneau **18 · quelle donnée sert quel outil**.
-> Leur volume n'est écrit nulle part à la main : il est *statté au build* et vit dans
-> `facts.inventaire`. Et `src/lib/outils.test.ts` **refuse** qu'un fichier suivi par git sous
-> `docs/dataset/` ou `packages/guard/data/` manque à cette liste — l'oubli fait tomber un test
-> au lieu de dormir dans un coin.
+> **The thirteen rows below are the strongest, not the only ones.** The repository carries
+> **27 datasets**, all listed in `apps/web/src/lib/donnees.ts` with what they contain, the
+> command that produced them, and **the tools that read or write them**. The full table is
+> displayed on the site, panel **18 · which dataset serves which tool**.
+> Their size is nowhere written by hand: it is *statted at build time* and lives in
+> `facts.inventaire`. And `src/lib/outils.test.ts` **refuses** to let a git-tracked file under
+> `docs/dataset/` or `packages/guard/data/` be missing from that list — the omission brings a
+> test down instead of sleeping in a corner.
 
-| rang | donnée | volume | pourquoi elle compte | fichier |
+| rank | dataset | size | why it matters | file |
 |---|---|---|---|---|
-| **1** | **Le corpus de mesures** | 125 072 lignes | La chose que personne d'autre n'a. Chaque ligne porte son bloc, sa taille, son sens, son étiquette et sa commande de rejeu. | `docs/dataset/measurements.jsonl` → `src/data/dataset.json` |
-| **2** | **Les 6 pools à sens unique** | 6 pools | **Entrée 0,00 bps, sortie 9 999.** Aucun n'a de code source public : **aucune lecture de code ne pouvait les trouver.** C'est la preuve que la mesure trouve ce que l'audit ne trouve pas. | `docs/dataset/one-way.json` |
-| **3** | **Le balayage des déclarations** | 1 559 hooks, 200 000 blocs | 9 déclarent — 0,58 %. Couverture 1, les deux `topic0` calculés depuis leur signature. | `docs/dataset/declarations.json` |
-| **4** | **La couverture du registre** | 78 absents / 112 | Le registre officiel **ne voit pas 70 %** des hooks qu'on a mesurés. | `docs/dataset/registre-couverture.json` |
-| **5** | **La concordance source ↔ mesure** | 4 801 concordants, 94 divergents | Là où le code publié annonce un taux, la mesure le confirme — **écart max 0,0005 bps**. Et 94 cas où ça diverge, jusqu'à **9 979 bps**. C'est ce qui rend le reste crédible. | `docs/hooks-source/analysis.json` |
-| **6** | **La porte A4 — cotation vs exécution** | 3 exécutés, 1 divergent | Le seul endroit où une **cotation** devient un **swap exécuté**. On publie le pool où ça ne concorde pas. | `docs/dataset/porte-a4.json` |
-| **7** | **Les règlements x402** | 5 réglés | Relus sur le **mirror node Hedera**, pas sur notre parole. Exigence du track. | `docs/x402-settlements.jsonl` |
-| **8** | **Les chiffres de la porte de remplacement** | 15 propositions / 125 072 | 99,71 % « une seule porte ». Le fait contre-intuitif qui empêche de survendre. | `packages/guard/data/chiffres-alternative.json` |
-| **9** | **Les attestations on-chain** | 16 écrites / 99 calculées | Lisibles par un autre contrat. L'écart est publié. | `docs/dataset/attestations.json` |
-| **10** | **L'identité d'agent HCS-14** | 1 | Recalculable depuis six champs. | `docs/dataset/agent-identity.json` |
-| **11** | **Le recensement de pools** | 7 817 pools | Le dénominateur : sans lui, « 112 hooks » ne veut rien dire. | `docs/dataset/pools-liquides-full.json` |
-| **12** | **La chaîne complète** | 6/6 en 13,7 s | Une vraie transaction → décodée → autre porte ? → mesure payée → ancrée → signée. | `docs/dataset/chaine-complete.json` |
-| **13** | **Le graphe** | 198 Mo, reconstruit | Grappes de bytecode, orphelins, contradictions. **Absent d'un clone** : il se reconstruit. | `engine/tare/graph/data/graph.json` |
+| **1** | **The measurement corpus** | 125,072 rows | The thing nobody else has. Every row carries its block, its size, its direction, its label and its replay command. | `docs/dataset/measurements.jsonl` → `src/data/dataset.json` |
+| **2** | **The 6 one-way pools** | 6 pools | **In at 0.00 bps, out at 9,999.** None of them has public source code: **no reading of code could have found them.** It is the proof that measurement finds what auditing does not. | `docs/dataset/one-way.json` |
+| **3** | **The declarations sweep** | 1,559 hooks, 200,000 blocks | 9 declare — 0.58 %. Coverage 1, both `topic0` computed from their signature. | `docs/dataset/declarations.json` |
+| **4** | **The registry's coverage** | 78 absent / 112 | The official registry **does not see 70 %** of the hooks we measured. | `docs/dataset/registre-couverture.json` |
+| **5** | **The source ↔ measurement agreement** | 4,801 agreeing, 94 diverging | Where the published code announces a rate, the measurement confirms it — **maximum gap 0.0005 bps**. And 94 cases where it diverges, up to **9,979 bps**. It is what makes the rest credible. | `docs/hooks-source/analysis.json` |
+| **6** | **Door A4 — quote vs execution** | 3 executed, 1 diverging | The only place where a **quote** becomes an **executed swap**. We publish the pool where it does not match. | `docs/dataset/porte-a4.json` |
+| **7** | **The x402 settlements** | 5 settled | Re-read on the **Hedera mirror node**, not on our word. A track requirement. | `docs/x402-settlements.jsonl` |
+| **8** | **The replacement-door figures** | 15 proposals / 125,072 | 99.71 % "only one door". The counter-intuitive fact that keeps us from overselling. | `packages/guard/data/chiffres-alternative.json` |
+| **9** | **The on-chain attestations** | 16 written / 99 computed | Readable by another contract. The gap is published. | `docs/dataset/attestations.json` |
+| **10** | **The HCS-14 agent identity** | 1 | Recomputable from six fields. | `docs/dataset/agent-identity.json` |
+| **11** | **The pool census** | 7,817 pools | The denominator: without it, "112 hooks" means nothing. | `docs/dataset/pools-liquides-full.json` |
+| **12** | **The full chain** | 6/6 in 13.7 s | A real transaction → decoded → another door? → measurement paid for → anchored → signed. | `docs/dataset/chaine-complete.json` |
+| **13** | **The graph** | 198 MB, rebuilt | Bytecode clusters, orphans, contradictions. **Absent from a clone**: it rebuilds itself. | `engine/tare/graph/data/graph.json` |
 
 ---
 
-## 4 bis. L'anatomie d'une page outil : entrée → exécution → sortie
+## 4 bis. The anatomy of a tool page: input → execution → output
 
-Chaque page outil porte **trois temps**, dans cet ordre, et les mots changent selon la famille
-parce que les trois familles ne font pas la même chose :
+Every tool page carries **three movements**, in this order, and the words change with the family
+because the three families do not do the same thing:
 
-| famille | 1er temps | 2e temps | 3e temps |
+| family | 1st movement | 2nd movement | 3rd movement |
 |---|---|---|---|
-| **collecte** (bleu) | *ce qu'il va chercher* | *il s'exécute* | *ce qu'il ramène* |
-| **analyse** (jaune) | *donnée d'entrée* | *il s'exécute* | *donnée de sortie* |
-| **action** (orange) | *ce qu'il lit avant d'agir* | *l'action* | *ce qui change* |
+| **collection** (blue) | *what it goes to fetch* | *it runs* | *what it brings back* |
+| **analysis** (yellow) | *input data* | *it runs* | *output data* |
+| **action** (orange) | *what it reads before acting* | *the action* | *what changes* |
 
-Ce que chaque temps contient, et d'où ça vient — tu n'as rien à écrire, seulement à mettre en
-forme :
+What each movement contains, and where it comes from — you have nothing to write, only to lay
+out:
 
-1. **L'entrée.** D'abord ce qui n'est **pas** un fichier (`outil.entree` : une adresse collée, un
-   calldata intercepté, un état lu sur la chaîne). Ensuite les **fichiers**, tirés de
-   `donnees.ts` : nom, volume, ce qu'ils contiennent, la commande qui les a produits. Pour les
-   six outils qui lisent le corpus, un **échantillon réel** de cinq lignes, avec le compte total
-   affiché pour que la troncature se voie.
-2. **L'exécution.** `outil.execute` : trois à cinq étapes numérotées, dans l'ordre où elles
-   arrivent, plus `outil.cout`. Pour la famille `action`, la dernière étape nomme **ce qui
-   change** — un test le vérifie.
-3. **La sortie.** `outil.sortie` : les champs rendus, **par leur vrai nom** (`out_with`, `bps`,
-   `label`, `to / data / value`, `abonneJusquA`…) avec ce que chacun vaut. Puis les jeux que
-   l'outil **écrit**, s'il en écrit. Puis, pour huit outils, la **sortie réelle** : les cotations
-   appariées du fork, les règlements relus, les écrans du Ledger, les neuf états de Permit2.
+1. **The input.** First what is **not** a file (`outil.entree`: a pasted address, an intercepted
+   calldata, a state read on chain). Then the **files**, drawn from `donnees.ts`: name, size,
+   what they contain, the command that produced them. For the six tools that read the corpus, a
+   **real sample** of five rows, with the total count displayed so that the truncation is
+   visible.
+2. **The execution.** `outil.execute`: three to five numbered steps, in the order they happen,
+   plus `outil.cout`. For the `action` family, the last step names **what changes** — a test
+   checks it.
+3. **The output.** `outil.sortie`: the fields returned, **under their real names** (`out_with`,
+   `bps`, `label`, `to / data / value`, `abonneJusquA`…) with what each one is worth. Then the
+   datasets the tool **writes**, if it writes any. Then, for eight tools, the **real output**:
+   the fork's paired quotes, the re-read settlements, the Ledger screens, Permit2's nine states.
 
-Avant ce travail, six pages sur quatorze n'affichaient aucune sortie nommée. C'est réparé, et
-`outils.test.ts` exige désormais ≥ 1 entrée, ≥ 3 étapes et ≥ 2 champs de sortie par outil.
+Before this work, six pages out of fourteen displayed no named output at all. That is fixed, and
+`outils.test.ts` now requires ≥ 1 input, ≥ 3 steps and ≥ 2 output fields per tool.
 
 ---
 
-## 5. Ce qui existe déjà côté code, et que tu n'as pas à refaire
+## 5. What already exists on the code side, and that you do not have to redo
 
-| pièce | ce qu'elle fait | où |
+| piece | what it does | where |
 |---|---|---|
-| `src/lib/outils.ts` | **la carte** : 14 outils × famille, question, données, routes, panneaux, accès, coût, état | typé, sans dépendance |
-| `src/lib/donnees.ts` | **le recensement** : 27 jeux de données × ce qu'ils contiennent × qui les lit ou les écrit | typé, testé |
-| `src/lib/outils.test.ts` | le garde-fou : aucun fichier de données orphelin, aucun chemin de code inventé | `node --test src/lib/*.test.ts` |
-| `src/lib/portes.ts` | « par où acheter ce jeton » — pur, hors ligne, groupé par monnaie dépensée | testé |
-| `src/lib/dataset.ts` | les 125 072 mesures, encodées par colonnes (7,9 Mo) | déjà dans le paquet |
-| `src/data/facts.json` | 11 groupes de faits, assemblés depuis le dépôt | régénéré par `npm run data` |
-| `src/compte/api.ts` | les 9 routes du compte, EIP-6963, signature, abonnement lu on-chain | typé |
-| `src/compte/substitution.ts` | `POST /alternative`, les 6 + 10 états nommés | typé |
-| `src/components/Prim.tsx` | `Panel`, `Copy`, `Replay`, `NonLu`, `Chip` | la charte |
+| `src/lib/outils.ts` | **the map**: 14 tools × family, question, data, routes, panels, ways in, cost, state | typed, no dependency |
+| `src/lib/donnees.ts` | **the census**: 27 datasets × what they contain × who reads or writes them | typed, tested |
+| `src/lib/outils.test.ts` | the guard rail: no orphaned data file, no invented code path | `node --test src/lib/*.test.ts` |
+| `src/lib/portes.ts` | "where to buy this token" — pure, offline, grouped by the currency spent | tested |
+| `src/lib/dataset.ts` | the 125,072 measurements, encoded by column (7.9 MB) | already in the bundle |
+| `src/data/facts.json` | 11 groups of facts, assembled from the repository | regenerated by `npm run data` |
+| `src/compte/api.ts` | the account's 9 routes, EIP-6963, signature, subscription read on chain | typed |
+| `src/compte/substitution.ts` | `POST /alternative`, the 6 + 10 named states | typed |
+| `src/components/Prim.tsx` | `Panel`, `Copy`, `Replay`, `NonLu`, `Chip` | the house style |
 
-**Trois routes** dans l'app (routeur par fragment, sans dépendance) :
+**Three routes** in the app (fragment router, no dependency):
 
 ```
-#/              l'opération : coller un jeton → par où l'acheter
-                puis 17 · les cinq accès, et 18 · quelle donnée sert quel outil
-#/outil/<n>     une page par outil : ce qu'il ingère → il s'exécute → ce qu'il rend
-#/instrument    les 17 panneaux d'analyse
+#/              the operation: paste a token → where to buy it
+                then 17 · the five ways in, and 18 · which dataset serves which tool
+#/outil/<n>     one page per tool: what it ingests → it runs → what it returns
+#/instrument    the 17 analysis panels
 ```
 
 ---
 
-## 6. Les règles d'honnêteté — elles ne sont pas négociables
+## 6. The honesty rules — they are not negotiable
 
-Elles sont l'argument du projet. Un écran qui les casse casse le projet.
+They are the project's argument. A screen that breaks them breaks the project.
 
-1. **Quatre étiquettes, jamais promues** : `MESURE`, `INTERPOLE`, `NON_MESURABLE`, `NON_COTABLE`.
-   Une lecture qui échoue est `NON_MESURABLE` — **jamais un zéro**, jamais un blanc.
-2. **Un blanc se lit « rien », et « rien » se lit « zéro ».** Utilise `<NonLu>`.
-3. **Chaque nombre porte son bloc, sa taille, son sens et sa commande de rejeu.**
-4. **Une liste tronquée le dit**, avec le compte de ce qui manque.
-5. **On ne dit jamais « abonné » parce qu'une transaction est partie** : seule la relecture
-   on-chain tranche.
-6. **La substitution est construite, jamais envoyée.** Le bouton n'est actif que sur `PRÊT`.
+1. **Four labels, never promoted**: `MESURE`, `INTERPOLE`, `NON_MESURABLE`, `NON_COTABLE`.
+   A reading that fails is `NON_MESURABLE` — **never a zero**, never a blank.
+2. **A blank reads as "nothing", and "nothing" reads as "zero".** Use `<NonLu>`.
+3. **Every number carries its block, its size, its direction and its replay command.**
+4. **A truncated list says so**, with the count of what is missing.
+5. **We never say "subscribed" because a transaction went out**: only the on-chain re-read
+   settles it.
+6. **The substitution is built, never sent.** The button is active only on `PRÊT`.
 
 ---
 
-## 7. Ce qui reste à faire, et qui est à toi
+## 7. What is left to do, and is yours
 
-- **Le design.** Les pages outil ont un accent par famille et une sortie par outil, mais elles se
-  ressemblent. Chaque famille mérite sa forme : la collecte montre une **exécution** (deux
-  cotations appariées, un journal qui défile), l'analyse montre une **distribution**, l'action
-  montre un **état** et un bouton.
-- **La page outil 1 (Mesurer)** est la plus importante : montre les deux sorties du fork
-  côte à côte et l'écart entre elles. C'est l'idée du projet en une image.
-- **L'animation.** Une par famille, pas une par page — quatorze animations différentes fatiguent.
-- **Le responsive.** Les tableaux ont déjà `overflow-x: auto` sur leur conteneur ; vérifie à 400 px.
-- **L'anglais.** L'instrument est en français. C'est une décision de JB, pas un oubli.
+- **The design.** The tool pages have one accent per family and one output per tool, but they
+  look alike. Each family deserves its own shape: collection shows an **execution** (two paired
+  quotes, a log scrolling past), analysis shows a **distribution**, action shows a **state** and
+  a button.
+- **Tool page 1 (Measure)** is the most important: show the fork's two outputs side by side and
+  the gap between them. It is the project's idea in one image.
+- **The animation.** One per family, not one per page — fourteen different animations are tiring.
+- **The responsive behaviour.** The tables already have `overflow-x: auto` on their container;
+  check at 400 px.
+- **English.** The instrument is in French. That is JB's decision, not an oversight.

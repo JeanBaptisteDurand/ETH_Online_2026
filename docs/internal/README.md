@@ -1,7 +1,7 @@
 # Internal working documents
 
-Everything in this directory is an **internal working document**, written in French, kept in the
-repository for the record rather than as documentation of the product.
+Everything in this directory is an **internal working document**, kept in the repository for the
+record rather than as documentation of the product.
 
 They are here for two reasons. ETHGlobal asks submissions to include the specs, prompts and
 planning artifacts they were built from, and these are part of that record — the rest of it is in
@@ -22,5 +22,5 @@ it is the one file whose figures a test recomputes from the published dataset
 
 The one working document that is *not* here is [`docs/VOD.md`](../VOD.md), the shot list for the
 demo video. It is still in use — the deck's nine beats follow its order — so it stays where the
-code points at it. Its headings and its how-to are in English; the lines that are spoken on camera
-are kept in the language they will be spoken in.
+code points at it. Its headings, its how-to and the lines that are spoken on camera are all in
+English.

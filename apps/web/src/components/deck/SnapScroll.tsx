@@ -248,6 +248,16 @@ function DeckStyles() {
 .dk-etape>.dk-num{font-family:var(--mono);font-size:max(1.02cqi,10px);color:var(--ink-2);min-width:max(1.8cqi,16px);flex:0 0 auto}
 @media (max-width:900px){.dk-etape{gap:8px;padding:6px 0}}
 
+/* --------------------------------------------------------------------- une cellule d'agrégat */
+.dk-agg{border:1px solid var(--line);background:var(--surface-1);padding:1.3cqi 1.5cqi;display:flex;flex-direction:column;gap:0.4cqi;justify-content:center;min-width:0}
+.dk-agg b{font-family:var(--mono);font-weight:500;font-size:max(2.9cqi,22px);line-height:1;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.dk-agg i{font-family:var(--prose);font-style:normal;font-size:max(1.16cqi,11.5px);line-height:1.4;color:var(--ink-2)}
+@media (max-width:900px){.dk-agg{padding:12px 14px;gap:5px}}
+
+/* --------------------------------------------------------------------- un champ LABEL / valeur */
+.dk-champ{display:grid;grid-template-columns:minmax(0,14cqi) minmax(0,1fr);gap:1cqi;align-items:baseline;min-width:0}
+@media (max-width:900px){.dk-champ{grid-template-columns:minmax(0,1fr);gap:2px}}
+
 /* --------------------------------------------------------------------- les écrans Ledger */
 .dk-ecran{border:1px solid var(--line);background:var(--bg-2);padding:0.9cqi 1.1cqi;display:flex;flex-direction:column;gap:0.35cqi;min-width:0;transition:opacity 320ms var(--e-enter),transform 320ms var(--e-enter),border-color 320ms linear}
 .dk-ecran b{font-family:var(--mono);font-weight:500;font-size:max(1.22cqi,11.5px);color:var(--ink);overflow-wrap:anywhere;line-height:1.3}

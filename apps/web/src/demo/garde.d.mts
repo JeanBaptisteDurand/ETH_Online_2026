@@ -217,3 +217,79 @@ export declare function encodeUniversalRouterExactInSingle(
 export declare const PERMIT2: string
 export declare const COMMAND_PERMIT2_PERMIT: number
 export declare const UNIVERSAL_ROUTER_BASE: string
+
+/* ------------------------------------ injection.ts : l'interception, la vraie */
+
+/** La forme minimale d'une transaction qu'un fournisseur EIP-1193 recoit. */
+export interface TxRequest {
+  to?: string | null
+  from?: string | null
+  data?: string | null
+  input?: string | null
+  value?: string | number | bigint | null
+  chainId?: string | number | null
+}
+
+/** Ce que la garde a lu d'une transaction. Seuls les champs que l'ecran rend sont declares. */
+export interface GuardReport {
+  verdict: Verdict
+  complete: boolean
+  decode: DecodeResult
+  findings: {
+    leg: SwapLeg
+    hook: string
+    label: Label
+    bps: number | null
+    reason: string | null
+    basis: 'exact' | 'interpolated' | 'evidence' | 'none'
+    citations: TableHit[]
+    verdict: Verdict
+    sentence: string
+    replay: string | null
+  }[]
+  table: { nMeasurements: number; nHooks: number; nPools: number; blockNumber: number; chainId: number }
+  headline: string
+  warnings: string[]
+  alternative: Alternative | null
+}
+
+export interface ApprovalDecision {
+  approved: boolean
+  by: string
+  reason: string
+  attestation?: string | null
+}
+
+export interface Approver {
+  readonly name: string
+  approve(report: GuardReport): Promise<ApprovalDecision>
+}
+
+export interface Eip1193Provider {
+  request(args: { method: string; params?: unknown[] | object }): Promise<unknown>
+  on?: (event: string, cb: (...a: unknown[]) => void) => void
+  removeListener?: (event: string, cb: (...a: unknown[]) => void) => void
+  [k: string]: unknown
+}
+
+/** Le refus rendu a l'appelant : `code` vaut 4001, celui que les dapps savent deja traiter. */
+export declare class UserRejectedByGuard extends Error {
+  readonly code: 4001
+  readonly report: GuardReport
+  readonly decision: ApprovalDecision
+}
+
+export declare function envelopperProvider(
+  provider: Eip1193Provider,
+  opts: {
+    consulter: (tx: TxRequest) => Promise<GuardReport>
+    approver?: Approver
+    askOn?: ('ok' | 'warn' | 'block')[]
+    onReport?: (report: GuardReport, tx: TxRequest) => void
+  },
+): Eip1193Provider
+
+export declare function tareGuard(
+  tx: TxRequest,
+  options: { table: unknown; routers?: string[]; atBlock?: number | null },
+): GuardReport

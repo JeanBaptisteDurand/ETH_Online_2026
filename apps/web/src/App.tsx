@@ -623,7 +623,7 @@ function AppInterne() {
         <RouteMotion cle="demo">
           {/* Marges plus courtes que partout ailleurs, et c'est voulu : la demonstration doit
               tenir dans 1440x900 sans defiler. Le reste du site respire, celle-ci se lit. */}
-          <main id="contenu" className="px-[16px] pt-[14px] pb-[16px] mx-auto w-full" style={{ maxWidth: 1440 }}>
+          <main id="contenu" className="px-[16px] pt-[6px] pb-[6px] mx-auto w-full" style={{ maxWidth: 1440 }}>
             <DemoPage />
           </main>
         </RouteMotion>

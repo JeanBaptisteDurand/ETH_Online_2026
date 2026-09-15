@@ -54,23 +54,34 @@ export function inputCurrency(row: { zero_for_one: boolean; currency0: string; c
 }
 
 /**
+ * Le noeud vise par defaut : un anvil local. C'est le REPLI, pas le bon choix pour un lecteur
+ * exterieur — personne d'autre n'a cet anvil, et une commande qui ne tourne que chez nous rend
+ * fausse la promesse ecrite partout ici (« chaque chiffre se rejoue en une commande »). Les
+ * ecrans qui connaissent le RPC public du fork le passent en second argument.
+ */
+export const RPC_LOCAL = 'http://127.0.0.1:8545'
+
+/**
  * La commande de rejeu d'une mesure. Elle est reelle : elle importe le moteur du depot et
- * refait le meme calcul contre un fork anvil epingle au meme bloc. Verifiee a la main sur la
+ * refait le meme calcul contre un fork epingle au meme bloc. Verifiee a la main sur la
  * ligne 0 du jeu de donnees (99,9557 bps, meme pool_id).
  */
-export function replayCommand(row: {
-  currency0: string
-  currency1: string
-  key_fee: number
-  tick_spacing: number
-  hook: string
-  zero_for_one: boolean
-  amount_in: string
-  block_number: number
-}): string {
+export function replayCommand(
+  row: {
+    currency0: string
+    currency1: string
+    key_fee: number
+    tick_spacing: number
+    hook: string
+    zero_for_one: boolean
+    amount_in: string
+    block_number: number
+  },
+  rpc: string = RPC_LOCAL,
+): string {
   return (
     `cd engine && python3 -c "from tare.poolid import PoolKey; from tare.measure import measure; ` +
-    `print(measure('http://127.0.0.1:8545', ` +
+    `print(measure('${rpc}', ` +
     `PoolKey('${row.currency0}','${row.currency1}',${row.key_fee},${row.tick_spacing},'${row.hook}'), ` +
     `${row.zero_for_one ? 'True' : 'False'}, ${row.amount_in}, ${row.block_number}))"`
   )

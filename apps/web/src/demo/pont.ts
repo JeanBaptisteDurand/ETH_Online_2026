@@ -195,6 +195,17 @@ export interface Preparation {
   etat_alternative?: string
   /** LA TRANSACTION DE REMPLACEMENT : construite, rendue, jamais envoyee */
   transaction_remplacement?: TransactionPrete | null
+  /**
+   * LE MESSAGE QUE L'APPAREIL AFFICHERA, rendu AVANT la signature — et son empreinte.
+   *
+   * `prompt_digest` est le keccak256 de `texte_signe`. Les deux sont rendus par le service pour
+   * que l'empreinte montree par la page et celle affichee sur l'appareil soient le MEME nombre,
+   * refaisable a la main. Sans elle, le rapprochement que la demonstration promet — « ce que
+   * vous lisez sur l'appareil est ce que la page annonce » — resterait invisible a un jury.
+   */
+  prompt_digest?: string | null
+  texte_signe?: string | null
+  message?: Record<string, unknown> | null
 }
 
 export interface Approbation {

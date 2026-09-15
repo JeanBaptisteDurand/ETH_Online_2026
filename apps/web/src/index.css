@@ -1937,7 +1937,7 @@ span a[href] {
 .demo-etapes {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 10px;
+  gap: 8px;
   align-items: start;
   min-width: 0;
 }
@@ -1967,7 +1967,16 @@ span a[href] {
 }
 @media (min-width: 900px) {
   .demo-bande {
-    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr) minmax(0, 1.4fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .demo-bande > * + * {
+    border-top: none;
+    border-left: 1px solid var(--line) !important;
+  }
+}
+@media (min-width: 1280px) {
+  .demo-bande {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.05fr) minmax(0, 1.05fr) minmax(0, 1.05fr);
   }
   .demo-bande > * + * {
     border-top: none;
@@ -1981,4 +1990,70 @@ span a[href] {
   .demo-etapes-3 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
+
+/* LA ROUTE DU SWAP (route #/demo) — une plaque gravee, pas un jeu.
+   La bascule dure 240 ms, en opacite et en translation de quelques pixels. Pas de rebond, pas
+   de couleur qui clignote : la charte du site est une lecture d'appareil. */
+.demo-porte {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 9px;
+  min-width: 0;
+  transition:
+    opacity 240ms linear,
+    border-color 240ms linear;
+}
+.demo-porte-neuve {
+  animation: demo-porte-entre 240ms ease-out both;
+}
+@keyframes demo-porte-entre {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* LE SELECTEUR DE PAIRES : ferme par defaut, pour que les actes restent au-dessus du pli. */
+.demo-paires > summary::marker,
+.demo-paires > summary::-webkit-details-marker {
+  display: none;
+  content: '';
+}
+.demo-paires > summary::before {
+  content: '▸ ';
+  color: var(--ink-4);
+}
+.demo-paires[open] > summary::before {
+  content: '▾ ';
+}
+
+/* La bascule RESTE, l'animation part. Une transition qu'on ne peut pas couper est subie. */
+@media (prefers-reduced-motion: reduce) {
+  .demo-porte,
+  .demo-porte-neuve {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* La barre d'etat de #/demo : une seule ligne, qui defile dans elle-meme plutot que de se
+   replier. Une seconde ligne coute dix-sept pixels a une scene qui fait exactement 900. */
+.demo-barre {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  white-space: nowrap;
+}
+.demo-barre::-webkit-scrollbar {
+  display: none;
+}
+.demo-barre > * {
+  flex: none;
 }

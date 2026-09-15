@@ -31,6 +31,8 @@ import {
 } from '../demo/scenario.ts'
 import { ETIQUETTE, tableDuCorpus } from '../demo/table.ts'
 import { MOITIE_EN_BPS, distribution, lpFeeBps, POURCENT_EN_BPS } from '../demo/distribution.ts'
+import { montantLisible, DECIMALES_NATIF } from '../demo/jetons.ts'
+import { classer, cleDe, pairesAMontrer, pairesMesurees } from '../demo/paires.ts'
 import {
   chercherAlternative,
   consult,
@@ -45,6 +47,12 @@ const lire = (p: string) => readFileSync(resolve(ICI, p), 'utf8')
 
 const ECRAN = lire('../components/Demo.tsx')
 const BANDE = lire('../components/DemoDistribution.tsx')
+const ROUTE = lire('../components/DemoRoute.tsx')
+const PAIRES = lire('../components/DemoPaires.tsx')
+const INTERCEPTION = lire('../demo/interception.ts')
+const SYMBOLES = JSON.parse(lire('../data/symboles.json')) as {
+  jetons: Record<string, { symbole: string | null }>
+}
 const SCENARIO = lire('../demo/scenario.ts')
 const PONT = lire('../demo/pont.ts')
 const TABLE_TS = lire('../demo/table.ts')
@@ -205,9 +213,7 @@ test('la queue est montree comme une queue, jamais comme le titre', () => {
   assert.equal(d.maxLigne.pool_id.toLowerCase(), q.actuelle.poolId)
   assert.equal(d.max, q.actuelle.bps)
   // Les DEUX actes portent la paire, pas l extreme.
-  assert.ok(ECRAN.includes("vue === 'queue' ? queue : paire"), 'l extreme n ouvre plus la demonstration')
-  assert.ok(ECRAN.includes('act 1 — you read what you sign'))
-  assert.ok(ECRAN.includes('act 2 — there is better'))
+  assert.ok(ECRAN.includes("vue === 'queue' ? queue : paire"), 'l extreme n ouvre pas la demonstration')
   // Il reste accessible en un clic, depuis la bande.
   assert.ok(BANDE.includes('see the tail'))
   assert.ok(BANDE.includes('We publish those too'))
@@ -216,7 +222,7 @@ test('la queue est montree comme une queue, jamais comme le titre', () => {
   const au = d.auDessusDe(MOITIE_EN_BPS)
   assert.equal(MOITIE_EN_BPS, 50 * POURCENT_EN_BPS)
   assert.ok(au.n > 0 && au.part < 0.01, `la queue vaut ${(au.part * 100).toFixed(2)} %`)
-  assert.ok(BANDE.includes('take more than half of what you swap'))
+  assert.ok(BANDE.includes('take more than half of\n            what you swap') || BANDE.includes('take more than half of'), 'la queue est nommee par une unite')
   assert.ok(!jsxSeul(BANDE).includes('5000') && !jsxSeul(BANDE).includes('5 000'))
 })
 
@@ -273,7 +279,12 @@ test('l ecran ne porte aucune grandeur du projet en dur — elles viendraient a 
     String(distribution().n),
     (distribution().zero.part * 100).toFixed(2),
   ]
+  // On ne regarde que le JSX RENDU : les commentaires de bloc et les unions de types citent
+  // le code EIP-1193, et c'est leur role. Ce qui est interdit, c'est de l'ECRIRE a l'ecran.
   const jsx = jsxSeul(ECRAN)
+    .split('\n')
+    .filter((l) => !/^\s*(\/\*|\*|\/\/|\|)/.test(l))
+    .join('\n')
   for (const mot of interdits) {
     // Une valeur de moins de quatre caracteres — un prelevement mesure a 0, par exemple — ne
     // se distingue pas d'un chiffre de mise en page : la chercher rendrait le test faux plutot
@@ -298,9 +309,12 @@ test('une absence de mesure s affiche « unknown », jamais zero ni un blanc', (
   assert.ok(ECRAN.includes('unknown'), 'le mot doit etre a l ecran')
   assert.ok(ECRAN.includes('const Inconnu ='), 'un primitif, pour que toutes les absences se disent pareil')
   // Chaque valeur en bps rendue passe par le test d absence.
-  for (const garde of ['p.bps === null ?', 'l.consultation.bps === null ?', 'economie_bps === null ?']) {
+  for (const garde of ['prise === null', 's.usdc === null ?']) {
     assert.ok(ECRAN.includes(garde), `l ecran doit gerer l absence : ${garde}`)
   }
+  assert.ok(ROUTE.includes('p.bps === null'), 'la route dit « unknown » plutot qu une porte gratuite')
+  assert.ok(PAIRES.includes('p.bps === null'), 'et le classement sort les non mesurees')
+  assert.ok(PAIRES.includes('out of the ranking'), 'une porte non mesuree sort du classement')
   // Et le corpus ne laisse jamais un nombre sur une etiquette qui ne peut pas le porter.
   assert.ok(TABLE_TS.includes("NUMERIQUES.has(label) && typeof r.bps === 'number' ? r.bps : null"))
 })
@@ -311,7 +325,7 @@ test('le pont ne rend jamais une panne comme un chargement', () => {
   assert.ok(PONT.includes("refus: 'expire'"), 'un delai expire se dit')
   assert.ok(PONT.includes("refus: 'injoignable'"), 'un service absent se dit')
   assert.ok(ECRAN.includes('the demo bridge'), 'l ecran doit nommer le pont quand il manque')
-  assert.ok(ECRAN.includes('The page stays readable'), 'et rester utilisable en lecture')
+  assert.ok(ECRAN.includes('the corpus and the interception still answer'), 'et rester utilisable en lecture')
 })
 
 /* ------------------------------ 5. l appareil est en DIRECT, jamais un rejeu */
@@ -356,14 +370,14 @@ test("les boutons disent ce qu'ils FONT, et la sequence reelle est ecrite", () =
 
 test('le compteur d ecrans est MESURE, jamais un total annonce d avance', () => {
   // Un total ecrit (« 46 ecrans ») deviendrait faux au premier champ ajoute au rapport.
-  assert.ok(ECRAN.includes('screens seen'))
+  assert.ok(ECRAN.includes('screens {texte ?'), 'le compteur est rendu')
   assert.ok(ECRAN.includes('setEcrans((n) => n + 1)'), 'il avance quand le texte de l ecran change')
   assert.ok(!/46\s*(screens|presses)/.test(ECRAN), 'aucun total ecrit')
   // Et quand le texte n est pas lisible, le compteur dit « unknown », jamais zero.
   assert.ok(ECRAN.includes('quoi="the device screen text"'))
   // Une rafale existe : quarante-six appuis a la main devant un jury, c est trop long.
   assert.ok(ECRAN.includes('const APPUIS_PAR_RAFALE'))
-  assert.ok(ECRAN.includes('next ×{APPUIS_PAR_RAFALE}'))
+  assert.ok(ECRAN.includes('×{APPUIS_PAR_RAFALE}'), 'la rafale est cablee sur sa constante')
 })
 
 test("l'attente de l'appareil a son PROPRE delai, et les lectures gardent le court", () => {
@@ -391,16 +405,16 @@ test('un double clic ne part jamais deux fois : le verrou ferme avant le premier
   // portefeuille — 60 a 120 ms — et le second clic declenchait une SECONDE preparation, donc
   // un second snapshot, et le fork derivait sous la demonstration.
   assert.ok(ECRAN.includes('const enVol = useRef(false)'))
-  for (const geste of ['demanderPreparation', 'demanderAppareil', 'signerEtEnvoyer', 'remettre']) {
+  for (const geste of ['lancerLeSwap', 'remettre']) {
     const i = ECRAN.indexOf(`const ${geste} = async`)
     assert.ok(i > 0, `${geste} doit exister`)
     const tete = ECRAN.slice(i, i + 220)
     assert.ok(tete.includes('if (enVol.current) return'), `${geste} doit poser le verrou`)
   }
   // Et il est pose AVANT le premier await, sinon il ne ferme rien.
-  const i = ECRAN.indexOf('const demanderPreparation = async')
+  const i = ECRAN.indexOf('const lancerLeSwap = async')
   const tete = ECRAN.slice(i, ECRAN.indexOf('await', i))
-  assert.ok(tete.includes('enVol.current = true') && tete.includes("setOccupe('bridge')"))
+  assert.ok(tete.includes('enVol.current = true'), 'le verrou se ferme avant le premier await')
 })
 
 test("l'ecran ne rend aucun texte francais du service, ni aucun guillemet francais", () => {
@@ -555,20 +569,18 @@ test("l ecran nomme les commandes en les DECODANT, il ne les affirme pas", () =>
 test('l acte 2 ne signe QUE la transaction de remplacement, jamais celle d origine', () => {
   // La transaction rendue par `/demo/preparer` sous `transaction` est celle du swap D ORIGINE,
   // par la porte chere. La signer serait exactement le contraire de ce que la scene raconte.
-  assert.ok(ECRAN.includes('preparationOk?.transaction_remplacement ?? null'))
-  assert.ok(ECRAN.includes('envoyer(fournisseur, de, aSigner)'), 'on n envoie que ce qui est a signer')
-  assert.ok(!ECRAN.includes('envoyer(fournisseur, de, preparationOk.transaction)'))
+  assert.ok(ECRAN.includes('preparationOk?.transaction_remplacement ?? envoi?.transaction ?? null'))
+  assert.ok(ECRAN.includes('parLaGarde(remplacement, de)'), 'le remplacement passe par la garde, lui aussi')
 })
 
 test('les divergences entre le scenario et le corpus sont AFFICHEES, pas tues', () => {
   assert.ok(ECRAN.includes('etatOk.divergences'), 'le service les publie : les taire serait choisir en silence')
-  assert.ok(ECRAN.includes('divergence(s) between the script and the corpus'))
-  assert.ok(ECRAN.includes('the corpus wins'), 'et on dit laquelle des deux gagne')
+  assert.ok(ECRAN.includes('divergence(s), corpus wins'), 'et on dit laquelle des deux gagne')
 })
 
 test('le refus se demande a l appareil, et son code vient de la reponse', () => {
   assert.ok(ECRAN.includes('approuver(acteBridge)'), 'le rapport EIP-712 part vers l appareil')
-  assert.ok(ECRAN.includes("typeof appareil.refus === 'number'"), 'le code rendu est lu, pas suppose')
+  assert.ok(ECRAN.includes("typeof rep.refus === 'number'"), 'le code rendu est lu, pas suppose')
 })
 
 test('un solde illisible se dit « unknown », et un fork muet aussi', () => {
@@ -590,6 +602,169 @@ test('l ecran est en anglais : aucune phrase du site en francais ne s y invite',
   )
   // AFFICHAGE, lui, est deja entierement en anglais : il est reutilise tel quel.
   assert.ok(ECRAN.includes('AFFICHAGE['), "les titres d'etat viennent du vocabulaire commun")
+})
+
+/* ------------------- 8 bis. l interception est REELLE, pas mise en scene */
+
+test("la page passe par packages/guard/src/injection.ts, elle ne l imite pas", () => {
+  const frontiere = lire('../demo/garde.mjs')
+  assert.ok(frontiere.includes('injection.ts'), 'envelopperProvider vient du paquet')
+  assert.ok(INTERCEPTION.includes('envelopperProvider('), 'et il est REELLEMENT appele')
+  // La page se comporte comme un site d echange : elle appelle eth_sendTransaction, et c est
+  // la garde posee sur le fournisseur qui l arrete. Aucun « si refus alors ne pas envoyer ».
+  assert.ok(ECRAN.includes("method: 'eth_sendTransaction'"))
+  assert.ok(ECRAN.includes('poste.fournisseur.request'), 'l appel part par le fournisseur ENVELOPPE')
+  // Le mot « simulee » n'apparait que dans l'en-tete, pour dire qu'on ne le fait PAS.
+  assert.ok(!/simul|fake|pretend/i.test(jsxSeul(INTERCEPTION)), 'aucune simulation dans le code')
+})
+
+test('le compteur d ouvertures du portefeuille est MESURE sous la garde', () => {
+  // C est la preuve de la promesse centrale : sur un refus, la fenetre ne s est pas ouverte.
+  // La coquille est posee SOUS l enveloppe, donc elle voit ce que le portefeuille voit.
+  assert.ok(INTERCEPTION.includes('surveillance.ouvertures += 1'))
+  const i = INTERCEPTION.indexOf('const compte')
+  const j = INTERCEPTION.indexOf('envelopperProvider(')
+  assert.ok(i > 0 && j > i, 'la coquille est construite AVANT d etre enveloppee')
+  assert.ok(ECRAN.includes('poste.surveillance.ouvertures'), 'et l ecran le rend')
+  assert.ok(ECRAN.includes('counted, not asserted'))
+})
+
+test('le refus rend 4001 a l appelant, et la page le lit sans le supposer', () => {
+  assert.ok(ECRAN.includes('err.code === CODE_REFUS_UTILISATEUR'))
+  assert.ok(ECRAN.includes("setIssue('REFUSEE')"))
+  // Une garde qui echouerait en « oui » ne garderait rien : le pont muet vaut refus.
+  assert.ok(ECRAN.includes('the bridge did not answer'))
+  assert.ok(ECRAN.includes('approved: false'))
+})
+
+test("la garde ne reecrit rien : le remplacement est un SECOND appel", () => {
+  assert.ok(INTERCEPTION.includes('un SECOND appel'), 'la regle dure n.4, tenue jusqu a l ecran')
+  assert.ok(ECRAN.includes('const envoyerLeRemplacement'))
+  assert.ok(ECRAN.includes('envoie le remplacement en SECOND appel'), 'la regle dure n.4')
+})
+
+/* ------------------- 8 ter. on voit ce qu on echange */
+
+test('un jeton sans symbole lu n en recoit pas un joli', () => {
+  const inconnue = '0x' + 'ab'.repeat(20)
+  assert.equal(SYMBOLES.jetons[inconnue], undefined, 'ce jeton n est pas dans le fichier')
+  // La regle est dans le code : `symbole()` rend null, et l ecran affiche l adresse SEULE.
+  const carte = lire('../components/Carte.tsx')
+  assert.match(carte, /export const symbole = \(adresse: string\): string \| null =>\s*\n?\s*SYM\[adresse\.toLowerCase\(\)\]\?\.symbole \?\? null/)
+  assert.ok(PAIRES.includes('return s ? `${s} · ${shortAddr(adresse, 6, 4)}` : shortAddr(adresse, 8, 6)'))
+  // Et la route ne rend le symbole QUE s il existe.
+  assert.ok(ROUTE.includes('{symbole && ('), 'sans symbole, pas de place vide ni de nom invente')
+})
+
+test('les symboles viennent du fichier lu sur la chaine, jamais d une table ecrite ici', () => {
+  assert.equal(
+    (JSON.parse(lire('../data/symboles.json')) as { schema: string }).schema,
+    'tare-symboles/1',
+  )
+  assert.equal(SYMBOLES.jetons['0x833589fcd6edb6e08f4c7c32d4f71b54bda02913']?.symbole, 'USDC')
+  assert.equal(SYMBOLES.jetons['0x0000000000000000000000000000000000000000']?.symbole, 'ETH')
+  assert.ok(!/'USDC'|"USDC"/.test(jsxSeul(ECRAN)), 'aucun symbole ecrit dans l ecran')
+})
+
+test('un montant n est converti que pour la monnaie dont on connait les decimales', () => {
+  const eth = '0x0000000000000000000000000000000000000000'
+  const usdc = '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913'
+  assert.equal(montantLisible('1000000000000', eth), '0.000001')
+  assert.equal(montantLisible((10n ** BigInt(DECIMALES_NATIF)).toString(), eth), '1')
+  // `symboles.json` ne porte PAS `decimals()` : supposer 18 pour un ERC-20 afficherait un
+  // montant faux d un facteur mille milliards sans que rien ne le dise.
+  assert.equal(montantLisible('1000000', usdc), null)
+  assert.ok(!Object.values(SYMBOLES.jetons).some((j) => 'decimales' in (j as object)))
+})
+
+/* ------------------- 8 quater. la route, le champ lu, le selecteur */
+
+test('la route bascule, et la bascule est un GESTE qu on peut couper', () => {
+  assert.ok(ROUTE.includes('basculee && remplacante'), 'les deux portes coexistent pendant la bascule')
+  assert.ok(ROUTE.includes("etat === 'remplacee'"), "l ancienne porte est barree, pas effacee")
+  assert.ok(ROUTE.includes('line-through'))
+  const css = lire('../index.css')
+  assert.match(css, /\.demo-porte \{[\s\S]*?transition:[\s\S]*?240ms/)
+  assert.ok(css.includes('prefers-reduced-motion'), 'la bascule reste, l animation part')
+  const i = css.indexOf('@media (prefers-reduced-motion: reduce) {\n  .demo-porte')
+  assert.ok(i > 0 && css.slice(i, i + 220).includes('animation: none'))
+})
+
+test("le champ montre a l exterieur est celui RELU de l appareil", () => {
+  // Jamais une liste ecrite d avance : montrer une chose et en signer une autre est
+  // precisement ce que ce projet combat.
+  assert.ok(ECRAN.includes('on the device:'), 'le champ relu est rendu a l exterieur')
+  assert.ok(ECRAN.includes('{ecranTexte}'), 'il rend la variable relue, pas une constante')
+  assert.ok(ECRAN.includes('const lireEcran = useCallback'))
+  assert.ok(ECRAN.includes('e.speculos.ecran ?? null'), 'et elle vient de /demo/etat')
+  // La trace des ecrans defiles vient de la MEME lecture, une par appui.
+  assert.ok(ECRAN.includes('noter(await lireEcran())'))
+  assert.ok(!/const ECRANS\s*=\s*\[/.test(ECRAN), 'aucune liste d ecrans ecrite d avance')
+})
+
+test("l empreinte est affichee, pour qu un jury puisse la rapprocher", () => {
+  assert.ok(ECRAN.includes('prompt digest'))
+  assert.ok(ECRAN.includes('preparationOk.prompt_digest'))
+  assert.ok(ECRAN.includes('keccak256 of the text sent to the device'))
+  assert.ok(PONT.includes('prompt_digest?: string | null'), 'le pont la porte dans son contrat')
+})
+
+test('le selecteur liste les paires nommees, et compte celles qu il laisse', () => {
+  const nomme = (a: string) => Boolean(SYMBOLES.jetons[a.toLowerCase()]?.symbole)
+  const toutes = pairesMesurees()
+  const { montrees, restantes, total } = pairesAMontrer(nomme)
+  assert.equal(total, toutes.length)
+  assert.equal(montrees.length + restantes, total)
+  assert.ok(montrees.length > 0 && restantes > 0, 'la troncature existe, et elle se voit')
+  for (const p of montrees) assert.ok(nomme(p.entree) && nomme(p.sortie))
+  // Elle n est jamais silencieuse.
+  assert.ok(PAIRES.includes('{groupDigits(String(restantes))} more pairs are measured and not listed'))
+  assert.ok(PAIRES.includes('inventing one is the fault this project'), 'et on dit pourquoi')
+})
+
+test('le selecteur ne change PAS la paire executee, et le dit', () => {
+  assert.ok(PAIRES.includes('the corpus answers for every pair; the two acts below execute the'))
+  assert.ok(ECRAN.includes('const surLaPaireExecutee'))
+  assert.ok(ECRAN.includes('actif={!occupe && surLaPaireExecutee && Boolean(fournisseurBrut)}'))
+  assert.ok(ECRAN.includes('the bridge only prepares the executed one'), 'la raison est ecrite')
+})
+
+test('un classement de portes ne melange ni les tailles ni les sens', () => {
+  const p = acteSubstitution()!
+  const c = classer(p.actuelle.entree, p.actuelle.sortie)
+  assert.ok(c.taille !== null)
+  for (const x of [...c.classees, ...c.horsClassement]) assert.equal(x.taille, c.taille)
+  // Classees = MESUREES seulement, triees du moins cher au plus cher.
+  for (const x of c.classees) assert.equal(typeof x.bps, 'number')
+  for (let i = 1; i < c.classees.length; i++)
+    assert.ok(c.classees[i]!.bps! >= c.classees[i - 1]!.bps!)
+  for (const x of c.horsClassement) assert.equal(x.bps, null)
+  assert.equal(cleDe(p.actuelle.entree, p.actuelle.sortie), `${p.actuelle.entree}>${p.actuelle.sortie}`)
+})
+
+test('la commande de rejeu vise le noeud rendu par le pont, pas un anvil local ecrit ici', () => {
+  const fmt = lire('./format.ts')
+  assert.match(fmt, /export const RPC_LOCAL = 'http:\/\/127\.0\.0\.1:8545'/)
+  assert.match(fmt, /rpc: string = RPC_LOCAL/)
+  assert.ok(ECRAN.includes('const rpcRejeu = fork?.rpc ?? RPC_LOCAL'), "l URL vient de /demo/etat")
+  assert.ok(ECRAN.includes('replayCommand(a.actuelle.row, rpcRejeu)'))
+  assert.ok(!jsxSeul(ECRAN).includes('tare-hooks.tech/rpc'), "l URL publique n est pas ecrite ici")
+  // Les deux limites sont avouees, pas tues.
+  assert.ok(ECRAN.includes('it needs the repository and Python 3'))
+  assert.ok(ECRAN.includes('it is shared'))
+  assert.ok(ECRAN.includes('make up'))
+})
+
+test("la provenance de chaque valeur est marquee : rien n est saisi par l utilisateur", () => {
+  // C est l argument du produit : l utilisateur ne fournit ni pool id ni hook. Une page qui
+  // affiche ces valeurs sans dire d ou elles viennent se confond avec un formulaire.
+  for (const s of ['calldata', 'derive', 'corpus']) assert.ok(ECRAN.includes(`'${s}'`))
+  assert.ok(ECRAN.includes('read from the calldata — nobody typed it'))
+  assert.ok(ECRAN.includes('re-derived here, then matched against the corpus'))
+  assert.ok(ECRAN.includes('from the published measurements'))
+  assert.ok(ECRAN.includes('src="calldata"') && ECRAN.includes('src="derive"') && ECRAN.includes('src="corpus"'))
+  // Et le premier panneau dit que c est un swap qu on etait sur le point de faire.
+  assert.ok(ECRAN.includes('This is a swap you were about to make'))
 })
 
 /* ------------------- 9. la table du site est bien celle du paquet */

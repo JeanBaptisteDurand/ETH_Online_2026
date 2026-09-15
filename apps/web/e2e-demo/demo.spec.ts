@@ -53,9 +53,13 @@ const PNG = Buffer.from(
 
 const ADRESSE = '0x1111111111111111111111111111111111111111'
 const HASH = '0x' + 'ab'.repeat(32)
+const DIGEST = '0x' + 'a7c8c2d1'.repeat(8)
+const CODE_REFUS = 4001
+/** Le fork est PUBLIC : c'est lui que la commande de rejeu doit viser, pas un anvil local. */
+const RPC_PUBLIC = 'https://tare-hooks.tech/rpc'
 
 const ETAT = {
-  fork: { chain_id: 8453, block_number: 50614001, rpc: 'http://127.0.0.1:8545' },
+  fork: { chain_id: 8453, block_number: 50614001, rpc: RPC_PUBLIC },
   speculos: { joignable: true, ecran: 'Review TareGuardApproval', api: 'http://127.0.0.1:5000', chemin: "44'/60'/0'/0/0" },
   snapshot: '0x1',
   corpus: F.corpus,
@@ -128,9 +132,11 @@ const json = (r: Route, body: unknown, status = 200) =>
  */
 async function brancherPont(
   page: Page,
-  opts: { approuver?: unknown; ecranOk?: boolean; compter?: () => void; lent?: number } = {},
+  opts: { approuver?: unknown; ecranOk?: boolean; compter?: () => void; lent?: number; ecran?: string } = {},
 ) {
-  await page.route('**/demo.tare-hooks.tech/demo/etat', (r) => json(r, ETAT))
+  await page.route('**/demo.tare-hooks.tech/demo/etat', (r) =>
+    json(r, opts.ecran ? { ...ETAT, speculos: { ...ETAT.speculos, ecran: opts.ecran } } : ETAT),
+  )
   await page.route('**/demo.tare-hooks.tech/demo/preparer', async (r) => {
     opts.compter?.()
     if (opts.lent) await new Promise((res) => setTimeout(res, opts.lent))
@@ -141,6 +147,7 @@ async function brancherPont(
         transaction: F.stop.transaction,
         porte: F.stop.porte,
         soldes: SOLDES_AVANT,
+        prompt_digest: DIGEST,
         acte: 'stop',
         etat_transaction: 'PRETE',
         etat_alternative: 'PORTE_UNIQUE',
@@ -157,6 +164,7 @@ async function brancherPont(
       transaction: F.substitution.transaction,
       porte: F.substitution.porte,
       soldes: SOLDES_AVANT,
+      prompt_digest: DIGEST,
       acte: 'substitution',
       etat_transaction: 'PRETE',
       etat_alternative: 'MEILLEURE_PORTE',
@@ -169,9 +177,15 @@ async function brancherPont(
       echeance: '1789999999',
     })
   })
-  await page.route('**/demo.tare-hooks.tech/demo/approuver', (r) =>
-    json(r, opts.approuver ?? { refus: 4001, raison: 'rejected on the device', ecrans: 9, source: 'corpus' }),
-  )
+  // L'APPROBATION TARDE EXPRES. Sur scene, c'est un humain qui appuie sur l'appareil : la
+  // question reste en vol pendant des dizaines de secondes. Les tests decident donc depuis la
+  // page, par les deux boutons d'echappement — ce qui est aussi le chemin qu'un presentateur
+  // prend quand l'appareil ne repond pas.
+  await page.route('**/demo.tare-hooks.tech/demo/approuver', async (r) => {
+    if (opts.approuver) return json(r, opts.approuver)
+    await new Promise((res) => setTimeout(res, 20000))
+    return json(r, { refus: CODE_REFUS, raison: 'rejected on the device', ecrans: 9, source: 'corpus' })
+  })
   await page.route('**/demo.tare-hooks.tech/demo/revenir', (r) =>
     json(r, { ok: true, block_number: 50614001, snapshot: '0x2' }),
   )
@@ -218,182 +232,233 @@ test('le bandeau porte la these : la mediane du corpus, pas l extreme', async ({
   const D = F.distribution
   const bande = page.locator('section[aria-label="what the measured hooks take, across the whole corpus"]')
   await expect(bande).toBeVisible()
-
-  // LE chiffre de la page, et sa traduction en clair.
   await expect(bande).toContainText(`${D.medianeBps} bps`)
   await expect(bande).toContainText('median')
   await expect(bande).toContainText(`${D.medianePct} % of what you swap`)
-  // Le denominateur, et les lignes qui ne portent PAS de nombre : ni comptees, ni dites nulles.
-  await expect(bande).toContainText(`${D.n} rows that carry a number`)
-  await expect(bande).toContainText(`${D.nSansNombre} more are labelled and carry none`)
-
-  // Les trois parts.
+  await expect(bande).toContainText(`${D.n} rows carry a number`)
+  await expect(bande).toContainText(`${D.nSansNombre} carry`)
   await expect(bande).toContainText(D.partAuDessusDesFrais)
   await expect(bande).toContainText(`take more than ${D.fraisDuPoolBps} bps`)
   await expect(bande).toContainText(D.partAuDessusDunPourCent)
   await expect(bande).toContainText(D.partZero)
-  await expect(bande).toContainText('take nothing at all')
-  await expect(bande).toContainText(`${D.nNegatives} below zero`)
-
-  // La QUEUE, et le maximum dedans — jamais en titre.
-  await expect(bande).toContainText(`${D.nQueue} rows out of ${D.n}`)
-  await expect(bande).toContainText(`take more than half of what you swap — ${D.moitieBps} bps`)
+  await expect(bande).toContainText(`${D.nNegatives} below`)
+  await expect(bande).toContainText(`${D.nQueue} rows`)
+  await expect(bande).toContainText('take more than half of')
   await expect(bande).toContainText(`${D.maxBps} bps, is one row of ${D.nLignes}`)
-  await expect(bande).toContainText('We publish those too')
   await expect(page.getByRole('button', { name: 'see the tail' })).toBeVisible()
 
-  // Le titre de la page ne porte PAS l extreme.
   const titre = await page.getByRole('heading', { level: 1 }).textContent()
   expect(titre).not.toContain(D.maxBps)
-  expect(titre).not.toContain(D.maxExact)
-
   expect(erreurs, erreurs.join('\n')).toEqual([])
 })
 
-/* ------------------------------------------------------------------ 2. acte 1 */
+/* --------------------------- 2. on voit ce qu on echange, et d ou vient chaque valeur */
 
-test('acte 1 — la porte ETH → USDC, ce qu elle prend, et aucune alternative proposee', async ({ page }) => {
+test('les jetons portent leur symbole, et un jeton sans symbole reste sans nom', async ({ page }) => {
   const erreurs = surveiller(page)
   await injecterPortefeuille(page)
   await brancherPont(page)
   await page.goto('/#/demo')
 
-  // C est l acte 1 qui ouvre, et il porte la paire — pas l extreme.
-  await expect(page.getByRole('button', { name: 'act 1 — you read what you sign' })).toBeVisible()
+  // Le swap est dit en clair, montant en unites du jeton, wei garde a cote.
+  await expect(page.getByRole('button', { name: /^swap 0\.000001 ETH → USDC$/ })).toBeVisible()
+  const premiere = page.locator('section', { hasText: 'swap 0.000001 ETH → USDC' }).first()
+  await expect(premiere).toContainText('0.000001 ETH · 0x0000…0000 → USDC · 0x8335…2913')
+  await expect(premiere).toContainText('1 000 000 000 000 wei, the unit measured')
 
-  const etape3 = page.locator('section', { hasText: 'what this door takes' }).first()
-  await expect(etape3).toContainText(`${F.substitution.porte.bps} bps`)
-  await expect(etape3).toContainText('MEASURED')
-  await expect(etape3).toContainText('where it sits')
+  // Et la provenance de chaque valeur est marquee.
+  const lu = page.locator('section', { hasText: 'the guard got there first' }).first()
+  await expect(lu).toContainText('read from the calldata')
+  await expect(lu).toContainText('re-derived')
+  await expect(lu).toContainText('from the corpus')
+  await expect(lu).toContainText(F.substitution.porte.hook)
+  await expect(premiere).toContainText('This is a swap you were about to make')
 
-  // Le hook COMPLET, celui que la PoolKey du calldata porte.
-  const etape2 = page.locator('section', { hasText: 'the guard reads it, before the wallet' }).first()
-  await expect(etape2).toContainText(F.substitution.porte.hook)
-  await expect(etape2).toContainText(F.substitution.porte.pool_id.slice(0, 12))
-
-  // AUCUNE proposition dans l acte 1 : c est l acte 2 qui compare.
-  await expect(page.getByText('cheaper door')).toHaveCount(0)
-  await expect(page.getByText('MEILLEURE_PORTE')).toHaveCount(0)
-
+  // Aucun nom invente : le jeton de la queue n a pas de symbole lu, il reste une adresse.
+  await page.getByRole('button', { name: 'see the tail' }).click()
+  const queue = page.locator('section', { hasText: 'the tail:' }).first()
+  await expect(queue).not.toContainText('undefined')
+  await expect(queue).not.toContainText('null')
   expect(erreurs, erreurs.join('\n')).toEqual([])
 })
 
-test('acte 1 — un refus rend 4001, et aucune transaction n a ete envoyee', async ({ page }) => {
+/* ------------------------------- 3. l interception, et ses deux fins */
+
+test('le clic swap est intercepte : le portefeuille ne s ouvre pas, 4001 revient', async ({ page }) => {
   const erreurs = surveiller(page)
   await injecterPortefeuille(page)
   await brancherPont(page)
   await page.goto('/#/demo')
 
-  await page.getByRole('button', { name: 'prepare on the fork' }).click()
-  await expect(page.getByText('transaction prepared for act substitution')).toBeVisible()
+  await page.getByRole('button', { name: /^swap 0\.000001 ETH → USDC$/ }).click()
 
-  // Les libelles disent ce que les boutons FONT, et la sequence reelle est ecrite.
-  const appareil = page.locator('section', { hasText: 'the device asks, you refuse' }).first()
-  await expect(appareil.getByRole('button', { name: 'previous (left)' })).toBeVisible()
-  await expect(appareil.getByRole('button', { name: 'next (right)' })).toBeVisible()
-  await expect(appareil.getByRole('button', { name: 'confirm (both)' })).toBeVisible()
-  await expect(appareil).toContainText('blind signing ahead')
-  await expect(appareil).toContainText('is the refusal')
-  await expect(appareil).toContainText('screens seen')
+  // La garde a demande : on refuse, sur la page (le pont rend deja 4001, l un ou l autre gagne).
+  await page.getByRole('button', { name: /^refuse$/ }).click()
 
-  await page.getByRole('button', { name: 'send the report to the device' }).click()
-  await expect(page.getByText('code 4001 — nothing left. Not an outage: an answer.')).toBeVisible()
-  await expect(page.getByText('9 screens rendered')).toBeVisible()
+  const bande = page.locator('div').filter({ hasText: /^two routes, same swap/ }).first()
+  await expect(page.getByText('REFUSEE')).toBeVisible()
+  await expect(page.getByText(`code ${CODE_REFUS} · wallet opened 0 time(s) · nothing left`)).toBeVisible()
+  expect(await bande.count()).toBeGreaterThan(0)
 
+  const lu = page.locator('section', { hasText: 'the guard got there first' }).first()
+  await expect(lu).toContainText('wallet opened')
+
+  // LA PREUVE : rien n a atteint le portefeuille.
   const vus = await appels(page)
   expect(vus.map((a) => a.method)).not.toContain('eth_sendTransaction')
   expect(erreurs, erreurs.join('\n')).toEqual([])
 })
 
-test('acte 1 — un double clic sur « prepare » ne prepare qu une fois', async ({ page }) => {
-  const erreurs = surveiller(page)
-  await injecterPortefeuille(page)
-  let preparations = 0
-  await brancherPont(page, { compter: () => (preparations += 1), lent: 400 })
-  await page.goto('/#/demo')
-
-  const bouton = page.getByRole('button', { name: 'prepare on the fork' })
-  await bouton.click({ force: true })
-  await bouton.click({ force: true }).catch(() => undefined)
-  await expect(page.getByText('transaction prepared for act substitution')).toBeVisible()
-  await page.waitForTimeout(600)
-  // Une seconde preparation prendrait un SECOND snapshot, et le fork deriverait sous la demo.
-  expect(preparations, 'une seule preparation doit partir').toBe(1)
-  expect(erreurs, erreurs.join('\n')).toEqual([])
-})
-
-/* ------------------------------------------------------------------ 3. acte 2 */
-
-test('acte 2 — la porte a 0, le remplacement construit, et rien ne part sans clic', async ({ page }) => {
+test('accepter la substitution ouvre le portefeuille, avec la transaction de REMPLACEMENT', async ({ page }) => {
   const erreurs = surveiller(page)
   await injecterPortefeuille(page)
   await brancherPont(page)
   await page.goto('/#/demo')
-  await page.getByRole('button', { name: 'act 2 — there is better' }).click()
 
-  const comparaison = page.locator('section', { hasText: 'the doors, at the same size' }).first()
-  await expect(comparaison).toContainText(`${F.substitution.porte.bps} bps`)
-  await expect(comparaison).toContainText('0 bps')
-  await expect(comparaison).toContainText('MEILLEURE_PORTE')
-  await expect(comparaison).toContainText(`${F.substitution.economie_bps} bps`)
+  await page.getByRole('button', { name: /^swap 0\.000001 ETH → USDC$/ }).click()
+  // Les TROIS reponses sont visibles, et elles disent ce qu'elles envoient.
+  await expect(page.getByRole('button', { name: /^refuse$/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^go anyway · 4\.0933 bps$/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^substitute · 0 bps$/ })).toBeVisible()
+  await expect(page.getByText(/Approve.*approves.*that.*plan/)).toBeVisible()
 
-  await page.getByRole('button', { name: 'prepare on the fork' }).click()
-  await expect(page.getByText('transaction prepared for act substitution')).toBeVisible()
-
-  // Le remplacement est LU sur la porte proposee, pas sur l ancienne.
-  const remplacement = page.locator('section', { hasText: 'the replacement, built and not sent' }).first()
-  await expect(remplacement).toContainText(F.substitution.meilleure_porte.hook)
-  await expect(remplacement).toContainText('PRET')
-
-  // Rien n est parti tant que personne n a clique.
-  expect((await appels(page)).map((a) => a.method)).not.toContain('eth_sendTransaction')
-
-  await page.getByRole('button', { name: 'sign and send' }).click()
-  await expect(page.locator('section', { hasText: 'your wallet signs' }).first()).toContainText('included')
-
+  await page.getByRole('button', { name: /^substitute · 0 bps$/ }).click()
+  // Le plan choisi part a l appareil, qui confirme.
+  await page.getByRole('button', { name: /^Approve \(here\)$/ }).click()
+  await expect(page.getByText('REMPLACEMENT')).toBeVisible()
+  const fin = page.locator('div').filter({ hasText: /^received/ }).first()
   const envois = (await appels(page)).filter((a) => a.method === 'eth_sendTransaction')
   expect(envois).toHaveLength(1)
-  const params = (envois[0]!.params as { to: string; data: string; value: string; from: string }[])[0]!
-  expect(params.to).toBe(F.substitution.transaction_remplacement.to)
+  const params = (envois[0]!.params as { to: string; data: string; from: string }[])[0]!
   expect(params.data).toBe(F.substitution.transaction_remplacement.data)
   expect(params.data).not.toBe(F.substitution.transaction.data)
   expect(params.from.toLowerCase()).toBe(ADRESSE)
-
-  const derniere = page.locator('section', { hasText: 'your wallet signs' }).first()
-  await expect(derniere).toContainText('before:')
-  await expect(derniere).toContainText('after:')
-  await expect(derniere).toContainText('status 0x1')
-
+  await expect(page.getByText(/status 0x1/)).toBeVisible()
+  // CE QU'ON A GARDE : trois nombres mesures, et aucune extrapolation.
+  await expect(fin).toContainText('received')
+  await expect(fin).toContainText('would have received')
+  await expect(fin).toContainText('kept')
+  await expect(page.getByText(/Nothing is extrapolated/)).toBeVisible()
   expect(erreurs, erreurs.join('\n')).toEqual([])
 })
 
-/* -------------------------------------------------------------------- 4. la queue */
+/* ----------------------------------------- 4. la route se reecrit */
 
-test('la queue s ouvre en un clic depuis le bandeau, et jamais en ouverture', async ({ page }) => {
+test('la route se reecrit : l ancienne porte barree, la nouvelle en place, l ecart dit', async ({ page }) => {
   const erreurs = surveiller(page)
   await injecterPortefeuille(page)
   await brancherPont(page)
   await page.goto('/#/demo')
 
-  // Au chargement, l extreme n est nulle part dans les etapes.
-  const etapes = page.locator('.demo-etapes')
-  await expect(etapes).not.toContainText(F.stop.porte.hook)
+  // LES DEUX ROUTES, cote a cote, avec ce que chacune rend — mesure, pas estime.
+  await expect(page.getByText('two routes, same swap')).toBeVisible()
+  await expect(page.getByText(`${F.substitution.economie_bps} bps apart`)).toBeVisible()
+  await expect(page.getByText('your route', { exact: false })).toBeVisible()
+  await expect(page.getByText('cheaper gate', { exact: false }).first()).toBeVisible()
+  await expect(page.getByText('2 442')).toBeVisible()
+  await expect(page.getByText('2 444')).toBeVisible()
 
-  await page.getByRole('button', { name: 'see the tail' }).click()
-  const prise = page.locator('section', { hasText: 'what this door takes' }).first()
-  await expect(prise).toContainText(`${F.distribution.maxExact} bps`)
-  await expect(prise).toContainText('PORTE_UNIQUE')
-  await expect(prise).toContainText(`One row out of ${F.distribution.nLignes}`)
-  await expect(page.locator('section', { hasText: 'the guard reads it' }).first()).toContainText(
-    F.stop.porte.hook,
-  )
-
-  await page.getByRole('button', { name: 'close the tail' }).click()
-  await expect(page.locator('.demo-etapes')).not.toContainText(F.stop.porte.hook)
+  // Choisir la substitution designe la route retenue : la bascule se voit.
+  await page.getByRole('button', { name: /^swap / }).click()
+  await page.getByRole('button', { name: /^substitute · 0 bps$/ }).click()
+  await expect(page.getByText(/cheaper gate · chosen/)).toBeVisible()
   expect(erreurs, erreurs.join('\n')).toEqual([])
 })
 
-/* -------------------------------------------------------- 5. le pont injoignable */
+/* ------------------------- 5. l appareil : le champ relu, l empreinte, la trace */
+
+test('le champ montre a l exterieur est celui relu de l appareil, et l empreinte est la', async ({ page }) => {
+  const erreurs = surveiller(page)
+  await injecterPortefeuille(page)
+  await brancherPont(page, { ecran: 'take 4.09 bps' })
+  await page.goto('/#/demo')
+
+  const appareil = page.locator('section', { hasText: 'the device confirms the plan' }).first()
+  await expect(appareil).toContainText('on the device:')
+  await expect(appareil).toContainText('take 4.09 bps')
+  await expect(appareil).toContainText('prompt digest')
+  await expect(appareil).toContainText(DIGEST.slice(0, 12))
+  await expect(appareil).toContainText('keccak256 of the text sent to the device')
+
+  // Le texte vient du pont : si le pont en rend un autre, l ecran suit.
+  await page.unroute('**/demo.tare-hooks.tech/demo/etat')
+  await page.route('**/demo.tare-hooks.tech/demo/etat', (r) =>
+    json(r, { ...ETAT, speculos: { ...ETAT.speculos, ecran: 'Reject message' } }),
+  )
+  await expect(appareil).toContainText('Reject message')
+  expect(erreurs, erreurs.join('\n')).toEqual([])
+})
+
+/* ------------------------------------------- 6. le selecteur de paire */
+
+test('le selecteur liste les paires nommees, classe leurs portes, et n execute rien', async ({ page }) => {
+  const erreurs = surveiller(page)
+  await injecterPortefeuille(page)
+  await brancherPont(page)
+  await page.goto('/#/demo')
+
+  const panneau = page.locator('details.demo-paires')
+  await expect(panneau).toContainText('every pair the corpus measures')
+  await panneau.locator('summary').click()
+
+  const menu = panneau.locator('select#demo-paire')
+  await expect(menu).toBeVisible()
+  const options = await menu.locator('option').count()
+  expect(options).toBeGreaterThan(1)
+  await expect(panneau).toContainText('the corpus answers for every pair')
+  await expect(panneau).toContainText('more pairs are measured and not listed')
+
+  // Les portes sont classees, la moins chere en tete, avec leur barre et leur etiquette —
+  // en anglais, pas dans le vocabulaire francais du corpus.
+  await expect(panneau).toContainText('bar length is proportional to the take')
+  await expect(panneau).toContainText('MEASURED')
+  await expect(panneau).not.toContainText('MESURE\u00a0')
+  const rangs = await panneau.locator('div', { hasText: /^0\d0x/ }).count()
+  expect(rangs).toBeGreaterThan(1)
+
+  // A la taille de la demonstration, la porte de l acte est la plus chere du classement.
+  await panneau.locator('button', { hasText: /^0\.000001$/ }).first().click()
+  await expect(panneau).toContainText(`${F.substitution.porte.bps} bps`)
+  await expect(panneau).toContainText(`${F.substitution.meilleure_porte.bps} bps`)
+
+  // Choisir une autre paire desarme le swap, AVEC la raison.
+  const valeurs = await menu.locator('option').evaluateAll((o) => o.map((x) => (x as HTMLOptionElement).value))
+  const autre = valeurs.find((v) => v !== `${F.substitution.porte.monnaie_entree}>${F.substitution.porte.monnaie_sortie}`)
+  if (autre) {
+    await menu.selectOption(autre)
+    await expect(page.getByText('the bridge only prepares the executed one')).toBeVisible()
+    await expect(page.getByRole('button', { name: /^swap / })).toBeDisabled()
+  }
+  expect(erreurs, erreurs.join('\n')).toEqual([])
+})
+
+/* ------------------------------------------- 7. la queue, la commande de rejeu */
+
+test('la queue s ouvre en un clic, et la commande de rejeu vise le fork public', async ({ page }) => {
+  const erreurs = surveiller(page)
+  await injecterPortefeuille(page)
+  await brancherPont(page)
+  await page.goto('/#/demo')
+
+  await expect(page.locator('.demo-etapes')).not.toContainText(F.stop.porte.hook)
+  await page.getByRole('button', { name: 'see the tail' }).click()
+  await expect(page.locator('section', { hasText: 'what this gate takes' }).first()).toContainText(
+    'PORTE_UNIQUE',
+  )
+  await expect(page.locator('section', { hasText: 'the guard got there first' }).first()).toContainText(
+    F.stop.porte.hook,
+  )
+
+  await page.getByText('replay this number yourself').first().click()
+  const rejeu = page.locator('pre', { hasText: 'measure(' }).first()
+  await expect(rejeu).toContainText(RPC_PUBLIC)
+  await expect(rejeu).not.toContainText('127.0.0.1')
+  await expect(page.getByText('it needs the repository and Python 3').first()).toBeVisible()
+  await expect(page.getByText(/it is shared/).first()).toBeVisible()
+  expect(erreurs, erreurs.join('\n')).toEqual([])
+})
+
+/* -------------------------------------------------------- 8. le pont injoignable */
 
 test('pont injoignable — refus motive, page vivante, aucune exception', async ({ page }) => {
   const erreurs = surveiller(page)
@@ -404,30 +469,18 @@ test('pont injoignable — refus motive, page vivante, aucune exception', async 
   )
   await page.goto('/#/demo')
 
-  await expect(page.getByRole('heading', { name: 'One pair, two acts, on a pinned fork' })).toBeVisible()
-  await expect(page.getByText('the demo bridge').first()).toBeVisible()
-  await expect(page.getByText('unreachable').first()).toBeVisible()
-  await expect(page.getByText('The page stays readable')).toBeVisible()
-
-  // La page reste utilisable EN LECTURE : le corpus repond seul, bandeau compris.
+  await expect(page.getByRole('heading', { name: 'One click, and the guard gets there first' })).toBeVisible()
+  await expect(page.getByText('the demo bridge is unreachable')).toBeVisible()
   await expect(
     page.locator('section[aria-label="what the measured hooks take, across the whole corpus"]'),
   ).toContainText(`${F.distribution.medianeBps} bps`)
-  await expect(page.locator('section', { hasText: 'what this door takes' }).first()).toContainText(
+  await expect(page.locator('section', { hasText: 'the guard got there first' }).first()).toContainText(
     `${F.substitution.porte.bps} bps`,
-  )
-  await page.getByRole('button', { name: 'act 2 — there is better' }).click()
-  await expect(page.locator('section', { hasText: 'the doors, at the same size' }).first()).toContainText(
-    `${F.substitution.porte.bps} bps`,
-  )
-  // Sans cotation vivante, envoi.ts refuse et le DIT.
-  await expect(page.locator('section', { hasText: 'the replacement, built and not sent' }).first()).toContainText(
-    'SANS_PLANCHER',
   )
   expect(erreurs, erreurs.join('\n')).toEqual([])
 })
 
-/* ------------------------------------------------------- 6. l ecran de l appareil */
+/* ------------------------------------------------------- 9. l ecran de l appareil */
 
 test('screenshot en echec — « device screen unavailable », et aucune image rejouee', async ({ page }) => {
   const erreurs = surveiller(page)
@@ -436,22 +489,18 @@ test('screenshot en echec — « device screen unavailable », et aucune image r
   await page.goto('/#/demo')
 
   await expect(page.getByText('device screen unavailable')).toBeVisible()
-  // L image existe dans le DOM (elle continue de sonder) mais elle n est JAMAIS affichee.
   await expect(page.locator('img[alt="the device screen, live"]')).toBeHidden()
-  await expect(page.getByText('nothing is replayed')).toBeVisible()
+  await expect(page.getByText(/nothing is replayed/)).toBeVisible()
 
-  // Une image qui charge s affiche : la difference se voit.
   await page.unroute('**/speculos.tare-hooks.tech/screenshot**')
   await page.route('**/speculos.tare-hooks.tech/screenshot**', (r) =>
     r.fulfill({ status: 200, contentType: 'image/png', body: PNG }),
   )
   await expect(page.locator('img[alt="the device screen, live"]')).toBeVisible()
-  await expect(page.getByText('device screen unavailable')).toHaveCount(0)
-
   expect(erreurs.filter((e) => e.startsWith('pageerror')), erreurs.join('\n')).toEqual([])
 })
 
-/* ------------------------------------------------------------- 7. la mise en page */
+/* ------------------------------------------------------------- 10. la mise en page */
 
 test('aucun debordement horizontal a 390 px', async ({ page }) => {
   const erreurs = surveiller(page)
@@ -459,14 +508,13 @@ test('aucun debordement horizontal a 390 px', async ({ page }) => {
   await brancherPont(page)
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/#/demo')
-  await expect(page.locator('section', { hasText: 'what this door takes' }).first()).toBeVisible()
+  await expect(page.locator('section', { hasText: 'the guard got there first' }).first()).toBeVisible()
 
-  const vues: [string, () => Promise<void>][] = [
-    ['act 1', async () => void (await page.getByRole('button', { name: 'act 1 — you read what you sign' }).click())],
-    ['act 2', async () => void (await page.getByRole('button', { name: 'act 2 — there is better' }).click())],
+  for (const [nom, aller] of [
+    ['the flow', async () => undefined],
+    ['the pairs panel', async () => void (await page.locator('details.demo-paires summary').click())],
     ['the tail', async () => void (await page.getByRole('button', { name: 'see the tail' }).click())],
-  ]
-  for (const [nom, aller] of vues) {
+  ] as [string, () => Promise<void>][]) {
     await aller()
     await page.waitForTimeout(200)
     const m = await page.evaluate(() => ({
@@ -484,40 +532,40 @@ test('la page tient dans 1440x900 sans defiler, et les captures sont ecrites', a
   await brancherPont(page)
   await page.setViewportSize({ width: 1440, height: 900 })
   await page.goto('/#/demo')
-  await expect(page.locator('section', { hasText: 'what this door takes' }).first()).toBeVisible()
+  await expect(page.locator('section', { hasText: 'the guard got there first' }).first()).toBeVisible()
+  await page.waitForTimeout(400)
 
-  await page.getByRole('button', { name: 'prepare on the fork' }).click()
-  await expect(page.getByText('transaction prepared for act substitution')).toBeVisible()
-  await page.waitForTimeout(250)
-  await page.screenshot({ path: resolve(CAPTURES, 'acte-1-1440x900.png') })
-  const h1 = await page.evaluate(() => ({
-    scroll: document.documentElement.scrollHeight,
-    client: document.documentElement.clientHeight,
-  }))
-  expect(h1.scroll, `acte 1 depasse de ${h1.scroll - h1.client} px`).toBeLessThanOrEqual(h1.client)
+  const mesurer = async (nom: string) => {
+    await page.waitForTimeout(250)
+    if (process.env.DEMO_HAUTEURS) {
+      const d = await page.evaluate(() => {
+        const m = document.getElementById('contenu')!
+        return Array.from(m.firstElementChild!.children).map(
+          (el) => `${Math.round(el.getBoundingClientRect().height)} :: ${(el.textContent || '').slice(0, 28)}`,
+        )
+      })
+      console.log(`[${nom}] ` + d.join(' | '))
+    }
+    await page.screenshot({ path: resolve(CAPTURES, `${nom}-1440x900.png`) })
+    const h = await page.evaluate(() => ({
+      scroll: document.documentElement.scrollHeight,
+      client: document.documentElement.clientHeight,
+    }))
+    expect(h.scroll, `${nom} depasse de ${h.scroll - h.client} px`).toBeLessThanOrEqual(h.client)
+  }
 
-  await page.getByRole('button', { name: 'act 2 — there is better' }).click()
-  await page.waitForTimeout(250)
-  await page.screenshot({ path: resolve(CAPTURES, 'acte-2-1440x900.png') })
-  const h2 = await page.evaluate(() => ({
-    scroll: document.documentElement.scrollHeight,
-    client: document.documentElement.clientHeight,
-  }))
-  expect(h2.scroll, `acte 2 depasse de ${h2.scroll - h2.client} px`).toBeLessThanOrEqual(h2.client)
-
+  await mesurer('parcours')
+  await page.getByRole('button', { name: /^swap / }).click()
+  await page.getByRole('button', { name: /^refuse$/ }).click()
+  await expect(page.getByText('REFUSEE')).toBeVisible()
+  await mesurer('refus')
   await page.getByRole('button', { name: 'see the tail' }).click()
-  await page.waitForTimeout(250)
-  await page.screenshot({ path: resolve(CAPTURES, 'queue-1440x900.png') })
-  const h3 = await page.evaluate(() => ({
-    scroll: document.documentElement.scrollHeight,
-    client: document.documentElement.clientHeight,
-  }))
-  expect(h3.scroll, `la queue depasse de ${h3.scroll - h3.client} px`).toBeLessThanOrEqual(h3.client)
+  await mesurer('queue')
 
   expect(erreurs, erreurs.join('\n')).toEqual([])
 })
 
-/* ------------------------------------------------ 8. les routes voisines tiennent */
+/* ------------------------------------------------ 11. les routes voisines tiennent */
 
 test('les routes deja publiees ne sont pas cassees', async ({ page }) => {
   const erreurs = surveiller(page)

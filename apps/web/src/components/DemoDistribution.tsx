@@ -45,19 +45,23 @@ function Chiffre({
   glose: React.ReactNode
   fort?: boolean
 }) {
+  // LE CHIFFRE DE LA PAGE EST EMPILE, pas mis a cote de son libelle : dans une colonne de
+  // trois cents pixels, « 100.00 bps » en taille metrique ne laisse plus rien a sa droite, et
+  // la glose tombait en colonne d'un caractere. Mesure faite : le bandeau passait de 120 a
+  // 208 px de haut, et poussait les etapes sous le pli.
   return (
-    <div className="flex items-baseline gap-[9px]" style={{ minWidth: 0 }}>
+    <div className={fort ? 'flex flex-col' : 'flex items-baseline gap-[9px]'} style={{ minWidth: 0 }}>
       <span
         className={fort ? 't-metric' : 't-data'}
-        style={{ color: fort ? 'var(--m-4)' : 'var(--ink)', flex: 'none' }}
+        style={{ color: fort ? 'var(--m-4)' : 'var(--ink)', flex: 'none', lineHeight: 1.05 }}
       >
         {valeur}
       </span>
-      <span className="t-data-xs" style={{ color: 'var(--ink-2)', minWidth: 0, lineHeight: 1.45 }}>
+      <span className="t-data-xs" style={{ color: 'var(--ink-2)', minWidth: 0, lineHeight: 1.35 }}>
         <span className="t-label" style={{ color: 'var(--ink-2)' }}>
           {quoi}
         </span>
-        <br />
+        {' · '}
         {glose}
       </span>
     </div>
@@ -96,7 +100,7 @@ export function BandeDistribution({
       style={{ border: '1px solid var(--line)', background: 'var(--bg-1)' }}
     >
       {/* ------------------------------------------------------ le chiffre de la page */}
-      <div className="flex flex-col gap-[5px] px-[12px] py-[7px]" style={{ minWidth: 0 }}>
+      <div className="flex flex-col gap-[4px] px-[12px] py-[5px]" style={{ minWidth: 0 }}>
         <span className="t-label" style={{ color: 'var(--ink-2)' }}>
           what a measured hook takes
         </span>
@@ -106,14 +110,14 @@ export function BandeDistribution({
           quoi="median"
           glose={<>{(d.mediane / POURCENT_EN_BPS).toFixed(2)} % of what you swap</>}
         />
-        <span className="t-data-xs" style={{ color: 'var(--ink-2)', lineHeight: 1.45 }}>
-          over {groupDigits(String(d.n))} rows that carry a number. {groupDigits(String(d.nSansNombre))}{' '}
-          more are labelled and carry none: not counted, not called zero.
+        <span className="t-data-xs" style={{ color: 'var(--ink-2)', lineHeight: 1.35 }}>
+          {groupDigits(String(d.n))} rows carry a number · {groupDigits(String(d.nSansNombre))} carry
+          none: not counted, not called zero.
         </span>
       </div>
 
       {/* --------------------------------------------------------------- les parts */}
-      <div className="flex flex-col gap-[5px] px-[12px] py-[7px]" style={{ borderLeft: '1px solid var(--line)', minWidth: 0 }}>
+      <div className="flex flex-col gap-[4px] px-[12px] py-[5px]" style={{ borderLeft: '1px solid var(--line)', minWidth: 0 }}>
         {auDessusDesFrais === null ? (
           <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
             the LP fee of the act 1 pool was not read: no comparison is drawn
@@ -122,32 +126,28 @@ export function BandeDistribution({
           <Chiffre
             valeur={partTexte(auDessusDesFrais.part)}
             quoi={`take more than ${bpsTexte(fraisDuPool!)} bps`}
-            glose={<>which is the LP fee the pool of act 1 already charges — the hook adds its own on top</>}
+            glose={<>the LP fee this pool already charges</>}
           />
         )}
         <Chiffre
           valeur={partTexte(auDessusDunPourCent.part)}
           quoi={`take more than ${bpsTexte(POURCENT_EN_BPS)} bps`}
-          glose={<>one percent of the swap, {groupDigits(String(auDessusDunPourCent.n))} rows</>}
+          glose={<>one percent · {groupDigits(String(auDessusDunPourCent.n))} rows</>}
         />
         <Chiffre
           valeur={partTexte(d.zero.part)}
           quoi="take nothing at all"
           glose={
             <>
-              {groupDigits(String(d.zero.n))} rows measured at exactly zero
-              {d.negatives.n > 0 && (
-                <>
-                  , and {groupDigits(String(d.negatives.n))} below zero — a hook can give back
-                </>
-              )}
+              {groupDigits(String(d.zero.n))} at zero
+              {d.negatives.n > 0 && <>, {groupDigits(String(d.negatives.n))} below — a hook can give back</>}
             </>
           }
         />
       </div>
 
       {/* ------------------------------------------------------------------ la bande */}
-      <div className="flex flex-col gap-[5px] px-[12px] py-[7px]" style={{ borderLeft: '1px solid var(--line)', minWidth: 0 }}>
+      <div className="flex flex-col gap-[4px] px-[12px] py-[5px]" style={{ borderLeft: '1px solid var(--line)', minWidth: 0 }}>
         <svg
           viewBox="0 0 1000 26"
           preserveAspectRatio="none"
@@ -172,15 +172,21 @@ export function BandeDistribution({
           ))}
         </svg>
         <div className="flex items-baseline justify-between gap-[8px] t-data-xs" style={{ color: 'var(--ink-2)' }}>
-          <span>min {bpsTexte(d.min)} bps</span>
-          <span>rules: median · p90 {bpsTexte(d.p90)} · p99 {bpsTexte(d.p99)}</span>
-          <span style={{ textAlign: 'right' }}>max {bpsTexte(d.max, 2)} bps</span>
+          <span>min {bpsTexte(d.min)}</span>
+          <span title={`rules at the median, the 90th (${d.p90} bps) and the 99th (${d.p99} bps) percentile`}>
+            rules: median · p90 · p99
+          </span>
+          <span style={{ textAlign: 'right' }}>max {bpsTexte(d.max, 2)}</span>
         </div>
+      </div>
+
+      {/* ------------------------------------------------------------------ la queue */}
+      <div className="flex flex-col gap-[4px] px-[12px] py-[5px]" style={{ borderLeft: '1px solid var(--line)', minWidth: 0 }}>
         <div className="flex flex-wrap items-baseline gap-[8px]">
-          <span className="t-data-xs" style={{ color: 'var(--ink-2)', minWidth: 0, lineHeight: 1.45 }}>
-            the tail: {groupDigits(String(queue.n))} rows out of {groupDigits(String(d.n))} ({partTexte(queue.part)})
-            take more than half of what you swap — {bpsTexte(MOITIE_EN_BPS)} bps. The highest,{' '}
-            {bpsTexte(d.max, 2)} bps, is one row of {groupDigits(String(d.nLignes))}. We publish those too.
+          <span className="t-data-xs" style={{ color: 'var(--ink-2)', minWidth: 0, lineHeight: 1.4 }}>
+            the tail: {groupDigits(String(queue.n))} rows ({partTexte(queue.part)}) take more than half of
+            what you swap. The highest, {bpsTexte(d.max, 2)} bps, is one row of{' '}
+            {groupDigits(String(d.nLignes))}. We publish those too.
           </span>
           <button
             type="button"

@@ -41,12 +41,16 @@
  * Ce fichier n'est qu'un ecran : il n'a aucun jugement a lui.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Absence, Copy, Replay } from './Prim'
+import { Copy, Replay } from './Prim'
 import { Bouton, EtatNomme } from './Substituer'
 import { AFFICHAGE } from '../compte/substitution'
 import { ecouterPortefeuilles, type PortefeuilleAnnonce } from '../compte/api'
-import { chainName, fmtBlock, groupDigits, replayCommand, shortAddr } from '../lib/format'
-import { MONNAIES_DE_COTATION } from '../lib/exit'
+import { RPC_LOCAL, chainName, fmtBlock, groupDigits, replayCommand, shortAddr } from '../lib/format'
+import { symbole } from './Carte'
+import { CeQuOnAGarde, DeuxRoutes, type RouteCandidate } from './DemoRoute'
+import { PanneauPaires, nomJeton } from './DemoPaires'
+import { montantLisible } from '../demo/jetons'
+import { cleDe, lpFeeBps as lpDuPool } from '../demo/paires'
 import { acteStop, acteSubstitution, type Acte, type Porte } from '../demo/scenario'
 import { tableDuCorpus } from '../demo/table'
 import { distribution, lpFeeBps, POURCENT_EN_BPS } from '../demo/distribution'
@@ -66,20 +70,21 @@ import type {
   Alternative,
   Consultation,
   DecodeResult,
+  Eip1193Provider,
   Envoi,
+  GuardReport,
   GuardTable,
   SwapLeg,
   Verdict,
 } from '../demo/garde.mjs'
+import { poserLaGarde } from '../demo/interception'
 import {
   CODE_REFUS_UTILISATEUR,
   PONT,
-  SPECULOS,
   ajouterEtBasculer,
   appuyer,
   approuver,
   comptes,
-  envoyer,
   estRefus,
   lireEtat,
   lireSoldes,
@@ -108,12 +113,52 @@ const Inconnu = ({ quoi }: { quoi: string }) => (
   </span>
 )
 
+/**
+ * D'OU VIENT UNE VALEUR — et c'est tout l'argument du produit.
+ *
+ * L'utilisateur ne fournit RIEN : ni pool id, ni adresse de hook, ni taille. La garde les LIT
+ * dans le calldata que le site d'echange a construit. Une page qui affiche ces valeurs comme
+ * si elles avaient ete saisies se confond avec un formulaire ou l'on colle une adresse — ce
+ * qui est exactement ce que ce produit n'est pas. Chaque ligne porte donc un lisere qui dit sa
+ * provenance, et le pave de legende en haut du panneau les nomme.
+ */
+export type Source = 'calldata' | 'derive' | 'corpus' | 'chaine'
+
+const LISERE: Record<Source, string> = {
+  calldata: 'var(--line-strong)',
+  derive: 'var(--ink-4)',
+  corpus: 'var(--m-4)',
+  chaine: 'var(--focus)',
+}
+
+const DIT: Record<Source, string> = {
+  calldata: 'read from the calldata — nobody typed it',
+  derive: 're-derived here, then matched against the corpus',
+  corpus: 'from the published measurements',
+  chaine: 'read on the chain',
+}
+
 /** Une ligne « clef / valeur », la meme forme que le panneau 16 de l'instrument. */
-function L({ k, v, fort = false }: { k: string; v: React.ReactNode; fort?: boolean }) {
+function L({
+  k,
+  v,
+  fort = false,
+  src,
+}: {
+  k: string
+  v: React.ReactNode
+  fort?: boolean
+  src?: Source
+}) {
   return (
     <div
-      className="flex items-baseline gap-[9px] px-[11px] py-[5px]"
-      style={{ borderTop: '1px solid var(--line)', minWidth: 0 }}
+      className="flex items-baseline gap-[9px] px-[11px] py-[3px]"
+      style={{
+        borderTop: '1px solid var(--line)',
+        minWidth: 0,
+        boxShadow: src ? `inset 2px 0 0 ${LISERE[src]}` : undefined,
+      }}
+      title={src ? DIT[src] : undefined}
     >
       <span className="t-label" style={{ color: 'var(--ink-2)', minWidth: 92, flex: 'none' }}>
         {k}
@@ -135,7 +180,7 @@ function Etape({ n, sur, titre, children }: { n: number; sur: number; titre: str
       className="flex flex-col"
       style={{ border: '1px solid var(--line)', background: 'var(--bg-1)', minWidth: 0 }}
     >
-      <header className="px-[11px] pt-[9px] pb-[7px] flex items-baseline gap-[8px]">
+      <header className="px-[11px] pt-[5px] pb-[4px] flex items-baseline gap-[8px]">
         <span className="t-label" style={{ color: 'var(--m-4)', flex: 'none' }}>
           {String(n).padStart(2, '0')}/{String(sur).padStart(2, '0')}
         </span>
@@ -156,8 +201,15 @@ const TON_VERDICT: Record<Verdict, string> = {
   block: 'var(--m-3)',
 }
 
-/** Le nom d'une monnaie quand le corpus en connait un, son adresse courte sinon. */
-const nomMonnaie = (a: string): string => MONNAIES_DE_COTATION[a.toLowerCase()] ?? shortAddr(a)
+/**
+ * Le nom d'une monnaie : le symbole LU sur la chaine d'abord, puis l'adresse tronquee. Quand
+ * `symbol()` n'a pas ete lu pour cette adresse, on rend l'adresse SEULE — un joli nom invente
+ * vaut moins qu'une adresse nue, et c'est la regle que tout ce depot applique.
+ */
+const nomMonnaie = (a: string): string => nomJeton(a)
+
+/** Le symbole seul, pour les phrases ou l'adresse encombrerait. Peut etre null. */
+const sym = (a: string): string | null => symbole(a)
 
 /**
  * La liste de commandes de l'Universal Router, DECODEE octet par octet.
@@ -207,20 +259,37 @@ function lire(table: GuardTable, calldata: string): Lecture {
 function CeQuiEstLu({ l, attendu }: { l: Lecture; attendu?: string }) {
   return (
     <>
-      <L k="selector" v={<span className="hex">{l.decode.selector}</span>} />
+      {/* LA LEGENDE. Un spectateur doit voir d'un coup d'oeil ce qui vient de la transaction,
+          ce qui vient du calcul, et ce qui vient des mesures publiees. */}
+      <div
+        className="px-[11px] py-[3px] flex flex-wrap gap-x-[10px] t-data-xs"
+        style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-2)' }}
+      >
+        {(['calldata', 'derive', 'corpus'] as const).map((k) => (
+          <span key={k} className="inline-flex items-center gap-[4px]">
+            <span aria-hidden="true" style={{ width: 8, height: 2, background: LISERE[k], display: 'inline-block' }} />
+            {k === 'calldata' ? 'read from the calldata' : k === 'derive' ? 're-derived' : 'from the corpus'}
+          </span>
+        ))}
+      </div>
       <L
+        src="calldata"
         k="commands"
         v={
           <>
-            <span className="hex">{l.decode.commands}</span> · {nomsDeCommandes(l.decode.commands).join(' then ')}
+            <span className="hex" title={`selector ${l.decode.selector}`}>
+              {l.decode.commands}
+            </span>{' '}
+            · {nomsDeCommandes(l.decode.commands).join(' then ')}
           </>
         }
       />
       {l.leg === null ? (
-        <L k="swap" v={<Inconnu quoi="no v4 swap in this calldata" />} />
+        <L src="calldata" k="swap" v={<Inconnu quoi="no v4 swap in this calldata" />} />
       ) : (
         <>
           <L
+            src="calldata"
             k="poolkey"
             v={
               <>
@@ -229,41 +298,42 @@ function CeQuiEstLu({ l, attendu }: { l: Lecture; attendu?: string }) {
               </>
             }
           />
-          <L k="hook" fort v={<span className="hex">{l.leg.poolKey.hooks}</span>} />
+          <L src="calldata" k="hook" fort v={<span className="hex">{l.leg.poolKey.hooks}</span>} />
           <L
+            src="derive"
             k="pool id"
             v={
               <>
                 <span className="hex">{shortAddr(l.leg.poolId, 12, 6)}</span>
                 <span style={{ color: 'var(--ink-2)' }}>
                   {attendu === undefined
-                    ? ' · re-derived from the PoolKey'
+                    ? ' · re-derived'
                     : l.leg.poolId === attendu
-                      ? ' · re-derived from the PoolKey, identical to the corpus'
-                      : ' · re-derived from the PoolKey, and it is not the pool expected'}
+                      ? ' · re-derived, matches the corpus'
+                      : ' · re-derived, NOT the pool expected'}
                 </span>
               </>
             }
           />
           <L
+            src="calldata"
             k="direction"
             v={
               <>
                 {l.leg.direction} · {l.leg.actionName} ·{' '}
                 {l.leg.amountIn === null ? <Inconnu quoi="size fixed by the calldata" /> : groupDigits(l.leg.amountIn)}
+                <span style={{ color: 'var(--ink-4)' }}>
+                  {' '}
+                  ·{' '}
+                  {l.decode.complete
+                    ? 'read whole'
+                    : l.decode.issues.map((i) => `${i.where}: ${i.reason}`).join(' · ')}
+                </span>
               </>
             }
           />
         </>
       )}
-      <L
-        k="read whole"
-        v={
-          l.decode.complete
-            ? 'yes — nothing was left unread'
-            : l.decode.issues.map((i) => `${i.where}: ${i.reason}`).join(' · ')
-        }
-      />
     </>
   )
 }
@@ -301,19 +371,35 @@ const PERIODE_ECRAN_MS = 900
 const APPUIS_PAR_RAFALE = 10
 /** L'espacement entre deux appuis d'une rafale : l'appareil doit avoir le temps de rendre. */
 const ENTRE_APPUIS_MS = 140
+/** Combien d'ecrans defiles on garde sous les yeux. Au-dela, la trace cesse d'etre lisible. */
+const TRACE_MAX = 3
 
 function EcranAppareil({
   onBouton,
   texte,
+  lireEcran,
 }: {
   onBouton: (b: BoutonAppareil) => Promise<boolean>
   texte?: string | null
+  /** relit le texte de l'ecran, une fois. La rafale s'en sert pour ne rien sauter. */
+  lireEcran: () => Promise<string | null>
 }) {
   const [jeton, setJeton] = useState(0)
   const [dispo, setDispo] = useState<boolean | null>(null)
   const [appuis, setAppuis] = useState(0)
   const [ecrans, setEcrans] = useState(0)
   const [rafale, setRafale] = useState(false)
+  /**
+   * CE QUI VIENT DE PASSER.
+   *
+   * Mesure faite en direct : avec une rafale, `take 4.09 bps` n'est reste lisible a l'ecran
+   * dans AUCUN des deux passages de l'audit. La rafale mene au refus, mais elle saute
+   * par-dessus le seul champ qui porte la demonstration. On garde donc la TRACE des ecrans
+   * defiles — relus sur l'appareil, un par appui — pour que la salle voie ce qui est passe
+   * meme si c'etait rapide. Aucune liste ecrite d'avance : ce serait montrer une chose et en
+   * signer une autre.
+   */
+  const [trace, setTrace] = useState<string[]>([])
   const dernier = useRef<string | null>(null)
 
   useEffect(() => {
@@ -324,12 +410,15 @@ function EcranAppareil({
   // LE COMPTEUR D'ECRANS EST MESURE : il avance quand le texte relu sur l'appareil CHANGE.
   // Un total annonce d'avance serait une estimation, et une estimation affichee comme un
   // repere devient un chiffre faux des que le rapport gagne un champ.
-  useEffect(() => {
-    const t = (texte ?? '').trim()
+  const noter = useCallback((brut: string | null) => {
+    const t = (brut ?? '').trim()
     if (!t || t === dernier.current) return
     dernier.current = t
     setEcrans((n) => n + 1)
-  }, [texte])
+    setTrace((l) => [t, ...l].slice(0, TRACE_MAX))
+  }, [])
+
+  useEffect(() => noter(texte ?? null), [texte, noter])
 
   const appuyerUne = async (b: BoutonAppareil) => {
     const ok = await onBouton(b)
@@ -337,12 +426,19 @@ function EcranAppareil({
     return ok
   }
 
+  /**
+   * LA RAFALE LIT APRES CHAQUE APPUI. Elle ne se contente pas d'appuyer vite : elle relit
+   * l'ecran entre deux appuis, ce qui la cadence naturellement ET garantit qu'aucun champ ne
+   * passe sans etre note. Appuyer plus vite que la lecture reviendrait a montrer un defilement
+   * dont on ne saurait pas dire ce qu'il a contenu.
+   */
   const enchainer = async () => {
     setRafale(true)
     for (let i = 0; i < APPUIS_PAR_RAFALE; i += 1) {
       const ok = await appuyerUne('right')
       if (!ok) break
       await new Promise((r) => window.setTimeout(r, ENTRE_APPUIS_MS))
+      noter(await lireEcran())
     }
     setRafale(false)
   }
@@ -351,7 +447,7 @@ function EcranAppareil({
     <div className="flex flex-col gap-[5px] px-[11px] py-[7px]" style={{ borderTop: '1px solid var(--line)' }}>
       <div
         className="flex items-center justify-center"
-        style={{ border: '1px solid var(--line-strong)', background: 'var(--bg)', minHeight: 66, padding: 4 }}
+        style={{ border: '1px solid var(--line-strong)', background: 'var(--bg)', minHeight: 58, padding: 4 }}
       >
         <img
           src={urlEcran(jeton)}
@@ -377,70 +473,83 @@ function EcranAppareil({
         </div>
       ) : null}
       <div className="flex flex-wrap items-center gap-[6px]">
-        <Bouton onClick={() => void appuyerUne('left')} actif={!rafale}>
+        <Bouton onClick={() => void appuyerUne('left')} actif={!rafale} titre="previous — does nothing on the guard screen">
           previous (left)
         </Bouton>
-        <Bouton onClick={() => void appuyerUne('right')} actif={!rafale}>
+        <Bouton onClick={() => void appuyerUne('right')} actif={!rafale} titre="next field">
           next (right)
         </Bouton>
-        <Bouton onClick={() => void enchainer()} actif={!rafale}>
-          next ×{APPUIS_PAR_RAFALE}
+        <Bouton onClick={() => void enchainer()} actif={!rafale} titre={`${APPUIS_PAR_RAFALE} next presses, reading the screen between each`}>
+          ×{APPUIS_PAR_RAFALE}
         </Bouton>
-        <Bouton onClick={() => void appuyerUne('both')} actif={!rafale} fort>
+        <Bouton onClick={() => void appuyerUne('both')} actif={!rafale} fort titre="confirm the screen">
           confirm (both)
         </Bouton>
       </div>
+      {trace.length > 0 && (
+        <div
+          className="flex flex-wrap gap-[4px]"
+          aria-label="the screens that just went by"
+          style={{ maxHeight: 34, overflow: 'hidden' }}
+        >
+          {trace.map((t, i) => (
+            <span
+              key={`${i}-${t}`}
+              className="t-data-xs hex px-[5px]"
+              style={{
+                border: '1px solid var(--line)',
+                background: i === 0 ? 'var(--bg-3)' : 'transparent',
+                // Un champ qui porte un CHIFFRE est celui que la demonstration doit montrer :
+                // il se distingue, sans qu'on ait besoin de savoir lequel c'est a l'avance.
+                color: /\d/.test(t) ? 'var(--m-4)' : 'var(--ink-2)',
+                maxWidth: '100%',
+                overflowWrap: 'anywhere',
+              }}
+            >
+              {t}
+            </span>
+          ))}
+        </div>
+      )}
       <div className="t-data-xs" style={{ color: 'var(--ink-2)', overflowWrap: 'anywhere' }}>
-        screens seen {texte ? ecrans : <Inconnu quoi="the device screen text" />} · presses {appuis}
-        {rafale ? ' · burst running' : ''} · {SPECULOS} every {PERIODE_MS} ms, nothing is replayed
+        screens {texte ? ecrans : <Inconnu quoi="the device screen text" />} · presses {appuis}
+        {rafale ? ' · burst' : ''} · live every {PERIODE_MS} ms, nothing is replayed
       </div>
-      <div className="t-data-xs" style={{ color: 'var(--ink-2)', lineHeight: 1.4 }}>
-        First screen is a guard — <em>blind signing ahead</em> — only{' '}
-        <strong style={{ color: 'var(--ink)' }}>confirm</strong> clears it, the left button does
-        nothing there. Then <strong style={{ color: 'var(--ink)' }}>next</strong> walks every field.
-        The last two screens are <em>Approve</em> and <em>Reject</em>:{' '}
-        <strong style={{ color: 'var(--ink)' }}>confirm</strong> on <em>Reject</em> is the refusal,
-        and it answers code {CODE_REFUS_UTILISATEUR}.
-      </div>
+      <details>
+        <summary className="t-data-xs cursor-pointer" style={{ color: 'var(--ink-2)' }}>
+          the gesture, in order
+        </summary>
+        <div className="t-data-xs mt-[3px]" style={{ color: 'var(--ink-2)', lineHeight: 1.4 }}>
+          First screen is a guard — <em>blind signing ahead</em> — only{' '}
+          <strong style={{ color: 'var(--ink)' }}>confirm</strong> clears it, the left button does
+          nothing there. Then <strong style={{ color: 'var(--ink)' }}>next</strong> walks every field.
+          The last two screens are <em>Approve</em> and <em>Reject</em>:{' '}
+          <strong style={{ color: 'var(--ink)' }}>confirm</strong> on <em>Reject</em> is the refusal,
+          and it answers code {CODE_REFUS_UTILISATEUR}.
+        </div>
+      </details>
     </div>
   )
 }
 
 /* ----------------------------------------------------------------- une porte */
 
-function LignePorte({ p, role }: { p: Porte; role: string }) {
-  return (
-    <L
-      k={role}
-      fort
-      v={
-        <>
-          <span className="hex">{shortAddr(p.poolId, 10, 4)}</span> · hook{' '}
-          <span className="hex">{shortAddr(p.hook, 10, 4)}</span> ·{' '}
-          {p.bps === null ? <Inconnu quoi={`take at ${p.amountIn}`} /> : <>{bpsTexte(p.bps)} bps</>}
-        </>
-      }
-    />
-  )
-}
-
-/* --------------------------------------------------- ou une porte tombe dans le corpus */
-
 /**
  * OU CETTE PORTE TOMBE PARMI LES AUTRES.
  *
- * Un prelevement seul ne dit rien : 4 bps est-ce beaucoup ? La reponse n'est pas une opinion,
+ * Un prelevement seul ne dit rien : 4 bps, est-ce beaucoup ? La reponse n'est pas une opinion,
  * elle est dans le corpus — et c'est elle qui empeche a la fois de dramatiser une porte
  * ordinaire et de banaliser une porte extreme.
  */
-function Situation({ bps, part, n, total }: { bps: number; part: number; n: number; total: number }) {
+function Situation({ part, n, total }: { part: number; n: number; total: number }) {
   return (
     <L
+      src="corpus"
       k="where it sits"
       v={
         <>
-          {partTexte(part)} of the measured rows take more than this one —{' '}
-          {groupDigits(String(n))} out of {groupDigits(String(total))}, at {bpsTexte(bps)} bps
+          {partTexte(part)} of the corpus takes more than this — {groupDigits(String(n))}/
+          {groupDigits(String(total))}
         </>
       }
     />
@@ -449,48 +558,99 @@ function Situation({ bps, part, n, total }: { bps: number; part: number; n: numb
 
 /* ------------------------------------------------------------------- la page */
 
-/** Les trois vues de la page. Les deux actes portent la meme paire ; la queue est a part. */
-type Vue = 'acte1' | 'acte2' | 'queue'
+
+/**
+ * UNE SEULE HISTOIRE, DEUX FINS.
+ *
+ * Plus deux actes cote a cote : un seul parcours, celui de l'extension. L'utilisateur clique
+ * « swap » comme sur n'importe quel site d'echange, la garde intercepte AVANT le portefeuille,
+ * son rapport part a l'appareil, et l'humain decide la. Le refus et la substitution sont deux
+ * ISSUES DU MEME CLIC, rejouables sans recharger.
+ */
+type Issue =
+  /** l'humain a refuse : 4001 rendu a l'appelant, le portefeuille jamais ouvert */
+  | 'REFUSEE'
+  /** l'humain passe QUAND MEME : la transaction D'ORIGINE part au portefeuille, telle quelle */
+  | 'ORIGINE'
+  /** l'humain substitue : la transaction DE REMPLACEMENT part, en second appel delibere */
+  | 'REMPLACEMENT'
+
+/**
+ * LES TROIS REPONSES A LA MEME QUESTION.
+ *
+ * Il n'y a qu'un objet de decision — le RAPPORT de la garde — et il nomme deux faits : ce que
+ * la porte actuelle prend, et ce qu'une autre prendrait. L'humain n'a donc pas deux questions,
+ * il en a une, avec trois reponses. La troisieme, « passer quand meme », est celle qui compte
+ * le plus pour la credibilite : sans elle, un outil qui n'offre que « refuse » ou « prends ma
+ * route » est un routeur deguise. La garde INFORME, elle ne decide pas a la place.
+ */
+type Choix = 'refuser' | 'passer' | 'substituer'
+
+/** La vue de reference : la queue du corpus, ouverte depuis le bandeau. Pas un acte. */
+type Vue = 'parcours' | 'queue'
 
 export function DemoPage() {
-  /* Le corpus, lu trois fois et une seule : la table de la garde, la distribution, les actes. */
+  /* Le corpus, lu une fois : la table de la garde, la distribution, la paire, la queue. */
   const table = useMemo(() => tableDuCorpus(), [])
   const seuils = useMemo(() => thresholdsFor(table), [table])
   const dist = useMemo(() => distribution(), [])
   const paire = useMemo(() => acteSubstitution(), [])
   const queue = useMemo(() => acteStop(), [])
 
-  const [vue, setVue] = useState<Vue>('acte1')
+  const [vue, setVue] = useState<Vue>('parcours')
   const [etat, setEtat] = useState<EtatDemo | Refus | null>(null)
   const [portefeuilles, setPortefeuilles] = useState<PortefeuilleAnnonce[]>([])
   const [adresse, setAdresse] = useState<string | null>(null)
   const [journal, setJournal] = useState<{ quoi: string; texte: string; dur?: boolean }[]>([])
+  const alerte = journal.find((l) => l.dur) ?? null
   const [prep, setPrep] = useState<Record<string, Preparation | Refus | null>>({})
-  const [appareil, setAppareil] = useState<Approbation | Refus | null>(null)
   const [hash, setHash] = useState<string | null>(null)
   const [recuTx, setRecuTx] = useState<Recu | null>(null)
   const [soldesAvant, setSoldesAvant] = useState<Soldes | null>(null)
   const [soldesApres, setSoldesApres] = useState<Soldes | null>(null)
   const [occupe, setOccupe] = useState<string | null>(null)
-  /** Le texte de l'ecran de l'appareil, relu en direct : c'est lui qui fait le compteur. */
   const [ecranTexte, setEcranTexte] = useState<string | null>(null)
-  /** Depuis combien de secondes on attend. Attendre quatre minutes en silence, c'est une panne. */
   const [attente, setAttente] = useState(0)
+  const [paireChoisie, setPaireChoisie] = useState<string>('')
+  const [basculee, setBasculee] = useState(false)
 
-  const fournisseur: Fournisseur | null = (portefeuilles[0]?.provider as Fournisseur | undefined) ?? null
+  /* ---------------------------------------------------- l'etat du parcours */
+  /** Ce que la garde a lu du calldata interceptE. Null tant qu'on n'a pas clique. */
+  const [rapport, setRapport] = useState<GuardReport | null>(null)
+  /** Vrai pendant que l'appareil affiche le rapport et qu'on attend la main humaine. */
+  const [demande, setDemande] = useState(false)
+  const [issue, setIssue] = useState<Issue | null>(null)
+  const [codeRendu, setCodeRendu] = useState<number | null>(null)
+  const [ouvertures, setOuvertures] = useState(0)
+  /** Combien de fois l'appareil a rendu des ecrans, quand il l'a dit. */
+  const [appareil, setAppareil] = useState<Approbation | Refus | null>(null)
+  /** Qui a decide, et pourquoi — repris du `ApprovalDecision` de la garde. */
+  const [decision, setDecision] = useState<{ by: string; reason: string; attestation?: string | null } | null>(null)
+
+  const fournisseurBrut: Fournisseur | null = (portefeuilles[0]?.provider as Fournisseur | undefined) ?? null
   const minuteur = useRef<number | null>(null)
-  /**
-   * UNE SEULE REQUETE A LA FOIS, et pas « une seule apres le premier `await` ».
-   *
-   * Le bouton « prepare » ne se desarmait qu'apres l'aller-retour vers le portefeuille — 60 a
-   * 120 ms — et un double clic partait en entier : deux preparations, donc DEUX snapshots, et
-   * le fork derivait sous la demonstration. `occupe` est pose avant tout `await`, et ce verrou
-   * ferme la fenetre qui reste entre le clic et le rendu.
-   */
   const enVol = useRef(false)
+  /** La main posee sur la decision en cours : l'echappatoire de scene, quand le pont manque. */
+  const trancher = useRef<((d: { approved: boolean; by: string; reason: string; attestation?: string | null }) => void) | null>(null)
+  /** Laquelle des trois reponses a ete donnee. Lue apres coup : la garde, elle, ne connait que oui/non. */
+  const choix = useRef<Choix | null>(null)
+  /** La main posee sur le CHOIX DU PLAN, avant que l'appareil ne confirme quoi que ce soit. */
+  const choisir = useRef<((c: Choix) => void) | null>(null)
+  /**
+   * LE PLAN DEJA APPROUVE SUR L'APPAREIL.
+   *
+   * Substituer, c'est refuser la transaction d'origine puis envoyer le remplacement — donc un
+   * SECOND appel, que la garde intercepte aussi. Redemander a l'appareil de confirmer le plan
+   * qu'un humain vient d'approuver champ par champ ne protegerait personne : ce serait la meme
+   * question, posee deux fois, et une garde qui demande deux fois se fait desinstaller. On
+   * retient donc le pool approuve, et on ne redemande que si le calldata vise autre chose.
+   */
+  const planApprouve = useRef<string | null>(null)
+  /** La transaction de remplacement, vue par l'approbateur : Approve sur l'appareil vaut « le plan ». */
+  const remplacementRef = useRef<TransactionPrete | null>(null)
 
   const dire = useCallback((quoi: string, texte: string, dur = false) => {
-    setJournal((j) => [{ quoi, texte, dur }, ...j].slice(0, 4))
+    setJournal((j) => [{ quoi, texte, dur }, ...j].slice(0, 3))
   }, [])
 
   useEffect(() => ecouterPortefeuilles(setPortefeuilles), [])
@@ -509,10 +669,6 @@ export function DemoPage() {
     },
     [],
   )
-
-  // LE CHRONO D'ATTENTE. `/demo/approuver` ne rend la main que quand l'humain a tranche sur
-  // l'appareil : jusqu'a quatre minutes. Un ecran qui ne bouge pas pendant ce temps-la se lit
-  // comme une panne, et c'est exactement le mensonge que tout le reste du site refuse.
   useEffect(() => {
     if (occupe === null) {
       setAttente(0)
@@ -523,98 +679,224 @@ export function DemoPage() {
     return () => window.clearInterval(t)
   }, [occupe])
 
-  // LE TEXTE DE L'ECRAN DE L'APPAREIL, relu tant que l'acte 1 est affiche. Il vient du pont,
-  // qui interroge Speculos : le navigateur ne peut pas le lire lui-meme. C'est ce texte qui
-  // fait avancer le compteur d'ecrans — un compteur MESURE, jamais estime.
-  useEffect(() => {
-    if (vue !== 'acte1') return
-    let vivant = true
-    const tic = async () => {
-      const e = await lireEtat()
-      if (!vivant) return
-      setEcranTexte(estRefus(e) ? null : (e.speculos.ecran ?? null))
-    }
-    void tic()
-    const t = window.setInterval(() => void tic(), PERIODE_ECRAN_MS)
-    return () => {
-      vivant = false
-      window.clearInterval(t)
-    }
-  }, [vue])
-
   const etatOk = etat !== null && !estRefus(etat) ? etat : null
   const fork = etatOk?.fork ?? null
+  /**
+   * LE NOEUD QUE LA COMMANDE DE REJEU VISE.
+   *
+   * Il vient de `/demo/etat`, jamais du JSX : le fork est public, et son adresse changera le
+   * jour ou le sous-domaine sera pose. Sans le pont on retombe sur l'anvil local — et la ligne
+   * en dessous le dit, parce qu'une commande qui ne tourne que chez nous rend fausse la
+   * promesse ecrite partout ici.
+   */
+  const rpcRejeu = fork?.rpc ?? RPC_LOCAL
+  const rejouable = fork?.rpc != null
+
+  /** Une lecture du texte de l'ecran, par le pont. Le navigateur ne peut pas lire Speculos. */
+  const lireEcran = useCallback(async (): Promise<string | null> => {
+    const e = await lireEtat()
+    const t = estRefus(e) ? null : (e.speculos.ecran ?? null)
+    setEcranTexte(t)
+    return t
+  }, [])
 
   /**
-   * LA PAIRE EST LA MEME DANS LES DEUX ACTES : acte 1 lit la porte actuelle, acte 2 propose
-   * l'autre. Le service, lui, ne connait que deux noms d'acte — c'est son `substitution` qui
-   * porte cette paire, et son `stop` qui porte la queue.
+   * LE PREALABLE TECHNIQUE, FAIT EN SILENCE.
+   *
+   * Crediter l'adresse, prendre un instantane, construire le calldata : c'est le travail du
+   * site d'echange, pas un geste de l'utilisateur. On le fait au chargement, une fois, pour que
+   * la route, l'empreinte et le calldata affiches soient ceux du pont des la premiere seconde —
+   * et pour que le seul bouton de la scene s'appelle « swap », comme sur n'importe quel site.
    */
-  const acteCourant: Acte | null = vue === 'queue' ? queue : paire
+  const prepareAuChargement = useRef(false)
+  useEffect(() => {
+    if (!etatOk || prepareAuChargement.current) return
+    prepareAuChargement.current = true
+    void preparer(adresse ?? ZERO_ADDRESS, 'substitution').then((r) =>
+      setPrep((p) => ({ ...p, substitution: r })),
+    )
+    void preparer(ZERO_ADDRESS, 'stop').then((r) => setPrep((p) => ({ ...p, stop: r })))
+  }, [etatOk, adresse])
+
+  useEffect(() => {
+    if (vue !== 'parcours') return
+    void lireEcran()
+    const t = window.setInterval(() => void lireEcran(), PERIODE_ECRAN_MS)
+    return () => window.clearInterval(t)
+  }, [vue, lireEcran])
+
+  const acteAffiche: Acte | null = vue === 'queue' ? queue : paire
   const acteBridge: 'stop' | 'substitution' = vue === 'queue' ? 'stop' : 'substitution'
   const preparation = prep[acteBridge] ?? null
   const preparationOk = preparation && !estRefus(preparation) ? preparation : null
 
-  /** Les frais LP que le pool de l'acte 1 prend DEJA : le point de comparaison le plus honnete. */
   const fraisDuPool =
     paire && paire.actuelle.row.stored_lp_fee !== null ? lpFeeBps(paire.actuelle.row.stored_lp_fee) : null
+  const cleExecutee = paire ? cleDe(paire.actuelle.entree, paire.actuelle.sortie) : ''
+  const surLaPaireExecutee = paireChoisie === '' || paireChoisie === cleExecutee
 
-  /**
-   * LE CALLDATA LU PAR LA GARDE : celui du service quand il repond — c'est lui qui partira sur
-   * le fork — et sinon celui que le corpus permet de reconstruire pour la meme porte, a la
-   * meme taille. Les deux passent par le MEME decodeur, et l'ecran dit lequel il lit.
-   */
-  const calldata = preparationOk?.transaction.data ?? acteCourant?.calldata ?? null
+  const montantLisibleActe = acteAffiche
+    ? montantLisible(acteAffiche.actuelle.amountIn, acteAffiche.actuelle.entree)
+    : null
+  const libelleSwap = acteAffiche
+    ? `swap ${montantLisibleActe ?? groupDigits(acteAffiche.actuelle.amountIn)} ${
+        sym(acteAffiche.actuelle.entree) ?? shortAddr(acteAffiche.actuelle.entree)
+      } → ${sym(acteAffiche.actuelle.sortie) ?? shortAddr(acteAffiche.actuelle.sortie)}`
+    : 'swap'
+
+  /** Une route candidate : la porte, ce qu'elle prend, et ce que le swap REND par elle. */
+  const candidate = (p: Porte | null | undefined): RouteCandidate | null =>
+    p
+      ? {
+          poolId: p.poolId,
+          hook: p.hook,
+          bps: p.bps,
+          lpBps: p.row.stored_lp_fee === null ? null : lpDuPool(p.row.stored_lp_fee),
+          // `out_with` est la sortie MESUREE par cette porte. Absente, elle reste « unknown ».
+          recu: p.row.out_with,
+        }
+      : null
+
+  /** Le calldata intercepte : celui du pont quand il repond, celui du corpus sinon. */
+  const calldata = preparationOk?.transaction.data ?? acteAffiche?.calldata ?? null
   const lecture = useMemo(() => (calldata ? lire(table, calldata) : null), [table, calldata])
 
-  /**
-   * LA TRANSACTION DE REMPLACEMENT, construite par envoi.ts et jamais envoyee.
-   *
-   * Sans cotation vivante, envoi.ts rend l'etat nomme SANS_PLANCHER — et c'est la bonne
-   * reponse : une transaction sans plancher de sortie serait signable a n'importe quel prix.
-   * Le service, lui, cote sur le fork ; sa cotation est reprise telle quelle.
-   */
   const envoi: Envoi | null = useMemo(() => {
-    if (vue !== 'acte2' || !lecture?.alternative) return null
+    if (!lecture?.alternative) return null
     const cot = preparationOk?.cotation
     return transactionDeRemplacement(lecture.alternative, {
       cotation: cot === null || cot === undefined ? null : BigInt(cot),
       maintenant: BigInt(Math.floor(Date.now() / 1000)),
     })
-  }, [vue, lecture, preparationOk])
+  }, [lecture, preparationOk])
 
-  /** Ce que le portefeuille signera : le remplacement rendu par le pont, et rien d'autre. */
-  const aSigner: TransactionPrete | null =
-    vue === 'acte2' ? (preparationOk?.transaction_remplacement ?? null) : null
-  const lectureR = useMemo(
-    () =>
-      vue !== 'acte2'
-        ? null
-        : aSigner
-          ? lire(table, aSigner.data)
-          : envoi?.transaction
-            ? lire(table, envoi.transaction.data)
-            : null,
-    [vue, table, aSigner, envoi],
+  const remplacement: TransactionPrete | null =
+    preparationOk?.transaction_remplacement ?? envoi?.transaction ?? null
+  remplacementRef.current = remplacement
+
+  /* ------------------------------------------- LA GARDE, POSEE POUR DE VRAI */
+
+  /**
+   * L'APPROBATEUR. Il ne decide rien : il DEMANDE. A l'appareil quand le pont repond, et a
+   * l'ecran sinon — une garde qui echouerait en « oui » ne garderait rien, donc l'absence de
+   * reponse est un refus, jamais un laissez-passer.
+   *
+   * Les deux chemins courent ensemble : le presentateur garde la main sur scene meme si
+   * l'appareil est lent, et la decision rendue DIT qui a tranche.
+   */
+  const approuverLeRapport = useCallback(
+    async (r: GuardReport) => {
+      setRapport(r)
+      const vise = r.decode.legs[0]?.poolId ?? null
+      if (vise !== null && vise === planApprouve.current) {
+        planApprouve.current = null
+        return {
+          approved: true,
+          by: 'the device',
+          reason: 'this is the plan the human already approved, field by field',
+          attestation: null,
+        }
+      }
+      setDemande(true)
+      setOccupe('choice')
+      // 1. LA PAGE PROPOSE. L'app Ledger n'a que deux boutons : elle ne peut pas porter un choix
+      //    a trois. Le plan se choisit donc ici, ou les deux routes sont cote a cote.
+      const c = await new Promise<Choix>((resoudre) => {
+        choisir.current = resoudre
+      })
+      choisir.current = null
+      choix.current = c
+      if (c === 'refuser') {
+        setDemande(false)
+        setOccupe(null)
+        setDecision({ by: 'the page', reason: 'refused before anything left' })
+        return { approved: false, by: 'the page', reason: 'refused before anything left', attestation: null }
+      }
+      // 2. L'APPAREIL CONFIRME LE PLAN CHOISI. Le rapport nomme CE plan : si l'utilisateur a
+      //    pris la substitution, la porte affichee sur l'appareil est la nouvelle.
+      setOccupe('device')
+      const aLaMain = new Promise<{ approved: boolean; by: string; reason: string }>((resoudre) => {
+        trancher.current = resoudre
+      })
+      const parLAppareil = (async () => {
+        const rep = await approuver(acteBridge)
+        setAppareil(rep)
+        if (estRefus(rep))
+          return { approved: false, by: 'bridge', reason: `the bridge did not answer: ${rep.raison}` }
+        if (typeof rep.refus === 'number')
+          return { approved: false, by: 'device', reason: rep.raison ?? 'rejected on the device' }
+        return { approved: true, by: 'device', reason: 'approved on the device' }
+      })()
+      const d = await Promise.race([aLaMain, parLAppareil])
+      trancher.current = null
+      setDemande(false)
+      setOccupe(null)
+      setDecision(d)
+      if (!d.approved) {
+        choix.current = 'refuser'
+        return { approved: false, by: d.by, reason: d.reason, attestation: null }
+      }
+      // 3. APPROUVE. « go through anyway » laisse passer la transaction d'origine ; « take the
+      //    cheaper gate » la refuse et envoie le remplacement en SECOND appel — la garde ne
+      //    reecrit jamais ce qu'on lui a donne.
+      if (c === 'substituer') planApprouve.current = paire?.proposee?.poolId ?? null
+      return { approved: c === 'passer', by: d.by, reason: d.reason, attestation: null }
+    },
+    [acteBridge, paire],
   )
+
+  const approuverRef = useRef(approuverLeRapport)
+  approuverRef.current = approuverLeRapport
+
+  /**
+   * LE POSTE DE GARDE. Pose UNE FOIS par fournisseur : `envelopperProvider` est idempotent,
+   * mais empiler des enveloppes ouvrirait N fenetres pour un seul swap.
+   *
+   * `askOn` inclut `ok`, et l'ecran le DIT : le defaut du paquet ne demande que sur `warn` et
+   * `block`, et ce prelevement-ci tombe sous le seuil `warn`. Laisser croire que l'extension
+   * arrete ce swap-la par defaut serait faux.
+   */
+  const poste = useMemo(() => {
+    if (!fournisseurBrut || !paire) return null
+    return poserLaGarde(fournisseurBrut as unknown as Eip1193Provider, {
+      table,
+      routeur: paire.routeur,
+      atBlock: fork?.block_number ?? null,
+      askOn: ['ok', 'warn', 'block'],
+      approver: { name: 'tare-demo', approve: (r: GuardReport) => approuverRef.current(r) },
+      onReport: (r) => setRapport(r),
+    })
+    // `fork.block_number` volontairement hors dependances : rebrancher la garde en cours de
+    // parcours perdrait l'enveloppe posee et la question en vol.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fournisseurBrut, paire, table])
 
   /* --------------------------------------------------------------- les gestes */
 
+  const comptesDu = async (): Promise<string | null> => {
+    if (!fournisseurBrut) return null
+    const c = await comptes(fournisseurBrut)
+    if (estRefus(c)) {
+      dire('wallet', c.raison, true)
+      return null
+    }
+    const a = c[0] ?? null
+    setAdresse(a)
+    return a
+  }
+
   const connecter = async () => {
-    if (!fournisseur) return dire('wallet', 'no wallet announced on this page', true)
     setOccupe('wallet')
-    const c = await comptes(fournisseur)
+    const a = await comptesDu()
     setOccupe(null)
-    if (estRefus(c)) return dire('wallet', c.raison, true)
-    setAdresse(c[0] ?? null)
-    dire('wallet', c[0] ? `connected as ${shortAddr(c[0])}` : 'the wallet returned no address', !c[0])
+    if (a) dire('wallet', `connected as ${shortAddr(a)}`)
   }
 
   const brancherReseau = async () => {
-    if (!fournisseur) return dire('network', 'no wallet announced on this page', true)
+    if (!fournisseurBrut) return dire('network', 'no wallet announced on this page', true)
     if (!fork) return dire('network', 'the bridge has not published the fork RPC yet', true)
     setOccupe('network')
-    const r = await ajouterEtBasculer(fournisseur, fork)
+    const r = await ajouterEtBasculer(fournisseurBrut, fork)
     setOccupe(null)
     dire(
       'network',
@@ -623,94 +905,140 @@ export function DemoPage() {
     )
   }
 
-  const demanderPreparation = async () => {
-    if (enVol.current) return
-    enVol.current = true
-    setOccupe('bridge')
-    let de = adresse
-    if (!de && fournisseur) {
-      const c = await comptes(fournisseur)
-      if (!estRefus(c)) {
-        de = c[0] ?? null
-        setAdresse(de)
-      }
-    }
+  /** Le prealable technique, fait SILENCIEUSEMENT derriere le meme clic. */
+  const preparer1 = async (de: string | null): Promise<Preparation | null> => {
+    const deja = prep[acteBridge]
+    if (deja && !estRefus(deja)) return deja
     const r = await preparer(de ?? ZERO_ADDRESS, acteBridge)
-    setOccupe(null)
-    enVol.current = false
     setPrep((p) => ({ ...p, [acteBridge]: r }))
-    if (estRefus(r)) return dire('bridge', r.raison, true)
-    setSoldesAvant(r.soldes)
-    setSoldesApres(null)
-    dire('bridge', `transaction prepared for act ${acteBridge}`)
-  }
-
-  /** Envoie le rapport EIP-712 a l'appareil et attend la decision de l'humain. */
-  const demanderAppareil = async () => {
-    if (enVol.current) return
-    enVol.current = true
-    setOccupe('device')
-    setAppareil(null)
-    const r = await approuver(acteBridge)
-    setOccupe(null)
-    enVol.current = false
-    setAppareil(r)
-    if (estRefus(r)) return dire('device', r.raison, true)
-    if (typeof r.refus === 'number')
-      return dire('device', `${r.raison ?? 'rejected on the device'} — code ${r.refus}, nothing left`, true)
-    dire('device', r.signature ? `signed on the device: ${shortAddr(r.signature, 12, 6)}` : 'the device answered')
-  }
-
-  /** Un appui sur l'appareil. Rend vrai quand il a abouti : le compteur ne compte que le reel. */
-  const bouton = async (b: BoutonAppareil): Promise<boolean> => {
-    const r = await appuyer(b)
     if (estRefus(r)) {
-      dire('device', r.raison, true)
-      return false
+      dire('bridge', r.raison, true)
+      return null
     }
-    return true
+    setSoldesAvant(r.soldes)
+    return r
   }
 
-  const signerEtEnvoyer = async () => {
-    if (enVol.current) return
-    if (!aSigner) return dire('wallet', 'the bridge has not returned a replacement transaction', true)
-    if (!fournisseur) return dire('wallet', 'no wallet announced on this page', true)
-    enVol.current = true
-    setOccupe('signature')
-    let de = adresse
-    if (!de) {
-      const c = await comptes(fournisseur)
-      if (estRefus(c)) {
-        setOccupe(null)
-        enVol.current = false
-        return dire('wallet', c.raison, true)
-      }
-      de = c[0] ?? null
-      setAdresse(de)
+  /**
+   * Envoie une transaction A TRAVERS LA GARDE. C'est ELLE qui decide si le portefeuille
+   * s'ouvre — la page ne fait que ce qu'un site d'echange fait : `eth_sendTransaction`.
+   */
+  const parLaGarde = async (
+    tx: TransactionPrete,
+    de: string,
+  ): Promise<{ etat: 'passee' | 'refusee' | 'erreur'; hash: string | null }> => {
+    if (!poste) {
+      dire('guard', 'no wallet announced: nothing to place the guard on', true)
+      return { etat: 'erreur', hash: null }
     }
-    if (!de) {
-      setOccupe(null)
-      enVol.current = false
-      return dire('wallet', 'the wallet returned no address', true)
+    try {
+      const h = (await poste.fournisseur.request({
+        method: 'eth_sendTransaction',
+        params: [{ from: de, to: tx.to, data: tx.data, value: tx.value }],
+      })) as string
+      setOuvertures(poste.surveillance.ouvertures)
+      setHash(h)
+      return { etat: 'passee', hash: h }
+    } catch (e) {
+      setOuvertures(poste.surveillance.ouvertures)
+      const err = e as { code?: number; message?: string }
+      setCodeRendu(typeof err.code === 'number' ? err.code : null)
+      if (err.code === CODE_REFUS_UTILISATEUR) return { etat: 'refusee', hash: null }
+      dire('guard', err.message ?? 'the call failed', true)
+      return { etat: 'erreur', hash: null }
     }
-    const r = await envoyer(fournisseur, de, aSigner)
-    setOccupe(null)
-    enVol.current = false
-    if (estRefus(r)) return dire('wallet', r.raison, true)
-    setHash(r.hash)
-    dire('wallet', `sent: ${shortAddr(r.hash, 12, 8)}`)
-    // Le recu se RELIT, il ne se devine pas. Tant qu'il n'est pas la, l'ecran dit qu'il attend.
-    const compte = de
+  }
+
+  const suivreLeRecu = (de: string, h: string) => {
+    if (!fournisseurBrut) return
     if (minuteur.current !== null) window.clearInterval(minuteur.current)
     minuteur.current = window.setInterval(() => {
-      void recu(fournisseur, r.hash).then(async (x) => {
+      void recu(fournisseurBrut, h).then(async (x) => {
         if (x === null || estRefus(x)) return
         if (minuteur.current !== null) window.clearInterval(minuteur.current)
         setRecuTx(x)
-        const s = await lireSoldes(compte)
+        const s = await lireSoldes(de)
         if (!estRefus(s)) setSoldesApres(s)
       })
     }, PERIODE_MS * 2)
+  }
+
+  /** LE CLIC. Celui qu'un utilisateur fait sur n'importe quel site d'echange. */
+  const lancerLeSwap = async () => {
+    if (enVol.current) return
+    if (!surLaPaireExecutee) return
+    enVol.current = true
+    setIssue(null)
+    setCodeRendu(null)
+    setDecision(null)
+    setAppareil(null)
+    setBasculee(false)
+    setHash(null)
+    setRecuTx(null)
+    setSoldesApres(null)
+    setOccupe('bridge')
+    const de = (await comptesDu()) ?? adresse
+    const p = await preparer1(de)
+    setOccupe(null)
+    const tx = p?.transaction ?? (acteAffiche ? { to: acteAffiche.routeur, data: acteAffiche.calldata, value: acteAffiche.value } : null)
+    if (!tx || !de) {
+      enVol.current = false
+      return dire('swap', 'no transaction to send and no address to send it from', true)
+    }
+    const r = await parLaGarde(tx, de)
+    enVol.current = false
+    if (r.etat === 'passee') {
+      setIssue('ORIGINE')
+      dire('wallet', 'the original went to the wallet, unchanged')
+      if (r.hash) suivreLeRecu(de, r.hash)
+      return
+    }
+    if (r.etat !== 'refusee') return
+    if (choix.current === 'substituer') {
+      // SUBSTITUER, C'EST REFUSER PUIS ENVOYER AUTRE CHOSE. La garde ne reecrit jamais : elle
+      // rend 4001 sur la transaction d'origine, et le remplacement part en SECOND appel —
+      // qu'elle controle aussi. C'est la regle dure n.4 d'alternative.ts, tenue jusqu'ici.
+      await envoyerLeRemplacement(de)
+      return
+    }
+    // Pas de ligne d'alerte ici : le resume de la bande centrale dit deja le code et le
+    // compteur d'ouvertures, et une scene qui fait 900 px n'a pas de ligne a perdre.
+    setIssue('REFUSEE')
+  }
+
+  /** LA TROISIEME REPONSE : la porte de remplacement, envoyee deliberement, en SECOND appel. */
+  const envoyerLeRemplacement = async (depuis?: string) => {
+    if (!remplacement) return dire('guard', 'no replacement has been built yet', true)
+    if (!depuis && enVol.current) return
+    if (!depuis) enVol.current = true
+    setBasculee(true)
+    const de = depuis ?? adresse ?? (await comptesDu())
+    if (!de) {
+      enVol.current = false
+      return
+    }
+    choix.current = 'substituer'
+    const r = await parLaGarde(remplacement, de)
+    enVol.current = false
+    if (r.etat === 'passee') {
+      setIssue('REMPLACEMENT')
+      dire('wallet', 'the replacement went to the wallet')
+      if (r.hash) suivreLeRecu(de, r.hash)
+    } else if (r.etat === 'refusee') {
+      setIssue('REFUSEE')
+    }
+  }
+
+  const rejouer = () => {
+    setIssue(null)
+    setRapport(null)
+    setDecision(null)
+    setAppareil(null)
+    setCodeRendu(null)
+    setBasculee(false)
+    setHash(null)
+    setRecuTx(null)
+    setSoldesApres(null)
   }
 
   const remettre = async () => {
@@ -720,10 +1048,7 @@ export function DemoPage() {
     const r = await revenir()
     setOccupe(null)
     enVol.current = false
-    setHash(null)
-    setRecuTx(null)
-    setSoldesApres(null)
-    setAppareil(null)
+    rejouer()
     dire(
       'fork',
       estRefus(r)
@@ -735,574 +1060,488 @@ export function DemoPage() {
     )
   }
 
+  const bouton = async (b: BoutonAppareil): Promise<boolean> => {
+    const r = await appuyer(b)
+    if (estRefus(r)) {
+      dire('device', r.raison, true)
+      return false
+    }
+    return true
+  }
+
   /* ----------------------------------------------------------------- le rendu */
 
-  const soldeUsdc = (s: Soldes) => (s.usdc === null ? <Inconnu quoi="USDC balance" /> : groupDigits(s.usdc))
-  const refusAppareil =
-    appareil !== null && !estRefus(appareil) && typeof appareil.refus === 'number' ? appareil.refus : null
-
-  /** Le bloc « ce que cette porte prend », partage par l'acte 1 et par la queue. */
-  const ceQuElleprend = (a: Acte, l: Lecture) => (
-    <>
-      {l.consultation === null || l.verdict === null ? (
-        <L k="measurement" v={<Inconnu quoi="no leg to consult" />} />
-      ) : (
-        <>
-          {/* LE CHIFFRE, EXACT. On ne l'arrondit pas : c'est la mesure, et la page entiere
-              existe pour dire que personne ne pouvait la connaitre avant de signer. */}
-          <div className="px-[11px] pt-[9px] pb-[5px]">
-            <div className="t-metric" style={{ color: TON_VERDICT[l.verdict] }}>
-              {l.consultation.bps === null ? (
-                <Inconnu quoi="take at this size" />
-              ) : (
-                <>{bpsTexte(l.consultation.bps)} bps</>
-              )}
-            </div>
-            <div className="t-data-xs mt-[3px]" style={{ color: 'var(--ink-2)' }}>
-              {l.consultation.bps === null
-                ? 'not measured at this size'
-                : `${(l.consultation.bps / POURCENT_EN_BPS).toFixed(3)} % of what you send`}
-            </div>
-          </div>
-          <L k="label" v={`${l.consultation.label} · basis ${l.consultation.basis}`} />
-          <L
-            k="verdict"
-            fort
-            v={
-              <>
-                <span style={{ color: TON_VERDICT[l.verdict] }}>{l.verdict}</span> · warn at{' '}
-                {bpsTexte(seuils.warnBps)} bps, block at {bpsTexte(seuils.blockBps)} bps — the 90th and
-                99th percentiles of the{' '}
-                {seuils.derivesDe === null ? (
-                  <Inconnu quoi="percentile base" />
-                ) : (
-                  groupDigits(String(seuils.derivesDe))
-                )}{' '}
-                numeric measurements, not round numbers
-              </>
-            }
-          />
-          {l.consultation.bps !== null &&
-            (() => {
-              const p = dist.auDessusDe(l.consultation.bps)
-              return <Situation bps={l.consultation.bps} part={p.part} n={p.n} total={dist.n} />
-            })()}
-          {l.consultation.citations[0] && (
-            <L
-              k="cited"
-              v={
-                <>
-                  block {fmtBlock(l.consultation.citations[0].blockNumber)} · size{' '}
-                  {groupDigits(l.consultation.citations[0].amountIn)} · {l.consultation.citations[0].direction}
-                </>
-              }
-            />
-          )}
-          <div className="px-[11px] py-[7px]" style={{ borderTop: '1px solid var(--line)' }}>
-            <Replay cmd={replayCommand(a.actuelle.row)} />
-          </div>
-        </>
-      )}
-    </>
-  )
-
-  /** L'etape 01, la meme dans les trois vues : ce qu'un dapp enverrait. */
-  const leSwap = (a: Acte, titre: string) => (
-    <Etape n={1} sur={vue === 'queue' ? 3 : 4} titre={titre}>
-      <L
-        k="router"
-        v={
-          <>
-            <span className="hex">{shortAddr(preparationOk?.transaction.to ?? a.routeur, 12, 4)}</span> ·{' '}
-            {preparationOk ? 'returned by the bridge' : 'Universal Router, from the guard'}
-          </>
-        }
-      />
-      <L
-        k="spends"
-        v={
-          <>
-            {groupDigits(a.actuelle.amountIn)} unit(s) of {nomMonnaie(a.actuelle.entree)} →{' '}
-            {nomMonnaie(a.actuelle.sortie)}
-          </>
-        }
-      />
-      <L
-        k="value"
-        v={
-          <>
-            {preparationOk?.transaction.value ?? a.value}
-            <span style={{ color: 'var(--ink-2)' }}>
-              {a.actuelle.entree === ZERO_ADDRESS
-                ? ' · native ETH: the amount travels here'
-                : ' · an ERC-20 travels through the router, not in value'}
-            </span>
-          </>
-        }
-      />
-      <LignePorte p={a.actuelle} role="door taken" />
-      <div
-        className="px-[11px] py-[7px] flex flex-wrap items-center gap-[7px]"
-        style={{ borderTop: '1px solid var(--line)' }}
-      >
-        <Copy text={calldata ?? ''} label="copy the calldata" />
-        <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-          {preparationOk
-            ? 'this is the calldata the fork would execute'
-            : 'rebuilt from the corpus: the bridge has not answered'}
-        </span>
+  /**
+   * LA COMMANDE DE REJEU, VISANT LE FORK PUBLIC.
+   *
+   * Elle pointait sur un anvil local que personne d'autre n'a : la promesse « chaque chiffre se
+   * rejoue en une commande » etait donc fausse pour tout lecteur exterieur. Elle vise desormais
+   * le noeud rendu par `/demo/etat`. Deux limites sont ecrites a cote, parce qu'une precaution
+   * tue vaut moins qu'une precaution avouee.
+   */
+  const leRejeu = (a: Acte) => (
+    <details className="px-[11px] py-[5px]" style={{ borderTop: '1px solid var(--line)' }}>
+      <summary className="t-data-xs cursor-pointer" style={{ color: 'var(--ink-2)' }}>
+        replay this number yourself
+      </summary>
+      <div className="mt-[5px]">
+        <Replay cmd={replayCommand(a.actuelle.row, rpcRejeu)} />
+        <div className="t-data-xs mt-[4px]" style={{ color: 'var(--ink-2)', lineHeight: 1.35 }}>
+          It runs our engine, so it needs the repository and Python 3 — it is not magic.{' '}
+          {rejouable
+            ? 'The node it points at is the demo fork, and it is shared: the replay rewrites the hook bytecode and puts it back, so two people replaying at the same moment can get in each other’s way. For your own node: make up, with your own Base RPC.'
+            : 'The bridge has not published a node, so the command points at a local anvil — which nobody else has. Start one with make up, using your own Base RPC.'}
+        </div>
       </div>
-    </Etape>
+    </details>
   )
 
-  const onglets: { cle: Vue; titre: string; dispo: boolean }[] = [
-    { cle: 'acte1', titre: 'act 1 — you read what you sign', dispo: paire !== null },
-    { cle: 'acte2', titre: 'act 2 — there is better', dispo: paire !== null },
-  ]
+  const soldeUsdc = (s: Soldes) => (s.usdc === null ? <Inconnu quoi="USDC balance" /> : groupDigits(s.usdc))
+  const prise = lecture?.consultation?.bps ?? null
 
   return (
-    <div className="flex flex-col" style={{ gap: 9, minWidth: 0 }}>
+    <div className="flex flex-col" style={{ gap: 4, minWidth: 0 }}>
       {/* ------------------------------------------------------------- l'en-tete */}
-      <div className="flex flex-wrap items-end justify-between gap-x-[26px] gap-y-[6px] voile">
-        <div className="flex flex-col" style={{ gap: 4, maxWidth: '66ch' }}>
-          <h1 className="t-title m-0">One pair, two acts, on a pinned fork</h1>
-          <p className="t-data-sm m-0" style={{ color: 'var(--ink-2)', lineHeight: 1.45 }}>
-            ETH → USDC. The guard reads the calldata before the wallet does, pulls the PoolKey out
-            — so the hook — and names what it takes. Nobody could know that number before signing.
+      <div className="flex flex-wrap items-end justify-between gap-x-[24px] gap-y-[5px] voile">
+        <div className="flex flex-col" style={{ gap: 3, maxWidth: '72ch' }}>
+          <h1 className="t-title m-0">One click, and the guard gets there first</h1>
+          <p className="t-data-sm m-0" style={{ color: 'var(--ink-2)', lineHeight: 1.35 }}>
+            You click swap. The guard wraps <code>eth_sendTransaction</code>, reads the calldata, pulls
+            the hook out of the PoolKey, and asks — before the wallet opens.
           </p>
         </div>
-        <div className="flex flex-wrap items-baseline t-data-xs" style={{ gap: 11, color: 'var(--ink-2)' }}>
+        <div className="flex flex-wrap items-baseline t-data-xs" style={{ gap: 10, color: 'var(--ink-2)' }}>
           <span>
             corpus block {fmtBlock(table.block_number)} · {groupDigits(String(table.n_measurements))} measurements
-          </span>
-          <span className="meta-filet">
-            {table.n_pools} pools · {table.n_hooks} hooks
           </span>
           <span className="meta-filet">chain {table.chain_id}</span>
         </div>
       </div>
 
-      {/* ------------------------------------ LA DISTRIBUTION, au-dessus des deux actes */}
       <BandeDistribution
         d={dist}
         fraisDuPool={fraisDuPool}
         queueOuverte={vue === 'queue'}
-        surQueue={() => setVue(vue === 'queue' ? 'acte1' : 'queue')}
+        surQueue={() => setVue(vue === 'queue' ? 'parcours' : 'queue')}
       />
 
-      {/* --------------------------------------------------- le pont, en une ligne */}
-      {etat === null && (
-        <div className="t-data-xs px-[11px] py-[6px]" style={{ color: 'var(--ink-2)', border: '1px solid var(--line)' }}>
-          reading {PONT}/demo/etat…
-        </div>
-      )}
-      {etat !== null && estRefus(etat) && (
-        <Absence
-          quoi="the demo bridge"
-          etat="unreachable"
-          panne
-          raison={
-            <>
-              {etat.raison}. The page stays readable: the distribution, the calldata decoding and
-              the door comparison below need nobody. What needs the bridge is the fork itself —
-              the live quote, the balances and the receipt.
-            </>
-          }
-        />
-      )}
-      {etatOk && (
-        <div
-          className="flex flex-wrap items-center gap-[9px] px-[11px] py-[6px]"
-          style={{ border: '1px solid var(--line)', background: 'var(--bg-1)' }}
-        >
+      {/* ------------------------------- le pont, l'etat du fork et le clic d'entree */}
+      {/* LA BARRE D'ETAT TIENT SUR UNE LIGNE, et defile dans elle-meme si elle deborde — comme
+          la nav du site. Une seconde ligne ici coutait dix-sept pixels a la scene, et la scene
+          fait exactement 1440x900. */}
+      <div
+        className="flex items-center gap-[8px] px-[11px] py-[5px] demo-barre"
+        style={{ border: '1px solid var(--line)', background: 'var(--bg-1)' }}
+      >
+        {etat === null && (
           <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-            fork{' '}
-            {etatOk.fork.chain_id === null ? (
-              <Inconnu quoi="chain id: the fork did not answer" />
-            ) : (
-              chainName(etatOk.fork.chain_id)
-            )}{' '}
-            · block{' '}
-            {etatOk.fork.block_number === null ? <Inconnu quoi="block number" /> : fmtBlock(etatOk.fork.block_number)} ·
-            snapshot {etatOk.snapshot === null ? <Inconnu quoi="snapshot" /> : String(etatOk.snapshot)}
+            reading {PONT}/demo/etat…
           </span>
-          <span className="t-data-xs meta-filet" style={{ color: 'var(--ink-2)' }}>
-            device {etatOk.speculos.joignable ? 'reachable' : 'not reachable'}
+        )}
+        {etat !== null && estRefus(etat) && (
+          <span
+            className="t-data-xs"
+            style={{ color: 'var(--m-3)' }}
+            title={`${etat.raison}. The corpus, the interception and the gate comparison need nobody; the fork, the live quote and the receipt do.`}
+          >
+            the demo bridge is unreachable — the corpus and the interception still answer
           </span>
-          {etatOk.divergences && etatOk.divergences.length > 0 && (
-            <span
-              className="t-data-xs meta-filet"
-              style={{ color: 'var(--m-5)' }}
-              // `consequence` est ecrite en francais par le service : on ne la rend pas. Les
-              // quatre champs structures suffisent, et ils sont verifiables.
-              title={etatOk.divergences
-                .map((d) => `act ${d.acte} · ${d.champ}: announced ${d.annonce}, corpus ${d.corpus}`)
-                .join('\n')}
-            >
-              {etatOk.divergences.length} divergence(s) between the script and the corpus — the corpus wins
+        )}
+        {etatOk && (
+          <>
+            <span className="t-data-xs" style={{ color: 'var(--ink-2)' }} title={`rpc ${etatOk.fork.rpc}`}>
+              fork{' '}
+              {etatOk.fork.chain_id === null ? <Inconnu quoi="chain id" /> : chainName(etatOk.fork.chain_id)}{' '}
+              {etatOk.fork.block_number === null ? (
+                <Inconnu quoi="block number" />
+              ) : (
+                fmtBlock(etatOk.fork.block_number)
+              )}{' '}
+              · device {etatOk.speculos.joignable ? 'ok' : 'off'}
+            </span>
+            {etatOk.divergences && etatOk.divergences.length > 0 && (
+              <span
+                className="t-data-xs"
+                style={{ color: 'var(--m-5)' }}
+                title={etatOk.divergences
+                  .map((d) => `act ${d.acte} · ${d.champ}: announced ${d.annonce}, corpus ${d.corpus}`)
+                  .join('\n')}
+              >
+                · {etatOk.divergences.length} divergence(s), corpus wins
+              </span>
+            )}
+          </>
+        )}
+        <span className="ml-auto flex flex-wrap items-center gap-[6px]">
+          <Bouton onClick={brancherReseau} actif={Boolean(fournisseurBrut) && !occupe}>
+            network
+          </Bouton>
+          <Bouton onClick={connecter} actif={Boolean(fournisseurBrut) && !occupe}>
+            {adresse ? shortAddr(adresse) : 'connect the wallet'}
+          </Bouton>
+          <Bouton onClick={remettre} actif={!occupe}>
+            reset
+          </Bouton>
+          {!surLaPaireExecutee && (
+            <span className="t-data-xs" style={{ color: 'var(--m-5)' }}>
+              the bridge only prepares the executed one
             </span>
           )}
-          <span className="ml-auto flex flex-wrap items-center gap-[6px]">
-            <Bouton onClick={brancherReseau} actif={Boolean(fournisseur) && !occupe}>
-              add the fork network
+          {vue === 'queue' ? (
+            <Bouton onClick={() => setVue('parcours')} fort>
+              back to the swap
             </Bouton>
-            <Bouton onClick={connecter} actif={Boolean(fournisseur) && !occupe}>
-              {adresse ? shortAddr(adresse) : 'connect the wallet'}
+          ) : (
+            <Bouton
+              onClick={lancerLeSwap}
+              actif={!occupe && surLaPaireExecutee && Boolean(fournisseurBrut)}
+              fort
+              titre={
+                !fournisseurBrut
+                  ? 'no wallet announced on this page: the guard has nothing to sit on'
+                  : !surLaPaireExecutee
+                    ? 'the panel is on another pair; the bridge only prepares the executed one'
+                    : 'the guard sits on eth_sendTransaction: it gets there before the wallet'
+              }
+            >
+              {libelleSwap}
             </Bouton>
-            <Bouton onClick={remettre} actif={!occupe}>
-              reset the fork
-            </Bouton>
-          </span>
-        </div>
-      )}
-
-      {/* ------------------------------------------------------------ les deux actes */}
-      <div className="flex flex-wrap items-center gap-[6px]">
-        {onglets.map((o) => (
-          <button
-            key={o.cle}
-            type="button"
-            onClick={() => setVue(o.cle)}
-            disabled={!o.dispo}
-            className="t-label"
-            style={{
-              padding: '7px 13px',
-              border: `1px solid ${vue === o.cle ? 'var(--m-4)' : 'var(--line)'}`,
-              background: vue === o.cle ? 'var(--bg-3)' : 'transparent',
-              color: o.dispo ? 'var(--ink)' : 'var(--ink-4)',
-              cursor: o.dispo ? 'pointer' : 'not-allowed',
-            }}
-          >
-            {o.titre}
-          </button>
-        ))}
-        <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-          {occupe
-            ? `waiting on the ${occupe} — ${attente} s${occupe === 'device' ? ` of the ${DELAI_APPAREIL_S} s it allows` : ''}`
-            : vue === 'queue'
-              ? 'the tail: one row of the corpus, shown because we publish it too'
-              : 'both acts are searched in the corpus, not written down'}
-        </span>
-        <span className="ml-auto">
-          <Bouton onClick={demanderPreparation} actif={!occupe} fort>
-            prepare on the fork
-          </Bouton>
+          )}
         </span>
       </div>
 
-      {acteCourant === null && (
-        <Absence
-          quoi={vue === 'queue' ? 'the tail' : 'this pair'}
-          etat="not in this corpus"
-          raison={
-            vue === 'queue'
-              ? 'no numeric measurement in the bundled corpus: there is no tail to show.'
-              : 'no size where two doors of this pair are both measured: there is nothing to substitute, and inventing one would be the very fault this project refuses.'
-          }
-        />
+      {/* Les pannes seules remontent ici : le reste se lit dans la bande centrale. */}
+      {alerte && (
+        <div className="t-data-xs px-[11px] py-[2px]" style={{ color: 'var(--m-3)', overflowWrap: 'anywhere' }}>
+          {alerte.quoi} — {alerte.texte}
+        </div>
       )}
 
-      {preparation !== null && estRefus(preparation) && (
-        <Absence
-          quoi={`${PONT}/demo/preparer`}
-          etat="refused"
-          panne
-          raison={`${preparation.raison}. The steps below still read: what they lose is the live quote and the fork, not the measurement.`}
-        />
-      )}
-
-      {/* ------------------------------------------------------------ les etapes */}
-      {acteCourant && lecture && (
-        <div className={vue === 'queue' ? 'demo-etapes demo-etapes-3' : 'demo-etapes'}>
-          {/* ---------------------------------------------------------------- 01 */}
-          {leSwap(
-            acteCourant,
-            vue === 'queue' ? 'the swap that would go there' : 'the swap, before signature',
+      {/* ----------- LES DEUX ROUTES. Le visuel central, lisible sur un flux video compresse. */}
+      {acteAffiche && (
+        <div
+          className="flex flex-col gap-[4px] px-[11px] py-[5px]"
+          style={{ border: '1px solid var(--line)', background: 'var(--bg-1)' }}
+        >
+          {issue === null || issue === 'REFUSEE' ? (
+            <DeuxRoutes
+              entree={acteAffiche.actuelle.entree}
+              sortie={acteAffiche.actuelle.sortie}
+              symboleEntree={sym(acteAffiche.actuelle.entree)}
+              symboleSortie={sym(acteAffiche.actuelle.sortie)}
+              montant={
+                <>
+                  {montantLisibleActe ?? groupDigits(acteAffiche.actuelle.amountIn)}{' '}
+                  {sym(acteAffiche.actuelle.entree) ?? shortAddr(acteAffiche.actuelle.entree)} ·{' '}
+                  {groupDigits(acteAffiche.actuelle.amountIn)} {montantLisibleActe ? 'wei' : 'unit(s)'}
+                </>
+              }
+              courante={candidate(acteAffiche.actuelle)!}
+              proposee={candidate(acteAffiche.proposee)}
+              choisie={basculee ? 'proposee' : null}
+              ecartBps={acteAffiche.ecartBps}
+            />
+          ) : (
+            <CeQuOnAGarde
+              recu={
+                issue === 'REMPLACEMENT'
+                  ? (acteAffiche.proposee?.row.out_with ?? null)
+                  : acteAffiche.actuelle.row.out_with
+              }
+              auraitRecu={
+                issue === 'REMPLACEMENT'
+                  ? acteAffiche.actuelle.row.out_with
+                  : (acteAffiche.proposee?.row.out_with ?? null)
+              }
+              gardeBps={issue === 'REMPLACEMENT' ? acteAffiche.ecartBps : 0}
+              sortie={acteAffiche.actuelle.sortie}
+              symboleSortie={sym(acteAffiche.actuelle.sortie)}
+            />
           )}
+          {/* CE QUI S'EST PASSE, en une ligne : l'issue, qui a decide, ce qui est parti, et le
+              recu. La page ne devine rien — le recu est RELU sur la chaine. */}
+          {(issue !== null || hash) && (
+            <div className="flex items-baseline gap-x-[12px] t-data-xs demo-barre" style={{ color: 'var(--ink-2)' }}>
+              {issue && (
+                <span className="t-label" style={{ color: issue === 'REFUSEE' ? 'var(--m-3)' : 'var(--ink)' }}>
+                  {issue}
+                </span>
+              )}
+              {issue === 'REFUSEE' && (
+                <span style={{ color: 'var(--m-3)' }}>
+                  code {codeRendu ?? CODE_REFUS_UTILISATEUR} · wallet opened {ouvertures} time(s) · nothing left
+                </span>
+              )}
+              {decision && <span>decided by {decision.by} — {decision.reason}</span>}
+              {rapport && (
+                <span>
+                  report: {rapport.findings.length} finding(s) · {rapport.decode.complete ? 'calldata read whole' : 'calldata not read whole'}
+                </span>
+              )}
+              {hash && (
+                <span>
+                  sent <span className="hex">{shortAddr(hash, 10, 6)}</span> ·{' '}
+                  {recuTx ? `block ${fmtBlock(Number(recuTx.blockNumber))} · status ${recuTx.status}` : 'waiting for the receipt…'}
+                </span>
+              )}
+              {soldesAvant && (
+                <span>
+                  balances {groupDigits(soldesAvant.eth_wei)} wei / {soldeUsdc(soldesAvant)}
+                  {soldesApres && <> → {groupDigits(soldesApres.eth_wei)} wei / {soldeUsdc(soldesApres)}</>}
+                </span>
+              )}
+              {issue !== null && (
+                <span className="ml-auto">
+                  <Bouton onClick={rejouer}>replay</Bouton>
+                </span>
+              )}
+            </div>
+          )}
+          {/* UNE QUESTION, TROIS REPONSES. Les trois sont VISIBLES meme quand la garde ne
+              demande rien : celle du milieu — passer quand meme — est ce qui distingue une
+              garde d'un routeur, et elle doit se voir sans qu'on ait a la cliquer. Sur
+              l'appareil il n'y a que Reject et Approve : la phrase dit ce qu'Approve fait ici. */}
+          <div
+            className="px-[11px] py-[6px] flex flex-wrap items-center gap-[6px]"
+            style={{ borderTop: '1px solid var(--line-strong)' }}
+          >
+            <Bouton
+              onClick={() => {
+                choisir.current?.('refuser')
+                trancher.current?.({ approved: false, by: 'the page', reason: 'refused on the page' })
+              }}
+              actif={demande}
+              titre={`nothing leaves: the caller gets ${CODE_REFUS_UTILISATEUR} and the wallet never opens`}
+            >
+              refuse
+            </Bouton>
+            <Bouton
+              onClick={() => {
+                choisir.current?.('passer')
+                setBasculee(false)
+              }}
+              actif={demande}
+              titre="the original transaction, unchanged, goes to the wallet"
+            >
+              go anyway ·{' '}
+              {acteAffiche.actuelle.bps === null ? 'unknown' : `${bpsTexte(acteAffiche.actuelle.bps)} bps`}
+            </Bouton>
+            <Bouton
+              onClick={() => {
+                choisir.current?.('substituer')
+                setBasculee(true)
+              }}
+              actif={demande && Boolean(remplacement)}
+              fort
+              titre={
+                remplacement
+                  ? 'the replacement goes instead — a second call, which the guard checks too'
+                  : 'no replacement has been built: the bridge quotes on the fork'
+              }
+            >
+              substitute ·{' '}
+              {acteAffiche.proposee?.bps === null || acteAffiche.proposee === null
+                ? 'unknown'
+                : `${bpsTexte(acteAffiche.proposee.bps!)} bps`}
+            </Bouton>
+            <span className="t-data-xs" style={{ color: 'var(--ink-2)', minWidth: 0, lineHeight: 1.3 }}>
+              {demande ? `asking — ${attente} s of ${DELAI_APPAREIL_S} s` : 'they answer while the guard asks'}
+              {' · '}the plan you pick goes to the device: <em>Reject</em> leaves nothing,{' '}
+              <em>Approve</em> approves <em>that</em> plan.
+              {appareil !== null && !estRefus(appareil) && appareil.ecrans !== undefined
+                ? ` · ${appareil.ecrans} screens`
+                : ''}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {paire && vue === 'parcours' && issue === null && (
+        <PanneauPaires
+          choisie={paireChoisie || cleExecutee}
+          setChoisie={setPaireChoisie}
+          clePaireExecutee={cleExecutee}
+        />
+      )}
+
+      {/* ------------------------------------------------------------ les quatre temps */}
+      {acteAffiche && lecture && (
+        <div className="demo-etapes demo-etapes-3">
+          {/* ---------------------------------------------------------------- 01 */}
+          <Etape n={1} sur={3} titre={vue === 'queue' ? `the tail: ${libelleSwap}` : libelleSwap}>
+            <L
+              src="calldata"
+              k="spends"
+              fort
+              v={
+                <>
+                  {montantLisibleActe ?? groupDigits(acteAffiche.actuelle.amountIn)}{' '}
+                  {nomMonnaie(acteAffiche.actuelle.entree)} → {nomMonnaie(acteAffiche.actuelle.sortie)}
+                  <span style={{ color: 'var(--ink-4)' }}>
+                    {' '}
+                    · {groupDigits(acteAffiche.actuelle.amountIn)}{' '}
+                    {montantLisibleActe ? 'wei, the unit measured' : 'unit(s), the unit measured'}
+                  </span>
+                </>
+              }
+            />
+            <L
+              k="router"
+              v={
+                <>
+                  <span className="hex">{shortAddr(preparationOk?.transaction.to ?? acteAffiche.routeur, 12, 4)}</span>{' '}
+                  · {preparationOk ? 'built by the bridge' : 'Universal Router, rebuilt from the corpus'}
+                </>
+              }
+            />
+            <L k="value" v={preparationOk?.transaction.value ?? acteAffiche.value} />
+            <div
+              className="px-[11px] py-[6px] flex flex-wrap items-center gap-[7px]"
+              style={{ borderTop: '1px solid var(--line)' }}
+            >
+              <Copy text={calldata ?? ''} label="copy the calldata" />
+              <span className="t-data-xs" style={{ color: 'var(--ink-2)', lineHeight: 1.35 }}>
+                Nobody asked for a report. This is a swap you were about to make — three seconds
+                before the signature. The exchange site builds this transaction; here the bridge does,
+                on the fork.
+              </span>
+            </div>
+          </Etape>
 
           {/* ---------------------------------------------------------------- 02 */}
-          {vue === 'acte2' ? (
-            <Etape n={2} sur={4} titre="the doors, at the same size">
-              {lecture.alternative === null ? (
-                <L k="comparison" v={<Inconnu quoi="no leg to compare" />} />
-              ) : (
+          <Etape n={2} sur={3} titre="the guard got there first">
+            <L
+              src="chaine"
+              k="wallet opened"
+              fort
+              v={
                 <>
-                  <EtatNomme
-                    etat={lecture.alternative.etat}
-                    suite={AFFICHAGE[lecture.alternative.etat]?.titre}
-                    raison={`Same two currencies, same direction, same block, same size — ${groupDigits(
-                      acteCourant.actuelle.amountIn,
-                    )} unit(s). Anything else would manufacture the saving it claims to measure.`}
-                    encadre={false}
-                  />
-                  <LignePorte p={acteCourant.actuelle} role="current door" />
-                  {acteCourant.proposee && <LignePorte p={acteCourant.proposee} role="cheaper door" />}
-                  <L
-                    k="measured gap"
-                    fort
-                    v={
-                      lecture.alternative.economie_bps === null ? (
-                        <Inconnu quoi="gap" />
-                      ) : (
-                        <>
-                          {bpsTexte(lecture.alternative.economie_bps)} bps
-                          <span style={{ color: 'var(--ink-2)' }}>
-                            {' '}
-                            · publication threshold {bpsTexte(lecture.alternative.seuil_bps)} bps
-                          </span>
-                        </>
-                      )
-                    }
-                  />
-                  <L
-                    k="examined"
-                    v={
-                      lecture.alternative.examinees.length === 0 ? (
-                        'none: nothing else makes this swap in the corpus'
-                      ) : (
-                        <span className="flex flex-wrap gap-[5px]">
-                          {lecture.alternative.examinees.map((p) => (
-                            <span key={p.poolId} className="chip hex" title={`${p.poolId} · ${p.label ?? 'not measured'}`}>
-                              {shortAddr(p.poolId, 10, 6)} {p.bps === null ? 'unknown' : `${bpsTexte(p.bps)} bps`}
-                            </span>
-                          ))}
-                        </span>
-                      )
-                    }
-                  />
-                  <L
-                    k="corpus"
-                    v={`block ${fmtBlock(lecture.alternative.block_number)} · chain ${lecture.alternative.chain_id}`}
-                  />
+                  <span style={{ color: ouvertures === 0 ? 'var(--ink)' : 'var(--m-5)' }}>{ouvertures}</span> time(s)
+                  <span style={{ color: 'var(--ink-2)' }}> · counted, not asserted</span>
                 </>
-              )}
-            </Etape>
-          ) : (
-            <Etape n={2} sur={vue === 'queue' ? 3 : 4} titre="the guard reads it, before the wallet">
-              <CeQuiEstLu l={lecture} attendu={acteCourant.actuelle.poolId} />
-            </Etape>
-          )}
+              }
+            />
+            <CeQuiEstLu l={lecture} attendu={acteAffiche.actuelle.poolId} />
+            <L
+              src="corpus"
+              k="take"
+              fort
+              v={
+                prise === null ? (
+                  <Inconnu quoi="take at this size" />
+                ) : (
+                  <>
+                    {bpsTexte(prise)} bps · {(prise / POURCENT_EN_BPS).toFixed(3)} % of what you send
+                  </>
+                )
+              }
+            />
+            {prise !== null &&
+              (() => {
+                const p = dist.auDessusDe(prise)
+                return <Situation part={p.part} n={p.n} total={dist.n} />
+              })()}
+            <L
+              src="corpus"
+              k="verdict"
+              v={
+                <span
+                  title="this page asks on ok, warn and block; the package default asks on warn and block, and would let this one through"
+                >
+                  <span style={{ color: lecture.verdict ? TON_VERDICT[lecture.verdict] : undefined }}>
+                    {lecture.verdict ?? 'unknown'}
+                  </span>{' '}
+                  · warn {bpsTexte(seuils.warnBps)}, block {bpsTexte(seuils.blockBps)} bps — 90th and 99th
+                  percentiles, not round numbers. Asks on every verdict here.
+                </span>
+              }
+            />
+            {leRejeu(acteAffiche)}
+          </Etape>
 
           {/* ---------------------------------------------------------------- 03 */}
-          {vue === 'acte2' ? (
-            <Etape n={3} sur={4} titre="the replacement, built and not sent">
-              {/* PAS de `suite` ici. Elle viendrait de SUITE, dans ../compte/substitution.ts, ou
-                  l'etat PRET est encore libelle en francais — et cet ecran-ci est en anglais. */}
-              {envoi && (
-                <EtatNomme
-                  etat={envoi.etat}
-                  raison={
-                    envoi.etat === 'PRET'
-                      ? 'Built and handed back. The last hand on this transaction is yours.'
-                      : 'The guard will not hand out a transaction it cannot floor. The bridge quotes on the fork: that is what it is for.'
-                  }
-                  encadre={false}
-                />
-              )}
-              {lectureR ? (
-                <CeQuiEstLu l={lectureR} attendu={acteCourant.proposee?.poolId} />
-              ) : (
-                <L
-                  k="transaction"
-                  v="the bridge has not returned one, and no live quote is available here: “prepare on the fork” asks for both."
-                />
-              )}
-              {preparationOk?.cotation !== undefined && (
-                <L
-                  k="output floor"
-                  v={
-                    preparationOk.plancher == null ? (
-                      <Inconnu quoi="floor: no live quote" />
-                    ) : (
-                      <>
-                        {groupDigits(preparationOk.plancher)}
-                        <span style={{ color: 'var(--ink-2)' }}>
-                          {' '}
-                          · live quote{' '}
-                          {preparationOk.cotation === null ? 'unknown' : groupDigits(preparationOk.cotation)}
-                          {preparationOk.tolerance_bps == null
-                            ? ''
-                            : ` minus ${bpsTexte(preparationOk.tolerance_bps)} bps`}
-                        </span>
-                      </>
-                    )
-                  }
-                />
-              )}
-              {aSigner && (
-                <div
-                  className="px-[11px] py-[7px] flex flex-wrap items-center gap-[7px]"
-                  style={{ borderTop: '1px solid var(--line)' }}
-                >
-                  <Copy text={aSigner.data} label="copy the calldata" />
-                  <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                    to {shortAddr(aSigner.to, 10, 4)} · value {aSigner.value}
-                  </span>
-                </div>
-              )}
-            </Etape>
-          ) : (
-            <Etape n={3} sur={vue === 'queue' ? 3 : 4} titre="what this door takes">
-              {ceQuElleprend(acteCourant, lecture)}
-              {vue === 'queue' && lecture.alternative && (
+          {vue === 'queue' ? (
+            <Etape n={3} sur={3} titre="what this gate takes">
+              {lecture.alternative && (
                 <EtatNomme
                   etat={lecture.alternative.etat}
                   suite={AFFICHAGE[lecture.alternative.etat]?.titre}
                   raison={
                     <>
                       One row out of {groupDigits(String(dist.nLignes))}, on a token nobody holds. It is
-                      published because it exists — not because it is the norm. The norm is the band
-                      above.
+                      published because it exists — not because it is the norm. The norm is the band above.
                     </>
                   }
-                  ton={lecture.verdict ? TON_VERDICT[lecture.verdict] : undefined}
+                  encadre={false}
                 />
               )}
+              {leRejeu(acteAffiche)}
             </Etape>
-          )}
-
-          {/* ---------------------------------------------------------------- 04 */}
-          {vue === 'acte1' && (
-            <Etape n={4} sur={4} titre="the device asks, you refuse">
-              <div className="px-[11px] pt-[7px] pb-[1px] t-data-xs" style={{ color: 'var(--ink-2)', lineHeight: 1.4 }}>
-                You do not sign a digest you cannot read: the report goes over field by field.
+          ) : (
+            <Etape n={3} sur={3} titre="the device confirms the plan">
+              <div className="px-[11px] pt-[5px] pb-[1px] t-data-xs" style={{ color: 'var(--ink-2)', lineHeight: 1.4 }}>
+                The device signs the <strong style={{ color: 'var(--ink)' }}>report</strong>, not the
+                swap: a typed message, every field named — hook, pool, take, size, direction, block.
               </div>
-              <EcranAppareil onBouton={bouton} texte={ecranTexte ?? etatOk?.speculos.ecran ?? null} />
-              <div
-                className="px-[11px] py-[7px] flex flex-wrap items-center gap-[7px]"
-                style={{ borderTop: '1px solid var(--line)' }}
-              >
-                <Bouton onClick={demanderAppareil} actif={!occupe} fort>
-                  send the report to the device
-                </Bouton>
-                {appareil !== null && !estRefus(appareil) && appareil.ecrans !== undefined && (
-                  <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                    {appareil.ecrans} screens rendered
-                    {appareil.primaryType ? ` · ${appareil.primaryType}` : ''}
-                  </span>
-                )}
-              </div>
-              {appareil !== null && estRefus(appareil) && (
-                <L k="device" v={<span style={{ color: 'var(--m-3)' }}>{appareil.raison}</span>} />
-              )}
-              {refusAppareil !== null && (
-                <L
-                  k="answer"
-                  fort
-                  v={
-                    <span style={{ color: 'var(--m-3)' }}>
-                      code {refusAppareil} — nothing left. Not an outage: an answer.
+              {/* LA ROUTE reste sous les yeux : elle est dans la bande pleine largeur juste
+                  au-dessus, a cote de cette colonne. On ne la redessine pas ici — ce serait la
+                  meme image deux fois, et la hauteur de la scene est comptee. */}
+              <div className="px-[11px] py-[5px]" style={{ borderTop: '1px solid var(--line)' }}>
+                <div className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
+                  on the device:{' '}
+                  {ecranTexte ? (
+                    <span className="hex" style={{ color: 'var(--ink)', overflowWrap: 'anywhere' }}>
+                      {ecranTexte}
                     </span>
-                  }
-                />
-              )}
-              {appareil !== null && !estRefus(appareil) && appareil.signature && (
-                <L
-                  k="signature"
-                  v={
-                    <>
-                      <span className="hex">{shortAddr(appareil.signature, 12, 6)}</span>
-                      <span style={{ color: 'var(--ink-2)' }}> · it approves a reading, not a transfer</span>
-                    </>
-                  }
-                />
-              )}
-            </Etape>
-          )}
-
-          {vue === 'acte2' && (
-            <Etape n={4} sur={4} titre="your wallet signs, the fork executes">
-              <L
-                k="balances"
-                v={
-                  soldesAvant === null ? (
-                    <Inconnu quoi="balances before" />
                   ) : (
+                    <Inconnu quoi="the device screen text, read back by the bridge" />
+                  )}
+                </div>
+                <div
+                  className="t-data-xs mt-[3px] flex flex-wrap items-baseline gap-[6px]"
+                  style={{ color: 'var(--ink-2)' }}
+                >
+                  <span>prompt digest</span>
+                  {preparationOk?.prompt_digest ? (
                     <>
-                      before: {groupDigits(soldesAvant.eth_wei)} wei · {soldeUsdc(soldesAvant)} USDC
-                      {soldesApres && (
-                        <>
-                          <br />
-                          after: {groupDigits(soldesApres.eth_wei)} wei · {soldeUsdc(soldesApres)} USDC
-                        </>
-                      )}
+                      <span className="hex" style={{ color: 'var(--ink)' }}>
+                        {shortAddr(preparationOk.prompt_digest, 12, 8)}
+                      </span>
+                      <Copy text={preparationOk.prompt_digest} label="copy" />
                     </>
-                  )
-                }
-              />
+                  ) : (
+                    <Inconnu quoi="prompt digest: the bridge has not built the message yet" />
+                  )}
+                  <span>— keccak256 of the text sent to the device, shown there too</span>
+                </div>
+              </div>
+              <EcranAppareil onBouton={bouton} texte={ecranTexte} lireEcran={lireEcran} />
+              {/* L'ECHAPPATOIRE DE SCENE. L'appareil porte la confirmation ; quand il ou le pont
+                  ne repond pas, le presentateur tranche ici, et l'ecran DIT qui a decide. Ces
+                  deux-la n'existent que pendant que la garde attend. */}
               <div
-                className="px-[11px] py-[7px] flex flex-wrap items-center gap-[7px]"
+                className="px-[11px] py-[5px] flex flex-wrap items-center gap-[6px]"
                 style={{ borderTop: '1px solid var(--line)' }}
               >
-                <Bouton onClick={signerEtEnvoyer} actif={Boolean(aSigner) && Boolean(fournisseur) && !occupe} fort>
-                  sign and send
+                <Bouton
+                  onClick={() => trancher.current?.({ approved: false, by: 'the page', reason: 'rejected here' })}
+                  actif={demande && occupe === 'device'}
+                >
+                  Reject (here)
                 </Bouton>
-                {!fournisseur && (
-                  <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                    no wallet announced: the calldata stays copyable, and checkable
-                  </span>
-                )}
-                {fournisseur && !aSigner && (
-                  <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                    nothing to sign until the bridge has built the replacement
-                  </span>
-                )}
-              </div>
-              {hash && (
-                <L
-                  k="sent"
-                  v={
-                    <>
-                      <span className="hex">{shortAddr(hash, 14, 6)}</span>
-                      <span style={{ color: 'var(--ink-2)' }}> · {recuTx ? 'included' : 'waiting for the receipt…'}</span>
-                    </>
-                  }
-                />
-              )}
-              {recuTx && (
-                <L
-                  k="receipt"
+                <Bouton
+                  onClick={() => trancher.current?.({ approved: true, by: 'the page', reason: 'approved here' })}
+                  actif={demande && occupe === 'device'}
                   fort
-                  v={
-                    <>
-                      block {fmtBlock(Number(recuTx.blockNumber))} · status {recuTx.status} · gas{' '}
-                      {groupDigits(String(Number(recuTx.gasUsed)))}
-                    </>
-                  }
-                />
-              )}
-              <div
-                className="px-[11px] py-[7px] t-data-xs"
-                style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-2)', lineHeight: 1.45 }}
-              >
-                The guard never sent anything. It built a transaction and handed it back; the
-                signature, and the risk, stayed with the wallet.
+                >
+                  Approve (here)
+                </Bouton>
+                <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
+                  {demande && occupe === 'device' ? 'the device is being asked' : 'only while the device is asked'}
+                </span>
               </div>
             </Etape>
           )}
-        </div>
-      )}
-
-      {/* ------------------------------------------------------------- le journal */}
-      {journal.length > 0 && (
-        <div style={{ border: '1px solid var(--line)' }}>
-          {journal.map((l, i) => (
-            <div
-              key={`${l.quoi}-${i}`}
-              className="flex items-baseline gap-[9px] px-[11px] py-[3px]"
-              style={{ borderTop: i === 0 ? undefined : '1px solid var(--line)' }}
-            >
-              <span className="t-label" style={{ color: 'var(--ink-2)', minWidth: 62, flex: 'none' }}>
-                {l.quoi}
-              </span>
-              <span
-                className="t-data-xs"
-                style={{ color: l.dur ? 'var(--m-3)' : 'var(--ink-2)', overflowWrap: 'anywhere' }}
-              >
-                {l.texte}
-              </span>
-            </div>
-          ))}
         </div>
       )}
     </div>

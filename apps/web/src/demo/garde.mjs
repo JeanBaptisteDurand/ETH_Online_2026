@@ -41,3 +41,14 @@ export {
   COMMAND_PERMIT2_PERMIT,
   UNIVERSAL_ROUTER_BASE,
 } from '../../../../packages/guard/src/permit2.ts'
+/**
+ * L'INTERCEPTION REELLE. `envelopperProvider` est la piece qui fait tout le produit : elle
+ * enveloppe un fournisseur EIP-1193 et n'arrete QUE `eth_sendTransaction`. La page de
+ * demonstration l'utilise telle quelle — elle ne la simule pas. Montrer une interception
+ * simulee dans une demonstration dont le sujet EST l'interception serait la faute la plus
+ * chere possible.
+ *
+ * `guard-sans-table.ts` et non `guard.ts` : le second inline data/table.json, 21 Mo.
+ */
+export { envelopperProvider, UserRejectedByGuard } from '../../../../packages/guard/src/injection.ts'
+export { tareGuard } from '../../../../packages/guard/src/guard-sans-table.ts'

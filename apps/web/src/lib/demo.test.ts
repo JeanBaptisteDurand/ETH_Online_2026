@@ -380,29 +380,29 @@ test('le compteur d ecrans est MESURE, jamais un total annonce d avance', () => 
   assert.ok(ECRAN.includes('×{APPUIS_PAR_RAFALE}'), 'la rafale est cablee sur sa constante')
 })
 
-test("l'attente de l'appareil a son PROPRE delai, et les lectures gardent le court", () => {
-  // Mesure faite : parcourir les champs demande 46 appuis, 19,7 a 36,4 s pour une machine et
-  // trois a cinq fois plus pour une main. Sous les 12 s des autres routes, la page abandonnait
-  // TOUJOURS — un ERR_ABORTED, puis « did not answer in 12 s » pendant que l'appareil attendait.
-  assert.match(PONT, /const DELAI_MS = (\d+)/)
-  assert.match(PONT, /const DELAI_APPAREIL_MS = (\d+)/)
+test("chaque question de l'appareil a son PROPRE delai, et les lectures gardent le court", () => {
+  // Les trois choix se font sur l'appareil, en deux questions au plus. Mesure faite sur Speculos
+  // (Nano X, Ethereum 1.22.3) : 15 appuis pour signer une question, 16 pour la refuser, et une
+  // main lit plus lentement qu'une machine. Le delai vaut donc PAR QUESTION.
   const court = Number(/const DELAI_MS = (\d+)/.exec(PONT)![1])
-  const long = Number(/const DELAI_APPAREIL_MS = (\d+)/.exec(PONT)![1])
-  assert.ok(long >= 240000, `le delai de l appareil vaut ${long} ms, trop court pour une main`)
+  const etape = Number(/export const DELAI_ETAPE_S = (\d+)/.exec(PONT)![1])
+  assert.ok(etape >= 240, `le delai d une question vaut ${etape} s, trop court pour une main`)
   assert.ok(court <= 15000, "les lectures doivent rester courtes : un silence long s'y lit comme un chargement")
-  // Et il ne s'applique QU'A /demo/approuver.
+  // AUCUNE REQUETE NE RESTE OUVERTE PENDANT QU'UN HUMAIN LIT : un proxy la couperait. /demo/choisir
+  // rend la main, et /demo/choix se sonde avec le delai COURT.
+  assert.match(PONT, /'\/demo\/choisir',[\s\S]{0,40}DELAI_MS,/)
+  assert.match(PONT, /'\/demo\/choix', undefined, DELAI_MS/)
+  // Un sondage rate n'abandonne pas une question ouverte sur l'appareil.
+  assert.ok(PONT.includes('SONDES_RATEES_MAX'))
+  // /demo/approuver garde son long delai, et lui seul.
   assert.match(PONT, /'\/demo\/approuver',[\s\S]{0,120}DELAI_APPAREIL_MS/)
-  for (const route of ['/demo/etat', '/demo/revenir']) {
+  for (const route of ['/demo/etat', '/demo/revenir', '/demo/choix']) {
     assert.ok(!new RegExp(`'${route}'[^)]*DELAI_APPAREIL_MS`).test(PONT), `${route} doit rester court`)
   }
-  // L'ecran dit combien de temps il accepte d'attendre, et depuis combien il attend.
-  assert.ok(ECRAN.includes('DELAI_APPAREIL_S'))
-  assert.ok(ECRAN.includes('DELAI_APPAREIL_S - attente'), "le temps restant se calcule et s'affiche")
+  // L'ecran dit combien de temps il accepte d'attendre la question affichee, et le montre.
+  assert.ok(ECRAN.includes('DELAI_ETAPE_S'))
   assert.ok(ECRAN.includes('s left of'), 'et il est dit en toutes lettres')
-  // Il se VOIT arriver : lire un nombre qui monte ne previent de rien.
   assert.ok(ECRAN.includes('partRestante'), 'une jauge se vide a cote du nombre')
-  assert.ok(ECRAN.includes("partRestante < 0.1 ? 'var(--m-3)'"), 'et elle passe a l alerte sur la fin')
-  assert.ok(ECRAN.includes('click swap again'), "l'expiration dit quoi faire, pas seulement ce qui s'est passe")
 })
 
 test('un double clic ne part jamais deux fois : le verrou ferme avant le premier await', () => {
@@ -443,11 +443,20 @@ test("l'ecran ne rend aucun texte francais du service, ni aucun guillemet franca
 
 /* ------------------------------------ 6. le contrat du service, tel qu il est */
 
-test('le pont appelle exactement les cinq routes du contrat, et pas une de plus', () => {
-  const routes = [...PONT.matchAll(/['`](\/demo\/[a-z]+)/g)].map((m) => m[1])
+test('le pont appelle exactement les routes du contrat, et pas une de plus', () => {
+  const routes = [...PONT.matchAll(/['`](\/demo\/[a-z]+(?:\/[a-z]+)?)/g)].map((m) => m[1])
   assert.deepEqual(
     [...new Set(routes)].sort(),
-    ['/demo/approuver', '/demo/etat', '/demo/preparer', '/demo/revenir', '/demo/soldes'],
+    [
+      '/demo/approuver',
+      '/demo/choisir',
+      '/demo/choix',
+      '/demo/choix/abandonner',
+      '/demo/etat',
+      '/demo/preparer',
+      '/demo/revenir',
+      '/demo/soldes',
+    ],
   )
   assert.ok(PONT.includes('adresse, acte'), 'preparer prend une adresse et un acte')
   assert.ok(PONT.includes("acte: 'stop' | 'substitution'"))
@@ -588,8 +597,15 @@ test('les divergences entre le scenario et le corpus sont AFFICHEES, pas tues', 
 })
 
 test('le refus se demande a l appareil, et son code vient de la reponse', () => {
-  assert.ok(ECRAN.includes('approuver(acteBridge)'), 'le rapport EIP-712 part vers l appareil')
-  assert.ok(ECRAN.includes("typeof rep.refus === 'number'"), 'le code rendu est lu, pas suppose')
+  // Les trois choix se font SUR L'APPAREIL : la page lance la conversation et la suit, elle ne
+  // decide rien. La reponse de l'appareil est traduite une a une, sans valeur par defaut.
+  assert.ok(ECRAN.includes('choisirSurAppareil(acteBridge, setProgres, ctrl.signal)'), 'le choix part vers l appareil')
+  assert.ok(
+    ECRAN.includes("rep.choix === 'actuelle' ? 'passer' : rep.choix === 'optimisee' ? 'substituer' : 'refuser'"),
+    'les trois reponses de l appareil sont lues, pas supposees',
+  )
+  // Et le code du refus est LU dans ce que la garde rend, jamais ecrit.
+  assert.ok(ECRAN.includes("setCodeRendu(typeof err.code === 'number' ? err.code : null)"))
 })
 
 test('un solde illisible se dit « unknown », et un fork muet aussi', () => {
@@ -641,9 +657,14 @@ test('le compteur d ouvertures du portefeuille est MESURE sous la garde', () => 
 test('le refus rend 4001 a l appelant, et la page le lit sans le supposer', () => {
   assert.ok(ECRAN.includes('err.code === CODE_REFUS_UTILISATEUR'))
   assert.ok(ECRAN.includes("setIssue('REFUSEE')"))
-  // Une garde qui echouerait en « oui » ne garderait rien : le pont muet vaut refus.
-  assert.ok(ECRAN.includes('the bridge did not answer'))
-  assert.ok(ECRAN.includes('approved: false'))
+  // Une garde qui echouerait en « oui » ne garderait rien. Seule la route gardee est approuvee ;
+  // la porte moins chere et l'annulation rendent un refus a l'appelant.
+  assert.ok(ECRAN.includes("approved: c === 'passer'"))
+  // Quand l'appareil ne repond pas, rien ne part par defaut : la decision revient a la page, qui
+  // DIT pourquoi, et attend un clic humain.
+  assert.ok(ECRAN.includes('setSecours(rep.raison)'))
+  assert.ok(ECRAN.includes('device unavailable — deciding on the page'))
+  assert.ok(ECRAN.includes('choisir.current = resoudre'))
 })
 
 test("la garde ne reecrit rien : le remplacement est un SECOND appel", () => {
@@ -689,14 +710,18 @@ test('un montant n est converti que pour la monnaie dont on connait les decimale
 /* ------------------- 8 quater. la route, le champ lu, le selecteur */
 
 test('la route bascule, et la bascule est un GESTE qu on peut couper', () => {
-  assert.ok(ROUTE.includes('basculee && remplacante'), 'les deux portes coexistent pendant la bascule')
-  assert.ok(ROUTE.includes("etat === 'remplacee'"), "l ancienne porte est barree, pas effacee")
-  assert.ok(ROUTE.includes('line-through'))
+  // Les deux routes coexistent du debut a la fin : celle qui n'est pas prise RECULE, elle ne part pas.
+  assert.ok(ROUTE.includes('{proposee && ('), 'la seconde route reste rendue')
+  assert.ok(ROUTE.includes("if (choisie !== null) return choisie === quoi ? 'choisie' : 'ecartee'"))
+  // Et le choix se dit par un MOT, jamais par une teinte seule.
+  assert.ok(ROUTE.includes("if (e === 'ecartee') return 'not taken'"))
   const css = lire('../index.css')
-  assert.match(css, /\.demo-porte \{[\s\S]*?transition:[\s\S]*?240ms/)
-  assert.ok(css.includes('prefers-reduced-motion'), 'la bascule reste, l animation part')
-  const i = css.indexOf('@media (prefers-reduced-motion: reduce) {\n  .demo-porte')
-  assert.ok(i > 0 && css.slice(i, i + 220).includes('animation: none'))
+  assert.match(css, /\.demo-route-ecartee \.demo-route-chemin,\n\.demo-route-ecartee \.demo-route-recoit \{\n  opacity: 0\.3;/)
+  // Sous prefers-reduced-motion, l'alarme s'arrete et l'etat reste.
+  const i = css.lastIndexOf('@media (prefers-reduced-motion: reduce)')
+  const bloc = css.slice(i)
+  assert.ok(i > 0 && bloc.includes('.demo-route-ecartee,') && bloc.includes('animation: none'))
+  assert.match(bloc, /\.demo-route-ecartee \{\n    background: rgba\(202, 64, 74, 0\.16\);/)
 })
 
 test("le champ montre a l exterieur est celui RELU de l appareil", () => {
@@ -713,9 +738,11 @@ test("le champ montre a l exterieur est celui RELU de l appareil", () => {
 
 test("l empreinte est affichee, pour qu un jury puisse la rapprocher", () => {
   assert.ok(ECRAN.includes('prompt digest'))
-  assert.ok(ECRAN.includes('preparationOk.prompt_digest'))
+  // Celle de la question que l'appareil montre, puis celle de la reponse signee — pas une empreinte
+  // calculee d'avance : c'est ce qu'on peut rapprocher de l'ecran du Ledger, caractere par caractere.
+  assert.ok(ECRAN.includes('progres?.digest_en_cours ?? progres?.resultat?.prompt_digest'))
   assert.ok(ECRAN.includes('keccak256 of the text sent to the device'))
-  assert.ok(PONT.includes('prompt_digest?: string | null'), 'le pont la porte dans son contrat')
+  assert.ok(PONT.includes('digest_en_cours: string | null'), 'le pont la porte dans son contrat')
 })
 
 test('le selecteur liste les paires nommees, et compte celles qu il laisse', () => {
@@ -783,25 +810,24 @@ test('quatre phases, quatre hierarchies — et rien ne disparait', () => {
   // DERIVE de l'etat : aucune bascule manuelle, donc aucune phase impossible a atteindre.
   assert.ok(ECRAN.includes("type Phase = 'repos' | 'choix' | 'appareil' | 'fini'"))
   assert.ok(ECRAN.includes("const phase: Phase ="))
-  // 1. au repos la these domine ; ailleurs elle se replie a une ligne, elle ne part pas.
-  assert.ok(ECRAN.includes("phase === 'repos' ? (\n        <BandeDistribution"))
-  assert.ok(ECRAN.includes('median of {groupDigits(String(dist.n))} measured rows'))
-  assert.ok(ECRAN.includes('see the tail'), 'la queue reste atteignable dans toutes les phases')
-  // 2. le corps des quatre chiffres SUIT la phase : grands quand la garde demande, moyens au
-  //    repos (reperables sans ecraser la these), petits quand l'objet est l'ecran du Ledger.
-  assert.ok(ECRAN.includes("taille={phase === 'choix' ? 'grande' : phase === 'appareil' ? 'petite' : 'moyenne'}"))
-  assert.ok(ROUTE.includes("const chiffre = t === 'grande' ? 't-metric' : t === 'moyenne' ? 'demo-chiffre' : 't-data-lg'"))
-  assert.ok(lire('../index.css').includes('.demo-chiffre {'), 'le corps moyen vit dans la charte')
-  // 3. le plan sur l'appareil : l'ecran devient central et grand, et dit ce qui est parti.
-  assert.ok(ECRAN.includes("phase === 'appareil' && ("))
-  assert.ok(
-    ECRAN.includes('<EcranAppareil onBouton={bouton} texte={ecranTexte} lireEcran={lireEcran} grand sousLEcran={badgeEnvoi} />'),
-  )
-  assert.ok(lire('../index.css').includes('.demo-ecran-grand {'), "l'ecran a une hauteur fixe : la scene se compte au pixel")
-  assert.ok(ECRAN.includes('the plan is on the device'))
+  // L'ecran en tire six images, derivees elles aussi : un refus ne se montre pas comme un recu.
+  assert.ok(ECRAN.includes("type Visuel = 'repos' | 'garde' | 'appareil' | 'portefeuille' | 'refus' | 'recu'"))
+  assert.ok(ECRAN.includes('const visuel: Visuel ='))
+  // 1. au repos la these domine ; pendant le parcours elle se REPLIE et recule, elle ne part pas.
+  assert.ok(ECRAN.includes('replie={replie}'))
+  assert.ok(ECRAN.includes("const replie = visuel !== 'repos'"))
+  assert.ok(BANDE.includes('demo-bande-replie demo-recule'))
+  assert.ok(BANDE.includes('see the tail'), 'la queue reste atteignable dans toutes les phases')
+  // 2. la scene se reorganise par phase : chaque image a sa grille, rien n'est retire du DOM.
+  assert.ok(ECRAN.includes('gridTemplateRows: LIGNES[visuel]'))
+  for (const v of ['repos', 'garde', 'appareil', 'portefeuille', 'refus', 'recu']) {
+    assert.match(ECRAN, new RegExp(`\\n    ${v}: '[.0-9fr ]+',`), `la grille de l image ${v}`)
+  }
+  // 3. quand l'appareil pose ses questions, son ecran devient l'objet central, avec le champ relu.
+  assert.ok(ECRAN.includes("direct={visuel === 'appareil'}"))
   assert.ok(ECRAN.includes('field now'), 'le champ en cours, en gros, hors de l appareil')
-  // 4. a la fin, les trois temps reculent devant « ce qu'on a garde ».
-  assert.ok(ECRAN.includes("phase === 'fini' ? 'demo-etapes demo-etapes-3 demo-recule'"))
+  // 4. a la fin, ce qu'on a garde prend le panneau ; l'en-tete et la these reculent.
+  assert.ok(ECRAN.includes("visuel === 'recu' && ("))
   assert.ok(lire('../index.css').includes('.demo-recule'))
 })
 
@@ -819,20 +845,19 @@ test('les trois choix sont nommes par ce qu ils FONT, pas par leur jargon', () =
 })
 
 test('la bascule de route se voit, une seule fois, et se coupe', () => {
-  assert.ok(ROUTE.includes("const ecartee = choisie !== null && !active"))
-  assert.ok(ROUTE.includes('demo-route-ecartee') && ROUTE.includes('demo-route-active'))
+  assert.ok(ROUTE.includes('demo-route-${etat}'))
+  assert.ok(ROUTE.includes("return lue ? 'lue' : 'repos'"))
   const css = lire('../index.css')
   // 250 a 400 ms, franche, sans rebond : pas de cubic-bezier a depassement.
-  const m = /\.demo-route-ligne \{[\s\S]*?transition:[\s\S]*?(\d{3})ms/.exec(css)
+  const m = /\.demo-route \{[\s\S]*?transition: [a-z-]+ (\d{3})ms/.exec(css)
   assert.ok(m, 'la transition doit exister')
   const ms = Number(m[1])
   assert.ok(ms >= 250 && ms <= 400, `la bascule dure ${ms} ms`)
   assert.ok(!/demo-route[\s\S]{0,400}cubic-bezier\([^)]*-/.test(css), 'aucun rebond')
+  assert.ok(!/--demo-ease: cubic-bezier\([^)]*-/.test(css), 'la courbe de la scene ne rebondit pas non plus')
   // Et sous prefers-reduced-motion, la bascule RESTE et l animation part.
-  const i = css.indexOf('.demo-route-ligne,')
-  assert.ok(i > 0)
-  const bloc = css.slice(css.lastIndexOf('@media (prefers-reduced-motion: reduce)', i), i + 300)
-  assert.ok(bloc.includes('animation: none') && bloc.includes('transition: none'))
+  const bloc = css.slice(css.lastIndexOf('@media (prefers-reduced-motion: reduce)'))
+  assert.ok(bloc.includes('.demo-route,') && bloc.includes('animation: none') && bloc.includes('transition: none'))
 })
 
 /* ------------------- 9. la table du site est bien celle du paquet */

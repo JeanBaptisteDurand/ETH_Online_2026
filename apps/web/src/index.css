@@ -1929,11 +1929,1384 @@ span a[href] {
 }
 
 
-/* LES QUATRE ETAPES D'UN ACTE (route #/demo).
-   Une colonne a 390 px — rien ne deborde, la page defile ; deux a partir de 760 px ; les
-   quatre cote a cote a partir de 1280 px, ou la demonstration doit tenir dans 1440x900 sans
-   qu'on ait a faire defiler devant un jury. La quatrieme colonne porte l'ecran de l'appareil
-   ou le recu : elle est la plus haute, et c'est elle qui fixe la hauteur de la rangee. */
+/* ==============================================================================================
+   LA DEMONSTRATION (#/demo) — la maquette v2 « le choix », portee sur la logique qui dit vrai.
+
+   La forme est celle du designer : un bandeau de these 300 px · 1fr · 400 px qui se replie pendant
+   le parcours, la barre du pont, une scene dont les lignes de grille se reorganisent a chaque
+   phase (560 ms), et le fil des six etapes en bas. Les couleurs sont les siennes — ce sont celles
+   de la charte, a une exception pres : le vert de la route gratuite, qu'il pose et qui n'a pas de
+   jeton ici (--demo-vert).
+
+   Rien de ce qui suit ne decide : les phases, les chiffres et les etats viennent de Demo.tsx, qui
+   les derive du pont, de la garde et du corpus.
+   ============================================================================================== */
+
+.demo-scene {
+  --demo-vert: #3ec46d;
+  --demo-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  font-family: var(--mono);
+  color: var(--ink);
+}
+/* LA SCENE FAIT LA HAUTEUR DE L'ECRAN, et pas un pixel de plus : barre du site (56 px et son
+   filet), marges de #contenu sur cette route, et quelques pixels de jeu pour ne JAMAIS provoquer
+   le defilement qu'on cherche a eviter. En dessous de 1100 x 760 elle redevient une page. */
+@media (min-width: 1100px) and (min-height: 760px) {
+  .demo-scene {
+    height: calc(100dvh - 72px);
+  }
+}
+.demo-scene > :not(.demo-champ) {
+  position: relative;
+  z-index: 1;
+}
+
+/* Le champ orange derriere la scene : il monte avec l'enjeu, il retombe sur un refus. */
+.demo-champ {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 55% 45% at 50% 62%, rgba(235, 102, 40, 0.5), transparent 70%);
+  transition: opacity 1200ms linear;
+}
+
+.demo-recule {
+  opacity: 0.55;
+}
+
+/* ------------------------------------------------------------------------------ l'en-tete */
+.demo-titre {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  flex: none;
+  transition: opacity 400ms;
+}
+.demo-titre h1 {
+  margin: 0;
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 24px;
+  letter-spacing: -0.02em;
+}
+.demo-titre-meta {
+  font-size: 10px;
+  line-height: 14px;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+
+/* ---------------------------------------------------------------------- le bandeau de these */
+.demo-bande {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr) 400px;
+  height: 116px;
+  flex: none;
+  border: 1px solid var(--line);
+  background: rgba(16, 18, 20, 0.92);
+  overflow: hidden;
+  transition:
+    height 480ms var(--demo-ease),
+    opacity 400ms;
+}
+.demo-bande-replie {
+  height: 98px;
+}
+.demo-bande-mediane {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  padding: 10px 14px;
+  border-right: 1px solid var(--line);
+}
+.demo-bande-libelle {
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.demo-bande-chiffre {
+  font-size: 44px;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+  color: var(--m-4);
+  white-space: nowrap;
+  transition: font-size 400ms;
+}
+.demo-bande-replie .demo-bande-chiffre {
+  font-size: 26px;
+}
+.demo-bande-unite {
+  font-size: 0.4em;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+.demo-bande-glose {
+  font-size: 11px;
+  line-height: 14px;
+  color: var(--ink);
+}
+.demo-bande-rangs {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 10px 14px;
+}
+.demo-bande-barre {
+  position: relative;
+  height: 30px;
+  flex: none;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.demo-bande-barre svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* Les tranches se deploient une fois, de gauche a droite, a leur arrivee — 700 ms, 110 ms d'ecart. */
+.demo-tranche {
+  transform-box: fill-box;
+  transform-origin: left;
+  animation: demo-tranche 700ms var(--demo-ease) both;
+}
+@keyframes demo-tranche {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.demo-bande-balayage {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background: var(--ink);
+  opacity: 0;
+  animation: demo-balayage 1300ms linear 150ms both;
+}
+@keyframes demo-balayage {
+  from {
+    left: 0;
+    opacity: 1;
+  }
+  99% {
+    opacity: 1;
+  }
+  to {
+    left: 100%;
+    opacity: 0;
+  }
+}
+.demo-bande-porte {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--ink);
+}
+.demo-bande-echelle {
+  position: relative;
+  height: 14px;
+  flex: none;
+  font-size: 10px;
+  line-height: 14px;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+.demo-bande-echelle > span {
+  position: absolute;
+  top: 0;
+  white-space: nowrap;
+}
+.demo-bande-echelle-porte {
+  transform: translateX(-4px);
+  color: var(--ink);
+}
+.demo-bande-echelle-mediane {
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--ink);
+}
+.demo-bande-echelle-droite {
+  right: 0;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.demo-bande-queue {
+  font: inherit;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line-strong);
+  padding: 0;
+  cursor: pointer;
+}
+.demo-bande-queue:hover,
+.demo-bande-queue-ouverte {
+  border-bottom-color: var(--m-4);
+}
+.demo-bande-note {
+  font-size: 10px;
+  line-height: 13px;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+.demo-bande-replie .demo-bande-note {
+  display: none;
+}
+.demo-bande-parts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 12px;
+  align-content: center;
+  padding: 10px 14px;
+  border-left: 1px solid var(--line);
+  font-size: 10px;
+  line-height: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+.demo-part {
+  display: block;
+  min-width: 0;
+}
+.demo-part-valeur {
+  display: block;
+  font-size: 18px;
+  line-height: 19px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.demo-part-suite {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--ink-2);
+}
+
+/* ------------------------------------------------------------------------------- le pont */
+.demo-pont {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  flex: none;
+  min-width: 0;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+  font-size: 10px;
+  line-height: 14px;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.demo-pont-sep {
+  border-left: 1px solid var(--line);
+  padding-left: 12px;
+}
+.demo-pont-appareil {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--demo-vert);
+}
+.demo-pont-appareil-off {
+  color: var(--m-3);
+}
+.demo-pont-diode {
+  width: 6px;
+  height: 6px;
+  background: currentColor;
+  animation: demo-clignote 1.6s linear infinite;
+}
+@keyframes demo-clignote {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+.demo-pont-divergence {
+  color: var(--m-5);
+}
+.demo-pont-ouvertures {
+  font-size: 11px;
+  color: var(--ink);
+}
+.demo-pont-ouvertures b {
+  font-size: 16px;
+  font-weight: 700;
+}
+.demo-pont-ouvertures b.demo-pont-compte-ouvert {
+  color: var(--m-4);
+}
+.demo-pont-panne {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--m-3);
+}
+.demo-pont-boutons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  margin-left: auto;
+}
+.demo-pont-boutons button {
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  padding: 5px 11px;
+  color: var(--ink);
+  background: transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 200ms;
+}
+.demo-pont-reseau {
+  border: 1px solid var(--focus);
+}
+.demo-pont-reseau-actif {
+  background: var(--focus) !important;
+  color: #fff !important;
+}
+.demo-pont-reset {
+  border: 1px solid var(--m-3);
+}
+.demo-pont-reset:hover:not(:disabled) {
+  background: var(--m-3);
+  color: var(--bg);
+}
+.demo-pont-boutons .demo-pont-portefeuille {
+  border: 1px solid var(--m-6);
+  background: var(--m-6);
+  color: var(--bg);
+  font-weight: 700;
+}
+.demo-pont-boutons button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ------------------------------------------------------------------------------ la scene */
+.demo-grille {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  transition: grid-template-rows 560ms var(--demo-ease);
+}
+.demo-rangee {
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  transition: opacity 300ms;
+}
+.demo-tete {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 34px;
+  flex: none;
+  min-width: 0;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--line);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.demo-tete-meta {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+.demo-encre {
+  color: var(--ink);
+}
+
+/* 0 · le geste ordinaire */
+.demo-depart {
+  height: 100%;
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 0 14px;
+  border: 1px solid var(--m-4);
+  background: var(--bg-1);
+  animation: demo-appel 2.2s ease-in-out infinite;
+}
+@keyframes demo-appel {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(235, 102, 40, 0);
+  }
+  50% {
+    box-shadow: 0 0 22px 2px rgba(235, 102, 40, 0.45);
+  }
+}
+.demo-depart-libelle {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+.demo-depart-ici {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--m-4);
+}
+.demo-depart-milieu {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.demo-depart-montants {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.demo-depart-boite {
+  padding: 10px 14px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg);
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+.demo-depart-unite {
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--ink-2);
+}
+.demo-depart-sortie,
+.demo-depart-fleche {
+  color: var(--ink-2);
+}
+.demo-depart-fleche {
+  font-size: 22px;
+}
+.demo-depart-avertit {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--m-5);
+}
+.demo-depart-detail {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  line-height: 13px;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+.demo-swap {
+  height: 48px;
+  padding: 0 26px;
+  border: 1px solid var(--m-4);
+  background: var(--m-4);
+  color: var(--bg);
+  font-family: var(--prose);
+  font-size: 17px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+.demo-swap:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* 1 · les deux routes */
+.demo-routes {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+  overflow: hidden;
+}
+.demo-routes-paires {
+  flex: none;
+  margin-left: auto;
+}
+/* Le selecteur de paire se deplie PAR-DESSUS la scene, dans sa hauteur : il ne la pousse jamais. */
+.demo-routes-paires > .demo-paires[open] {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  overflow: auto;
+  white-space: normal;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+}
+.demo-routes-ecart {
+  flex: none;
+  margin-left: auto;
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  color: var(--m-4);
+}
+.demo-routes-paires + .demo-routes-ecart {
+  margin-left: 0;
+}
+.demo-routes-lignes {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  transition: grid-template-rows 480ms var(--demo-ease);
+}
+.demo-route {
+  position: relative;
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr) 260px;
+  align-items: center;
+  gap: 16px;
+  min-height: 58px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--line);
+  overflow: hidden;
+  transition: background 300ms;
+}
+.demo-route-choisie {
+  background: var(--bg-2);
+}
+.demo-route-ecartee {
+  animation: demo-alarme 1.4s linear both;
+}
+@keyframes demo-alarme {
+  0%,
+  20%,
+  40% {
+    background: rgba(202, 64, 74, 0);
+  }
+  10%,
+  30%,
+  50% {
+    background: rgba(202, 64, 74, 0.22);
+  }
+  100% {
+    background: rgba(202, 64, 74, 0.16);
+  }
+}
+.demo-route-nom {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  line-height: 18px;
+}
+.demo-route-etiquette {
+  font-size: 10px;
+  line-height: 13px;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+.demo-route-choisie .demo-route-etiquette {
+  color: var(--m-4);
+}
+.demo-route-ecartee .demo-route-etiquette {
+  color: var(--m-3);
+}
+.demo-route-chemin,
+.demo-route-recoit {
+  transition: opacity 300ms;
+}
+.demo-route-ecartee .demo-route-chemin,
+.demo-route-ecartee .demo-route-recoit {
+  opacity: 0.3;
+}
+.demo-route-chemin {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.demo-jeton {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid var(--line-strong);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.demo-jeton-adresse {
+  font-size: 10px;
+  color: var(--ink-2);
+}
+.demo-route-trait {
+  position: relative;
+  flex: 1;
+  min-width: 12px;
+  height: 1px;
+  background: var(--line-strong);
+  overflow: hidden;
+}
+.demo-route-trait > span {
+  position: absolute;
+  inset: 0;
+  background: var(--ink);
+  transform: translateX(-100%);
+  animation: demo-flux 1.6s linear var(--rang, 0s) infinite;
+}
+.demo-route-choisie .demo-route-trait > span {
+  background: var(--m-4);
+}
+@keyframes demo-flux {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+.demo-route-porte {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 6px 14px;
+  border: 2px solid var(--ink);
+  white-space: nowrap;
+  transition:
+    border-color 300ms,
+    box-shadow 300ms;
+}
+.demo-route-repos .demo-route-porte {
+  border: 1px dashed var(--line-strong);
+}
+.demo-route-choisie .demo-route-porte {
+  border-color: var(--m-4);
+  box-shadow: 0 0 16px rgba(235, 102, 40, 0.35);
+}
+.demo-route-rampe {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  align-self: center;
+}
+.demo-route-gate {
+  font-size: 11px;
+  color: var(--ink-2);
+}
+.demo-route-chiffre {
+  font-size: 40px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+  transition: font-size 400ms;
+}
+.demo-route-repos .demo-route-chiffre {
+  color: var(--ink-2);
+}
+.demo-route-petite .demo-route-chiffre {
+  font-size: 24px;
+}
+.demo-route-unite {
+  font-size: 0.45em;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.demo-route-recoit {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.demo-route-petit {
+  font-size: 11px;
+  color: var(--ink-2);
+}
+
+/* 2 · votre choix */
+.demo-choix {
+  height: 100%;
+  min-height: 60px;
+  display: grid;
+  grid-template-columns: 150px repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 8px;
+}
+.demo-choix-libelle {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 4px;
+  font-size: 10px;
+  line-height: 13px;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+.demo-choix-titre {
+  font-size: 13px;
+  line-height: 1.05;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  animation: demo-doux 2.2s ease-in-out infinite;
+  transition: font-size 300ms;
+}
+.demo-choix-libelle-demande .demo-choix-titre {
+  font-size: 18px;
+}
+.demo-choix-secours {
+  color: var(--m-3);
+}
+@keyframes demo-doux {
+  0%,
+  100% {
+    text-shadow: 0 0 0 rgba(232, 234, 237, 0);
+    color: var(--ink-2);
+  }
+  50% {
+    text-shadow: 0 0 12px rgba(232, 234, 237, 0.55);
+    color: var(--ink);
+  }
+}
+.demo-carte {
+  --ton: var(--ink-2);
+  --ton-rgb: 162, 169, 176;
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 0 14px 0 0;
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: default;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 380ms var(--demo-ease),
+    transform 380ms var(--demo-ease),
+    background 150ms,
+    color 150ms,
+    border-color 150ms;
+}
+.demo-carte-refus {
+  --ton: var(--m-3);
+  --ton-rgb: 202, 64, 74;
+}
+.demo-carte-vert {
+  --ton: var(--demo-vert);
+  --ton-rgb: 62, 196, 109;
+}
+.demo-carte-apparue {
+  opacity: 1;
+  transform: none;
+}
+.demo-carte-vivante {
+  border-color: rgba(var(--ton-rgb), 0.55);
+  animation: demo-pouls 1.8s ease-in-out var(--delai, 0s) infinite;
+}
+/* Le survol et la main n'existent que sur une carte qui EST un bouton : en mode secours. Une carte
+   qui s'allume parce que l'appareil pose sa question n'est pas cliquable, et ne doit pas en avoir
+   l'air. */
+.demo-carte-bouton.demo-carte-vivante {
+  cursor: pointer;
+}
+.demo-carte-bouton.demo-carte-vivante:hover {
+  border-color: var(--ton);
+  background: rgba(var(--ton-rgb), 0.14);
+}
+.demo-carte-bouton.demo-carte-vivante:active {
+  transform: translateY(1px);
+}
+.demo-carte-etat {
+  font-weight: 700;
+  color: var(--ton);
+}
+.demo-carte-eteinte .demo-carte-etat {
+  color: var(--ink-4);
+}
+@keyframes demo-pouls {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--ton-rgb), 0.35);
+  }
+  50% {
+    box-shadow: 0 0 18px 1px rgba(var(--ton-rgb), 0.35);
+  }
+}
+.demo-carte-choisie {
+  border-color: var(--ton);
+  background: rgba(var(--ton-rgb), 0.14);
+}
+.demo-carte-eteinte {
+  color: var(--ink-4);
+}
+.demo-carte-touche {
+  align-self: stretch;
+  width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid var(--line);
+  background: var(--bg-2);
+  font-size: 15px;
+  font-weight: 800;
+  transition:
+    background 150ms,
+    color 150ms;
+}
+.demo-carte-vivante .demo-carte-touche,
+.demo-carte-choisie .demo-carte-touche {
+  border-right-color: var(--ton);
+  background: var(--ton);
+  color: var(--bg);
+}
+.demo-carte-corps {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  padding: 9px 0;
+}
+.demo-carte-titre {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 17px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.demo-carte-sous {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  line-height: 14px;
+  letter-spacing: 0.02em;
+  color: var(--ink-2);
+}
+.demo-carte-eteinte .demo-carte-sous,
+.demo-carte-eteinte .demo-carte-marque {
+  color: var(--ink-4);
+}
+.demo-carte-marque {
+  display: inline-block;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ton);
+}
+.demo-carte-vivante .demo-carte-marque {
+  animation: demo-chevron 1.2s ease-in-out infinite;
+}
+@keyframes demo-chevron {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(4px);
+  }
+}
+
+/* 3 · l'appareil, et ce que la garde a lu */
+.demo-poste {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+  transition:
+    border-color 300ms,
+    box-shadow 300ms;
+}
+.demo-poste-direct {
+  border-color: var(--m-4);
+  box-shadow: 0 0 18px rgba(235, 102, 40, 0.25);
+}
+.demo-poste-refus {
+  border-color: var(--m-3);
+}
+.demo-appareil {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  border-right: 1px solid var(--line);
+}
+.demo-appareil .demo-tete-meta {
+  margin-left: auto;
+}
+.demo-appareil-repos {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+}
+.demo-plaque {
+  width: 220px;
+  height: 110px;
+  min-height: 40px;
+  flex-shrink: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-strong);
+  background: #000;
+  overflow: hidden;
+}
+.demo-plaque img,
+.demo-boitier-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+.demo-appareil-absent {
+  padding: 0 8px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-align: center;
+  color: var(--ink-2);
+}
+.demo-badge {
+  padding: 3px 8px;
+  border: 1px solid currentColor;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  color: var(--ink-2);
+}
+.demo-badge-accent {
+  color: var(--m-4);
+}
+.demo-badge-refus {
+  color: var(--m-3);
+}
+.demo-appareil-phrase {
+  font-size: 10px;
+  line-height: 13px;
+  letter-spacing: 0.04em;
+  text-align: center;
+  color: var(--ink-2);
+}
+.demo-appareil-direct {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  animation: demo-monte 260ms var(--demo-ease) both;
+}
+@keyframes demo-monte {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.demo-boitier {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 12px 14px 8px;
+  padding: 14px 18px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg-2);
+}
+.demo-bouton-physique {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  background: var(--bg);
+  cursor: pointer;
+}
+.demo-bouton-physique:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.demo-boitier-ecran {
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line-strong);
+  background: #000;
+  color: #fff;
+  text-align: center;
+  overflow: hidden;
+}
+.demo-boitier-sur {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+.demo-boitier-image {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  max-height: 132px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.demo-boitier-texte {
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.demo-appareil-commandes {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px 10px;
+}
+.demo-commande {
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.demo-commande:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.demo-geste > summary {
+  padding: 8px 4px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+  list-style: none;
+  cursor: pointer;
+}
+.demo-geste > summary::-webkit-details-marker {
+  display: none;
+}
+.demo-geste[open] > div {
+  position: absolute;
+  right: 14px;
+  bottom: 100%;
+  left: 14px;
+  z-index: 10;
+  padding: 10px 12px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg-2);
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--ink-2);
+}
+.demo-appareil-decider {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+.demo-delai {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-right: 6px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+.demo-delai-jauge {
+  width: 90px;
+  height: 3px;
+  background: var(--bg-2);
+}
+.demo-delai-jauge > span {
+  display: block;
+  height: 3px;
+  transition: width 1s linear;
+}
+.demo-decider-page {
+  padding: 9px 18px;
+  border: 2px solid var(--line-strong);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.demo-decider-page:hover {
+  border-color: var(--m-3);
+}
+.demo-fin {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
+  padding: 12px 14px;
+  overflow: hidden;
+  transition: background 300ms;
+}
+.demo-fin-refus {
+  background: rgba(202, 64, 74, 0.06);
+}
+.demo-fin-tete {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--ink-2);
+}
+.demo-fin-issue {
+  margin-left: auto;
+  padding: 1px 6px;
+  border: 1px solid currentColor;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+}
+.demo-fin-issue-refus {
+  color: var(--m-3);
+}
+.demo-fin-issue-passe {
+  color: var(--m-4);
+}
+.demo-fin-corps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+}
+.demo-fin-bas {
+  margin-top: auto;
+}
+.demo-fin-milieu {
+  flex: 1;
+  justify-content: center;
+}
+.demo-fin-attenue {
+  opacity: 0.8;
+}
+.demo-fin-legende {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+.demo-fin-legende-trait {
+  display: inline-block;
+  width: 8px;
+  height: 2px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+.demo-fin-etiquette {
+  padding: 0 5px;
+  border: 1px solid var(--line-strong);
+  letter-spacing: 0.1em;
+}
+.demo-fin-code {
+  font-size: 96px;
+  line-height: 0.82;
+  letter-spacing: -0.05em;
+  font-weight: 800;
+  color: var(--m-3);
+}
+.demo-fin-grand {
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+.demo-fin-maintenant {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--m-4);
+}
+.demo-fin-ligne {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ink-2);
+}
+.demo-fin-petit {
+  font-size: 10px;
+  line-height: 14px;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+.demo-fin-attente {
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+.demo-fin-rejouer {
+  align-self: flex-start;
+  padding: 5px 11px;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+.demo-garde {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.demo-garde-bloc {
+  display: flex;
+  flex-direction: column;
+}
+.demo-garde-recu {
+  font-size: 64px;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+  color: var(--m-4);
+}
+.demo-garde-unite {
+  font-size: 0.28em;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.demo-garde-aurait {
+  font-size: 28px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+.demo-garde-bilan {
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+/* La commande de rejeu : dans une etape, elle se deplie a sa place ; dans le panneau de fin, qui n'a
+   pas la hauteur, elle se deplie PAR-DESSUS la scene. */
+.demo-rejeu > summary {
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  list-style: none;
+  cursor: pointer;
+}
+.demo-rejeu > summary::-webkit-details-marker {
+  display: none;
+}
+.demo-rejeu > summary::before {
+  content: '▸ ';
+}
+.demo-rejeu[open] > summary::before {
+  content: '▾ ';
+}
+.demo-etapes .demo-rejeu {
+  padding: 3px 11px;
+}
+.demo-rejeu-corps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 10px;
+  line-height: 14px;
+  color: var(--ink-2);
+}
+.demo-fin .demo-rejeu[open] > .demo-rejeu-corps {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  z-index: 30;
+  width: min(640px, calc(100% - 28px));
+  padding: 10px 12px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg-2);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* -------------------------------------------------------------------------------- la queue */
+.demo-queue {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.demo-queue > .demo-tete {
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+}
+.demo-queue-retour {
+  margin-left: auto;
+  padding: 5px 11px;
+  border: 1px solid var(--m-4);
+  background: var(--m-4);
+  color: var(--bg);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
 .demo-etapes {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -1946,84 +3319,20 @@ span a[href] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-@media (min-width: 1280px) {
-  .demo-etapes {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
-/* LE BANDEAU DE DISTRIBUTION (route #/demo).
-   Trois blocs : le chiffre de la page, les parts, la bande. Empiles sous 900 px — a 390 px la
-   bande garde toute sa largeur et ne pousse rien, parce qu'elle est en viewBox proportionnel.
-   Cote a cote au-dela, ou la lecture se fait d'un coup d'oeil pendant qu'on parle. */
-.demo-bande {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  min-width: 0;
-}
-.demo-bande > * + * {
-  border-top: 1px solid var(--line);
-  border-left: none !important;
-}
-@media (min-width: 900px) {
-  .demo-bande {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  }
-  .demo-bande > * + * {
-    border-top: none;
-    border-left: 1px solid var(--line) !important;
-  }
-}
-@media (min-width: 1280px) {
-  .demo-bande {
-    /* Trois blocs : le chiffre de la page, les quatre parts en 2x2, la bande. La queue n'a plus
-       sa colonne de prose : elle est la quatrieme part. */
-    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.6fr) minmax(0, 0.95fr);
-  }
-  .demo-bande > * + * {
-    border-top: none;
-    border-left: 1px solid var(--line) !important;
-  }
-}
-
-/* La vue « queue » n'a que trois etapes : elles se partagent la largeur au lieu de laisser
-   une colonne vide a droite. */
-@media (min-width: 1280px) {
+@media (min-width: 1100px) {
   .demo-etapes-3 {
-    /* La troisieme colonne porte l'appareil : c'est le personnage principal, elle est la plus
-       large. En vue « queue » elle porte la porte extreme, qui supporte aussi bien la largeur. */
-    grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.3fr) minmax(0, 1.22fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
+.demo-attenue {
+  color: var(--ink-3);
+}
+.demo-etape-pied {
+  padding: 6px 11px;
+  border-top: 1px solid var(--line);
 }
 
-/* LA ROUTE DU SWAP (route #/demo) — une plaque gravee, pas un jeu.
-   La bascule dure 240 ms, en opacite et en translation de quelques pixels. Pas de rebond, pas
-   de couleur qui clignote : la charte du site est une lecture d'appareil. */
-.demo-porte {
-  display: inline-flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 4px 9px;
-  min-width: 0;
-  transition:
-    opacity 240ms linear,
-    border-color 240ms linear;
-}
-.demo-porte-neuve {
-  animation: demo-porte-entre 240ms ease-out both;
-}
-@keyframes demo-porte-entre {
-  from {
-    opacity: 0;
-    transform: translateX(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-/* LE SELECTEUR DE PAIRES : ferme par defaut, pour que les actes restent au-dessus du pli. */
+/* LE SELECTEUR DE PAIRES : ferme par defaut. */
 .demo-paires > summary::marker,
 .demo-paires > summary::-webkit-details-marker {
   display: none;
@@ -2031,494 +3340,210 @@ span a[href] {
 }
 .demo-paires > summary::before {
   content: '▸ ';
-  color: var(--ink-4);
+  color: var(--ink-3);
 }
 .demo-paires[open] > summary::before {
   content: '▾ ';
 }
 
-/* La bascule RESTE, l'animation part. Une transition qu'on ne peut pas couper est subie. */
-@media (prefers-reduced-motion: reduce) {
-  .demo-porte,
-  .demo-porte-neuve {
-    transition: none;
-    animation: none;
-  }
-}
-
-/* La barre d'etat de #/demo : une seule ligne, qui defile dans elle-meme plutot que de se
-   replier. Une seconde ligne coute dix-sept pixels a une scene qui fait exactement 900. */
-.demo-barre {
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scrollbar-width: none;
-  white-space: nowrap;
-}
-.demo-barre::-webkit-scrollbar {
-  display: none;
-}
-.demo-barre > * {
+/* ------------------------------------------------------------------------------- le fil */
+.demo-rail {
+  display: flex;
+  align-items: center;
+  height: 22px;
   flex: none;
-}
-
-/* LA BASCULE DE ROUTE — franche, une seule fois, sans rebond (spec : 250 a 400 ms).
-   La route ecartee recule : elle perd son encre et glisse de quelques pixels, elle ne
-   disparait pas. Celle qui prend sa place entre. */
-.demo-route-ligne {
-  transition:
-    opacity 300ms ease-out,
-    transform 300ms ease-out,
-    border-color 300ms linear,
-    background-color 300ms linear;
-}
-/* 0.38 ramenait l'encre pleine a 2,4:1 : la route ecartee devenait illisible, et avec elle un des
-   quatre chiffres de la demonstration. A 0.62 elle recule nettement et se lit encore (4,7:1) ; la
-   route choisie garde trois signes qui ne sont pas des nuances — son filet d'accent, son fond
-   souleve et le mot « chosen ». */
-.demo-route-ecartee {
-  opacity: 0.62;
-  transform: translateX(-8px) scale(0.985);
-}
-.demo-route-active {
-  animation: demo-route-prend 300ms ease-out both;
-}
-@keyframes demo-route-prend {
-  from {
-    transform: translateX(10px);
-    opacity: 0.55;
-  }
-  to {
-    transform: none;
-    opacity: 1;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .demo-route-ligne,
-  .demo-route-active {
-    transition: none;
-    animation: none;
-  }
-  .demo-route-ecartee {
-    transform: none;
-  }
-}
-
-/* PHASE 3 — l'ecran de l'appareil au centre, le plan a cote. Deux colonnes larges : c'est
-   l'objet que le jury fixe, il ne tient pas dans une colonne de trois cent quarante pixels. */
-.demo-appareil {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 8px;
-  align-items: start;
   min-width: 0;
-}
-@media (min-width: 900px) {
-  .demo-appareil {
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  }
-}
-/* PHASE 4 — les trois temps reculent : le panneau « ce qu'on a garde » domine.
-   0.62 mettait l'encre secondaire a 3,7:1 — du gris sur gris a l'instant du resultat. A 0.8 elle
-   reste a 5:1 ; la domination du resultat tient a ses chiffres de 44 px et a son cadre d'accent,
-   pas a l'effacement du reste. */
-.demo-recule {
-  opacity: 0.8;
-  transition: opacity 300ms linear;
-}
-@media (prefers-reduced-motion: reduce) {
-  .demo-recule {
-    transition: none;
-  }
-}
-
-/* ==============================================================================================
-   LA SCENE DE DEMONSTRATION (#/demo) — lue au fond d'une salle, sur une video compressee.
-
-   Mesure faite sur le site publie, a 1440x900, avec les vrais services : 181 noeuds de texte sous
-   13 px au repos (100 a 10 px, 81 a 11 px), les trois reponses a 11 px, les boutons desactives a
-   2,1:1, et la phase 3 qui depassait de 120 px. Tout ce qui suit est scope a `.demo-scene` : le
-   reste du site garde son echelle d'instrument, qui se lit a cinquante centimetres, pas a cinq
-   metres. Aucune couleur nouvelle — les jetons de la charte, et eux seuls.
-   ============================================================================================== */
-
-/* L'ECHELLE, UN CRAN PLUS HAUT, ET SEULEMENT ICI. Le plancher passe de 10 a 12 px ; ce qui porte
-   la demonstration (les chiffres, les reponses, le champ de l'appareil, les boutons) est a 13 px
-   et au-dessus. */
-.demo-scene .t-data-xs {
-  font-size: 12px;
-  line-height: 15px;
-  letter-spacing: 0.01em;
-}
-.demo-scene .t-data-sm {
-  font-size: 13px;
-  line-height: 17px;
-  letter-spacing: 0.01em;
-}
-.demo-scene .t-label {
-  font-size: 12px;
-  line-height: 15px;
-  letter-spacing: 0.01em;
-}
-.demo-scene .t-data {
-  font-size: 14px;
-  line-height: 18px;
-}
-
-/* LES BOUTONS PAR ROLE — Demo.tsx, BoutonRole. Le role se lit a la forme, pas a la teinte seule :
-   vide, plein, filet de signal, plein d'accent. */
-.demo-bouton {
-  font-family: var(--mono);
-  font-size: 13px;
-  line-height: 16px;
-  padding: 5px 12px;
-  border: 1px solid var(--line-strong);
-  background: transparent;
-  color: var(--ink);
-  cursor: pointer;
-  white-space: nowrap;
-}
-.demo-bouton:hover:not(:disabled) {
-  border-color: var(--ink-3);
-}
-.demo-bouton-plein {
-  background: var(--bg-3);
-}
-.demo-bouton-alerte {
-  border-color: var(--m-5);
-  color: var(--m-5);
-}
-.demo-bouton-alerte:hover:not(:disabled) {
-  border-color: var(--m-5);
-  background: var(--bg-2);
-}
-.demo-bouton-accent {
-  background: var(--m-4);
-  border-color: var(--m-4);
-  color: var(--bg);
-  font-weight: 700;
-}
-.demo-bouton-accent:hover:not(:disabled) {
-  border-color: var(--ink);
-}
-/* Desactive : lisible (5,5:1), jamais l'encre la plus sombre, et sans le fond de son role. */
-.demo-bouton:disabled {
-  cursor: not-allowed;
-  color: var(--ink-3);
-  border-color: var(--line);
-  background: transparent;
-}
-.demo-bouton-grand {
-  font-size: 18px;
-  line-height: 22px;
-  padding: 6px 32px;
-  letter-spacing: 0.02em;
-}
-
-/* LE POINT D'ENTREE — la seule bande encadree d'accent de la page. */
-.demo-depart {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 14px;
-  padding: 3px 3px 3px 14px;
-  border: 1px solid var(--m-4);
-  background: var(--bg-1);
-  box-shadow: inset 3px 0 0 var(--m-4);
-  min-width: 0;
-}
-.demo-depart-libelle {
-  color: var(--m-4);
-  flex: none;
-}
-.demo-depart-montant {
-  font-family: var(--mono);
-  font-size: 24px;
-  line-height: 28px;
-  letter-spacing: -0.01em;
-  color: var(--ink);
-}
-
-/* LES TROIS REPONSES — au corps de lecture, avec un filet qu'on voit et la touche qui les donne. */
-.demo-choix {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 8px;
-  padding: 4px 11px;
-  border-top: 1px solid var(--line-strong);
-  min-width: 0;
-}
-.demo-choix-demande {
-  border: 1px solid var(--m-4);
-  background: var(--bg-3);
-  box-shadow: inset 3px 0 0 var(--m-4);
-}
-.demo-bouton-choix {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  font-family: var(--mono);
-  font-size: 15px;
-  line-height: 18px;
-  padding: 5px 14px 5px 6px;
-  border: 1px solid var(--line-strong);
-  background: var(--bg-1);
-  color: var(--ink);
-  cursor: pointer;
-  white-space: nowrap;
-}
-.demo-bouton-choix:hover:not(:disabled) {
-  border-color: var(--ink-2);
-}
-.demo-bouton-choix-fort {
-  border-color: var(--m-4);
-}
-.demo-bouton-choix:disabled {
-  cursor: not-allowed;
-  color: var(--ink-3);
-  background: transparent;
-  border-color: var(--line);
-}
-.demo-choix-consigne {
-  color: var(--ink-2);
-  flex: 1 1 240px;
-  min-width: 0;
-  line-height: 1.3;
-}
-.demo-touche {
-  display: inline-block;
-  font-family: var(--mono);
-  font-size: 12px;
-  line-height: 14px;
-  min-width: 20px;
-  padding: 2px 5px 1px;
-  border: 1px solid var(--line-strong);
-  border-bottom-width: 2px;
-  background: var(--bg-2);
-  color: var(--ink);
-  text-align: center;
-}
-.demo-bouton-choix:disabled .demo-touche {
-  color: var(--ink-3);
-  border-color: var(--line);
-}
-
-/* LA ROUTE EST UN CHEMIN — DemoRoute.tsx, DeuxRoutes. Deux vrais traits relient les jetons a la
-   porte ; la porte est une case en pointilles tant qu'elle n'est pas choisie. */
-.demo-trait {
-  flex: 1 1 16px;
-  min-width: 10px;
-  height: 1px;
-  background: var(--line-strong);
-  align-self: center;
-}
-.demo-route-active .demo-trait {
-  background: var(--m-4);
-}
-.demo-chiffre {
-  font-family: var(--mono);
-  font-size: 26px;
-  line-height: 26px;
-  letter-spacing: -0.02em;
-  font-weight: 700;
-}
-@media (max-width: 899px) {
-  .demo-chemin {
-    flex-wrap: wrap;
-    row-gap: 4px;
-  }
-  .demo-trait {
-    display: none;
-  }
-}
-
-/* LES QUATRE PARTS EN 2x2 — le chiffre au-dessus de sa legende. */
-.demo-parts {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 3px 18px;
-  align-content: start;
-  min-width: 0;
-}
-
-/* L'ECRAN DE L'APPAREIL — une carte noire de hauteur FIXE, en multiple entier des 64 lignes de
-   l'ecran : 3x au repos, 4x quand le plan y est. L'image reste nette, et la hauteur de la scene
-   ne depend plus de la largeur de la colonne. (box-sizing: border-box — padding et filet
-   compris.) */
-.demo-ecran {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 146px;
-  padding: 8px;
-  border: 1px solid var(--line-strong);
-  background: var(--bg);
-  min-width: 0;
-  overflow: hidden;
-}
-.demo-ecran-grand {
-  height: 274px;
-  border-color: var(--m-4);
-}
-.demo-badge {
-  font-family: var(--mono);
-  font-size: 12px;
-  line-height: 14px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 3px 8px;
-  border: 1px solid var(--ink-3);
-  color: var(--ink);
-  white-space: nowrap;
-}
-.demo-badge-parti {
-  border-color: var(--m-4);
-  color: var(--m-4);
-}
-
-/* LE FIL — six etapes, en bas, permanentes. L'etape courante a un filet d'accent, un fond
-   souleve et `aria-current` ; les etapes a venir ont un filet en pointilles ; un arret le dit
-   en toutes lettres. Aucune de ces trois lectures ne repose sur la teinte seule. */
-.demo-fil {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 12px;
-  padding: 2px 6px;
   border: 1px solid var(--line);
-  background: var(--bg-1);
-  min-width: 0;
+  background: var(--bg);
+  font-size: 10px;
+  line-height: 20px;
+  letter-spacing: 0.04em;
 }
-.demo-fil-etapes {
+.demo-rail ol {
   display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
   margin: 0;
   padding: 0;
   list-style: none;
+}
+.demo-rail li {
+  flex: 1;
   min-width: 0;
-}
-.demo-fil-etape {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 6px;
-  padding: 2px 7px;
-  border: 1px solid var(--line-strong);
-  font-family: var(--mono);
-  font-size: 12px;
-  line-height: 15px;
-  color: var(--ink-2);
+  padding: 0 8px;
+  border-right: 1px solid var(--line);
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--ink-4);
 }
-.demo-fil-n {
-  font-weight: 700;
+.demo-rail-n {
+  margin-right: 6px;
+  color: var(--ink-2);
 }
-.demo-fil-a-venir {
-  border-style: dashed;
-  border-color: var(--line-strong);
-  color: var(--ink-3);
+.demo-rail li.demo-rail-faite {
+  color: var(--ink-2);
 }
-.demo-fil-courante,
-.demo-fil-arretee {
-  color: var(--ink);
+.demo-rail li.demo-rail-courante {
   background: var(--bg-3);
-  border-color: var(--m-4);
-  box-shadow: inset 0 -2px 0 var(--m-4);
+  color: var(--ink);
 }
-.demo-fil-courante .demo-fil-n {
-  color: var(--m-4);
-}
-.demo-fil-arretee {
-  border-color: var(--m-3);
-  box-shadow: inset 0 -2px 0 var(--m-3);
-}
-.demo-fil-arretee .demo-fil-n,
-.demo-fil-mot {
-  color: var(--m-5);
-}
-.demo-fil-touches {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--mono);
-  font-size: 12px;
-  line-height: 15px;
-  color: var(--ink-2);
+.demo-rail-suivant {
+  flex: none;
+  height: 100%;
+  padding: 0 12px;
+  border: 0;
+  border-left: 1px solid var(--line-strong);
+  background: var(--bg-3);
+  color: var(--ink);
+  font: inherit;
   white-space: nowrap;
+  cursor: pointer;
 }
-@media (max-width: 899px) {
-  .demo-fil-touches {
-    margin-left: 0;
-    white-space: normal;
+.demo-rail-suivant:disabled {
+  color: var(--ink-2);
+  cursor: default;
+}
+
+/* ------------------------------------------------------- en dessous de 1100 x 760 : une page */
+@media (max-width: 1099px), (max-height: 759px) {
+  .demo-titre,
+  .demo-tete,
+  .demo-pont,
+  .demo-pont-boutons,
+  .demo-depart-montants,
+  .demo-route-chemin,
+  .demo-rail,
+  .demo-rail ol {
     flex-wrap: wrap;
   }
-}
-
-/* L'appareil AU REPOS : l'ecran a gauche, a sa taille entiere (2x ses 128x64), le contexte a
-   droite. Empile sous 900 px. */
-.demo-ecran-rangee {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  min-width: 0;
-}
-.demo-ecran-colonne {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  flex: none;
-}
-.demo-ecran-rangee .demo-ecran {
-  width: 274px;
-}
-.demo-ecran-contexte {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-@media (max-width: 899px) {
-  .demo-ecran-rangee {
+  .demo-tete,
+  .demo-pont {
+    height: auto;
+    min-height: 34px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    white-space: normal;
+  }
+  .demo-bande,
+  .demo-bande-replie {
+    height: auto;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .demo-bande-mediane {
+    border-right: 0;
+  }
+  .demo-bande-parts {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+  .demo-bande-rangs {
+    border-top: 1px solid var(--line);
+  }
+  .demo-bande-echelle {
+    height: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 10px;
+  }
+  .demo-bande-echelle > span {
+    position: static;
+    transform: none;
+  }
+  .demo-pont-boutons {
+    margin-left: 0;
+  }
+  .demo-grille {
+    display: flex;
     flex-direction: column;
   }
-  .demo-ecran-colonne,
-  .demo-ecran-rangee .demo-ecran {
-    width: 100%;
+  .demo-grille > .demo-rangee {
+    overflow: visible;
   }
-}
-/* Les compteurs et « the gesture, in order » partagent une ligne ; le depliant ouvert prend
-   toute la largeur. */
-.demo-ecran-pied {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 2px 12px;
-  min-width: 0;
-}
-.demo-ecran-pied > details[open] {
-  flex-basis: 100%;
-}
-/* Dans le fil, la touche est un repere, pas un bouton : elle ne doit pas faire passer la barre
-   a deux lignes. */
-.demo-fil .demo-touche {
-  padding: 0 4px;
-  min-width: 16px;
-  line-height: 13px;
-  border-bottom-width: 1px;
+  .demo-grille-sans-depart > .demo-rangee:first-child {
+    display: none;
+  }
+  .demo-depart {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    padding: 12px 14px;
+  }
+  .demo-depart-detail {
+    white-space: normal;
+  }
+  .demo-route {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    padding: 10px 14px;
+  }
+  .demo-route-trait {
+    display: none;
+  }
+  .demo-route-recoit {
+    justify-content: flex-start;
+  }
+  .demo-route-chiffre {
+    font-size: 28px;
+  }
+  .demo-choix {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .demo-carte {
+    min-height: 56px;
+  }
+  .demo-carte-titre,
+  .demo-carte-sous {
+    white-space: normal;
+  }
+  .demo-poste {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .demo-appareil {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .demo-boitier {
+    min-height: 240px;
+    gap: 10px;
+    padding: 10px;
+  }
+  .demo-rail {
+    height: auto;
+  }
+  .demo-rail li {
+    flex: 1 1 45%;
+  }
 }
 
-/* LE FIL EST EN BAS DANS TOUTES LES PHASES, pas seulement quand la page est pleine. Quand la
-   garde demande, la scene est plus courte : sans ceci la barre remontait de cent vingt pixels
-   entre deux phases, et un repere qui bouge n'est plus un repere. La hauteur retranchee est
-   celle de la barre du site (56 px et son filet, la convention de cette feuille) et des marges
-   de #contenu sur la route #/demo — avec quelques pixels de jeu, pour ne JAMAIS provoquer le
-   defilement qu'on cherche a eviter. */
-@media (min-width: 900px) and (min-height: 700px) {
-  .demo-scene {
-    min-height: calc(100dvh - 56px - 21px);
+/* Ce qui bouge s'arrete ; ce qui change reste. Une animation qu'on ne peut pas couper est subie. */
+@media (prefers-reduced-motion: reduce) {
+  .demo-tranche,
+  .demo-depart,
+  .demo-route-trait > span,
+  .demo-route-ecartee,
+  .demo-carte-vivante,
+  .demo-carte-vivante .demo-carte-marque,
+  .demo-choix-titre,
+  .demo-appareil-direct,
+  .demo-pont-diode {
+    animation: none;
   }
-  .demo-scene > .demo-fil {
-    margin-top: auto;
+  .demo-route-ecartee {
+    background: rgba(202, 64, 74, 0.16);
+  }
+  .demo-bande-balayage {
+    display: none;
+  }
+  .demo-bande,
+  .demo-grille,
+  .demo-routes-lignes,
+  .demo-route,
+  .demo-carte,
+  .demo-champ,
+  .demo-titre,
+  .demo-bande-chiffre,
+  .demo-route-chiffre {
+    transition: none;
   }
 }

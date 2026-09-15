@@ -1,389 +1,234 @@
 /**
- * LA ROUTE — un itineraire qui se REECRIT, pas un tableau qui se remplit.
+ * LES DEUX ROUTES — deux itineraires qui se lisent, pas un tableau qui se remplit.
  *
  * C'est l'image que la demonstration doit laisser. Un swap n'est pas une ligne de journal :
- * c'est un chemin, `ETH -> [ gate ] -> USDC`, et le seul element qu'un utilisateur ne voit
- * jamais avant de signer est justement celui du milieu. La garde le nomme, dit ce qu'il prend,
- * et — quand le corpus en connait un moins cher — la route BASCULE : l'ancienne porte reste
- * barree a cote de la nouvelle, avec l'ecart entre les deux.
+ * c'est un chemin, `ETH —— [ gate ] —— USDC`, et le seul element qu'un utilisateur ne voit jamais
+ * avant de signer est justement celui du milieu. La garde le nomme, dit ce qu'il prend, et quand
+ * le corpus en connait un moins cher a la meme taille, les deux chemins sont poses l'un sous
+ * l'autre.
  *
- * SOBRIETE. La charte du site est une plaque gravee : la bascule dure 240 ms, en opacite et en
- * translation de quelques pixels, sans rebond et sans couleur qui clignote. Et
- * `prefers-reduced-motion` la supprime entierement (index.css) : la bascule reste, l'animation
- * part. Une transition qu'on ne peut pas couper est une transition qu'on subit.
+ * LA FORME EST CELLE DE LA MAQUETTE v2 (demo-v2-le-choix). Au repos les chiffres sont ceux du
+ * corpus, en encre retenue, la porte en pointilles : la garde ne les a pas encore lus. Des qu'elle
+ * lit, ils passent a l'encre pleine, en corps metrique, et un flux parcourt les deux traits. Quand
+ * un plan est choisi, sa route s'allume (filet d'accent, halo) et l'autre recule en ROUGE, avec le
+ * mot « not taken » : un choix se dit par un mot, jamais par une teinte seule.
  *
- * AUCUN CHIFFRE N'EST ECRIT ICI. Le prelevement, l'ecart, les frais du pool et le montant
- * viennent tous du corpus, par ../demo/scenario.ts et ../demo/paires.ts.
+ * AUCUN CHIFFRE N'EST ECRIT ICI. Le prelevement, l'ecart, les montants recus viennent tous du
+ * corpus, par ../demo/scenario.ts. Un prelevement absent se dit « unknown », jamais zero.
  */
 import type { ReactNode } from 'react'
 import { groupDigits, shortAddr } from '../lib/format'
 import { rampVar } from '../lib/ramp'
 import { bpsTexte } from './DemoDistribution'
-import { POURCENT_EN_BPS } from '../demo/distribution'
 
 /**
  * UN JETON, AVEC SON NOM QUAND ON L'A LU.
  *
- * `symbole` est nul quand `symbol()` n'a pas ete lu sur la chaine pour cette adresse : on
- * affiche alors l'adresse SEULE. Ecrire un nom parce que l'adresse y ressemble serait la faute
- * meme que ce depot reproche au reste, et un joli nom faux vaut moins qu'une adresse nue.
+ * `symbole` est nul quand `symbol()` n'a pas ete lu sur la chaine pour cette adresse : on affiche
+ * alors l'adresse SEULE. Ecrire un nom parce que l'adresse y ressemble serait la faute meme que ce
+ * depot reproche au reste, et un joli nom faux vaut moins qu'une adresse nue.
  */
-export function Jeton({
-  adresse,
-  symbole,
-  titre,
-}: {
-  adresse: string
-  symbole: string | null
-  titre?: string
-}) {
+export function Jeton({ adresse, symbole }: { adresse: string; symbole: string | null }) {
   return (
-    <span
-      className="inline-flex items-baseline gap-[6px] px-[8px] py-[4px]"
-      style={{ border: '1px solid var(--line)', background: 'var(--bg-2)', minWidth: 0 }}
-      title={titre ?? adresse}
-    >
+    <span className="demo-jeton" title={adresse}>
       {symbole && (
-        <span className="t-data" style={{ color: 'var(--ink)' }}>
-          {symbole}
-        </span>
+        <span className="demo-jeton-symbole">{symbole}</span>
       )}
-      <span className="t-data-xs hex" style={{ color: 'var(--ink-2)' }}>
-        {shortAddr(adresse, 6, 4)}
-      </span>
+      <span className="demo-jeton-adresse hex">{shortAddr(adresse, 6, 4)}</span>
     </span>
   )
 }
-
-const Fleche = () => (
-  <span className="t-data" style={{ color: 'var(--ink-2)', flex: 'none' }} aria-hidden="true">
-    →
-  </span>
-)
-
-export interface PorteRoute {
-  poolId: string
-  hook: string
-  /** le prelevement mesure. null = pas mesure a cette taille : « unknown », jamais zero. */
-  bps: number | null
-  /** les frais que le pool prend deja, lus dans slot0. null = non lu. */
-  lpBps: number | null
-}
-
-/** La carte d'une porte : ce que personne ne voit avant de signer. */
-function Porte({
-  p,
-  etat,
-  legende,
-}: {
-  p: PorteRoute
-  etat: 'courante' | 'remplacee' | 'nouvelle'
-  legende: ReactNode
-}) {
-  const barre = etat === 'remplacee'
-  return (
-    <span
-      className={`demo-porte ${etat === 'nouvelle' ? 'demo-porte-neuve' : ''}`}
-      style={{
-        border: `1px solid ${etat === 'nouvelle' ? 'var(--m-4)' : 'var(--line-strong)'}`,
-        background: etat === 'nouvelle' ? 'var(--bg-3)' : 'var(--bg-2)',
-        opacity: barre ? 0.45 : 1,
-        minWidth: 0,
-      }}
-    >
-      <span className="flex items-baseline gap-[7px]" style={{ minWidth: 0 }}>
-        <span
-          aria-hidden="true"
-          style={{
-            width: 7,
-            height: 7,
-            flex: 'none',
-            background: p.bps === null ? 'var(--ink-4)' : rampVar(p.bps),
-          }}
-        />
-        <span
-          className="t-data-xs hex"
-          style={{
-            color: 'var(--ink)',
-            textDecoration: barre ? 'line-through' : undefined,
-            overflowWrap: 'anywhere',
-          }}
-          title={`pool ${p.poolId} · hook ${p.hook}`}
-        >
-          gate {shortAddr(p.poolId, 10, 4)}
-        </span>
-      </span>
-      <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-        {legende}
-      </span>
-    </span>
-  )
-}
-
-/** Ce qu'une porte prend, dit trois fois : en bps, en pour cent, et contre les frais du pool. */
-export function priseLisible(p: PorteRoute): ReactNode {
-  if (p.bps === null) return <span title="not measured at this size">unknown</span>
-  const pct = (p.bps / POURCENT_EN_BPS).toFixed(3)
-  return (
-    <>
-      {bpsTexte(p.bps)} bps · {pct} %
-      {p.lpBps !== null && (
-        <>
-          {' '}
-          · on top of the pool’s {bpsTexte(p.lpBps)} bps
-        </>
-      )}
-    </>
-  )
-}
-
-/**
- * LA ROUTE. `remplacante` non nulle et `basculee` vraie : l'itineraire se reecrit sous les yeux.
- */
-export function RouteSwap({
-  entree,
-  sortie,
-  symboleEntree,
-  symboleSortie,
-  montant,
-  courante,
-  remplacante,
-  basculee,
-  ecartBps,
-  compact = false,
-}: {
-  entree: string
-  sortie: string
-  symboleEntree: string | null
-  symboleSortie: string | null
-  /** ce qu'on depense, deja mis en forme par l'appelant */
-  montant: ReactNode
-  courante: PorteRoute
-  remplacante: PorteRoute | null
-  basculee: boolean
-  ecartBps: number | null
-  compact?: boolean
-}) {
-  const active = basculee && remplacante ? remplacante : courante
-  return (
-    <div
-      className="flex flex-wrap items-center gap-x-[10px] gap-y-[6px]"
-      style={{ minWidth: 0 }}
-      aria-live="polite"
-    >
-      {!compact && (
-        <span className="t-label" style={{ color: 'var(--ink-2)', flex: 'none' }}>
-          route
-        </span>
-      )}
-      <Jeton adresse={entree} symbole={symboleEntree} />
-      {!compact && (
-        <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-          {montant}
-        </span>
-      )}
-      <Fleche />
-      {basculee && remplacante && (
-        <>
-          <Porte p={courante} etat="remplacee" legende={priseLisible(courante)} />
-          <Fleche />
-        </>
-      )}
-      <Porte
-        p={active}
-        etat={basculee && remplacante ? 'nouvelle' : 'courante'}
-        legende={priseLisible(active)}
-      />
-      <Fleche />
-      <Jeton adresse={sortie} symbole={symboleSortie} />
-      {basculee && ecartBps !== null && (
-        <span className="t-data" style={{ color: 'var(--m-4)' }}>
-          −{bpsTexte(ecartBps)} bps
-        </span>
-      )}
-    </div>
-  )
-}
-
-/* ============================================================ LES DEUX ROUTES */
 
 export interface RouteCandidate {
   poolId: string
   hook: string
+  /** le prelevement mesure. null = pas mesure a cette taille : « unknown », jamais zero. */
   bps: number | null
-  lpBps: number | null
   /** ce que le swap REND par cette porte, mesure. null = non mesure : « unknown », jamais zero. */
   recu: string | null
 }
 
+/** Ou en est une route dans le parcours. */
+type EtatRoute = 'repos' | 'lue' | 'choisie' | 'ecartee'
+
+function Route({
+  p,
+  nom,
+  etiquette,
+  etat,
+  rang,
+  entree,
+  sortie,
+  symboleEntree,
+  symboleSortie,
+  petite,
+}: {
+  p: RouteCandidate
+  nom: string
+  etiquette: string
+  etat: EtatRoute
+  /** 0 ou 1 : decale le flux de la seconde route */
+  rang: number
+  entree: string
+  sortie: string
+  symboleEntree: string | null
+  symboleSortie: string | null
+  /** le plan est parti a l'appareil : les chiffres cedent la place */
+  petite: boolean
+}) {
+  const flux = etat === 'lue' || etat === 'choisie'
+  return (
+    <div
+      className={`demo-route demo-route-${etat}${petite ? ' demo-route-petite' : ''}`}
+      style={{ ['--rang' as string]: `${rang * 0.4}s` }}
+    >
+      <span className="demo-route-nom">
+        <span>{nom}</span>
+        <span className="demo-route-etiquette">{etiquette}</span>
+      </span>
+      <span className="demo-route-chemin">
+        <Jeton adresse={entree} symbole={symboleEntree} />
+        <span className="demo-route-trait" aria-hidden="true">
+          {flux && <span />}
+        </span>
+        <span className="demo-route-porte" title={`pool ${p.poolId} · hook ${p.hook}`}>
+          <span
+            className="demo-route-rampe"
+            aria-hidden="true"
+            style={{ background: p.bps === null ? 'var(--ink-3)' : rampVar(p.bps) }}
+          />
+          <span className="demo-route-gate hex">gate {shortAddr(p.poolId, 10, 4)}</span>
+          <span className="demo-route-chiffre">
+            {p.bps === null ? 'unknown' : bpsTexte(p.bps)} <span className="demo-route-unite">bps</span>
+          </span>
+        </span>
+        <span className="demo-route-trait" aria-hidden="true">
+          {flux && <span />}
+        </span>
+        <Jeton adresse={sortie} symbole={symboleSortie} />
+      </span>
+      <span className="demo-route-recoit">
+        <span className="demo-route-petit">receives</span>
+        <span className="demo-route-chiffre">{p.recu === null ? 'unknown' : groupDigits(p.recu)}</span>
+        {symboleSortie && <span className="demo-route-petit">{symboleSortie}</span>}
+      </span>
+    </div>
+  )
+}
+
 /**
- * LES DEUX ROUTES, COTE A COTE — le visuel central de la demonstration.
+ * LES DEUX ROUTES, L'UNE SOUS L'AUTRE.
  *
- * Il est gros, et c'est une contrainte, pas un gout : l'ecran part en visio devant un jury, et
- * ce qui n'est pas lisible sur une video compressee n'existe pas. Les chiffres qui portent la
- * demonstration — les deux couts et les deux montants recus — sont donc en corps metrique, en
- * encre pleine, et aucune information n'est portee par une seule nuance de couleur : la porte
- * choisie est designee par son LIBELLE et par son filet, pas par sa teinte seule.
- *
- * Les montants recus viennent de la colonne `out_with` du corpus : ce sont des mesures, pas des
- * estimations. Et rien n'est extrapole a une autre taille — un taux mesure a une taille est
- * faux a toutes les autres, et c'est ecrit partout dans ce depot.
+ * `choisie` dit quel plan est parti a l'appareil ; `abandon` que le parcours s'est arrete sur un
+ * refus, et alors aucune route n'est prise. La route retenue gagne de la hauteur (la grille
+ * `1.2fr .8fr` se reorganise en 480 ms) : on voit le chemin qui sera signe.
  */
 export function DeuxRoutes({
   entree,
   sortie,
   symboleEntree,
   symboleSortie,
-  montant,
   courante,
   proposee,
+  lue,
   choisie,
-  ecartBps,
-  taille,
-  grand = false,
+  abandon,
+  apresAppareil,
+  entete,
 }: {
   entree: string
   sortie: string
   symboleEntree: string | null
   symboleSortie: string | null
-  montant: ReactNode
   courante: RouteCandidate
   proposee: RouteCandidate | null
-  /** laquelle la page a retenue. null = aucune encore. */
+  /** la garde a lu le calldata intercepte : les chiffres passent a l'encre pleine */
+  lue: boolean
+  /** le plan qui est parti a l'appareil. null = aucun encore. */
   choisie: 'courante' | 'proposee' | null
-  ecartBps: number | null
-  /**
-   * LE CORPS DES QUATRE CHIFFRES SUIT LA PHASE, parce que ce qu'on regarde change.
-   *   grande  — la garde demande : les deux couts et les deux montants sont l'ecran entier ;
-   *   moyenne — au repos : ils doivent rester REPERABLES sans ecraser la these du bandeau ;
-   *   petite  — le plan est sur l'appareil : l'objet est l'ecran du Ledger, la route rappelle.
-   */
-  taille?: 'grande' | 'moyenne' | 'petite'
-  /** @deprecated garde l'ancien appel : `grand` vaut `taille="grande"` */
-  grand?: boolean
+  /** le parcours s'est arrete sur un refus : aucune route n'est prise */
+  abandon: boolean
+  /** l'appareil a le plan, ou l'a rendu : le mot « on the device » tombe */
+  apresAppareil: boolean
+  /** l'en-tete du panneau : titre, montant, ecart, selecteur de paire */
+  entete: ReactNode
 }) {
-  const t = taille ?? (grand ? 'grande' : 'moyenne')
-  const chiffre = t === 'grande' ? 't-metric' : t === 'moyenne' ? 'demo-chiffre' : 't-data-lg'
-  const ligne = (c: RouteCandidate, quoi: 'courante' | 'proposee') => {
-    const active = choisie === quoi
-    // LA BASCULE SE VOIT : la route ecartee recule franchement, une seule fois, sans rebond.
-    const ecartee = choisie !== null && !active
-    return (
-      <div
-        className={`demo-route-ligne demo-chemin flex items-center gap-x-[8px] px-[10px] ${t === 'grande' ? 'py-[7px]' : 'py-[3px]'} ${ecartee ? 'demo-route-ecartee' : ''} ${active ? 'demo-route-active' : ''}`}
-        style={{
-          border: `1px solid ${active ? 'var(--m-4)' : 'var(--line)'}`,
-          background: active ? 'var(--bg-3)' : 'var(--bg-2)',
-          minWidth: 0,
-        }}
-      >
-        <span className="t-label" style={{ color: active ? 'var(--m-4)' : 'var(--ink-2)', width: 104, flex: 'none' }}>
-          {quoi === 'courante' ? 'your route' : 'cheaper gate'}
-          {active ? ' · chosen' : ''}
-        </span>
-        <Jeton adresse={entree} symbole={symboleEntree} />
-        {/* UN VRAI TRAIT DE LIAISON. Un swap est un ITINERAIRE, et la seule case que personne
-            ne voit avant de signer est celle du milieu : elle se dessine donc comme une etape
-            du chemin, pas comme une colonne de tableau. */}
-        <span className="demo-trait" aria-hidden="true" />
-        <span
-          className="demo-etape-chemin inline-flex items-center gap-[8px] px-[9px] py-[1px]"
-          style={{
-            border: `1px ${active ? 'solid var(--m-4)' : 'dashed var(--line-strong)'}`,
-            background: 'var(--bg-1)',
-            minWidth: 0,
-          }}
-        >
-          <span
-            aria-hidden="true"
-            style={{ width: 8, height: 8, flex: 'none', background: c.bps === null ? 'var(--ink-3)' : rampVar(c.bps) }}
-          />
-          <span className="t-data-xs hex" style={{ color: 'var(--ink-2)' }} title={`pool ${c.poolId} · hook ${c.hook}`}>
-            gate {shortAddr(c.poolId, 10, 4)}
-          </span>
-          <span className={chiffre} style={{ color: 'var(--ink)', lineHeight: 1.05, flex: 'none' }}>
-            {c.bps === null ? 'unknown' : `${bpsTexte(c.bps)} bps`}
-          </span>
-        </span>
-        <span className="demo-trait" aria-hidden="true" />
-        <Jeton adresse={sortie} symbole={symboleSortie} />
-        <span className="flex items-baseline gap-[7px] pl-[10px]" style={{ flex: 'none' }}>
-          <span className="t-label" style={{ color: 'var(--ink-2)' }}>
-            receives
-          </span>
-          <span className={chiffre} style={{ color: 'var(--ink)', lineHeight: 1.05 }}>
-            {c.recu === null ? 'unknown' : groupDigits(c.recu)}
-          </span>
-        </span>
-      </div>
-    )
+  const etat = (quoi: 'courante' | 'proposee'): EtatRoute => {
+    if (abandon) return 'ecartee'
+    if (choisie !== null) return choisie === quoi ? 'choisie' : 'ecartee'
+    return lue ? 'lue' : 'repos'
   }
+  const etiquette = (quoi: 'courante' | 'proposee'): string => {
+    const e = etat(quoi)
+    if (e === 'ecartee') return 'not taken'
+    if (e === 'choisie') return apresAppareil ? 'chosen · the device answered' : 'chosen · on the device'
+    if (e === 'repos') return 'measured in the corpus · read when you swap'
+    return quoi === 'courante' ? 'the gate the site picked' : 'same block, same size'
+  }
+  const petite = choisie !== null || abandon
+  const lignes = choisie === 'courante' ? '1.2fr .8fr' : choisie === 'proposee' ? '.8fr 1.2fr' : '1fr 1fr'
+  const commun = { entree, sortie, symboleEntree, symboleSortie, petite }
 
   return (
-    <div className="flex flex-col gap-[5px]" aria-live="polite" style={{ minWidth: 0 }}>
-      <div className="flex flex-wrap items-baseline gap-[10px]">
-        <span className="t-label" style={{ color: 'var(--ink-2)' }}>
-          two routes, same swap
-        </span>
-        <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-          {montant}
-        </span>
-        {ecartBps !== null && (
-          <span className="ml-auto t-data-lg" style={{ color: 'var(--m-4)' }}>
-            {bpsTexte(ecartBps)} bps apart
-          </span>
+    <div className="demo-routes" aria-live="polite">
+      {entete}
+      <div className="demo-routes-lignes" style={{ gridTemplateRows: proposee ? lignes : '1fr' }}>
+        <Route p={courante} nom="your route" etiquette={etiquette('courante')} etat={etat('courante')} rang={0} {...commun} />
+        {proposee && (
+          <Route
+            p={proposee}
+            nom="cheaper gate"
+            etiquette={etiquette('proposee')}
+            etat={etat('proposee')}
+            rang={1}
+            {...commun}
+          />
         )}
       </div>
-      {ligne(courante, 'courante')}
-      {proposee && ligne(proposee, 'proposee')}
     </div>
   )
 }
 
 /**
- * CE QU'ON A GARDE — trois nombres, et rien d'autre.
+ * CE QU'ON A GARDE — le recu, ce qu'on aurait recu, et l'ecart. Rien d'autre.
  *
- * Pas d'extrapolation : jamais « sur 10 ETH ca ferait tant ». Un taux mesure a une taille est
- * faux a toutes les autres ; l'ordre de grandeur est porte par le bandeau de distribution, pas
- * par ce panneau. Le montant est petit parce que la taille est petite, et c'est tout.
+ * Pas d'extrapolation : jamais « sur 10 ETH ca ferait tant ». Un taux mesure a une taille est faux
+ * a toutes les autres ; l'ordre de grandeur est porte par le bandeau de distribution, pas par ce
+ * panneau. Le montant est petit parce que la taille est petite, et c'est tout.
  */
 export function CeQuOnAGarde({
   recu,
   auraitRecu,
-  gardeBps,
-  sortie,
+  parOu,
+  bilan,
   symboleSortie,
 }: {
   recu: string | null
   auraitRecu: string | null
-  gardeBps: number | null
-  sortie: string
+  /** par quelle porte on AURAIT recu l'autre montant */
+  parOu: string
+  /** « kept 4.0933 bps » ou « paid 4.0933 bps — told first » : deja mis en forme par l'appelant */
+  bilan: ReactNode
   symboleSortie: string | null
 }) {
-  const bloc = (quoi: string, valeur: ReactNode, accent = false) => (
-    <div className="flex flex-col" style={{ minWidth: 0 }}>
-      <span className="t-label" style={{ color: 'var(--ink-2)' }}>
-        {quoi}
-      </span>
-      <span className="t-metric" style={{ color: accent ? 'var(--m-4)' : 'var(--ink)', lineHeight: 1.05 }}>
-        {valeur}
-      </span>
-    </div>
-  )
   return (
-    <div
-      className="flex flex-wrap items-end gap-x-[36px] gap-y-[8px] px-[12px] py-[8px]"
-      style={{ border: '1px solid var(--m-4)', background: 'var(--bg-1)', minWidth: 0 }}
-    >
-      {bloc(
-        `received${symboleSortie ? ` · ${symboleSortie}` : ''}`,
-        recu === null ? 'unknown' : groupDigits(recu),
-      )}
-      {bloc('would have received', auraitRecu === null ? 'unknown' : groupDigits(auraitRecu))}
-      {bloc('kept', gardeBps === null ? 'unknown' : `${bpsTexte(gardeBps)} bps`, true)}
-      <span className="t-data-xs" style={{ color: 'var(--ink-2)', maxWidth: '54ch', lineHeight: 1.35 }}>
-        Measured at this size, on {shortAddr(sortie, 6, 4)}. Nothing is extrapolated: a rate measured
-        at one size is wrong at every other one.
+    <div className="demo-garde">
+      <span className="demo-garde-bloc">
+        <span className="demo-fin-petit">received</span>
+        <span className="demo-garde-recu">
+          {recu === null ? 'unknown' : groupDigits(recu)}
+          {symboleSortie && <span className="demo-garde-unite"> {symboleSortie}</span>}
+        </span>
+      </span>
+      <span className="demo-garde-bloc">
+        <span className="demo-fin-petit">would have received</span>
+        <span className="demo-garde-aurait">
+          {auraitRecu === null ? 'unknown' : groupDigits(auraitRecu)} {parOu}
+        </span>
+      </span>
+      <span className="demo-garde-bilan">{bilan}</span>
+      <span className="demo-fin-petit">
+        Measured at this size. Nothing is extrapolated: a rate measured at one size is wrong at every other one.
       </span>
     </div>
   )

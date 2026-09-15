@@ -57,6 +57,10 @@ export interface Refus {
   raison: string
   /** le code rendu par le portefeuille ou par l'appareil, quand il y en a un */
   code?: number
+  /** le statut HTTP rendu par le service, quand il a repondu */
+  http?: number
+  /** le nom que le service donne a son refus : `speculos_injoignable`, `appareil_occupe`, … */
+  erreur?: string
 }
 
 /**
@@ -73,17 +77,24 @@ export const estRefus = (x: unknown): x is Refus =>
   x !== null &&
   typeof (x as Record<string, unknown>)['refus'] === 'string'
 
-async function appeler<T>(chemin: string, corps?: unknown, delai = DELAI_MS): Promise<T | Refus> {
+async function appeler<T>(
+  chemin: string,
+  corps?: unknown,
+  delai = DELAI_MS,
+  arret?: AbortSignal,
+): Promise<T | Refus> {
   let res: Response
+  const minuterie = AbortSignal.timeout(delai)
   try {
     res = await fetch(`${PONT}${chemin}`, {
       method: corps === undefined ? 'GET' : 'POST',
       headers: corps === undefined ? undefined : { 'content-type': 'application/json' },
       body: corps === undefined ? undefined : JSON.stringify(corps),
-      signal: AbortSignal.timeout(delai),
+      signal: arret && typeof AbortSignal.any === 'function' ? AbortSignal.any([arret, minuterie]) : minuterie,
     })
   } catch (e) {
     const err = e as Error
+    if (arret?.aborted) return { refus: 'erreur', erreur: 'abandonne', raison: 'the page took the decision back' }
     return err.name === 'TimeoutError'
       ? { refus: 'expire', raison: `${PONT}${chemin} did not answer in ${delai / 1000} s` }
       : { refus: 'injoignable', raison: `${PONT} unreachable (${err.message})` }
@@ -92,6 +103,8 @@ async function appeler<T>(chemin: string, corps?: unknown, delai = DELAI_MS): Pr
   if (!res.ok)
     return {
       refus: 'erreur',
+      http: res.status,
+      ...(typeof corpsRendu?.['erreur'] === 'string' ? { erreur: corpsRendu['erreur'] as string } : {}),
       // Le service nomme ses refus `erreur` et les motive par `motif`. On lit les deux, et on
       // garde `raison` pour les autres. Un `HTTP 502` seul ne dirait pas ce qui manque.
       raison: String(
@@ -238,6 +251,115 @@ export const approuver = (acte: 'stop' | 'substitution', verdict?: unknown): Pro
 
 /** Publie pour que l'ecran puisse dire combien de temps il accepte d'attendre. */
 export const DELAI_APPAREIL_S = DELAI_APPAREIL_MS / 1000
+
+/* ------------------------------------------------------------ les trois choix */
+
+/**
+ * LES TROIS CHOIX SE FONT SUR L'APPAREIL, pas sur la page.
+ *
+ * L'application Ethereum ne termine un message que par « Sign » ou « Reject ». Le pont pose donc
+ * deux questions signees — « 1 of 3: keep your route », puis « 2 of 3: take the cheaper gate » —
+ * et le refus de la seconde vaut « 3 of 3: cancel ». Voir demo-bridge/src/choix.ts.
+ *
+ * LA REQUETE NE RESTE PAS OUVERTE PENDANT QU'UN HUMAIN LIT. `/demo/choisir` rend la main tout de
+ * suite ; on sonde ensuite `/demo/choix`, qui dit aussi QUELLE question l'appareil affiche — c'est
+ * ce qui allume la bonne carte a l'ecran. Un sondage rate n'arrete rien : l'appareil, lui, attend
+ * toujours l'humain, et abandonner sur un hoquet reseau laisserait une question ouverte.
+ */
+export type OptionChoix = 'actuelle' | 'optimisee' | 'annuler'
+
+export interface OptionAnnoncee {
+  rang: 1 | 2 | 3
+  option: OptionChoix
+  libelle: string
+}
+
+export interface EtapeChoix {
+  rang: 1 | 2
+  option: 'actuelle' | 'optimisee'
+  issue: 'approuvee' | 'rejetee'
+  prompt_digest: string
+  /** combien d'ecrans distincts l'appareil a rendus pour cette question */
+  ecrans: number
+  signature?: string | null
+}
+
+export interface ResultatChoix {
+  choix: OptionChoix
+  raison: string
+  signature: string | null
+  prompt_digest: string | null
+}
+
+export interface ProgresChoix {
+  id: string | null
+  en_cours: boolean
+  /** la question affichee sur l'appareil, la, maintenant */
+  rang: 1 | 2 | null
+  option: 'actuelle' | 'optimisee' | null
+  /** depuis quand CETTE question est posee */
+  depuis_ms: number | null
+  /** promptDigest de la question affichee */
+  digest_en_cours: string | null
+  options: OptionAnnoncee[]
+  etapes: EtapeChoix[]
+  resultat: ResultatChoix | null
+  erreur: { erreur: string; motif: string } | null
+}
+
+/** Le delai accorde a CHAQUE question : celui du pont (DEMO_TIMEOUT_MS). */
+export const DELAI_ETAPE_S = 240
+
+const SONDE_MS = 500
+/** Six sondages rates d'affilee, soit trois secondes de silence, et on le dit. Pas avant. */
+const SONDES_RATEES_MAX = 6
+
+const pause = (ms: number) => new Promise((r) => setTimeout(r, ms))
+
+/**
+ * Pose les trois choix sur l'appareil et rend ce que l'humain y a decide.
+ *
+ * `onProgres` recoit chaque etat lu, le dernier compris : la carte choisie s'allume avant que la
+ * promesse ne se resolve. `arret` rend la main a la page — appeler `abandonnerChoix()` d'abord,
+ * pour que la question ouverte soit refusee sur l'appareil et pas laissee en plan.
+ */
+export async function choisirSurAppareil(
+  acte: 'stop' | 'substitution',
+  onProgres?: (p: ProgresChoix) => void,
+  arret?: AbortSignal,
+): Promise<ResultatChoix | Refus> {
+  const depart = await appeler<{ ok: boolean; id: string; options: OptionAnnoncee[] }>(
+    '/demo/choisir',
+    { acte },
+    DELAI_MS,
+    arret,
+  )
+  if (estRefus(depart)) return depart
+  const limite = Date.now() + Math.max(1, depart.options.length - 1) * DELAI_ETAPE_S * 1000 + 60000
+  let ratees = 0
+  while (Date.now() < limite) {
+    if (arret?.aborted) return { refus: 'erreur', erreur: 'abandonne', raison: 'the page took the decision back' }
+    await pause(SONDE_MS)
+    const p = await appeler<ProgresChoix>('/demo/choix', undefined, DELAI_MS, arret)
+    if (estRefus(p)) {
+      if (p.erreur === 'abandonne') return p
+      if (++ratees >= SONDES_RATEES_MAX) return p
+      continue
+    }
+    ratees = 0
+    if (p.id !== depart.id)
+      return { refus: 'erreur', raison: 'another request replaced this one on the device — nothing was sent' }
+    onProgres?.(p)
+    if (p.resultat) return p.resultat
+    if (p.erreur) return { refus: 'erreur', erreur: p.erreur.erreur, raison: p.erreur.motif }
+    if (!p.en_cours) return { refus: 'erreur', raison: 'the device conversation ended without a decision' }
+  }
+  return { refus: 'expire', raison: `no decision on the device in time — nothing was sent` }
+}
+
+/** Ferme la question ouverte sur l'appareil (il y refuse) et n'en pose pas d'autre. */
+export const abandonnerChoix = (): Promise<{ ok: boolean; abandonne: boolean } | Refus> =>
+  appeler<{ ok: boolean; abandonne: boolean }>('/demo/choix/abandonner', {})
 
 export const revenir = (): Promise<{ ok: boolean; block_number?: number } | Refus> =>
   appeler<{ ok: boolean; block_number?: number }>('/demo/revenir', {})

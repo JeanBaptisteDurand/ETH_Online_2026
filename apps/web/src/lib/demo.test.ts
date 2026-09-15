@@ -599,7 +599,7 @@ test('les divergences entre le scenario et le corpus sont AFFICHEES, pas tues', 
 test('le refus se demande a l appareil, et son code vient de la reponse', () => {
   // Les trois choix se font SUR L'APPAREIL : la page lance la conversation et la suit, elle ne
   // decide rien. La reponse de l'appareil est traduite une a une, sans valeur par defaut.
-  assert.ok(ECRAN.includes('choisirSurAppareil(acteBridge, setProgres, ctrl.signal)'), 'le choix part vers l appareil')
+  assert.ok(ECRAN.includes('choisirSurAppareil(acteBridge, setProgres)'), 'le choix part vers l appareil')
   assert.ok(
     ECRAN.includes("rep.choix === 'actuelle' ? 'passer' : rep.choix === 'optimisee' ? 'substituer' : 'refuser'"),
     'les trois reponses de l appareil sont lues, pas supposees',
@@ -660,11 +660,13 @@ test('le refus rend 4001 a l appelant, et la page le lit sans le supposer', () =
   // Une garde qui echouerait en « oui » ne garderait rien. Seule la route gardee est approuvee ;
   // la porte moins chere et l'annulation rendent un refus a l'appelant.
   assert.ok(ECRAN.includes("approved: c === 'passer'"))
-  // Quand l'appareil ne repond pas, rien ne part par defaut : la decision revient a la page, qui
-  // DIT pourquoi, et attend un clic humain.
-  assert.ok(ECRAN.includes('setSecours(rep.raison)'))
-  assert.ok(ECRAN.includes('device unavailable — deciding on the page'))
-  assert.ok(ECRAN.includes('choisir.current = resoudre'))
+  // Quand l'appareil ne tranche pas (injoignable, occupe, en panne), rien ne part, la page ne
+  // decide pas a sa place, et elle ne dit pas « refused » : elle dit pourquoi, et de recliquer.
+  assert.ok(ECRAN.includes('erreurAppareil.current = rep.raison'))
+  assert.ok(ECRAN.includes('Click swap again'))
+  assert.ok(!ECRAN.includes('choisir.current'), 'aucune reponse ne se donne sur la page')
+  assert.ok(!ECRAN.includes('demo-carte-bouton'), 'les cartes ne sont jamais des boutons')
+  assert.ok(!ECRAN.includes('decide on the page'), 'aucune reprise de la decision par la page')
 })
 
 test("la garde ne reecrit rien : le remplacement est un SECOND appel", () => {

@@ -2638,6 +2638,14 @@ span a[href] {
 .demo-route-petite .demo-route-chiffre {
   font-size: 24px;
 }
+/* Le montant recu s'ecrit en unites du jeton (« 0.002442 ») : plus long que le prelevement, il
+   poussait « receives » contre la case du jeton. Il descend d'un cran ; le prelevement garde 40 px. */
+.demo-route-recoit .demo-route-chiffre {
+  font-size: 30px;
+}
+.demo-route-petite .demo-route-recoit .demo-route-chiffre {
+  font-size: 20px;
+}
 .demo-route-unite {
   font-size: 0.45em;
   font-weight: 600;
@@ -2685,9 +2693,6 @@ span a[href] {
 }
 .demo-choix-libelle-demande .demo-choix-titre {
   font-size: 18px;
-}
-.demo-choix-secours {
-  color: var(--m-3);
 }
 @keyframes demo-doux {
   0%,
@@ -2741,19 +2746,6 @@ span a[href] {
 .demo-carte-vivante {
   border-color: rgba(var(--ton-rgb), 0.55);
   animation: demo-pouls 1.8s ease-in-out var(--delai, 0s) infinite;
-}
-/* Le survol et la main n'existent que sur une carte qui EST un bouton : en mode secours. Une carte
-   qui s'allume parce que l'appareil pose sa question n'est pas cliquable, et ne doit pas en avoir
-   l'air. */
-.demo-carte-bouton.demo-carte-vivante {
-  cursor: pointer;
-}
-.demo-carte-bouton.demo-carte-vivante:hover {
-  border-color: var(--ton);
-  background: rgba(var(--ton-rgb), 0.14);
-}
-.demo-carte-bouton.demo-carte-vivante:active {
-  transform: translateY(1px);
 }
 .demo-carte-etat {
   font-weight: 700;
@@ -3078,21 +3070,6 @@ span a[href] {
   display: block;
   height: 3px;
   transition: width 1s linear;
-}
-.demo-decider-page {
-  padding: 9px 18px;
-  border: 2px solid var(--line-strong);
-  background: transparent;
-  color: var(--ink);
-  font: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  cursor: pointer;
-}
-.demo-decider-page:hover {
-  border-color: var(--m-3);
 }
 .demo-fin {
   display: flex;

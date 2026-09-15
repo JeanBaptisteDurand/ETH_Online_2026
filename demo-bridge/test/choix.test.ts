@@ -197,3 +197,24 @@ describe("la conversation", () => {
     expect(e.erreur?.erreur).toBe("appareil");
   });
 });
+
+describe("le gaz de la porte de remplacement", () => {
+  it("la marge couvre ce que le bloc suivant demande reellement", async () => {
+    const { margeDeGaz, GAZ_PAR_DEFAUT } = await import("../src/fork.js");
+    // mesure : 4 355 064 estimes au bloc suivant ; la transaction ne passe qu'au-dessus de ~4,4 M
+    expect(margeDeGaz(4_355_064n)).toBeGreaterThan(5_000_000n);
+    expect(margeDeGaz(148_599n)).toBeGreaterThan(148_599n);
+    expect(GAZ_PAR_DEFAUT).toBeGreaterThan(margeDeGaz(4_355_064n));
+  });
+});
+
+describe("les nonces apres un rembobinage", () => {
+  it("un compte qui a recule retrouve son nonce d'avant, les autres ne bougent pas", async () => {
+    const { noncesAReporter } = await import("../src/fork.js");
+    const avant = new Map([["0xjb", 9n], ["0xautre", 3n], ["0xneuf", 0n]]);
+    const apres = new Map([["0xjb", 8n], ["0xautre", 3n], ["0xneuf", 0n]]);
+    expect(noncesAReporter(avant, apres)).toEqual([["0xjb", 9n]]);
+    // un nonce qui a AVANCE n'est jamais ramene en arriere
+    expect(noncesAReporter(new Map([["0xjb", 5n]]), new Map([["0xjb", 7n]]))).toEqual([]);
+  });
+});

@@ -61,6 +61,77 @@ export function hex(v: bigint): string {
   return "0x" + v.toString(16);
 }
 
+/**
+ * LE GAZ DU BLOC QUI SERA MINE, et pas celui du bloc epingle.
+ *
+ * Mesure le 15 septembre 2026 sur le fork, depuis le portefeuille du presentateur : la porte de
+ * remplacement (hook 0xd8a63c16…) demande 148 599 de gaz au bloc 50 614 000, mais 4 355 064 au bloc
+ * SUIVANT — celui ou la transaction sera minee. Sous 5 millions elle revert (0x8b063d73). MetaMask
+ * estimait sur le bloc epingle : la transaction partait avec ~225 000 de gaz, et la route secondaire
+ * ne passait jamais, alors que la route principale, elle, passe avec n'importe quelle limite.
+ *
+ * Le pont estime donc sur `pending`, ajoute une marge, et rend `gas` avec la transaction. La page le
+ * transmet tel quel ; MetaMask utilise la limite suggeree par le site au lieu de la sienne.
+ */
+export const GAZ_PAR_DEFAUT = 8_000_000n;
+
+/** +30 %, plus 50 000 : de quoi absorber un ecart d'etat entre l'estimation et le minage. */
+export function margeDeGaz(estime: bigint): bigint {
+  return (estime * 13n) / 10n + 50_000n;
+}
+
+export async function gazPour(tx: {
+  from: string;
+  to: string;
+  data: string;
+  value: string;
+}): Promise<{ gas: string; estime: string | null; motif: string | null }> {
+  try {
+    const e = BigInt(await rpc<string>("eth_estimateGas", [tx, "pending"], 20000));
+    return { gas: hex(margeDeGaz(e)), estime: e.toString(), motif: null };
+  } catch (err) {
+    return {
+      gas: hex(GAZ_PAR_DEFAUT),
+      estime: null,
+      motif: `estimation_impossible: ${(err as Error).message.slice(0, 160)} — limite par defaut ${GAZ_PAR_DEFAUT}`,
+    };
+  }
+}
+
+/**
+ * LES NONCES NE RECULENT PAS QUAND LE FORK RECULE.
+ *
+ * Constate le 15 septembre 2026 : apres une route signee dans MetaMask puis « reset the fork »,
+ * la route suivante ne passait plus. Le retour a l'etat de base ramene le nonce du compte en
+ * arriere ; MetaMask, lui, se souvient de la transaction confirmee et propose le nonce SUIVANT.
+ * Le fork accepte alors la transaction sans erreur, la range dans « queued », et ne la mine jamais
+ * (verifie avec cast : `txpool_status` -> queued 0x1). A l'ecran : un portefeuille qui attend pour
+ * toujours.
+ *
+ * `noncesAReporter` dit quels comptes ont recule ; le rembobinage leur rend leur nonce d'avant.
+ */
+export function noncesAReporter(avant: Map<string, bigint>, apres: Map<string, bigint>): Array<[string, bigint]> {
+  const out: Array<[string, bigint]> = [];
+  for (const [a, n] of avant) {
+    const m = apres.get(a);
+    if (m !== undefined && m < n) out.push([a, n]);
+  }
+  return out;
+}
+
+export async function nonceDe(adresse: string): Promise<bigint> {
+  return BigInt(await rpc<string>("eth_getTransactionCount", [adresse, "latest"]));
+}
+
+export async function setNonce(adresse: string, n: bigint): Promise<void> {
+  await rpc("anvil_setNonce", [adresse, hex(n)]);
+}
+
+/** Vide la file du fork : une transaction restee « queued » ne doit jamais partir apres un rembobinage. */
+export async function viderLaFile(): Promise<void> {
+  await rpc("anvil_dropAllTransactions", []);
+}
+
 export async function chainId(): Promise<number> {
   return Number(BigInt(await rpc<string>("eth_chainId")));
 }

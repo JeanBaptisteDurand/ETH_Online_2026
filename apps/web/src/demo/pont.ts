@@ -179,6 +179,12 @@ export interface TransactionPrete {
   to: string
   data: string
   value: string
+  /**
+   * La limite de gaz, estimee par le pont sur le bloc qui sera MINE. Transmise telle quelle au
+   * portefeuille : la porte de remplacement demande 4,3 millions de gaz dans un nouveau bloc, et
+   * l'estimation de MetaMask, faite sur le bloc epingle, la faisait revert.
+   */
+  gas?: string
 }
 
 export interface Soldes {
@@ -328,12 +334,19 @@ export async function choisirSurAppareil(
   onProgres?: (p: ProgresChoix) => void,
   arret?: AbortSignal,
 ): Promise<ResultatChoix | Refus> {
-  const depart = await appeler<{ ok: boolean; id: string; options: OptionAnnoncee[] }>(
+  // L'APPAREIL OCCUPE QUELQUES SECONDES n'est pas une panne : le pont rejoue « Raw messages » a
+  // chaque demarrage, et une question qui vient de finir libere l'appareil juste apres. On
+  // redemande chaque seconde, vingt fois au plus, avant de dire quoi que ce soit.
+  let depart = await appeler<{ ok: boolean; id: string; options: OptionAnnoncee[] }>(
     '/demo/choisir',
     { acte },
     DELAI_MS,
     arret,
   )
+  for (let i = 0; i < 20 && estRefus(depart) && depart.erreur === 'appareil_occupe' && !arret?.aborted; i++) {
+    await pause(1000)
+    depart = await appeler<{ ok: boolean; id: string; options: OptionAnnoncee[] }>('/demo/choisir', { acte }, DELAI_MS, arret)
+  }
   if (estRefus(depart)) return depart
   const limite = Date.now() + Math.max(1, depart.options.length - 1) * DELAI_ETAPE_S * 1000 + 60000
   let ratees = 0

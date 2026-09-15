@@ -82,7 +82,6 @@ import {
   CODE_REFUS_UTILISATEUR,
   DELAI_ETAPE_S,
   PONT,
-  abandonnerChoix,
   ajouterEtBasculer,
   appuyer,
   choisirSurAppareil,
@@ -758,19 +757,16 @@ export function DemoPage() {
    */
   const [progres, setProgres] = useState<ProgresChoix | null>(null)
   /** Non nul : l'appareil ne repond pas, et la decision revient a la page. La raison est dite. */
-  const [secours, setSecours] = useState<string | null>(null)
   /** Qui a decide, et pourquoi — repris du `ApprovalDecision` de la garde. */
   const [decision, setDecision] = useState<{ by: string; reason: string; attestation?: string | null } | null>(null)
 
   const fournisseurBrut: Fournisseur | null = (portefeuilles[0]?.provider as Fournisseur | undefined) ?? null
   const minuteur = useRef<number | null>(null)
   const enVol = useRef(false)
-  /** Coupe la conversation avec l'appareil quand le presentateur reprend la decision sur la page. */
-  const abandon = useRef<AbortController | null>(null)
   /** Laquelle des trois reponses a ete donnee. Lue apres coup : la garde, elle, ne connait que oui/non. */
   const choix = useRef<Choix | null>(null)
-  /** La main posee sur le CHOIX DU PLAN, avant que l'appareil ne confirme quoi que ce soit. */
-  const choisir = useRef<((c: Choix) => void) | null>(null)
+  /** Pourquoi l'appareil n'a pas tranche, quand il ne l'a pas fait. Ce n'est PAS un refus. */
+  const erreurAppareil = useRef<string | null>(null)
   /**
    * LE PLAN DEJA APPROUVE SUR L'APPAREIL.
    *
@@ -963,11 +959,7 @@ export function DemoPage() {
       setDemande(true)
       setOccupe('device')
       setProgres(null)
-      setSecours(null)
-      const ctrl = new AbortController()
-      abandon.current = ctrl
-      const rep = await choisirSurAppareil(acteBridge, setProgres, ctrl.signal)
-      abandon.current = null
+      const rep = await choisirSurAppareil(acteBridge, setProgres)
       if (!estRefus(rep)) {
         const c: Choix = rep.choix === 'actuelle' ? 'passer' : rep.choix === 'optimisee' ? 'substituer' : 'refuser'
         choix.current = c
@@ -980,27 +972,15 @@ export function DemoPage() {
         if (c === 'substituer') planApprouve.current = paire?.proposee?.poolId ?? null
         return { approved: c === 'passer', by: 'the device', reason: rep.raison, attestation: rep.signature }
       }
-      // 2. LE MODE SECOURS. L'appareil est injoignable, occupe ou en panne — ou le presentateur a
-      //    repris la main. Une garde qui echouerait en « oui » ne garderait rien : la decision
-      //    revient a la page, et l'ecran DIT pourquoi. Tant que personne n'a clique, rien ne part.
-      setSecours(rep.raison)
-      setOccupe('choice')
-      const c = await new Promise<Choix>((resoudre) => {
-        choisir.current = resoudre
-      })
-      choisir.current = null
-      choix.current = c
+      // 2. L'APPAREIL N'A PAS TRANCHE — injoignable, occupe, en panne. La decision ne revient PAS a
+      //    la page : tout se decide sur le Ledger (demande de l'equipe, 15 septembre 2026). Une garde
+      //    qui echouerait en « oui » ne garderait rien : rien ne part, l'ecran dit pourquoi, et le
+      //    presentateur reclique swap. Ce n'est pas un refus, et l'ecran ne dit pas « refused ».
+      erreurAppareil.current = rep.raison
+      choix.current = null
       setDemande(false)
       setOccupe(null)
-      const raison =
-        c === 'refuser'
-          ? 'refused on the page — the device did not answer'
-          : c === 'substituer'
-            ? 'the cheaper gate, taken on the page — the device did not answer'
-            : 'the route kept, on the page — the device did not answer'
-      setDecision({ by: 'the page', reason: raison })
-      if (c === 'substituer') planApprouve.current = paire?.proposee?.poolId ?? null
-      return { approved: c === 'passer', by: 'the page', reason: raison, attestation: null }
+      return { approved: false, by: 'the device', reason: `the device did not decide: ${rep.raison}`, attestation: null }
     },
     [acteBridge, paire],
   )
@@ -1095,7 +1075,7 @@ export function DemoPage() {
     try {
       const h = (await poste.fournisseur.request({
         method: 'eth_sendTransaction',
-        params: [{ from: de, to: tx.to, data: tx.data, value: tx.value }],
+        params: [{ from: de, to: tx.to, data: tx.data, value: tx.value, ...(tx.gas ? { gas: tx.gas } : {}) }],
       })) as string
       setOuvertures(poste.surveillance.ouvertures)
       setHash(h)
@@ -1134,7 +1114,6 @@ export function DemoPage() {
     setCodeRendu(null)
     setDecision(null)
     setProgres(null)
-    setSecours(null)
     setHash(null)
     setRecuTx(null)
     setSoldesApres(null)
@@ -1161,6 +1140,11 @@ export function DemoPage() {
       // rend 4001 sur la transaction d'origine, et le remplacement part en SECOND appel —
       // qu'elle controle aussi. C'est la regle dure n.4 d'alternative.ts, tenue jusqu'ici.
       await envoyerLeRemplacement(de)
+      return
+    }
+    if (erreurAppareil.current !== null) {
+      dire('device', `${erreurAppareil.current} — nothing was sent. Click swap again.`, true)
+      erreurAppareil.current = null
       return
     }
     // Pas de ligne d'alerte ici : le resume de la bande centrale dit deja le code et le
@@ -1196,7 +1180,6 @@ export function DemoPage() {
     setRapport(null)
     setDecision(null)
     setProgres(null)
-    setSecours(null)
     setCodeRendu(null)
     setHash(null)
     setRecuTx(null)
@@ -1302,43 +1285,6 @@ export function DemoPage() {
   if (phase === 'choix' || phase === 'appareil') phaseVue.current = phase
   else if (issue === null && decision === null && occupe === null) phaseVue.current = null
 
-  /**
-   * LA REPONSE DONNEE SUR LA PAGE — en MODE SECOURS seulement, quand l'appareil ne repond pas. Un
-   * clic et une touche passent par ICI et font exactement la meme chose. Elle se tait hors de ce
-   * mode, et pour la porte moins chere tant qu'aucun remplacement n'a ete construit.
-   */
-  const repondre = (c: Choix): boolean => {
-    if (!demande || occupe !== 'choice' || secours === null) return false
-    if (c === 'substituer' && !remplacement) return false
-    setReponse(c)
-    choisir.current?.(c)
-    return true
-  }
-
-  /** Reprendre la decision sur la page : l'appareil refuse la question ouverte, et le secours s'ouvre. */
-  const deciderSurLaPage = async () => {
-    await abandonnerChoix()
-    abandon.current?.abort()
-  }
-
-  /**
-   * LES TROIS REPONSES AU CLAVIER, en mode secours : 1, 2, 3, dans l'ordre de l'appareil — garder sa
-   * route, prendre la porte moins chere, annuler. Jamais pendant une saisie, jamais en repetition
-   * automatique. (Espace, fleches et Entree vivent dans l'ecran de l'appareil.)
-   */
-  const clavierRef = useRef<(k: string) => boolean>(() => false)
-  clavierRef.current = (k: string) =>
-    k === '1' ? repondre('passer') : k === '2' ? repondre('substituer') : k === '3' ? repondre('refuser') : false
-  useEffect(() => {
-    const surTouche = (e: KeyboardEvent) => {
-      if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return
-      const cible = e.target as HTMLElement | null
-      if (cible && (cible.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(cible.tagName))) return
-      if (clavierRef.current(e.key)) e.preventDefault()
-    }
-    window.addEventListener('keydown', surTouche)
-    return () => window.removeEventListener('keydown', surTouche)
-  }, [])
 
   /** La grille de la scene : [le geste] · les routes · [le choix] · l'appareil. 560 ms. */
   const LIGNES: Record<Visuel, string> = {
@@ -1354,8 +1300,8 @@ export function DemoPage() {
 
   /**
    * LES TROIS REPONSES APPARAISSENT UNE PAR UNE, une fois la rangee ouverte — 700, 1 000 et
-   * 1 300 ms. C'est un geste, pas un delai : l'appareil pose deja sa premiere question, et en mode
-   * secours les touches 1/2/3 repondent tout de suite. Ensuite, elles restent toutes visibles.
+   * 1 300 ms. C'est un geste, pas un delai : l'appareil pose deja sa premiere question. Ensuite,
+   * elles restent toutes visibles.
    */
   const [revele, setRevele] = useState(0)
   const rangeeOuverte = visuel !== 'repos'
@@ -1436,16 +1382,11 @@ export function DemoPage() {
   /**
    * OU EN EST CHAQUE CARTE, lu dans l'avancement que rend le pont. La carte allumee est la question
    * que l'appareil affiche LA, MAINTENANT ; une question refusee est « passee » ; la reponse est
-   * « chosen ». En mode secours, c'est le clic qui fait la reponse.
+   * « chosen ».
    */
   const etapeDe = (o: 'actuelle' | 'optimisee') => progres?.etapes.find((e) => e.option === o) ?? null
   const etatCarte = (o: OptionChoix): 'maintenant' | 'passee' | 'choisie' | null => {
-    const choisi = progres?.resultat?.choix ?? (secours !== null ? null : undefined)
-    if (choisi === o) return 'choisie'
-    if (secours !== null) {
-      const c: Choix = o === 'actuelle' ? 'passer' : o === 'optimisee' ? 'substituer' : 'refuser'
-      return reponse === c ? 'choisie' : null
-    }
+    if (progres?.resultat?.choix === o) return 'choisie'
     if (progres?.resultat) return o !== 'annuler' && etapeDe(o)?.issue === 'rejetee' ? 'passee' : null
     if (o === 'annuler') {
       const derniere = acteAffiche?.proposee ? etapeDe('optimisee') : etapeDe('actuelle')
@@ -1461,14 +1402,13 @@ export function DemoPage() {
    *
    * EN MODE NORMAL CE N'EST PAS UN BOUTON. La decision se prend sur l'appareil ; une carte
    * cliquable a cote laisserait croire que la page decide. Ni curseur main, ni survol : un
-   * affichage, qui s'allume sur la question que l'appareil pose. En mode secours seulement, les
-   * cartes deviennent des boutons, et les touches 1/2/3 repondent.
+   * affichage, qui s'allume sur la question que l'appareil pose. Jamais un bouton : tout se decide
+   * sur le Ledger.
    */
   const carte = (touche: 1 | 2 | 3, o: OptionChoix, ton: 'refus' | 'neutre' | 'vert', titre: string, sous: React.ReactNode) => {
-    const c: Choix = o === 'actuelle' ? 'passer' : o === 'optimisee' ? 'substituer' : 'refuser'
     const etatC = etatCarte(o)
-    const repondue = secours !== null ? reponse !== null : Boolean(progres?.resultat)
-    const vivante = secours !== null ? reponse === null : etatC === 'maintenant'
+    const repondue = Boolean(progres?.resultat)
+    const vivante = etatC === 'maintenant'
     const classe = `demo-carte demo-carte-${ton}${vivante ? ' demo-carte-vivante' : ''}${etatC === 'choisie' ? ' demo-carte-choisie' : ''}${etatC === 'passee' || (repondue && etatC !== 'choisie') ? ' demo-carte-eteinte' : ''}${revele >= touche ? ' demo-carte-apparue' : ''}`
     const contenu = (
       <>
@@ -1478,7 +1418,7 @@ export function DemoPage() {
         <span className="demo-carte-corps">
           <span className="demo-carte-titre">{titre}</span>
           <span className="demo-carte-sous" aria-hidden="true">
-            {etatC && secours === null ? <b className="demo-carte-etat">{MOT_CARTE[etatC]} · </b> : null}
+            {etatC ? <b className="demo-carte-etat">{MOT_CARTE[etatC]} · </b> : null}
             {sous}
           </span>
         </span>
@@ -1487,18 +1427,7 @@ export function DemoPage() {
         </span>
       </>
     )
-    return secours !== null ? (
-      <button
-        type="button"
-        onClick={() => repondre(c)}
-        disabled={!(demande && occupe === 'choice') || (c === 'substituer' && !remplacement)}
-        title={titre}
-        className={`${classe} demo-carte-bouton`}
-        style={{ ['--delai' as string]: `${touche * 0.25}s` }}
-      >
-        {contenu}
-      </button>
-    ) : (
+    return (
       <div className={classe} title={titre} style={{ ['--delai' as string]: `${touche * 0.25}s` }}>
         {contenu}
       </div>
@@ -1811,14 +1740,7 @@ export function DemoPage() {
               <div className="demo-choix">
                 <span className={`demo-choix-libelle${visuel === 'garde' ? ' demo-choix-libelle-demande' : ''}`}>
                   <span className="demo-choix-titre">YOUR CHOICE</span>
-                  {secours !== null ? (
-                    <>
-                      <span className="demo-choix-secours">device unavailable — deciding on the page: {secours}</span>
-                      <span>click one, or press 1 · 2 · 3</span>
-                    </>
-                  ) : (
-                    visuel === 'appareil' && <span>the device asks — approve to pick, reject for the next</span>
-                  )}
+                  {visuel === 'appareil' && <span>the device asks — approve to pick, reject for the next</span>}
                 </span>
                 {carte(
                   1,
@@ -1893,14 +1815,6 @@ export function DemoPage() {
                       </span>
                     </span>
                   )}
-                  <button
-                    type="button"
-                    className="demo-decider-page"
-                    onClick={() => void deciderSurLaPage()}
-                    title="the stage escape: the device rejects the open question, and the decision comes back to this page"
-                  >
-                    decide on the page instead
-                  </button>
                 </>
               }
             />
@@ -2108,11 +2022,9 @@ export function DemoPage() {
           className="demo-rail-suivant"
           onClick={() => mainAppareil.current?.('right')}
           disabled={visuel !== 'appareil'}
-          title="while the device asks: space or → presses next, ← goes back, Enter presses both buttons — on the separator after ifRejected it skips to Sign message; when the device is unavailable: 1, 2 or 3 answers on the page"
+          title="while the device asks: space or → presses next, ← goes back, Enter presses both buttons — on the separator after ifRejected it skips to Sign message"
         >
-          {secours !== null
-            ? 'device unavailable · 1 / 2 / 3 answer on the page'
-            : 'next → (space) · ← back · enter: skip to sign / confirm'}
+          next → (space) · ← back · enter: skip to sign / confirm
         </button>
       </nav>
     </div>

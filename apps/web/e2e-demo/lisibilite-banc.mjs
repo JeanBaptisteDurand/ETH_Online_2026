@@ -218,15 +218,15 @@ async function nouvellePage() {
   await ctx.close()
 }
 
-/* 5. l'appareil ne repond pas : le secours */
+/* 5. l'appareil ne repond pas : rien ne part, la page le dit, et on reclique swap */
 {
   scene.progres = null
   scene.choisir503 = true
   const { ctx, page } = await nouvellePage()
   await page.getByRole('button', { name: /^swap / }).click()
-  await page.getByText(/device unavailable — deciding on the page/).waitFor({ timeout: 20_000 })
+  await page.getByText(/Click swap again/).waitFor({ timeout: 40_000 })
   await page.waitForTimeout(1500)
-  await capturer(page, 'nous-5-secours')
+  await capturer(page, 'nous-5-appareil-muet')
   await ctx.close()
 }
 

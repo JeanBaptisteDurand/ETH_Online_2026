@@ -81,7 +81,8 @@ export type EtatTransaction = "PRETE" | "SANS_PLANCHER" | "RELECTURE_DIVERGENTE"
 
 export interface TransactionConstruite {
   etat: EtatTransaction;
-  transaction: { to: string; data: string; value: string } | null;
+  /** `gas` est pose par /demo/preparer, estime sur le bloc qui sera mine (voir gazPour dans fork.ts) */
+  transaction: { to: string; data: string; value: string; gas?: string } | null;
   /** la sortie cotee EN DIRECT sur le fork, avant tolerance. null = non cotee. */
   cotation: string | null;
   /** le plancher retenu apres tolerance. null quand aucune cotation n'a abouti. */

@@ -42,6 +42,11 @@ import {
   snapshot,
   crediterErc20,
   figerHorloge,
+  gazPour,
+  noncesAReporter,
+  nonceDe,
+  setNonce,
+  viderLaFile,
   emplacementDuSolde,
   BLOC_EPINGLE,
   USDC_EMPLACEMENT_SOLDES,
@@ -246,8 +251,21 @@ async function assurerBase(): Promise<void> {
 }
 
 /** Le retour a l'etat de base. Rend le bloc atteint, qui doit etre celui du corpus. */
+/** Les nonces reportes au dernier rembobinage : de quoi verifier que MetaMask et le fork sont d'accord. */
+let derniersNoncesReportes: Array<{ adresse: string; nonce: string }> = [];
+
 async function rembobiner(): Promise<{ block_number: number; snapshot: string }> {
   if (!snapshotBase) await assurerBase();
+  // LES NONCES D'AVANT, lus AVANT le retour en arriere (voir noncesAReporter dans fork.ts).
+  const suivis = [...new Set([...adressesCreditees, ...PORTEFEUILLES_DEMO])];
+  const avant = new Map<string, bigint>();
+  for (const a of suivis) {
+    try {
+      avant.set(a, await nonceDe(a));
+    } catch {
+      /* un compte illisible garde le nonce que le fork lui rend */
+    }
+  }
   const ok = await revert(snapshotBase!);
   if (!ok) {
     // le snapshot n'existe plus : anvil a redemarre, et son etat vit en RAM
@@ -257,6 +275,22 @@ async function rembobiner(): Promise<{ block_number: number; snapshot: string }>
       `snapshot_perdu: l'etat de base n'existe plus sur le fork (anvil a redemarre ?). ` +
         `Un nouvel etat de base vient d'etre pris au bloc ${blocDeBase}.`,
     );
+  }
+  // La file d'abord : une transaction restee « queued » partirait sinon des que son nonce redevient
+  // valide. Puis les nonces : chaque compte retrouve celui d'avant le retour en arriere.
+  await viderLaFile();
+  const apres = new Map<string, bigint>();
+  for (const a of avant.keys()) {
+    try {
+      apres.set(a, await nonceDe(a));
+    } catch {
+      /* idem */
+    }
+  }
+  derniersNoncesReportes = [];
+  for (const [a, n] of noncesAReporter(avant, apres)) {
+    await setNonce(a, n);
+    derniersNoncesReportes.push({ adresse: a, nonce: n.toString() });
   }
   // On refige l'horloge a chaque retour : le reglage survit a evm_revert (verifie), mais il
   // ne coute rien de le redire, et un fork redemarre entre-temps le perdrait en silence.
@@ -433,6 +467,15 @@ app.post("/demo/preparer", async (c) => {
   // transaction de remplacement que l'utilisateur signera, ou pas. Elle n'est jamais envoyee.
   const remplacement = acte.meilleure_porte ? await construireTransaction(acte.meilleure_porte) : null;
 
+  // LE GAZ, estime sur le bloc qui sera mine : sans lui MetaMask estime sur le bloc epingle, et la
+  // porte de remplacement revert faute de gaz (voir gazPour dans fork.ts).
+  const gazOrigine = construite.transaction ? await gazPour({ from: adresse, ...construite.transaction }) : null;
+  if (construite.transaction && gazOrigine) construite.transaction.gas = gazOrigine.gas;
+  const gazRemplacement = remplacement?.transaction
+    ? await gazPour({ from: adresse, ...remplacement.transaction })
+    : null;
+  if (remplacement?.transaction && gazRemplacement) remplacement.transaction.gas = gazRemplacement.gas;
+
   return c.json({
     snapshot: snapshotBase,
     /** l'etat de base : le bloc auquel /demo/revenir ramene, quoi qu'on ait fait avant */
@@ -473,6 +516,8 @@ app.post("/demo/preparer", async (c) => {
     etat_alternative: acte.etat,
     phrase: acte.phrase,
     transaction_remplacement: remplacement?.transaction ?? null,
+    /** la limite de gaz de chaque transaction, et l'estimation dont elle vient */
+    gaz: { origine: gazOrigine, remplacement: gazRemplacement },
     // LE MESSAGE QUE L'APPAREIL AFFICHERA, rendu AVANT la signature. La page peut donc montrer
     // exactement les memes champs et la MEME empreinte que l'appareil — `promptDigest` est le
     // keccak256 de `texte_signe`, et les deux sont ici pour qu'on puisse le refaire a la main.
@@ -611,6 +656,8 @@ app.post("/demo/revenir", async (c) => {
       conforme,
       motif: conforme ? null : motifBase,
       adresses_recreditees: [...adressesCreditees],
+      /** les comptes dont le nonce a ete remis a sa valeur d'avant le retour (voir fork.ts) */
+      nonces_reportes: derniersNoncesReportes,
       dotation: blocDotation(),
     });
   } catch (e) {

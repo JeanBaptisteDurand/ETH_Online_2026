@@ -87,3 +87,14 @@ skills-lock.json
 # de fichiers par cinq, pour une preuve qu'on publie deja sous forme d'artefact.
 docs/hooks-source/*/sources/
 docs/hooks-source/*/metadata.json
+
+# --- la scene de demonstration de la finale -----------------------------------
+# `demo-bridge/vendor/guard` est une COPIE de packages/guard, faite pour que le
+# service se deploie seul sur le serveur. Ce n'est pas une source : packages/guard
+# l'est, et la table de 21 Mo qu'elle embarque est deja ignoree a son emplacement
+# d'origine. La copie se refait par rsync, elle n'a rien a faire dans l'historique.
+demo-bridge/vendor/
+# Les captures et les rapports de Playwright : des sorties, jamais des sources.
+apps/web/e2e-demo/captures/
+apps/web/e2e-demo/test-results/
+apps/web/e2e-demo/playwright-report/

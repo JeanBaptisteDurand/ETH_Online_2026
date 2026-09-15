@@ -19,6 +19,7 @@ import { OutilPanel } from './components/Outil'
 import { Portefeuilles, ConnectButton } from './compte/wallet'
 import { ReglagesPage } from './components/Reglages'
 import { DeckPage } from './components/Deck'
+import { DemoPage } from './components/Demo'
 import { DeveloppeursPage } from './components/Developpeurs'
 import { FeuillePage } from './components/Feuille'
 import { OUTILS, FAMILLES } from './lib/outils'
@@ -258,6 +259,7 @@ function Head({
     { h: '/', t: 'check a token', actif: vue.quoi === 'accueil' },
     { h: '/instrument', t: 'the measurements', actif: vue.quoi === 'instrument' },
     { h: '/deck', t: 'the deck', actif: vue.quoi === 'deck' },
+    { h: '/demo', t: 'live demo', actif: vue.quoi === 'demo' },
     { h: '/developpeurs', t: 'developers', actif: vue.quoi === 'developpeurs' || vue.quoi === 'feuille' },
   ]
   const lienRoute = (x: { h: string; t: string; actif: boolean }) => (
@@ -482,6 +484,7 @@ type Vue =
   | { quoi: 'accueil' }
   | { quoi: 'instrument' }
   | { quoi: 'deck' }
+  | { quoi: 'demo' }
   | { quoi: 'reglages' } | { quoi: 'developpeurs' } | { quoi: 'feuille' }
   | { quoi: 'outil'; n: number }
 
@@ -493,6 +496,7 @@ function lireVue(hash: string): Vue {
   }
   if (hash.startsWith('#/instrument')) return { quoi: 'instrument' }
   if (hash.startsWith('#/deck')) return { quoi: 'deck' }
+  if (hash.startsWith('#/demo')) return { quoi: 'demo' }
   if (hash.startsWith('#/reglages')) return { quoi: 'reglages' }
   if (hash.startsWith('#/developpeurs')) return { quoi: 'developpeurs' }
   if (hash.startsWith('#/roadmap') || hash.startsWith('#/feuille')) return { quoi: 'feuille' }
@@ -605,6 +609,22 @@ function AppInterne() {
         <main id="contenu">
           <DeckPage surOutil={versOutil} />
         </main>
+      </div>
+    )
+  }
+
+  if (vue.quoi === 'demo') {
+    return (
+      <div className="min-h-full">
+        <Evitement />
+        <Head theme={theme} setTheme={setTheme} vue={vue} versOutil={versOutil} />
+        <RouteMotion cle="demo">
+          {/* Marges plus courtes que partout ailleurs, et c'est voulu : la demonstration doit
+              tenir dans 1440x900 sans defiler. Le reste du site respire, celle-ci se lit. */}
+          <main id="contenu" className="px-[16px] pt-[14px] pb-[16px] mx-auto w-full" style={{ maxWidth: 1440 }}>
+            <DemoPage />
+          </main>
+        </RouteMotion>
       </div>
     )
   }

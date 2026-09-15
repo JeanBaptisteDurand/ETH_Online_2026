@@ -1928,3 +1928,26 @@ span a[href] {
   display: none;
 }
 
+
+/* LES QUATRE ETAPES D'UN ACTE (route #/demo).
+   Une colonne a 390 px — rien ne deborde, la page defile ; deux a partir de 760 px ; les
+   quatre cote a cote a partir de 1280 px, ou la demonstration doit tenir dans 1440x900 sans
+   qu'on ait a faire defiler devant un jury. La quatrieme colonne porte l'ecran de l'appareil
+   ou le recu : elle est la plus haute, et c'est elle qui fixe la hauteur de la rangee. */
+.demo-etapes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  min-width: 0;
+}
+@media (min-width: 760px) {
+  .demo-etapes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1280px) {
+  .demo-etapes {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

@@ -239,6 +239,7 @@ export function DeuxRoutes({
   proposee,
   choisie,
   ecartBps,
+  grand = false,
 }: {
   entree: string
   sortie: string
@@ -250,12 +251,17 @@ export function DeuxRoutes({
   /** laquelle la page a retenue. null = aucune encore. */
   choisie: 'courante' | 'proposee' | null
   ecartBps: number | null
+  /** vrai pendant que la garde demande : c'est LA l'image de la demonstration */
+  grand?: boolean
 }) {
+  const chiffre = grand ? 't-metric' : 't-data-lg'
   const ligne = (c: RouteCandidate, quoi: 'courante' | 'proposee') => {
     const active = choisie === quoi
+    // LA BASCULE SE VOIT : la route ecartee recule franchement, une seule fois, sans rebond.
+    const ecartee = choisie !== null && !active
     return (
       <div
-        className="demo-route-ligne flex flex-wrap items-center gap-x-[10px] gap-y-[4px] px-[10px] py-[6px]"
+        className={`demo-route-ligne flex flex-wrap items-center gap-x-[10px] gap-y-[4px] px-[10px] ${grand ? 'py-[9px]' : 'py-[6px]'} ${ecartee ? 'demo-route-ecartee' : ''} ${active ? 'demo-route-active' : ''}`}
         style={{
           border: `1px solid ${active ? 'var(--m-4)' : 'var(--line)'}`,
           background: active ? 'var(--bg-3)' : 'var(--bg-2)',
@@ -279,7 +285,7 @@ export function DeuxRoutes({
           <span className="t-data-xs hex" style={{ color: 'var(--ink)' }} title={`pool ${c.poolId} · hook ${c.hook}`}>
             gate {shortAddr(c.poolId, 10, 4)}
           </span>
-          <span className="t-data-lg" style={{ color: 'var(--ink)' }}>
+          <span className={chiffre} style={{ color: 'var(--ink)', lineHeight: 1.05 }}>
             {c.bps === null ? 'unknown' : `${bpsTexte(c.bps)} bps`}
           </span>
         </span>
@@ -289,7 +295,7 @@ export function DeuxRoutes({
           <span className="t-label" style={{ color: 'var(--ink-2)' }}>
             receives
           </span>
-          <span className="t-data-lg" style={{ color: 'var(--ink)' }}>
+          <span className={chiffre} style={{ color: 'var(--ink)', lineHeight: 1.05 }}>
             {c.recu === null ? 'unknown' : groupDigits(c.recu)}
           </span>
         </span>

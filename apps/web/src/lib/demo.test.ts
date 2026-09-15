@@ -776,6 +776,60 @@ test("la provenance de chaque valeur est marquee : rien n est saisi par l utilis
   assert.ok(ECRAN.includes('This is a swap you were about to make'))
 })
 
+/* ------------------- 8 quinquies. la mise en page suit la phase */
+
+test('quatre phases, quatre hierarchies — et rien ne disparait', () => {
+  // Tout avait la meme importance tout le temps, donc rien ne guidait l'oeil. La phase se
+  // DERIVE de l'etat : aucune bascule manuelle, donc aucune phase impossible a atteindre.
+  assert.ok(ECRAN.includes("type Phase = 'repos' | 'choix' | 'appareil' | 'fini'"))
+  assert.ok(ECRAN.includes("const phase: Phase ="))
+  // 1. au repos la these domine ; ailleurs elle se replie a une ligne, elle ne part pas.
+  assert.ok(ECRAN.includes("phase === 'repos' ? (\n        <BandeDistribution"))
+  assert.ok(ECRAN.includes('median of {groupDigits(String(dist.n))} measured rows'))
+  assert.ok(ECRAN.includes('see the tail'), 'la queue reste atteignable dans toutes les phases')
+  // 2. quand la garde demande, les deux routes sont GRANDES.
+  assert.ok(ECRAN.includes("grand={phase === 'choix'}"))
+  assert.ok(ROUTE.includes("const chiffre = grand ? 't-metric' : 't-data-lg'"))
+  // 3. le plan sur l'appareil : l'ecran devient central et grand.
+  assert.ok(ECRAN.includes("phase === 'appareil' && ("))
+  assert.ok(ECRAN.includes('<EcranAppareil onBouton={bouton} texte={ecranTexte} lireEcran={lireEcran} grand />'))
+  assert.ok(ECRAN.includes('the plan is on the device'))
+  assert.ok(ECRAN.includes('field now'), 'le champ en cours, en gros, hors de l appareil')
+  // 4. a la fin, les trois temps reculent devant « ce qu'on a garde ».
+  assert.ok(ECRAN.includes("phase === 'fini' ? 'demo-etapes demo-etapes-3 demo-recule'"))
+  assert.ok(lire('../index.css').includes('.demo-recule'))
+})
+
+test('les trois choix sont nommes par ce qu ils FONT, pas par leur jargon', () => {
+  // « go anyway » et « substitute » demandaient de reflechir. Un spectateur doit comprendre
+  // sans lire deux fois : ce qui part, et ce que ca coute.
+  assert.ok(ECRAN.includes('refuse · send nothing'))
+  assert.ok(ECRAN.includes('send as is'))
+  assert.ok(ECRAN.includes('take the other gate'))
+  const jsx = jsxSeul(ECRAN)
+  assert.ok(!/>\s*go anyway/.test(jsx) && !/>\s*substitute\s*·/.test(jsx), 'le jargon ne revient pas')
+  // Et le cout est DIT sur le bouton, depuis le corpus.
+  assert.ok(ECRAN.includes('bpsTexte(acteAffiche.actuelle.bps)'))
+  assert.ok(ECRAN.includes('bpsTexte(acteAffiche.proposee.bps!)'))
+})
+
+test('la bascule de route se voit, une seule fois, et se coupe', () => {
+  assert.ok(ROUTE.includes("const ecartee = choisie !== null && !active"))
+  assert.ok(ROUTE.includes('demo-route-ecartee') && ROUTE.includes('demo-route-active'))
+  const css = lire('../index.css')
+  // 250 a 400 ms, franche, sans rebond : pas de cubic-bezier a depassement.
+  const m = /\.demo-route-ligne \{[\s\S]*?transition:[\s\S]*?(\d{3})ms/.exec(css)
+  assert.ok(m, 'la transition doit exister')
+  const ms = Number(m[1])
+  assert.ok(ms >= 250 && ms <= 400, `la bascule dure ${ms} ms`)
+  assert.ok(!/demo-route[\s\S]{0,400}cubic-bezier\([^)]*-/.test(css), 'aucun rebond')
+  // Et sous prefers-reduced-motion, la bascule RESTE et l animation part.
+  const i = css.indexOf('.demo-route-ligne,')
+  assert.ok(i > 0)
+  const bloc = css.slice(css.lastIndexOf('@media (prefers-reduced-motion: reduce)', i), i + 300)
+  assert.ok(bloc.includes('animation: none') && bloc.includes('transition: none'))
+})
+
 /* ------------------- 9. la table du site est bien celle du paquet */
 
 test('les quatre etiquettes du corpus se traduisent une a une, sans en promouvoir aucune', () => {

@@ -2057,3 +2057,66 @@ span a[href] {
 .demo-barre > * {
   flex: none;
 }
+
+/* LA BASCULE DE ROUTE — franche, une seule fois, sans rebond (spec : 250 a 400 ms).
+   La route ecartee recule : elle perd son encre et glisse de quelques pixels, elle ne
+   disparait pas. Celle qui prend sa place entre. */
+.demo-route-ligne {
+  transition:
+    opacity 300ms ease-out,
+    transform 300ms ease-out,
+    border-color 300ms linear,
+    background-color 300ms linear;
+}
+.demo-route-ecartee {
+  opacity: 0.38;
+  transform: translateX(-8px) scale(0.985);
+}
+.demo-route-active {
+  animation: demo-route-prend 300ms ease-out both;
+}
+@keyframes demo-route-prend {
+  from {
+    transform: translateX(10px);
+    opacity: 0.55;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .demo-route-ligne,
+  .demo-route-active {
+    transition: none;
+    animation: none;
+  }
+  .demo-route-ecartee {
+    transform: none;
+  }
+}
+
+/* PHASE 3 — l'ecran de l'appareil au centre, le plan a cote. Deux colonnes larges : c'est
+   l'objet que le jury fixe, il ne tient pas dans une colonne de trois cent quarante pixels. */
+.demo-appareil {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  min-width: 0;
+}
+@media (min-width: 900px) {
+  .demo-appareil {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  }
+}
+/* PHASE 4 — les trois temps reculent : le panneau « ce qu'on a garde » domine. */
+.demo-recule {
+  opacity: 0.62;
+  transition: opacity 300ms linear;
+}
+@media (prefers-reduced-motion: reduce) {
+  .demo-recule {
+    transition: none;
+  }
+}

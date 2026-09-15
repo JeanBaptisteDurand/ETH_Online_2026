@@ -293,7 +293,7 @@ test('le clic swap est intercepte : le portefeuille ne s ouvre pas, 4001 revient
   await page.getByRole('button', { name: /^swap 0\.000001 ETH → USDC$/ }).click()
 
   // La garde a demande : on refuse, sur la page (le pont rend deja 4001, l un ou l autre gagne).
-  await page.getByRole('button', { name: /^refuse$/ }).click()
+  await page.getByRole('button', { name: /^refuse · send nothing$/ }).click()
 
   const bande = page.locator('div').filter({ hasText: /^two routes, same swap/ }).first()
   await expect(page.getByText('REFUSEE')).toBeVisible()
@@ -317,9 +317,9 @@ test('accepter la substitution ouvre le portefeuille, avec la transaction de REM
 
   await page.getByRole('button', { name: /^swap 0\.000001 ETH → USDC$/ }).click()
   // Les TROIS reponses sont visibles, et elles disent ce qu'elles envoient.
-  await expect(page.getByRole('button', { name: /^refuse$/ })).toBeVisible()
-  await expect(page.getByRole('button', { name: /^go anyway · 4\.0933 bps$/ })).toBeVisible()
-  await expect(page.getByRole('button', { name: /^substitute · 0 bps$/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^refuse · send nothing$/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^pay 4\.0933 bps · send as is$/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^pay 0 bps · take the other gate$/ })).toBeVisible()
   // La main passe a l'humain, et l'ecran le DIT : une consigne, pas un etat.
   await expect(page.getByText('Pick one —')).toBeVisible()
   await expect(page.getByText('the plan you choose goes to the device — nothing has been sent yet')).toBeVisible()
@@ -327,7 +327,7 @@ test('accepter la substitution ouvre le portefeuille, avec la transaction de REM
     page.locator('section', { hasText: 'the device confirms the plan' }).first(),
   ).toContainText('nothing has been sent yet: the device receives the plan you pick')
 
-  await page.getByRole('button', { name: /^substitute · 0 bps$/ }).click()
+  await page.getByRole('button', { name: /^pay 0 bps · take the other gate$/ }).click()
   // Le plan choisi part a l appareil, qui confirme.
   await page.getByRole('button', { name: /^Approve \(here\)$/ }).click()
   await expect(page.getByText('REMPLACEMENT')).toBeVisible()
@@ -365,7 +365,7 @@ test('la route se reecrit : l ancienne porte barree, la nouvelle en place, l eca
 
   // Choisir la substitution designe la route retenue : la bascule se voit.
   await page.getByRole('button', { name: /^swap / }).click()
-  await page.getByRole('button', { name: /^substitute · 0 bps$/ }).click()
+  await page.getByRole('button', { name: /^pay 0 bps · take the other gate$/ }).click()
   await expect(page.getByText(/cheaper gate · chosen/)).toBeVisible()
   expect(erreurs, erreurs.join('\n')).toEqual([])
 })
@@ -561,7 +561,7 @@ test('la page tient dans 1440x900 sans defiler, et les captures sont ecrites', a
 
   await mesurer('parcours')
   await page.getByRole('button', { name: /^swap / }).click()
-  await page.getByRole('button', { name: /^refuse$/ }).click()
+  await page.getByRole('button', { name: /^refuse · send nothing$/ }).click()
   await expect(page.getByText('REFUSEE')).toBeVisible()
   await mesurer('refus')
   await page.getByRole('button', { name: 'see the tail' }).click()

@@ -47,7 +47,7 @@ import { AFFICHAGE } from '../compte/substitution'
 import { ecouterPortefeuilles, type PortefeuilleAnnonce } from '../compte/api'
 import { RPC_LOCAL, chainName, fmtBlock, groupDigits, replayCommand, shortAddr } from '../lib/format'
 import { symbole } from './Carte'
-import { CeQuOnAGarde, DeuxRoutes, type RouteCandidate } from './DemoRoute'
+import { CeQuOnAGarde, DeuxRoutes, RouteSwap, type PorteRoute, type RouteCandidate } from './DemoRoute'
 import { PanneauPaires, nomJeton } from './DemoPaires'
 import { montantLisible } from '../demo/jetons'
 import { cleDe, lpFeeBps as lpDuPool } from '../demo/paires'
@@ -378,11 +378,14 @@ function EcranAppareil({
   onBouton,
   texte,
   lireEcran,
+  grand = false,
 }: {
   onBouton: (b: BoutonAppareil) => Promise<boolean>
   texte?: string | null
   /** relit le texte de l'ecran, une fois. La rafale s'en sert pour ne rien sauter. */
   lireEcran: () => Promise<string | null>
+  /** vrai quand le plan est sur l'appareil : c'est l'objet que le jury fixe */
+  grand?: boolean
 }) {
   const [jeton, setJeton] = useState(0)
   const [dispo, setDispo] = useState<boolean | null>(null)
@@ -447,7 +450,12 @@ function EcranAppareil({
     <div className="flex flex-col gap-[5px] px-[11px] py-[7px]" style={{ borderTop: '1px solid var(--line)' }}>
       <div
         className="flex items-center justify-center"
-        style={{ border: '1px solid var(--line-strong)', background: 'var(--bg)', minHeight: 58, padding: 4 }}
+        style={{
+          border: `1px solid ${grand ? 'var(--m-4)' : 'var(--line-strong)'}`,
+          background: 'var(--bg)',
+          minHeight: grand ? 200 : 58,
+          padding: grand ? 10 : 4,
+        }}
       >
         <img
           src={urlEcran(jeton)}
@@ -458,6 +466,7 @@ function EcranAppareil({
             display: dispo === true ? 'block' : 'none',
             imageRendering: 'pixelated',
             maxWidth: '100%',
+            width: grand ? '100%' : undefined,
             height: 'auto',
           }}
         />
@@ -468,7 +477,10 @@ function EcranAppareil({
         )}
       </div>
       {texte ? (
-        <div className="t-data-xs hex" style={{ color: 'var(--ink)', overflowWrap: 'anywhere' }}>
+        <div
+          className={grand ? 't-data-lg hex' : 't-data-xs hex'}
+          style={{ color: 'var(--ink)', overflowWrap: 'anywhere' }}
+        >
           {texte}
         </div>
       ) : null}
@@ -686,6 +698,15 @@ export function DemoPage() {
    * elle passe a l'encre d'alerte sur la fin. La phase de CHOIX, elle, n'expire pas — on attend
    * un humain devant sa page, pas une requete.
    */
+  /**
+   * LA MISE EN PAGE SUIT LA PHASE.
+   *
+   * Tout avait la meme importance tout le temps, donc rien ne guidait l'oeil. Quatre phases,
+   * quatre hierarchies : au repos la these domine ; quand la garde demande, les deux routes et
+   * les trois choix prennent la place ; quand le plan est sur l'appareil, l'ecran du Ledger
+   * devient l'objet central — c'est lui que le jury fixe pendant vingt secondes ; a la fin,
+   * c'est ce qu'on a garde. Ce qui ne compte pas a cet instant se replie, il ne disparait pas.
+   */
   const restantS = occupe === 'device' ? Math.max(0, DELAI_APPAREIL_S - attente) : null
   const partRestante = restantS === null ? null : restantS / DELAI_APPAREIL_S
 
@@ -735,6 +756,18 @@ export function DemoPage() {
     return () => window.clearInterval(t)
   }, [vue, lireEcran])
 
+  type Phase = 'repos' | 'choix' | 'appareil' | 'fini'
+  const phase: Phase =
+    vue === 'queue'
+      ? 'repos'
+      : issue !== null
+        ? 'fini'
+        : demande && occupe === 'device'
+          ? 'appareil'
+          : demande
+            ? 'choix'
+            : 'repos'
+
   const acteAffiche: Acte | null = vue === 'queue' ? queue : paire
   const acteBridge: 'stop' | 'substitution' = vue === 'queue' ? 'stop' : 'substitution'
   const preparation = prep[acteBridge] ?? null
@@ -753,6 +786,17 @@ export function DemoPage() {
         sym(acteAffiche.actuelle.entree) ?? shortAddr(acteAffiche.actuelle.entree)
       } → ${sym(acteAffiche.actuelle.sortie) ?? shortAddr(acteAffiche.actuelle.sortie)}`
     : 'swap'
+
+  /** La porte, dans la forme compacte de RouteSwap. */
+  const porteChoisie = (p: Porte | null | undefined): PorteRoute | null =>
+    p
+      ? {
+          poolId: p.poolId,
+          hook: p.hook,
+          bps: p.bps,
+          lpBps: p.row.stored_lp_fee === null ? null : lpDuPool(p.row.stored_lp_fee),
+        }
+      : null
 
   /** Une route candidate : la porte, ce qu'elle prend, et ce que le swap REND par elle. */
   const candidate = (p: Porte | null | undefined): RouteCandidate | null =>
@@ -1135,12 +1179,41 @@ export function DemoPage() {
         </div>
       </div>
 
-      <BandeDistribution
-        d={dist}
-        fraisDuPool={fraisDuPool}
-        queueOuverte={vue === 'queue'}
-        surQueue={() => setVue(vue === 'queue' ? 'parcours' : 'queue')}
-      />
+      {/* AU REPOS LA THESE DOMINE ; ailleurs elle se replie a une ligne pour laisser la place
+          a ce qui se joue. Elle ne disparait jamais : le chiffre de la page reste lisible. */}
+      {phase === 'repos' ? (
+        <BandeDistribution
+          d={dist}
+          fraisDuPool={fraisDuPool}
+          queueOuverte={vue === 'queue'}
+          surQueue={() => setVue(vue === 'queue' ? 'parcours' : 'queue')}
+        />
+      ) : (
+        <div
+          className="flex items-baseline gap-x-[14px] px-[11px] py-[4px] t-data-xs demo-barre"
+          style={{ border: '1px solid var(--line)', background: 'var(--bg-1)', color: 'var(--ink-2)' }}
+        >
+          <span className="t-label" style={{ color: 'var(--ink-2)' }}>
+            what a measured hook takes
+          </span>
+          <span className="t-data" style={{ color: 'var(--m-4)' }}>
+            {bpsTexte(dist.mediane, 2)} bps
+          </span>
+          <span>median of {groupDigits(String(dist.n))} measured rows</span>
+          {fraisDuPool !== null && (
+            <span>
+              {partTexte(dist.auDessusDe(fraisDuPool).part)} take more than {bpsTexte(fraisDuPool)} bps
+            </span>
+          )}
+          <span>{partTexte(dist.zero.part)} take nothing</span>
+          {/* La queue reste atteignable dans TOUTES les phases : repliee, la these garde sa porte. */}
+          <span className="ml-auto" style={{ flex: 'none' }}>
+            <Bouton onClick={() => setVue(vue === 'queue' ? 'parcours' : 'queue')}>
+              {vue === 'queue' ? 'close the tail' : 'see the tail'}
+            </Bouton>
+          </span>
+        </div>
+      )}
 
       {/* ------------------------------- le pont, l'etat du fork et le clic d'entree */}
       {/* LA BARRE D'ETAT TIENT SUR UNE LIGNE, et defile dans elle-meme si elle deborde — comme
@@ -1257,6 +1330,7 @@ export function DemoPage() {
               proposee={candidate(acteAffiche.proposee)}
               choisie={basculee ? 'proposee' : null}
               ecartBps={acteAffiche.ecartBps}
+              grand={phase === 'choix'}
             />
           ) : (
             <CeQuOnAGarde
@@ -1343,7 +1417,7 @@ export function DemoPage() {
               actif={demande}
               titre={`nothing leaves: the caller gets ${CODE_REFUS_UTILISATEUR} and the wallet never opens`}
             >
-              refuse
+              refuse · send nothing
             </Bouton>
             <Bouton
               onClick={() => {
@@ -1353,8 +1427,8 @@ export function DemoPage() {
               actif={demande}
               titre="the original transaction, unchanged, goes to the wallet"
             >
-              go anyway ·{' '}
-              {acteAffiche.actuelle.bps === null ? 'unknown' : `${bpsTexte(acteAffiche.actuelle.bps)} bps`}
+              pay {acteAffiche.actuelle.bps === null ? 'unknown' : `${bpsTexte(acteAffiche.actuelle.bps)} bps`} ·
+              send as is
             </Bouton>
             <Bouton
               onClick={() => {
@@ -1369,10 +1443,11 @@ export function DemoPage() {
                   : 'no replacement has been built: the bridge quotes on the fork'
               }
             >
-              substitute ·{' '}
+              pay{' '}
               {acteAffiche.proposee?.bps === null || acteAffiche.proposee === null
                 ? 'unknown'
-                : `${bpsTexte(acteAffiche.proposee.bps!)} bps`}
+                : `${bpsTexte(acteAffiche.proposee.bps!)} bps`}{' '}
+              · take the other gate
             </Bouton>
             <span className="t-data-xs" style={{ color: 'var(--ink-2)', minWidth: 0, lineHeight: 1.3 }}>
               {demande ? (
@@ -1423,8 +1498,103 @@ export function DemoPage() {
       )}
 
       {/* ------------------------------------------------------------ les quatre temps */}
-      {acteAffiche && lecture && (
-        <div className="demo-etapes demo-etapes-3">
+      {/* PHASE 3 — LE PLAN EST SUR L'APPAREIL. L'ecran du Ledger devient l'objet central : c'est
+          lui que le jury fixe pendant vingt secondes, et il etait relegue dans une colonne
+          etroite. Les deux premiers temps se replient en une ligne ; ils ne disparaissent pas. */}
+      {acteAffiche && lecture && phase === 'appareil' && (
+        <div className="demo-appareil">
+          <div
+            className="flex flex-col"
+            style={{ border: '1px solid var(--m-4)', background: 'var(--bg-1)', minWidth: 0 }}
+          >
+            <div className="px-[11px] pt-[6px] t-label" style={{ color: 'var(--m-4)' }}>
+              the plan is on the device — read it there, then Reject or Approve
+            </div>
+            <EcranAppareil onBouton={bouton} texte={ecranTexte} lireEcran={lireEcran} grand />
+            <div
+              className="px-[11px] py-[6px] flex flex-wrap items-center gap-[6px]"
+              style={{ borderTop: '1px solid var(--line)' }}
+            >
+              <Bouton
+                onClick={() => trancher.current?.({ approved: false, by: 'the page', reason: 'rejected here' })}
+                actif
+                titre="the stage escape: decide here when the device or the bridge is not answering"
+              >
+                Reject (here)
+              </Bouton>
+              <Bouton
+                onClick={() => trancher.current?.({ approved: true, by: 'the page', reason: 'approved here' })}
+                actif
+                fort
+              >
+                Approve (here)
+              </Bouton>
+            </div>
+          </div>
+
+          <div className="flex flex-col" style={{ border: '1px solid var(--line)', background: 'var(--bg-1)', minWidth: 0 }}>
+            <div className="px-[11px] pt-[6px] pb-[4px] t-label" style={{ color: 'var(--ink-2)' }}>
+              the plan it is showing
+            </div>
+            <div className="px-[11px] pb-[6px]">
+              <RouteSwap
+                entree={acteAffiche.actuelle.entree}
+                sortie={acteAffiche.actuelle.sortie}
+                symboleEntree={sym(acteAffiche.actuelle.entree)}
+                symboleSortie={sym(acteAffiche.actuelle.sortie)}
+                montant={null}
+                courante={
+                  (basculee && acteAffiche.proposee
+                    ? porteChoisie(acteAffiche.proposee)
+                    : porteChoisie(acteAffiche.actuelle))!
+                }
+                remplacante={null}
+                basculee={false}
+                ecartBps={null}
+                compact
+              />
+            </div>
+            <L
+              src="corpus"
+              k="field now"
+              fort
+              v={
+                ecranTexte ? (
+                  <span className="t-data-lg hex" style={{ color: 'var(--ink)', overflowWrap: 'anywhere' }}>
+                    {ecranTexte}
+                  </span>
+                ) : (
+                  <Inconnu quoi="the device screen text, read back by the bridge" />
+                )
+              }
+            />
+            <L
+              k="prompt digest"
+              v={
+                preparationOk?.prompt_digest ? (
+                  <>
+                    <span className="hex" style={{ color: 'var(--ink)' }}>
+                      {shortAddr(preparationOk.prompt_digest, 12, 8)}
+                    </span>{' '}
+                    <Copy text={preparationOk.prompt_digest} label="copy" />
+                  </>
+                ) : (
+                  <Inconnu quoi="prompt digest" />
+                )
+              }
+            />
+            <L src="calldata" k="hook" v={<span className="hex">{lecture.leg?.poolKey.hooks ?? '—'}</span>} />
+            <div className="px-[11px] py-[6px] t-data-xs" style={{ borderTop: '1px solid var(--line)', color: 'var(--ink-2)', lineHeight: 1.35 }}>
+              The device signs the <strong style={{ color: 'var(--ink)' }}>report</strong>, not the swap.
+              <em> Reject</em> leaves nothing, <em>Approve</em> approves <em>that</em> plan.
+              {restantS !== null ? ` · ${restantS} s left of ${DELAI_APPAREIL_S}` : ''}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {acteAffiche && lecture && phase !== 'appareil' && (
+        <div className={phase === 'fini' ? 'demo-etapes demo-etapes-3 demo-recule' : 'demo-etapes demo-etapes-3'}>
           {/* ---------------------------------------------------------------- 01 */}
           <Etape n={1} sur={3} titre={vue === 'queue' ? `the tail: ${libelleSwap}` : libelleSwap}>
             <L

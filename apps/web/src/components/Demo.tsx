@@ -567,13 +567,15 @@ function EcranAppareil({
   useEffect(() => {
     if (!grand) return
     const surTouche = (e: KeyboardEvent) => {
-      if ((e.key !== ' ' && e.key !== 'ArrowRight') || e.metaKey || e.ctrlKey || e.altKey) return
+      if ((e.key !== ' ' && e.key !== 'ArrowRight' && e.key !== 'Enter') || e.metaKey || e.ctrlKey || e.altKey) return
       const cible = e.target as HTMLElement | null
       if (cible && (cible.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(cible.tagName))) return
       e.preventDefault()
       if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
       if (e.repeat || rafaleRef.current) return
-      void appuyerRef.current('right')
+      // Entree confirme (les deux boutons), espace et fleche droite avancent. Sans Entree, il
+      // fallait lacher le clavier pour viser « confirm » a la souris devant le jury.
+      void appuyerRef.current(e.key === 'Enter' ? 'both' : 'right')
     }
     window.addEventListener('keydown', surTouche)
     return () => window.removeEventListener('keydown', surTouche)
@@ -755,6 +757,17 @@ type Issue =
   | 'ORIGINE'
   /** l'humain substitue : la transaction DE REMPLACEMENT part, en second appel delibere */
   | 'REMPLACEMENT'
+
+/**
+ * Ce que l'ecran ECRIT pour chaque issue. Les valeurs ci-dessus sont des etats internes, lus par
+ * le code et par les tests ; elles n'ont jamais eu vocation a etre affichees telles quelles, et
+ * elles s'affichaient en francais au milieu d'une page anglaise.
+ */
+const LIBELLE_ISSUE: Record<Issue, string> = {
+  REFUSEE: 'refused',
+  ORIGINE: 'sent as is',
+  REMPLACEMENT: 'other gate taken',
+}
 
 /**
  * LES TROIS REPONSES A LA MEME QUESTION.
@@ -1680,7 +1693,7 @@ export function DemoPage() {
             <div className="flex items-baseline gap-x-[12px] t-data-xs demo-barre" style={{ color: 'var(--ink-2)' }}>
               {issue && (
                 <span className="t-label" style={{ color: issue === 'REFUSEE' ? 'var(--m-3)' : 'var(--ink)' }}>
-                  {issue}
+                  {LIBELLE_ISSUE[issue]}
                 </span>
               )}
               {issue === 'REFUSEE' && (
@@ -1734,7 +1747,7 @@ export function DemoPage() {
                 choisir.current?.('refuser')
                 trancher.current?.({ approved: false, by: 'the page', reason: 'refused on the page' })
               }}
-              actif={demande}
+              actif={demande && occupe === 'choice'}
               titre={`nothing leaves: the caller gets ${CODE_REFUS_UTILISATEUR} and the wallet never opens`}
             >
               refuse · send nothing
@@ -1745,7 +1758,7 @@ export function DemoPage() {
                 choisir.current?.('passer')
                 setBasculee(false)
               }}
-              actif={demande}
+              actif={demande && occupe === 'choice'}
               titre="the original transaction, unchanged, goes to the wallet"
             >
               pay {acteAffiche.actuelle.bps === null ? 'unknown' : `${bpsTexte(acteAffiche.actuelle.bps)} bps`} ·
@@ -1757,7 +1770,7 @@ export function DemoPage() {
                 choisir.current?.('substituer')
                 setBasculee(true)
               }}
-              actif={demande && Boolean(remplacement)}
+              actif={demande && occupe === 'choice' && Boolean(remplacement)}
               fort
               titre={
                 remplacement
@@ -2115,6 +2128,10 @@ export function DemoPage() {
         <span className="demo-fil-touches" aria-label="keyboard shortcuts">
           <span>
             next <kbd className="demo-touche">→</kbd> (<kbd className="demo-touche">space</kbd>)
+          </span>
+          <span aria-hidden="true">·</span>
+          <span>
+            <kbd className="demo-touche">enter</kbd> confirm
           </span>
           <span aria-hidden="true">·</span>
           <span>

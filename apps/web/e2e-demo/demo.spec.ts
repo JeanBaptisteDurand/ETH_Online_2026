@@ -296,7 +296,7 @@ test('le clic swap est intercepte : le portefeuille ne s ouvre pas, 4001 revient
   await page.getByRole('button', { name: /^refuse · send nothing$/ }).click()
 
   const bande = page.locator('div').filter({ hasText: /^two routes, same swap/ }).first()
-  await expect(page.getByText('REFUSEE')).toBeVisible()
+  await expect(page.getByText('refused', { exact: true })).toBeVisible()
   await expect(page.getByText(`code ${CODE_REFUS} · wallet opened 0 time(s) · nothing left`)).toBeVisible()
   expect(await bande.count()).toBeGreaterThan(0)
 
@@ -330,7 +330,7 @@ test('accepter la substitution ouvre le portefeuille, avec la transaction de REM
   await page.getByRole('button', { name: /^pay 0 bps · take the other gate$/ }).click()
   // Le plan choisi part a l appareil, qui confirme.
   await page.getByRole('button', { name: /^Approve \(here\)$/ }).click()
-  await expect(page.getByText('REMPLACEMENT')).toBeVisible()
+  await expect(page.getByText('other gate taken', { exact: true })).toBeVisible()
   const fin = page.locator('div').filter({ hasText: /^received/ }).first()
   const envois = (await appels(page)).filter((a) => a.method === 'eth_sendTransaction')
   expect(envois).toHaveLength(1)
@@ -562,7 +562,7 @@ test('la page tient dans 1440x900 sans defiler, et les captures sont ecrites', a
   await mesurer('parcours')
   await page.getByRole('button', { name: /^swap / }).click()
   await page.getByRole('button', { name: /^refuse · send nothing$/ }).click()
-  await expect(page.getByText('REFUSEE')).toBeVisible()
+  await expect(page.getByText('refused', { exact: true })).toBeVisible()
   await mesurer('refus')
   await page.getByRole('button', { name: 'see the tail' }).click()
   await mesurer('queue')

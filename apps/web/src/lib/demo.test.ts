@@ -397,7 +397,12 @@ test("l'attente de l'appareil a son PROPRE delai, et les lectures gardent le cou
   }
   // L'ecran dit combien de temps il accepte d'attendre, et depuis combien il attend.
   assert.ok(ECRAN.includes('DELAI_APPAREIL_S'))
-  assert.ok(ECRAN.includes('${attente} s'))
+  assert.ok(ECRAN.includes('DELAI_APPAREIL_S - attente'), "le temps restant se calcule et s'affiche")
+  assert.ok(ECRAN.includes('s left of'), 'et il est dit en toutes lettres')
+  // Il se VOIT arriver : lire un nombre qui monte ne previent de rien.
+  assert.ok(ECRAN.includes('partRestante'), 'une jauge se vide a cote du nombre')
+  assert.ok(ECRAN.includes("partRestante < 0.1 ? 'var(--m-3)'"), 'et elle passe a l alerte sur la fin')
+  assert.ok(ECRAN.includes('click swap again'), "l'expiration dit quoi faire, pas seulement ce qui s'est passe")
 })
 
 test('un double clic ne part jamais deux fois : le verrou ferme avant le premier await', () => {
@@ -423,7 +428,11 @@ test("l'ecran ne rend aucun texte francais du service, ni aucun guillemet franca
   assert.ok(!ECRAN.includes('d.consequence'), 'la consequence du service est en francais')
   assert.ok(ECRAN.includes('announced ${d.annonce}, corpus ${d.corpus}'))
   assert.ok(!ECRAN.includes('.phrase'), 'la phrase du service est en francais')
-  const rendu = ECRAN.split('\n')
+  // Les commentaires JSX multilignes ({/* … */}) comptent aussi comme des commentaires : leurs
+  // lignes de continuation ne commencent ni par // ni par *. On retire donc tout ce qui est
+  // entre {/* et */} avant de chercher un guillemet francais.
+  const rendu = ECRAN.replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
+    .split('\n')
     .filter((l) => {
       const t = l.trimStart()
       return !t.startsWith('//') && !t.startsWith('*') && !t.startsWith('/*')

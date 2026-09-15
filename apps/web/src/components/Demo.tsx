@@ -679,6 +679,16 @@ export function DemoPage() {
     return () => window.clearInterval(t)
   }, [occupe])
 
+  /**
+   * LE TEMPS QUI RESTE A L'APPAREIL, et il doit se VOIR arriver.
+   *
+   * Lire un nombre qui monte ne previent de rien : la jauge sous la rangee de choix se vide, et
+   * elle passe a l'encre d'alerte sur la fin. La phase de CHOIX, elle, n'expire pas — on attend
+   * un humain devant sa page, pas une requete.
+   */
+  const restantS = occupe === 'device' ? Math.max(0, DELAI_APPAREIL_S - attente) : null
+  const partRestante = restantS === null ? null : restantS / DELAI_APPAREIL_S
+
   const etatOk = etat !== null && !estRefus(etat) ? etat : null
   const fork = etatOk?.fork ?? null
   /**
@@ -822,7 +832,14 @@ export function DemoPage() {
         const rep = await approuver(acteBridge)
         setAppareil(rep)
         if (estRefus(rep))
-          return { approved: false, by: 'bridge', reason: `the bridge did not answer: ${rep.raison}` }
+          return {
+            approved: false,
+            by: 'bridge',
+            reason:
+              rep.refus === 'expire'
+                ? `the request expired after ${DELAI_APPAREIL_S} s without an answer on the device — click swap again`
+                : `the bridge did not answer: ${rep.raison}`,
+          }
         if (typeof rep.refus === 'number')
           return { approved: false, by: 'device', reason: rep.raison ?? 'rejected on the device' }
         return { approved: true, by: 'device', reason: 'approved on the device' }
@@ -1297,14 +1314,27 @@ export function DemoPage() {
               )}
             </div>
           )}
-          {/* UNE QUESTION, TROIS REPONSES. Les trois sont VISIBLES meme quand la garde ne
-              demande rien : celle du milieu — passer quand meme — est ce qui distingue une
-              garde d'un routeur, et elle doit se voir sans qu'on ait a la cliquer. Sur
-              l'appareil il n'y a que Reject et Approve : la phrase dit ce qu'Approve fait ici. */}
+          {/* UNE QUESTION, TROIS REPONSES — ET LA MAIN PASSE A L'HUMAIN.
+              Defaut mesure en repetition : tout fonctionnait, et le presentateur a cru que rien
+              ne s'etait passe. L'ecran disait `asking — 18 s of 240 s`, ce qui DECRIT le systeme
+              au lieu de dire quoi faire, et les trois boutons ressemblaient au reste de la page.
+              Ils s'allument donc des que la garde demande : liseré d'accent, fond souleve, et une
+              CONSIGNE avant la mecanique. Les trois restent visibles au repos — celle du milieu,
+              « passer quand meme », est ce qui distingue une garde d'un routeur. */}
           <div
             className="px-[11px] py-[6px] flex flex-wrap items-center gap-[6px]"
-            style={{ borderTop: '1px solid var(--line-strong)' }}
+            style={{
+              borderTop: `1px solid ${demande ? 'var(--m-4)' : 'var(--line-strong)'}`,
+              border: demande ? '1px solid var(--m-4)' : undefined,
+              background: demande ? 'var(--bg-3)' : undefined,
+              boxShadow: demande ? 'inset 3px 0 0 var(--m-4)' : undefined,
+            }}
           >
+            {demande && (
+              <span className="t-data" style={{ color: 'var(--m-4)', flex: 'none' }}>
+                {occupe === 'device' ? 'On the device now —' : 'Pick one —'}
+              </span>
+            )}
             <Bouton
               onClick={() => {
                 choisir.current?.('refuser')
@@ -1345,18 +1375,46 @@ export function DemoPage() {
                 : `${bpsTexte(acteAffiche.proposee.bps!)} bps`}
             </Bouton>
             <span className="t-data-xs" style={{ color: 'var(--ink-2)', minWidth: 0, lineHeight: 1.3 }}>
-              {demande ? `asking — ${attente} s of ${DELAI_APPAREIL_S} s` : 'they answer while the guard asks'}
-              {' · '}the plan you pick goes to the device: <em>Reject</em> leaves nothing,{' '}
-              <em>Approve</em> approves <em>that</em> plan.
+              {demande ? (
+                occupe === 'device' ? (
+                  <>
+                    <strong style={{ color: 'var(--ink)' }}>Reject or Approve on the device.</strong>{' '}
+                    <em>Reject</em> leaves nothing, <em>Approve</em> approves <em>that</em> plan
+                    {restantS !== null ? ` · ${restantS} s left of ${DELAI_APPAREIL_S}` : ''}
+                  </>
+                ) : (
+                  <strong style={{ color: 'var(--ink)' }}>
+                    the plan you choose goes to the device — nothing has been sent yet
+                  </strong>
+                )
+              ) : (
+                'they answer while the guard asks · the plan you pick goes to the device'
+              )}
               {appareil !== null && !estRefus(appareil) && appareil.ecrans !== undefined
                 ? ` · ${appareil.ecrans} screens`
                 : ''}
             </span>
+            {partRestante !== null && (
+              <span
+                aria-hidden="true"
+                style={{ flex: '1 1 100%', height: 3, background: 'var(--bg-2)', minWidth: 80 }}
+              >
+                <span
+                  style={{
+                    display: 'block',
+                    height: 3,
+                    width: `${partRestante * 100}%`,
+                    background: partRestante < 0.1 ? 'var(--m-3)' : 'var(--m-4)',
+                    transition: 'width 1s linear',
+                  }}
+                />
+              </span>
+            )}
           </div>
         </div>
       )}
 
-      {paire && vue === 'parcours' && issue === null && (
+      {paire && vue === 'parcours' && issue === null && !demande && (
         <PanneauPaires
           choisie={paireChoisie || cleExecutee}
           setChoisie={setPaireChoisie}
@@ -1515,6 +1573,13 @@ export function DemoPage() {
                   <span>— keccak256 of the text sent to the device, shown there too</span>
                 </div>
               </div>
+              {/* « Ethereum app is ready · screens 1 · presses 0 » se lit comme une panne alors
+                  que c'est l'etat normal : rien ne part tant qu'un plan n'est pas choisi. */}
+              {occupe !== 'device' && (
+                <div className="px-[11px] pt-[5px] t-data-xs" style={{ color: 'var(--m-5)', lineHeight: 1.3 }}>
+                  nothing has been sent yet: the device receives the plan you pick.
+                </div>
+              )}
               <EcranAppareil onBouton={bouton} texte={ecranTexte} lireEcran={lireEcran} />
               {/* L'ECHAPPATOIRE DE SCENE. L'appareil porte la confirmation ; quand il ou le pont
                   ne repond pas, le presentateur tranche ici, et l'ecran DIT qui a decide. Ces
@@ -1526,6 +1591,7 @@ export function DemoPage() {
                 <Bouton
                   onClick={() => trancher.current?.({ approved: false, by: 'the page', reason: 'rejected here' })}
                   actif={demande && occupe === 'device'}
+                  titre="the stage escape: decide here when the device or the bridge is not answering"
                 >
                   Reject (here)
                 </Bouton>
@@ -1536,9 +1602,6 @@ export function DemoPage() {
                 >
                   Approve (here)
                 </Bouton>
-                <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
-                  {demande && occupe === 'device' ? 'the device is being asked' : 'only while the device is asked'}
-                </span>
               </div>
             </Etape>
           )}

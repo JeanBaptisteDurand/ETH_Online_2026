@@ -320,7 +320,12 @@ test('accepter la substitution ouvre le portefeuille, avec la transaction de REM
   await expect(page.getByRole('button', { name: /^refuse$/ })).toBeVisible()
   await expect(page.getByRole('button', { name: /^go anyway · 4\.0933 bps$/ })).toBeVisible()
   await expect(page.getByRole('button', { name: /^substitute · 0 bps$/ })).toBeVisible()
-  await expect(page.getByText(/Approve.*approves.*that.*plan/)).toBeVisible()
+  // La main passe a l'humain, et l'ecran le DIT : une consigne, pas un etat.
+  await expect(page.getByText('Pick one —')).toBeVisible()
+  await expect(page.getByText('the plan you choose goes to the device — nothing has been sent yet')).toBeVisible()
+  await expect(
+    page.locator('section', { hasText: 'the device confirms the plan' }).first(),
+  ).toContainText('nothing has been sent yet: the device receives the plan you pick')
 
   await page.getByRole('button', { name: /^substitute · 0 bps$/ }).click()
   // Le plan choisi part a l appareil, qui confirme.

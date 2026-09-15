@@ -1976,7 +1976,9 @@ span a[href] {
 }
 @media (min-width: 1280px) {
   .demo-bande {
-    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.05fr) minmax(0, 1.05fr) minmax(0, 1.05fr);
+    /* Trois blocs : le chiffre de la page, les quatre parts en 2x2, la bande. La queue n'a plus
+       sa colonne de prose : elle est la quatrieme part. */
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.6fr) minmax(0, 0.95fr);
   }
   .demo-bande > * + * {
     border-top: none;
@@ -1988,7 +1990,9 @@ span a[href] {
    une colonne vide a droite. */
 @media (min-width: 1280px) {
   .demo-etapes-3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    /* La troisieme colonne porte l'appareil : c'est le personnage principal, elle est la plus
+       large. En vue « queue » elle porte la porte extreme, qui supporte aussi bien la largeur. */
+    grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.3fr) minmax(0, 1.22fr);
   }
 }
 
@@ -2068,8 +2072,12 @@ span a[href] {
     border-color 300ms linear,
     background-color 300ms linear;
 }
+/* 0.38 ramenait l'encre pleine a 2,4:1 : la route ecartee devenait illisible, et avec elle un des
+   quatre chiffres de la demonstration. A 0.62 elle recule nettement et se lit encore (4,7:1) ; la
+   route choisie garde trois signes qui ne sont pas des nuances — son filet d'accent, son fond
+   souleve et le mot « chosen ». */
 .demo-route-ecartee {
-  opacity: 0.38;
+  opacity: 0.62;
   transform: translateX(-8px) scale(0.985);
 }
 .demo-route-active {
@@ -2110,13 +2118,407 @@ span a[href] {
     grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
   }
 }
-/* PHASE 4 — les trois temps reculent : le panneau « ce qu'on a garde » domine. */
+/* PHASE 4 — les trois temps reculent : le panneau « ce qu'on a garde » domine.
+   0.62 mettait l'encre secondaire a 3,7:1 — du gris sur gris a l'instant du resultat. A 0.8 elle
+   reste a 5:1 ; la domination du resultat tient a ses chiffres de 44 px et a son cadre d'accent,
+   pas a l'effacement du reste. */
 .demo-recule {
-  opacity: 0.62;
+  opacity: 0.8;
   transition: opacity 300ms linear;
 }
 @media (prefers-reduced-motion: reduce) {
   .demo-recule {
     transition: none;
+  }
+}
+
+/* ==============================================================================================
+   LA SCENE DE DEMONSTRATION (#/demo) — lue au fond d'une salle, sur une video compressee.
+
+   Mesure faite sur le site publie, a 1440x900, avec les vrais services : 181 noeuds de texte sous
+   13 px au repos (100 a 10 px, 81 a 11 px), les trois reponses a 11 px, les boutons desactives a
+   2,1:1, et la phase 3 qui depassait de 120 px. Tout ce qui suit est scope a `.demo-scene` : le
+   reste du site garde son echelle d'instrument, qui se lit a cinquante centimetres, pas a cinq
+   metres. Aucune couleur nouvelle — les jetons de la charte, et eux seuls.
+   ============================================================================================== */
+
+/* L'ECHELLE, UN CRAN PLUS HAUT, ET SEULEMENT ICI. Le plancher passe de 10 a 12 px ; ce qui porte
+   la demonstration (les chiffres, les reponses, le champ de l'appareil, les boutons) est a 13 px
+   et au-dessus. */
+.demo-scene .t-data-xs {
+  font-size: 12px;
+  line-height: 15px;
+  letter-spacing: 0.01em;
+}
+.demo-scene .t-data-sm {
+  font-size: 13px;
+  line-height: 17px;
+  letter-spacing: 0.01em;
+}
+.demo-scene .t-label {
+  font-size: 12px;
+  line-height: 15px;
+  letter-spacing: 0.01em;
+}
+.demo-scene .t-data {
+  font-size: 14px;
+  line-height: 18px;
+}
+
+/* LES BOUTONS PAR ROLE — Demo.tsx, BoutonRole. Le role se lit a la forme, pas a la teinte seule :
+   vide, plein, filet de signal, plein d'accent. */
+.demo-bouton {
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 16px;
+  padding: 5px 12px;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.demo-bouton:hover:not(:disabled) {
+  border-color: var(--ink-3);
+}
+.demo-bouton-plein {
+  background: var(--bg-3);
+}
+.demo-bouton-alerte {
+  border-color: var(--m-5);
+  color: var(--m-5);
+}
+.demo-bouton-alerte:hover:not(:disabled) {
+  border-color: var(--m-5);
+  background: var(--bg-2);
+}
+.demo-bouton-accent {
+  background: var(--m-4);
+  border-color: var(--m-4);
+  color: var(--bg);
+  font-weight: 700;
+}
+.demo-bouton-accent:hover:not(:disabled) {
+  border-color: var(--ink);
+}
+/* Desactive : lisible (5,5:1), jamais l'encre la plus sombre, et sans le fond de son role. */
+.demo-bouton:disabled {
+  cursor: not-allowed;
+  color: var(--ink-3);
+  border-color: var(--line);
+  background: transparent;
+}
+.demo-bouton-grand {
+  font-size: 18px;
+  line-height: 22px;
+  padding: 6px 32px;
+  letter-spacing: 0.02em;
+}
+
+/* LE POINT D'ENTREE — la seule bande encadree d'accent de la page. */
+.demo-depart {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+  padding: 3px 3px 3px 14px;
+  border: 1px solid var(--m-4);
+  background: var(--bg-1);
+  box-shadow: inset 3px 0 0 var(--m-4);
+  min-width: 0;
+}
+.demo-depart-libelle {
+  color: var(--m-4);
+  flex: none;
+}
+.demo-depart-montant {
+  font-family: var(--mono);
+  font-size: 24px;
+  line-height: 28px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+/* LES TROIS REPONSES — au corps de lecture, avec un filet qu'on voit et la touche qui les donne. */
+.demo-choix {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  padding: 4px 11px;
+  border-top: 1px solid var(--line-strong);
+  min-width: 0;
+}
+.demo-choix-demande {
+  border: 1px solid var(--m-4);
+  background: var(--bg-3);
+  box-shadow: inset 3px 0 0 var(--m-4);
+}
+.demo-bouton-choix {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--mono);
+  font-size: 15px;
+  line-height: 18px;
+  padding: 5px 14px 5px 6px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg-1);
+  color: var(--ink);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.demo-bouton-choix:hover:not(:disabled) {
+  border-color: var(--ink-2);
+}
+.demo-bouton-choix-fort {
+  border-color: var(--m-4);
+}
+.demo-bouton-choix:disabled {
+  cursor: not-allowed;
+  color: var(--ink-3);
+  background: transparent;
+  border-color: var(--line);
+}
+.demo-choix-consigne {
+  color: var(--ink-2);
+  flex: 1 1 240px;
+  min-width: 0;
+  line-height: 1.3;
+}
+.demo-touche {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 14px;
+  min-width: 20px;
+  padding: 2px 5px 1px;
+  border: 1px solid var(--line-strong);
+  border-bottom-width: 2px;
+  background: var(--bg-2);
+  color: var(--ink);
+  text-align: center;
+}
+.demo-bouton-choix:disabled .demo-touche {
+  color: var(--ink-3);
+  border-color: var(--line);
+}
+
+/* LA ROUTE EST UN CHEMIN — DemoRoute.tsx, DeuxRoutes. Deux vrais traits relient les jetons a la
+   porte ; la porte est une case en pointilles tant qu'elle n'est pas choisie. */
+.demo-trait {
+  flex: 1 1 16px;
+  min-width: 10px;
+  height: 1px;
+  background: var(--line-strong);
+  align-self: center;
+}
+.demo-route-active .demo-trait {
+  background: var(--m-4);
+}
+.demo-chiffre {
+  font-family: var(--mono);
+  font-size: 26px;
+  line-height: 26px;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+@media (max-width: 899px) {
+  .demo-chemin {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+  .demo-trait {
+    display: none;
+  }
+}
+
+/* LES QUATRE PARTS EN 2x2 — le chiffre au-dessus de sa legende. */
+.demo-parts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3px 18px;
+  align-content: start;
+  min-width: 0;
+}
+
+/* L'ECRAN DE L'APPAREIL — une carte noire de hauteur FIXE, en multiple entier des 64 lignes de
+   l'ecran : 3x au repos, 4x quand le plan y est. L'image reste nette, et la hauteur de la scene
+   ne depend plus de la largeur de la colonne. (box-sizing: border-box — padding et filet
+   compris.) */
+.demo-ecran {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 146px;
+  padding: 8px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg);
+  min-width: 0;
+  overflow: hidden;
+}
+.demo-ecran-grand {
+  height: 274px;
+  border-color: var(--m-4);
+}
+.demo-badge {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 14px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid var(--ink-3);
+  color: var(--ink);
+  white-space: nowrap;
+}
+.demo-badge-parti {
+  border-color: var(--m-4);
+  color: var(--m-4);
+}
+
+/* LE FIL — six etapes, en bas, permanentes. L'etape courante a un filet d'accent, un fond
+   souleve et `aria-current` ; les etapes a venir ont un filet en pointilles ; un arret le dit
+   en toutes lettres. Aucune de ces trois lectures ne repose sur la teinte seule. */
+.demo-fil {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 2px 6px;
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+  min-width: 0;
+}
+.demo-fil-etapes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-width: 0;
+}
+.demo-fil-etape {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 2px 7px;
+  border: 1px solid var(--line-strong);
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 15px;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.demo-fil-n {
+  font-weight: 700;
+}
+.demo-fil-a-venir {
+  border-style: dashed;
+  border-color: var(--line-strong);
+  color: var(--ink-3);
+}
+.demo-fil-courante,
+.demo-fil-arretee {
+  color: var(--ink);
+  background: var(--bg-3);
+  border-color: var(--m-4);
+  box-shadow: inset 0 -2px 0 var(--m-4);
+}
+.demo-fil-courante .demo-fil-n {
+  color: var(--m-4);
+}
+.demo-fil-arretee {
+  border-color: var(--m-3);
+  box-shadow: inset 0 -2px 0 var(--m-3);
+}
+.demo-fil-arretee .demo-fil-n,
+.demo-fil-mot {
+  color: var(--m-5);
+}
+.demo-fil-touches {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 15px;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+@media (max-width: 899px) {
+  .demo-fil-touches {
+    margin-left: 0;
+    white-space: normal;
+    flex-wrap: wrap;
+  }
+}
+
+/* L'appareil AU REPOS : l'ecran a gauche, a sa taille entiere (2x ses 128x64), le contexte a
+   droite. Empile sous 900 px. */
+.demo-ecran-rangee {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  min-width: 0;
+}
+.demo-ecran-colonne {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  flex: none;
+}
+.demo-ecran-rangee .demo-ecran {
+  width: 274px;
+}
+.demo-ecran-contexte {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+@media (max-width: 899px) {
+  .demo-ecran-rangee {
+    flex-direction: column;
+  }
+  .demo-ecran-colonne,
+  .demo-ecran-rangee .demo-ecran {
+    width: 100%;
+  }
+}
+/* Les compteurs et « the gesture, in order » partagent une ligne ; le depliant ouvert prend
+   toute la largeur. */
+.demo-ecran-pied {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 12px;
+  min-width: 0;
+}
+.demo-ecran-pied > details[open] {
+  flex-basis: 100%;
+}
+/* Dans le fil, la touche est un repere, pas un bouton : elle ne doit pas faire passer la barre
+   a deux lignes. */
+.demo-fil .demo-touche {
+  padding: 0 4px;
+  min-width: 16px;
+  line-height: 13px;
+  border-bottom-width: 1px;
+}
+
+/* LE FIL EST EN BAS DANS TOUTES LES PHASES, pas seulement quand la page est pleine. Quand la
+   garde demande, la scene est plus courte : sans ceci la barre remontait de cent vingt pixels
+   entre deux phases, et un repere qui bouge n'est plus un repere. La hauteur retranchee est
+   celle de la barre du site (56 px et son filet, la convention de cette feuille) et des marges
+   de #contenu sur la route #/demo — avec quelques pixels de jeu, pour ne JAMAIS provoquer le
+   defilement qu'on cherche a eviter. */
+@media (min-width: 900px) and (min-height: 700px) {
+  .demo-scene {
+    min-height: calc(100dvh - 56px - 21px);
+  }
+  .demo-scene > .demo-fil {
+    margin-top: auto;
   }
 }

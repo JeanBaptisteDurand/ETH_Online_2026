@@ -49,11 +49,16 @@ function Chiffre({
   // trois cents pixels, « 100.00 bps » en taille metrique ne laisse plus rien a sa droite, et
   // la glose tombait en colonne d'un caractere. Mesure faite : le bandeau passait de 120 a
   // 208 px de haut, et poussait les etapes sous le pli.
+  //
+  // LES PARTS SONT EN GRILLE, PLUS EN LISTE. Quatre parts empilees en lignes se lisent une par
+  // une ; posees en 2x2, avec le chiffre au-dessus de sa legende, elles se lisent d'un coup
+  // d'oeil depuis le fond d'une salle. Le chiffre monte a `t-title` — le role existe deja dans
+  // la charte, aucune echelle nouvelle n'est inventee ici.
   return (
-    <div className={fort ? 'flex flex-col' : 'flex items-baseline gap-[9px]'} style={{ minWidth: 0 }}>
+    <div className="flex flex-col" style={{ minWidth: 0 }}>
       <span
-        className={fort ? 't-metric' : 't-data'}
-        style={{ color: fort ? 'var(--m-4)' : 'var(--ink)', flex: 'none', lineHeight: 1.05 }}
+        className={fort ? 't-metric' : 't-title'}
+        style={{ color: fort ? 'var(--m-4)' : 'var(--ink)', flex: 'none', lineHeight: fort ? 0.95 : 1.05 }}
       >
         {valeur}
       </span>
@@ -100,7 +105,7 @@ export function BandeDistribution({
       style={{ border: '1px solid var(--line)', background: 'var(--bg-1)' }}
     >
       {/* ------------------------------------------------------ le chiffre de la page */}
-      <div className="flex flex-col gap-[4px] px-[12px] py-[5px]" style={{ minWidth: 0 }}>
+      <div className="flex flex-col gap-[3px] px-[12px] py-[4px]" style={{ minWidth: 0 }}>
         <span className="t-label" style={{ color: 'var(--ink-2)' }}>
           what a measured hook takes
         </span>
@@ -117,7 +122,7 @@ export function BandeDistribution({
       </div>
 
       {/* --------------------------------------------------------------- les parts */}
-      <div className="flex flex-col gap-[4px] px-[12px] py-[5px]" style={{ borderLeft: '1px solid var(--line)', minWidth: 0 }}>
+      <div className="demo-parts px-[12px] py-[4px]" style={{ borderLeft: '1px solid var(--line)', minWidth: 0 }}>
         {auDessusDesFrais === null ? (
           <span className="t-data-xs" style={{ color: 'var(--ink-2)' }}>
             the LP fee of the act 1 pool was not read: no comparison is drawn
@@ -144,10 +149,17 @@ export function BandeDistribution({
             </>
           }
         />
+        {/* LA QUEUE EST UNE PART, ELLE AUSSI : elle prend la quatrieme case au lieu d'une
+            colonne de prose a elle seule. Le nombre de lignes en tete, la glose dessous. */}
+        <Chiffre
+          valeur={`${groupDigits(String(queue.n))} rows`}
+          quoi={`the tail · ${partTexte(queue.part)}`}
+          glose={<>take more than half of what you swap</>}
+        />
       </div>
 
       {/* ------------------------------------------------------------------ la bande */}
-      <div className="flex flex-col gap-[4px] px-[12px] py-[5px]" style={{ borderLeft: '1px solid var(--line)', minWidth: 0 }}>
+      <div className="flex flex-col gap-[4px] px-[12px] py-[4px]" style={{ borderLeft: '1px solid var(--line)', minWidth: 0 }}>
         <svg
           viewBox="0 0 1000 26"
           preserveAspectRatio="none"
@@ -178,28 +190,18 @@ export function BandeDistribution({
           </span>
           <span style={{ textAlign: 'right' }}>max {bpsTexte(d.max, 2)}</span>
         </div>
-      </div>
-
-      {/* ------------------------------------------------------------------ la queue */}
-      <div className="flex flex-col gap-[4px] px-[12px] py-[5px]" style={{ borderLeft: '1px solid var(--line)', minWidth: 0 }}>
-        <div className="flex flex-wrap items-baseline gap-[8px]">
-          <span className="t-data-xs" style={{ color: 'var(--ink-2)', minWidth: 0, lineHeight: 1.4 }}>
-            the tail: {groupDigits(String(queue.n))} rows ({partTexte(queue.part)}) take more than half of
-            what you swap. The highest, {bpsTexte(d.max, 2)} bps, is one row of{' '}
-            {groupDigits(String(d.nLignes))}. We publish those too.
+        {/* LE MAXIMUM EST UN POINT DE LA QUEUE, dit a cote de la bande ou il se trouve — et plus
+            dans la case de la queue, ou il faisait passer la legende a quatre lignes. */}
+        <div className="flex items-end gap-[8px]" style={{ minWidth: 0 }}>
+          <span className="t-data-xs" style={{ color: 'var(--ink-2)', minWidth: 0, lineHeight: 1.35 }}>
+            The highest, {bpsTexte(d.max, 2)} bps, is one row of {groupDigits(String(d.nLignes))}.{' '}
+            We publish those too.
           </span>
           <button
             type="button"
             onClick={surQueue}
-            className="t-label"
-            style={{
-              padding: '4px 9px',
-              border: `1px solid ${queueOuverte ? 'var(--m-4)' : 'var(--line)'}`,
-              background: queueOuverte ? 'var(--bg-3)' : 'transparent',
-              color: 'var(--ink)',
-              cursor: 'pointer',
-              marginLeft: 'auto',
-            }}
+            className="demo-bouton demo-bouton-contour"
+            style={{ marginLeft: 'auto', flex: 'none', borderColor: queueOuverte ? 'var(--m-4)' : undefined }}
           >
             {queueOuverte ? 'close the tail' : 'see the tail'}
           </button>

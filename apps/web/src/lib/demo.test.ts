@@ -787,12 +787,17 @@ test('quatre phases, quatre hierarchies — et rien ne disparait', () => {
   assert.ok(ECRAN.includes("phase === 'repos' ? (\n        <BandeDistribution"))
   assert.ok(ECRAN.includes('median of {groupDigits(String(dist.n))} measured rows'))
   assert.ok(ECRAN.includes('see the tail'), 'la queue reste atteignable dans toutes les phases')
-  // 2. quand la garde demande, les deux routes sont GRANDES.
-  assert.ok(ECRAN.includes("grand={phase === 'choix'}"))
-  assert.ok(ROUTE.includes("const chiffre = grand ? 't-metric' : 't-data-lg'"))
-  // 3. le plan sur l'appareil : l'ecran devient central et grand.
+  // 2. le corps des quatre chiffres SUIT la phase : grands quand la garde demande, moyens au
+  //    repos (reperables sans ecraser la these), petits quand l'objet est l'ecran du Ledger.
+  assert.ok(ECRAN.includes("taille={phase === 'choix' ? 'grande' : phase === 'appareil' ? 'petite' : 'moyenne'}"))
+  assert.ok(ROUTE.includes("const chiffre = t === 'grande' ? 't-metric' : t === 'moyenne' ? 'demo-chiffre' : 't-data-lg'"))
+  assert.ok(lire('../index.css').includes('.demo-chiffre {'), 'le corps moyen vit dans la charte')
+  // 3. le plan sur l'appareil : l'ecran devient central et grand, et dit ce qui est parti.
   assert.ok(ECRAN.includes("phase === 'appareil' && ("))
-  assert.ok(ECRAN.includes('<EcranAppareil onBouton={bouton} texte={ecranTexte} lireEcran={lireEcran} grand />'))
+  assert.ok(
+    ECRAN.includes('<EcranAppareil onBouton={bouton} texte={ecranTexte} lireEcran={lireEcran} grand sousLEcran={badgeEnvoi} />'),
+  )
+  assert.ok(lire('../index.css').includes('.demo-ecran-grand {'), "l'ecran a une hauteur fixe : la scene se compte au pixel")
   assert.ok(ECRAN.includes('the plan is on the device'))
   assert.ok(ECRAN.includes('field now'), 'le champ en cours, en gros, hors de l appareil')
   // 4. a la fin, les trois temps reculent devant « ce qu'on a garde ».

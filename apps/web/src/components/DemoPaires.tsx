@@ -131,7 +131,7 @@ export function PanneauPaires({
   return (
     <details className="demo-paires" style={{ border: '1px solid var(--line)', background: 'var(--bg-1)' }}>
       <summary
-        className="t-label px-[11px] py-[4px] cursor-pointer list-none flex flex-wrap items-baseline gap-[10px]"
+        className="t-label px-[11px] py-[2px] cursor-pointer list-none flex flex-wrap items-baseline gap-[10px]"
         style={{ color: 'var(--ink-2)' }}
       >
         <span style={{ color: 'var(--ink)' }}>every pair the corpus measures</span>

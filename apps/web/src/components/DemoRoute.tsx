@@ -239,6 +239,7 @@ export function DeuxRoutes({
   proposee,
   choisie,
   ecartBps,
+  taille,
   grand = false,
 }: {
   entree: string
@@ -251,47 +252,62 @@ export function DeuxRoutes({
   /** laquelle la page a retenue. null = aucune encore. */
   choisie: 'courante' | 'proposee' | null
   ecartBps: number | null
-  /** vrai pendant que la garde demande : c'est LA l'image de la demonstration */
+  /**
+   * LE CORPS DES QUATRE CHIFFRES SUIT LA PHASE, parce que ce qu'on regarde change.
+   *   grande  — la garde demande : les deux couts et les deux montants sont l'ecran entier ;
+   *   moyenne — au repos : ils doivent rester REPERABLES sans ecraser la these du bandeau ;
+   *   petite  — le plan est sur l'appareil : l'objet est l'ecran du Ledger, la route rappelle.
+   */
+  taille?: 'grande' | 'moyenne' | 'petite'
+  /** @deprecated garde l'ancien appel : `grand` vaut `taille="grande"` */
   grand?: boolean
 }) {
-  const chiffre = grand ? 't-metric' : 't-data-lg'
+  const t = taille ?? (grand ? 'grande' : 'moyenne')
+  const chiffre = t === 'grande' ? 't-metric' : t === 'moyenne' ? 'demo-chiffre' : 't-data-lg'
   const ligne = (c: RouteCandidate, quoi: 'courante' | 'proposee') => {
     const active = choisie === quoi
     // LA BASCULE SE VOIT : la route ecartee recule franchement, une seule fois, sans rebond.
     const ecartee = choisie !== null && !active
     return (
       <div
-        className={`demo-route-ligne flex flex-wrap items-center gap-x-[10px] gap-y-[4px] px-[10px] ${grand ? 'py-[9px]' : 'py-[6px]'} ${ecartee ? 'demo-route-ecartee' : ''} ${active ? 'demo-route-active' : ''}`}
+        className={`demo-route-ligne demo-chemin flex items-center gap-x-[8px] px-[10px] ${t === 'grande' ? 'py-[7px]' : 'py-[3px]'} ${ecartee ? 'demo-route-ecartee' : ''} ${active ? 'demo-route-active' : ''}`}
         style={{
           border: `1px solid ${active ? 'var(--m-4)' : 'var(--line)'}`,
           background: active ? 'var(--bg-3)' : 'var(--bg-2)',
           minWidth: 0,
         }}
       >
-        <span className="t-label" style={{ color: active ? 'var(--m-4)' : 'var(--ink-2)', width: 96, flex: 'none' }}>
+        <span className="t-label" style={{ color: active ? 'var(--m-4)' : 'var(--ink-2)', width: 104, flex: 'none' }}>
           {quoi === 'courante' ? 'your route' : 'cheaper gate'}
           {active ? ' · chosen' : ''}
         </span>
         <Jeton adresse={entree} symbole={symboleEntree} />
-        <Fleche />
+        {/* UN VRAI TRAIT DE LIAISON. Un swap est un ITINERAIRE, et la seule case que personne
+            ne voit avant de signer est celle du milieu : elle se dessine donc comme une etape
+            du chemin, pas comme une colonne de tableau. */}
+        <span className="demo-trait" aria-hidden="true" />
         <span
-          className="inline-flex items-baseline gap-[8px] px-[9px] py-[3px]"
-          style={{ border: '1px solid var(--line-strong)', background: 'var(--bg-1)', minWidth: 0 }}
+          className="demo-etape-chemin inline-flex items-center gap-[8px] px-[9px] py-[1px]"
+          style={{
+            border: `1px ${active ? 'solid var(--m-4)' : 'dashed var(--line-strong)'}`,
+            background: 'var(--bg-1)',
+            minWidth: 0,
+          }}
         >
           <span
             aria-hidden="true"
-            style={{ width: 8, height: 8, flex: 'none', background: c.bps === null ? 'var(--ink-4)' : rampVar(c.bps) }}
+            style={{ width: 8, height: 8, flex: 'none', background: c.bps === null ? 'var(--ink-3)' : rampVar(c.bps) }}
           />
-          <span className="t-data-xs hex" style={{ color: 'var(--ink)' }} title={`pool ${c.poolId} · hook ${c.hook}`}>
+          <span className="t-data-xs hex" style={{ color: 'var(--ink-2)' }} title={`pool ${c.poolId} · hook ${c.hook}`}>
             gate {shortAddr(c.poolId, 10, 4)}
           </span>
-          <span className={chiffre} style={{ color: 'var(--ink)', lineHeight: 1.05 }}>
+          <span className={chiffre} style={{ color: 'var(--ink)', lineHeight: 1.05, flex: 'none' }}>
             {c.bps === null ? 'unknown' : `${bpsTexte(c.bps)} bps`}
           </span>
         </span>
-        <Fleche />
+        <span className="demo-trait" aria-hidden="true" />
         <Jeton adresse={sortie} symbole={symboleSortie} />
-        <span className="ml-auto flex items-baseline gap-[7px]" style={{ flex: 'none' }}>
+        <span className="flex items-baseline gap-[7px] pl-[10px]" style={{ flex: 'none' }}>
           <span className="t-label" style={{ color: 'var(--ink-2)' }}>
             receives
           </span>

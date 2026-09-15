@@ -15,6 +15,10 @@
  *
  * RIEN DE CE QUE LE JOURNAL FAIT NE PEUT RETARDER UN VERDICT. La reponse part d'abord ; le
  * depot est lance apres, sans etre attendu, et son echec est ecrit en console.
+ *
+ * ET LA PASTILLE DE L'ICONE, par onglet. Le worker est le seul morceau qui voie chrome.action ;
+ * il recoit les etapes d'interception relayees par le pont et en fait la pastille de l'onglet
+ * EMETTEUR — `expediteur.tab.id`, que la page ne peut pas choisir. Voir extension/pastille.ts.
  */
 import { assertTable, type GuardTable } from "../src/table.js";
 import { tareGuard } from "../src/guard-sans-table.js";
@@ -26,6 +30,7 @@ import {
   type DemandeConsultation,
   type DemandeJournal,
 } from "./protocole.js";
+import { lireEtape, pastillePour, type EtapeLue } from "./pastille.js";
 
 /** Le nom de la ressource du paquet. Voir web_accessible_resources du manifeste. */
 const RESSOURCE_TABLE = "table.json";
@@ -129,8 +134,36 @@ async function deposer(m: DemandeJournal): Promise<void> {
   }
 }
 
-chrome.runtime.onMessage.addListener((brut, _expediteur, repondre) => {
+/**
+ * Pose la pastille d'UN onglet. Les trois appels partent dans l'ordre, sans attendre : deux
+ * etapes rapprochees (interceptee puis transmise, a quelques millisecondes) finissent donc sur
+ * la derniere. Un onglet ferme entre-temps fait rejeter l'appel — rien a allumer, rien a dire.
+ */
+function poserPastille(tabId: number, etape: EtapeLue): void {
+  const action = (chrome as { action?: typeof chrome.action }).action;
+  if (!action) {
+    console.warn("[TARE Guard] chrome.action absent : le manifeste doit declarer une cle « action »");
+    return;
+  }
+  const p = pastillePour(etape);
+  const taire = () => undefined;
+  action.setBadgeText({ tabId, text: p.texte }).catch(taire);
+  action.setBadgeBackgroundColor({ tabId, color: p.couleur }).catch(taire);
+  if (typeof action.setBadgeTextColor === "function") action.setBadgeTextColor({ tabId, color: "#ffffff" }).catch(taire);
+  action.setTitle({ tabId, title: p.titre }).catch(taire);
+}
+
+chrome.runtime.onMessage.addListener((brut, expediteur, repondre) => {
   if (!estDeNous(brut)) return false;
+
+  if (brut.genre === "etape") {
+    // L'onglet vient du NAVIGATEUR, pas du message : une page ne peut allumer que sa propre icone.
+    const tabId = expediteur?.tab?.id;
+    const etape = lireEtape(brut);
+    if (etape && typeof tabId === "number" && tabId >= 0) poserPastille(tabId, etape);
+    repondre({ recu: etape !== null });
+    return false;
+  }
 
   if (brut.genre === "consulter") {
     const m = brut as DemandeConsultation;

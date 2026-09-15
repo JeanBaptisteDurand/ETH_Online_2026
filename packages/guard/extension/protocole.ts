@@ -53,7 +53,37 @@ export interface DemandeJournal {
   detail: Record<string, unknown>;
 }
 
-export type Message = DemandeConsultation | ReponseConsultation | DemandeJournal;
+/**
+ * UNE ETAPE D'INTERCEPTION, pour l'icone de l'extension.
+ *
+ * Elle part du monde MAIN — de la garde de l'extension OU de celle qu'un site embarque, comme la
+ * page de demonstration (voir EVENEMENT_ETAPE dans src/injection.ts) — traverse le pont, et le
+ * worker en fait la pastille de CET onglet. `repos` remet l'icone au neutre quand la page change
+ * de route sans recharger.
+ *
+ * Le worker ne croit aucun champ sur parole : le monde MAIN est celui de la page. Il relit tout
+ * par `lireEtape` (extension/pastille.ts) avant d'allumer quoi que ce soit.
+ */
+export interface MessageEtape {
+  marque: typeof MARQUE;
+  genre: "etape";
+  id: string;
+  etape: "interceptee" | "refusee" | "transmise" | "repos";
+  /** qui a emis l'etape : "extension", ou "page" pour une garde embarquee par le site */
+  garde?: string;
+  verdict?: string | null;
+  hook?: string | null;
+  bps?: number | null;
+  ailleurs?: number | null;
+  etiquette?: string | null;
+  bloc?: number | null;
+  titre?: string | null;
+  par?: string | null;
+  raison?: string | null;
+  origine?: string | null;
+}
+
+export type Message = DemandeConsultation | ReponseConsultation | DemandeJournal | MessageEtape;
 
 export function estDeNous(x: unknown): x is Message {
   return Boolean(x) && typeof x === "object" && (x as { marque?: unknown }).marque === MARQUE;

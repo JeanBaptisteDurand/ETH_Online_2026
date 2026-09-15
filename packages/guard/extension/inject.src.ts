@@ -11,10 +11,22 @@
  * SI LE WORKER NE REPOND PAS — extension rechargee, navigateur qui l'a mise en sommeil,
  * table absente du paquet — la transaction PASSE, et la console le dit. Bloquer par accident
  * quelqu'un qui n'a rien demande est un plus gros defaut que rater une alerte.
+ *
+ * ELLE ALLUME AUSSI L'ICONE, et pas seulement pour ses propres interceptions. Elle ecoute les
+ * etapes de TOUTE garde TARE de la fenetre (EVENEMENT_ETAPE, src/injection.ts) et les relaie au
+ * worker par le pont. C'est ce qui fait marcher la pastille sur https://tare-hooks.tech/#/demo,
+ * ou la page pose sa propre garde AU-DESSUS de celle-ci : la, l'extension observe et signale,
+ * et laisse la page poser la question.
  */
-import { installerInjection } from "../src/injection.js";
+import { installerInjection, EVENEMENT_ETAPE, type EtapeGarde } from "../src/injection.js";
 import type { GuardReport } from "../src/types.js";
-import { MARQUE, estDeNous, CIBLE_MEME_FENETRE, type ReponseConsultation } from "./protocole.js";
+import {
+  MARQUE,
+  estDeNous,
+  CIBLE_MEME_FENETRE,
+  type MessageEtape,
+  type ReponseConsultation,
+} from "./protocole.js";
 
 /** Au-dela, on considere que le worker ne repondra pas. Un swap n'attend pas trois secondes. */
 const DELAI_MS = 2500;
@@ -55,6 +67,7 @@ function demander(genre: "consulter", tx: unknown): Promise<ReponseConsultation>
 }
 
 const installation = installerInjection({
+  nom: "extension",
   askOn: ["warn", "block"],
   async consulter(tx) {
     const r = await demander("consulter", {
@@ -97,6 +110,70 @@ const installation = installerInjection({
       CIBLE_MEME_FENETRE,
     );
   },
+  onObserve: () => {
+    // La garde du site a deja lu, demande et laisse partir cette transaction : une seconde
+    // fenetre, par-dessus son ecran, reposerait la meme question. La pastille, elle, a deja ete
+    // allumee par l'etape que la garde du site a emise.
+    console.info("[TARE Guard] transaction deja examinee par la garde de la page : observee, pas re-interceptee");
+  },
 });
+
+/* ------------------------------------------------------------- LA PASTILLE */
+
+let allumee = false;
+let compteurEtapes = 0;
+
+function signaler(m: Omit<MessageEtape, "marque" | "genre" | "id">): void {
+  window.postMessage(
+    { marque: MARQUE, genre: "etape", id: `e.${Date.now().toString(36)}.${(compteurEtapes += 1)}`, ...m },
+    CIBLE_MEME_FENETRE,
+  );
+}
+
+window.addEventListener(EVENEMENT_ETAPE, (ev) => {
+  const d = (ev as CustomEvent<EtapeGarde>).detail;
+  // Un format qu'on ne connait pas n'allume rien : mieux vaut une icone muette qu'une icone fausse.
+  if (!d || typeof d !== "object" || d.v !== 1) return;
+  allumee = true;
+  signaler({
+    etape: d.etape,
+    garde: d.garde,
+    verdict: d.verdict,
+    hook: d.hook,
+    bps: d.bps,
+    ailleurs: d.ailleurs,
+    etiquette: d.etiquette,
+    bloc: d.bloc,
+    titre: d.titre,
+    par: d.par,
+    raison: d.raison,
+    origine: window.location.host,
+  });
+});
+
+/**
+ * LA PAGE CHANGE, LA PASTILLE REVIENT AU REPOS. Un rechargement ou une navigation vers un autre
+ * document efface deja les valeurs par onglet de chrome.action — c'est le navigateur qui le fait,
+ * et le test de bout en bout le verifie. Reste le site a une seule page, qui change de route par
+ * l'ancre (`#/demo` -> `#/`) sans recharger : c'est ici qu'on le voit.
+ *
+ * Le cadre du haut seulement : un iframe qui change d'ancre n'est pas « la page qui change ». Et
+ * seulement si une etape a ete relayee depuis ce document — sinon chaque changement d'ancre de
+ * chaque site reveillerait le service worker pour eteindre une icone deja eteinte.
+ */
+if (window.top === window) {
+  const route = () => `${window.location.pathname}${window.location.hash.split("?")[0]}`;
+  let courante = route();
+  const verifier = () => {
+    const r = route();
+    if (r === courante) return;
+    courante = r;
+    if (!allumee) return;
+    allumee = false;
+    signaler({ etape: "repos" });
+  };
+  window.addEventListener("hashchange", verifier);
+  window.addEventListener("popstate", verifier);
+}
 
 console.info(`[TARE Guard] posee sur ${installation.wrapped.length} provider(s)`);

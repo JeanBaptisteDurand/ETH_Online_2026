@@ -25,9 +25,11 @@
     "test": "vitest run",
     "example": "node scripts/serve-example.mjs",
     "build:extension": "node scripts/paqueter-extension.mjs --sans-zip",
-    "build:paquet": "node scripts/paqueter-extension.mjs"
+    "build:paquet": "node scripts/paqueter-extension.mjs",
+    "test:e2e": "npm run build:extension && playwright test -c e2e/playwright.config.ts"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@types/chrome": "^0.0.287",
     "@types/node": "^22.20.1",
     "esbuild": "^0.25.0",

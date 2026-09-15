@@ -1,9 +1,13 @@
 {
   "manifest_version": 3,
   "name": "TARE Guard",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Dit ce qu'un hook Uniswap v4 prend sur ton swap, avant que tu signes. 125 072 mesures embarquees, aucune requete reseau necessaire.",
   "icons": { "128": "icon128.png" },
+  "action": {
+    "default_title": "TARE Guard · nothing intercepted on this tab",
+    "default_icon": { "128": "icon128.png" }
+  },
   "permissions": ["storage"],
   "host_permissions": ["http://127.0.0.1:8787/*", "https://*/*"],
   "background": { "service_worker": "worker.js", "type": "module" },

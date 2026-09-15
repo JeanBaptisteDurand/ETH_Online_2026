@@ -38,10 +38,10 @@ window.addEventListener("message", (ev) => {
     return;
   }
 
-  if (m.genre === "journal") {
-    // Sans rappel : le journal ne doit rien faire attendre a personne. Une erreur ici est
-    // lue et jetee, parce qu'un historique indisponible n'est pas une raison de gener un
-    // swap.
+  if (m.genre === "journal" || m.genre === "etape") {
+    // Sans rappel : ni le journal ni la pastille ne doivent faire attendre personne. Une erreur
+    // ici est lue et jetee, parce qu'un historique indisponible ou une icone qui ne s'allume pas
+    // ne sont pas des raisons de gener un swap.
     chrome.runtime.sendMessage(m, () => void chrome.runtime.lastError);
   }
 });

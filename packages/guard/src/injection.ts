@@ -27,9 +27,16 @@
  * Ce qui se passe en cas de pepin : la garde ne mange jamais la transaction. Si tareGuard leve
  * (elle ne devrait pas), on laisse passer et on l'ecrit dans la console — bloquer par accident
  * un utilisateur qui n'a rien demande est un plus gros defaut que rater une alerte.
+ *
+ * DEUX GARDES PEUVENT S'EMPILER, et ce fichier le sait depuis le 15 septembre 2026. La page de
+ * demonstration pose SA copie de ce fichier sur une coquille qui delegue au portefeuille ;
+ * l'extension pose la sienne sur le portefeuille lui-meme. Chaque garde emet donc ses etapes
+ * sur la fenetre (EVENEMENT_ETAPE), et note ce qu'elle a laisse partir (le registre des
+ * transactions examinees) pour que la garde du dessous ne pose pas la meme question une
+ * seconde fois. Les deux sont decrits plus bas, avec la mesure qui les a motives.
  */
 import { gate, type ApprovalDecision, type Approver } from "./approver.js";
-import type { GuardOptions, GuardReport, TxRequest } from "./types.js";
+import type { Finding, GuardOptions, GuardReport, TxRequest, Verdict } from "./types.js";
 
 export interface Eip1193Provider {
   request(args: { method: string; params?: unknown[] | object }): Promise<unknown>;
@@ -67,11 +74,208 @@ export interface OptionsInjection extends GuardOptions {
   askOn?: ("ok" | "warn" | "block")[];
   /** appele a chaque interception, avant la question */
   onReport?: (report: GuardReport, tx: TxRequest) => void;
-  /** pour les tests : la fenetre a instrumenter */
+  /**
+   * appele quand une transaction arrive DEJA examinee par une garde TARE posee au-dessus de
+   * celle-ci : elle part sans seconde consultation ni seconde question. Voir le registre plus bas.
+   */
+  onObserve?: (tx: TxRequest) => void;
+  /** le nom porte par les etapes emises : "extension" pour l'extension, "page" par defaut */
+  nom?: string;
+  /** pour les tests : la fenetre a instrumenter, et celle ou les etapes sont emises */
   target?: Record<string, unknown>;
 }
 
 const MARK = "__tareGuardWrapped";
+
+/* ------------------------------------------ le signal, et la garde du dessus */
+
+/**
+ * CE QU'UNE GARDE DIT A LA FENETRE, a chaque etape d'une interception.
+ *
+ * Un `CustomEvent`, nomme a la maniere des annonces EIP-6963. Il existe a cause d'une mesure
+ * faite le 15 septembre 2026 sur https://tare-hooks.tech/#/demo, extension chargee :
+ *
+ *   - la page pose SA garde (ce fichier, via apps/web/src/demo/interception.ts) sur une
+ *     COQUILLE neuve qui delegue au portefeuille. La marque MARK que l'extension pose sur le
+ *     portefeuille ne l'en empeche donc pas : les deux routes et les trois choix s'affichaient
+ *     49 ms apres le clic, et aucune fenetre de l'extension ne s'ouvrait ;
+ *   - mais l'extension ne voyait RIEN au clic — la transaction ne touche le portefeuille
+ *     qu'apres la decision de la page — et elle la re-consultait ensuite, en seconde garde.
+ *
+ * Ce signal donne a l'extension ce qu'elle ne pouvait pas voir : elle ecoute les etapes de
+ * TOUTE garde TARE de la fenetre, la sienne comme celle du site, et les montre sur son icone.
+ *
+ * Il ne porte que des primitives, parce qu'il traverse ensuite un postMessage vers le monde
+ * ISOLATED de l'extension. Et il n'engage personne : un signal qui leve ne bloque pas un swap.
+ */
+export const EVENEMENT_ETAPE = "tare-guard:etape";
+
+/** interceptee : la garde a lu la transaction · refusee : rien n'est parti · transmise : au portefeuille */
+export type NomEtape = "interceptee" | "refusee" | "transmise";
+
+export interface EtapeGarde {
+  /** la version du format : un lecteur qui ne la connait pas ignore l'etape */
+  v: 1;
+  etape: NomEtape;
+  /** qui l'emet : `OptionsInjection.nom`, "page" par defaut */
+  garde: string;
+  verdict: Verdict;
+  /** le saut qui porte le verdict (voir constatPrincipal) ; null quand le swap n'a pas de hook */
+  hook: string | null;
+  /** null des que l'etiquette ne porte pas de nombre — jamais un zero par defaut */
+  bps: number | null;
+  /**
+   * quand `bps` est null : le pire que CE hook a pris ailleurs (autre pool, autre taille), tel
+   * que la garde le cite. Un faisceau, jamais la mesure de ce swap — d'ou un champ a part.
+   */
+  ailleurs: number | null;
+  etiquette: string | null;
+  /** le bloc de la mesure citee */
+  bloc: number | null;
+  /** la phrase que la garde montrerait */
+  titre: string;
+  /** `refusee` et `transmise` : qui a tranche, et pourquoi */
+  par: string | null;
+  raison: string | null;
+}
+
+const ADRESSE_NULLE = "0x0000000000000000000000000000000000000000";
+const GRAVITE: Record<Verdict, number> = { ok: 0, warn: 1, block: 2 };
+
+/**
+ * Le saut qui porte le verdict : un saut AVEC hook avant un saut sans, puis le plus grave, puis
+ * celui qui prend le plus. C'est lui que l'icone nomme — un chemin a deux sauts ne tient pas
+ * dans quatre caracteres, et le pire est celui qu'on doit voir.
+ */
+export function constatPrincipal(r: GuardReport): Finding | null {
+  const cle = (f: Finding): [number, number, number] => [
+    f.hook === ADRESSE_NULLE ? 0 : 1,
+    GRAVITE[f.verdict],
+    f.bps ?? -1,
+  ];
+  let meilleur: Finding | null = null;
+  // Defensif : dans l'extension, le rapport a traverse un postMessage que la page peut imiter.
+  for (const f of Array.isArray(r?.findings) ? r.findings : []) {
+    if (meilleur === null) {
+      meilleur = f;
+      continue;
+    }
+    const [a, b] = [cle(f), cle(meilleur)];
+    if (a[0] !== b[0] ? a[0] > b[0] : a[1] !== b[1] ? a[1] > b[1] : a[2] > b[2]) meilleur = f;
+  }
+  return meilleur;
+}
+
+function etapeDe(etape: NomEtape, r: GuardReport, garde: string, d?: ApprovalDecision): EtapeGarde {
+  const f = constatPrincipal(r);
+  // Le meme faisceau que la phrase de la garde (guard-sans-table.ts, sentenceFor) : la pire
+  // citation chiffree, sinon la pire mesure du hook.
+  const faisceau =
+    f && f.bps === null
+      ? (Array.isArray(f.citations) ? f.citations : [])
+          .map((c) => c.bps)
+          .filter((b): b is number => typeof b === "number")
+          .sort((a, b) => b - a)[0] ?? f.hookContext?.measured?.worst?.bps ?? null
+      : null;
+  return {
+    v: 1,
+    etape,
+    garde,
+    verdict: r.verdict,
+    hook: f && f.hook !== ADRESSE_NULLE ? f.hook : null,
+    bps: f?.bps ?? null,
+    ailleurs: faisceau,
+    etiquette: f?.label ?? null,
+    bloc: f?.citations?.[0]?.blockNumber ?? r.table?.blockNumber ?? null,
+    titre: r.headline,
+    par: d?.by ?? null,
+    raison: d?.reason ?? null,
+  };
+}
+
+/** L'etape est CONSTRUITE dans le `try` : un rapport mal forme ne fait pas echouer l'envoi. */
+function emettre(fenetre: unknown, construire: () => EtapeGarde): void {
+  const cible = fenetre as { dispatchEvent?: (e: Event) => boolean } | null;
+  if (!cible || typeof cible.dispatchEvent !== "function" || typeof CustomEvent !== "function") return;
+  try {
+    cible.dispatchEvent(new CustomEvent(EVENEMENT_ETAPE, { detail: construire() }));
+  } catch {
+    /* un signal qui echoue ne bloque pas un swap */
+  }
+}
+
+/**
+ * LES TRANSACTIONS DEJA EXAMINEES, communes a toutes les gardes de la fenetre.
+ *
+ * Sur la page de demonstration, la garde du site (sur la coquille) est AU-DESSUS de celle de
+ * l'extension (sur le portefeuille). Sans ce registre, une transaction approuvee en haut etait
+ * re-consultee en bas — mesure faite : les deux transactions de la demonstration repassaient
+ * par le service worker de l'extension apres la decision de la page. Leur verdict etant `ok`,
+ * rien ne s'ouvrait ; un verdict `warn` ou `block` y aurait ouvert une SECONDE fenetre,
+ * par-dessus l'ecran du site : la meme question, posee deux fois, par deux interfaces.
+ *
+ * `Symbol.for` et non un symbole de module : la page et l'extension sont deux bundles, donc
+ * deux copies de ce fichier. Le registre global des symboles est la seule chose qu'elles
+ * partagent a coup sur dans le monde de la page.
+ *
+ * On note des OBJETS — l'appel `{ method, params }` et la transaction elle-meme — parce qu'une
+ * couche du milieu reconstruit parfois l'un et transmet l'autre tel quel.
+ *
+ * ET LA NOTE NE VIT QUE LE TEMPS DE L'APPEL SYNCHRONE a la couche du dessous. Une premiere
+ * version la laissait en place, et les tests l'ont attrapee : un dapp qui renvoie le MEME objet
+ * transaction — apres un refus dans MetaMask, par exemple — passait la seconde fois sans
+ * examen, et un `block` deja accepte une fois ne se redemandait plus. La note est donc posee
+ * juste avant `original(args)` et retiree juste apres son retour synchrone. La coquille de la
+ * page (apps/web/src/demo/interception.ts) appelle le portefeuille dans ce meme elan ; une
+ * couche qui l'appellerait apres un `await` ne verrait pas la note, et la garde du dessous
+ * examinerait une seconde fois — le comportement d'avant, jamais un laissez-passer.
+ *
+ * Ce que ca ne ferme pas, et c'est le modele de menace deja ecrit dans extension/protocole.ts :
+ * le monde MAIN est celui de la page. Une page hostile peut noter ses transactions comme
+ * examinees, exactement comme elle peut deja fabriquer un verdict favorable. La garde met un
+ * chiffre mesure devant quelqu'un qui signe de bonne foi ; elle ne protege pas contre le site.
+ */
+const CLE_EXAMINEES = Symbol.for("tare-guard/examinees");
+
+function examinees(): WeakSet<object> | null {
+  const g = globalThis as unknown as Record<symbol, unknown>;
+  const deja = g[CLE_EXAMINEES];
+  if (deja instanceof WeakSet) return deja as WeakSet<object>;
+  if (deja !== undefined) return null; // quelqu'un a pris la cle : pas de registre, chaque garde decide seule
+  const neuf = new WeakSet<object>();
+  try {
+    Object.defineProperty(g, CLE_EXAMINEES, { value: neuf, configurable: false, enumerable: false, writable: false });
+    return neuf;
+  } catch {
+    return null;
+  }
+}
+
+/** Transmet l'appel a la couche du dessous en le notant examine, et seulement pendant ce temps. */
+function transmettreExaminee(
+  original: (a: { method: string; params?: unknown[] | object }) => Promise<unknown>,
+  args: { method: string; params?: unknown[] | object },
+  tx: object,
+): Promise<unknown> {
+  const r = examinees();
+  r?.add(args);
+  r?.add(tx);
+  try {
+    return original(args);
+  } finally {
+    r?.delete(args);
+    r?.delete(tx);
+  }
+}
+
+/** Vrai si une garde du dessus est en train de transmettre cet appel ; la note est retiree au passage. */
+function consommerExamen(args: object, tx: object): boolean {
+  const r = examinees();
+  if (!r || !(r.has(args) || r.has(tx))) return false;
+  r.delete(args);
+  r.delete(tx);
+  return true;
+}
 
 /* --------------------------------------------------------------- fenetre modale */
 
@@ -252,29 +456,52 @@ export function envelopperProvider(provider: Eip1193Provider, opts: OptionsInjec
 
   const approver = opts.approver ?? overlayApprover;
   const original = provider.request.bind(provider);
+  const nom = opts.nom ?? "page";
+  const fenetre = opts.target ?? globalThis;
 
   const guarded = async (args: { method: string; params?: unknown[] | object }): Promise<unknown> => {
     if (!args || args.method !== "eth_sendTransaction") return original(args);
     const tx = firstTx(args.params);
     if (!tx) return original(args);
 
+    // Une garde TARE posee AU-DESSUS a deja lu, demande et laisse partir cette transaction :
+    // on ne repose pas la question. Voir le registre des transactions examinees.
+    if (consommerExamen(args, tx)) {
+      try {
+        opts.onObserve?.(tx);
+      } catch {
+        /* un journal casse ne bloque pas un swap */
+      }
+      return original(args);
+    }
+
     let report: GuardReport;
     try {
       report = await opts.consulter(tx);
     } catch (e) {
       // On ne mange pas la transaction d'un utilisateur parce que notre garde a un bug.
+      // Et on ne la note pas comme examinee : une garde du dessous a le droit d'essayer.
       console.error("[TARE Guard] analyse impossible, la transaction passe :", e);
       return original(args);
     }
+    emettre(fenetre, () => etapeDe("interceptee", report, nom));
     try {
       opts.onReport?.(report, tx);
     } catch {
       /* un journal casse ne bloque pas un swap */
     }
 
-    const decision = await gate(report, approver, { askOn: opts.askOn ?? ["warn", "block"] });
-    if (!decision.approved) throw new UserRejectedByGuard(report, decision);
-    return original(args);
+    const askOn = opts.askOn ?? ["warn", "block"];
+    const decision = await gate(report, approver, { askOn });
+    if (!decision.approved) {
+      emettre(fenetre, () => etapeDe("refusee", report, nom, decision));
+      throw new UserRejectedByGuard(report, decision);
+    }
+    emettre(fenetre, () => etapeDe("transmise", report, nom, decision));
+    // EXAMINEE veut dire « quelqu'un a ete INTERROGE et a dit oui ». Une garde qui laisse passer
+    // sans demander — verdict hors de son askOn, un dapp en mode journal — ne doit pas faire taire
+    // la garde du dessous : l'utilisateur de l'extension a demande qu'on l'arrete sur warn et block.
+    return askOn.includes(report.verdict) ? transmettreExaminee(original, args, tx) : original(args);
   };
 
   try {

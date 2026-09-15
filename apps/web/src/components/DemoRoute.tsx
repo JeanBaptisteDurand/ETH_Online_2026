@@ -20,6 +20,22 @@ import type { ReactNode } from 'react'
 import { groupDigits, shortAddr } from '../lib/format'
 import { rampVar } from '../lib/ramp'
 import { bpsTexte } from './DemoDistribution'
+import { montantLisible } from '../demo/jetons'
+
+/**
+ * Un montant de la monnaie recue : converti quand ses decimales sont connues, sinon le compte
+ * d'unites brut, DIT comme tel. « 2 442 USDC » pour 2 442 unites serait faux d'un facteur un million.
+ */
+function Recu({ brut, monnaie, symbole, classe }: { brut: string | null; monnaie: string; symbole: string | null; classe: string }) {
+  if (brut === null) return <span className={classe}>unknown</span>
+  const lisible = montantLisible(brut, monnaie)
+  return (
+    <>
+      <span className={classe}>{lisible ?? groupDigits(brut)}</span>
+      {symbole && <span className="demo-route-petit">{lisible === null ? `${symbole} units` : symbole}</span>}
+    </>
+  )
+}
 
 /**
  * UN JETON, AVEC SON NOM QUAND ON L'A LU.
@@ -109,8 +125,7 @@ function Route({
       </span>
       <span className="demo-route-recoit">
         <span className="demo-route-petit">receives</span>
-        <span className="demo-route-chiffre">{p.recu === null ? 'unknown' : groupDigits(p.recu)}</span>
-        {symboleSortie && <span className="demo-route-petit">{symboleSortie}</span>}
+        <Recu brut={p.recu} monnaie={sortie} symbole={symboleSortie} classe="demo-route-chiffre" />
       </span>
     </div>
   )
@@ -202,7 +217,10 @@ export function CeQuOnAGarde({
   parOu,
   bilan,
   symboleSortie,
+  sortie,
 }: {
+  /** l'adresse de la monnaie recue : c'est elle qui dit si ses decimales sont connues */
+  sortie: string
   recu: string | null
   auraitRecu: string | null
   /** par quelle porte on AURAIT recu l'autre montant */
@@ -216,14 +234,20 @@ export function CeQuOnAGarde({
       <span className="demo-garde-bloc">
         <span className="demo-fin-petit">received</span>
         <span className="demo-garde-recu">
-          {recu === null ? 'unknown' : groupDigits(recu)}
-          {symboleSortie && <span className="demo-garde-unite"> {symboleSortie}</span>}
+          {recu === null ? 'unknown' : (montantLisible(recu, sortie) ?? groupDigits(recu))}
+          {symboleSortie && (
+            <span className="demo-garde-unite">
+              {' '}
+              {recu !== null && montantLisible(recu, sortie) === null ? `${symboleSortie} units` : symboleSortie}
+            </span>
+          )}
         </span>
       </span>
       <span className="demo-garde-bloc">
         <span className="demo-fin-petit">would have received</span>
         <span className="demo-garde-aurait">
-          {auraitRecu === null ? 'unknown' : groupDigits(auraitRecu)} {parOu}
+          {auraitRecu === null ? 'unknown' : (montantLisible(auraitRecu, sortie) ?? groupDigits(auraitRecu))}{' '}
+          {symboleSortie ?? ''} {parOu}
         </span>
       </span>
       <span className="demo-garde-bilan">{bilan}</span>

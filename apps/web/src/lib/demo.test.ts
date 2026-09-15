@@ -31,7 +31,7 @@ import {
 } from '../demo/scenario.ts'
 import { ETIQUETTE, tableDuCorpus } from '../demo/table.ts'
 import { MOITIE_EN_BPS, distribution, lpFeeBps, POURCENT_EN_BPS } from '../demo/distribution.ts'
-import { montantLisible, DECIMALES_NATIF } from '../demo/jetons.ts'
+import { montantLisible, DECIMALES_NATIF, DECIMALES_LUES } from '../demo/jetons.ts'
 import { classer, cleDe, pairesAMontrer, pairesMesurees } from '../demo/paires.ts'
 import {
   chercherAlternative,
@@ -696,14 +696,19 @@ test('les symboles viennent du fichier lu sur la chaine, jamais d une table ecri
   assert.ok(!/'USDC'|"USDC"/.test(jsxSeul(ECRAN)), 'aucun symbole ecrit dans l ecran')
 })
 
-test('un montant n est converti que pour la monnaie dont on connait les decimales', () => {
+test('un montant n est converti que pour la monnaie dont on a LU les decimales', () => {
   const eth = '0x0000000000000000000000000000000000000000'
   const usdc = '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913'
   assert.equal(montantLisible('1000000000000', eth), '0.000001')
   assert.equal(montantLisible((10n ** BigInt(DECIMALES_NATIF)).toString(), eth), '1')
-  // `symboles.json` ne porte PAS `decimals()` : supposer 18 pour un ERC-20 afficherait un
-  // montant faux d un facteur mille milliards sans que rien ne le dise.
-  assert.equal(montantLisible('1000000', usdc), null)
+  // L'USDC de Base : decimals() LU sur la chaine (6), avec sa commande de relecture. Le swap de
+  // 0.000001 ETH rend 2 442 unites, soit 0.002442 USDC — et jamais « 2 442 USDC ».
+  assert.equal(DECIMALES_LUES[usdc]?.decimales, 6)
+  assert.match(DECIMALES_LUES[usdc]!.relire, /decimals\(\)/)
+  assert.equal(montantLisible('2442', usdc), '0.002442')
+  assert.equal(montantLisible('1000000', usdc), '1')
+  // Un ERC-20 dont on n a rien lu reste en unites brutes : supposer 18 serait faux sans le dire.
+  assert.equal(montantLisible('1000000', '0x4200000000000000000000000000000000000006'), null)
   assert.ok(!Object.values(SYMBOLES.jetons).some((j) => 'decimales' in (j as object)))
 })
 

@@ -51,7 +51,7 @@ import { CeQuOnAGarde, DeuxRoutes, type RouteCandidate } from './DemoRoute'
 import { PanneauPaires, nomJeton } from './DemoPaires'
 import { montantLisible } from '../demo/jetons'
 import { cleDe } from '../demo/paires'
-import { acteStop, acteSubstitution, type Acte, type Porte } from '../demo/scenario'
+import { acteStop, acteSubstitution, ETH_NATIF, USDC_BASE, type Acte, type Porte } from '../demo/scenario'
 import { tableDuCorpus } from '../demo/table'
 import { distribution, lpFeeBps, POURCENT_EN_BPS } from '../demo/distribution'
 import { BandeDistribution, bpsTexte, partTexte } from './DemoDistribution'
@@ -1256,7 +1256,14 @@ export function DemoPage() {
     </details>
   )
 
-  const soldeUsdc = (s: Soldes) => (s.usdc === null ? <Inconnu quoi="USDC balance" /> : groupDigits(s.usdc))
+  const soldeUsdc = (s: Soldes) =>
+    s.usdc === null ? (
+      <Inconnu quoi="USDC balance" />
+    ) : (
+      <>
+        {montantLisible(s.usdc, USDC_BASE) ?? `${groupDigits(s.usdc)} units`} {nomMonnaie(USDC_BASE)}
+      </>
+    )
   const prise = lecture?.consultation?.bps ?? null
 
   /**
@@ -1820,7 +1827,10 @@ export function DemoPage() {
                   `pay ${acteAffiche.actuelle.bps === null ? 'unknown' : `${bpsTexte(acteAffiche.actuelle.bps)} bps`} · send as is`,
                   <>
                     keep your route · receive{' '}
-                    {acteAffiche.actuelle.row.out_with === null ? 'unknown' : groupDigits(acteAffiche.actuelle.row.out_with)}{' '}
+                    {acteAffiche.actuelle.row.out_with === null
+                      ? 'unknown'
+                      : (montantLisible(acteAffiche.actuelle.row.out_with, acteAffiche.actuelle.sortie) ??
+                        `${groupDigits(acteAffiche.actuelle.row.out_with)} units of`)}{' '}
                     {symSortie}
                   </>,
                 )}
@@ -1832,7 +1842,10 @@ export function DemoPage() {
                     `pay ${acteAffiche.proposee.bps === null ? 'unknown' : `${bpsTexte(acteAffiche.proposee.bps!)} bps`} · take the other gate`,
                     <>
                       same block, same size · receive{' '}
-                      {acteAffiche.proposee.row.out_with === null ? 'unknown' : groupDigits(acteAffiche.proposee.row.out_with)}{' '}
+                      {acteAffiche.proposee.row.out_with === null
+                        ? 'unknown'
+                        : (montantLisible(acteAffiche.proposee.row.out_with, acteAffiche.proposee.sortie) ??
+                          `${groupDigits(acteAffiche.proposee.row.out_with)} units of`)}{' '}
                       {symSortie}
                     </>,
                   )}
@@ -1970,6 +1983,7 @@ export function DemoPage() {
                       )
                     }
                     symboleSortie={symSortie}
+                    sortie={acteAffiche.actuelle.sortie}
                   />
                   <span className="demo-fin-petit">
                     {hash ? (
@@ -1983,8 +1997,13 @@ export function DemoPage() {
                   </span>
                   {soldesAvant && (
                     <span className="demo-fin-petit">
-                      balances {groupDigits(soldesAvant.eth_wei)} wei / {soldeUsdc(soldesAvant)}
-                      {soldesApres && <> → {groupDigits(soldesApres.eth_wei)} wei / {soldeUsdc(soldesApres)}</>}
+                      balances {montantLisible(soldesAvant.eth_wei, ETH_NATIF)} {nomMonnaie(ETH_NATIF)} / {soldeUsdc(soldesAvant)}
+                      {soldesApres && (
+                        <>
+                          {' '}
+                          → {montantLisible(soldesApres.eth_wei, ETH_NATIF)} {nomMonnaie(ETH_NATIF)} / {soldeUsdc(soldesApres)}
+                        </>
+                      )}
                     </span>
                   )}
                   {decision && (

@@ -248,9 +248,11 @@ function Head({
    *   check a token        -> une reponse sur mon jeton
    *   what it can do       -> ce que l'agent sait faire (ses quatorze outils, deplies)
    *   the measurements     -> les donnees brutes, panneau par panneau
-   *   the deck             -> le pitch, plein ecran
+   *   demo                 -> la garde, en direct
    *   developers           -> comment on s'en sert depuis son code
    *
+   * `the deck` quitte la barre le 15 septembre 2026, a la demande de l'equipe pour la finale : la
+   * route #/deck reste servie, mais aucun bouton n'y mene plus depuis l'en-tete.
    * `roadmap` et `settings` quittent la barre : la premiere est un lien depuis `developers`,
    * la seconde vit a droite, contre le portefeuille — c'est la ou on cherche ses reglages.
    * Sept entrees et un bouton de portefeuille ne tiennent pas dans 390 px.
@@ -258,7 +260,6 @@ function Head({
   const routes = [
     { h: '/', t: 'check a token', actif: vue.quoi === 'accueil' },
     { h: '/instrument', t: 'the measurements', actif: vue.quoi === 'instrument' },
-    { h: '/deck', t: 'the deck', actif: vue.quoi === 'deck' },
     // « demo » et non « live demo » : a 390 px la barre porte deja cinq entrees, et chaque
     // caractere de plus pousse un lien hors du cadre visible.
     { h: '/demo', t: 'demo', actif: vue.quoi === 'demo' },

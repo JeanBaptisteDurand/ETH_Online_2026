@@ -223,7 +223,7 @@ siGraphe("aucune route n'invente un nombre", () => {
       const res = await router.request(route);
       expect(res.status).toBe(503);
       const body = (await res.json()) as any;
-      expect(body.error).toBe("graphe indisponible");
+      expect(body.error).toBe("graph unavailable");
       expect(body.build).toContain("tare.graph.cli build");
       expect(body).not.toHaveProperty("n_orphans");
       expect(body).not.toHaveProperty("orphans");
@@ -236,7 +236,7 @@ siGraphe("aucune route n'invente un nombre", () => {
     expect(status).toBe(404);
     expect(body.found).toBe(false);
     expect(body.status).toBe("UNKNOWN_HOOK");
-    expect(body.note).toContain("Absent du graphe n'est pas");
+    expect(body.note).toContain("Absent from the graph does not mean");
 
     const imp = await get(`/graph/impact/${ghost}`);
     expect(imp.status).toBe(404);
@@ -247,7 +247,7 @@ siGraphe("aucune route n'invente un nombre", () => {
     for (const bad of ["pas-une-adresse", "0x1234", "0xzz85c14baa2a18316ffda0aefb3a632fadfca2acc"]) {
       const { status, body } = await get(`/graph/impact/${bad}`);
       expect(status).toBe(400);
-      expect(body.error).toBe("adresse invalide");
+      expect(body.error).toBe("invalid address");
     }
   });
 
@@ -305,7 +305,7 @@ siGraphe("aucune route n'invente un nombre", () => {
     const d = await get(`/graph/disagreement/${HOOK_NO_ENTRY}`);
     expect(d.body.verdict).toBe("NO_REGISTRY_ENTRY");
     expect(d.body.n_registry_entries).toBe(0);
-    expect(d.body.note).toContain("Ce n'est pas un accord");
+    expect(d.body.note).toContain("This is not an agreement");
   });
 });
 
@@ -357,7 +357,7 @@ siGraphe("chaque reponse porte sa provenance", () => {
   it("les orphelins et le desaccord disent leur portee au lieu de la sous-entendre", async () => {
     const o = await get("/graph/orphans");
     expect(o.body.scope).toContain("chain_id=8453");
-    expect(o.body.note).toContain("pas une absence on-chain");
+    expect(o.body.note).toContain("not an on-chain absence");
 
     const d = await get("/graph/disagreement");
     expect(d.body.chain_id).toBe(8453);

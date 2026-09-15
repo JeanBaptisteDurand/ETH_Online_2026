@@ -308,7 +308,7 @@ export class CompteStore {
       return {
         actif: false, contrat: null, chain_id: null, transaction: null,
         actif_jusqu_au: null, verifie_le: null,
-        raison: "aucun abonnement enregistre pour ce compte",
+        raison: "no subscription recorded for this account",
       };
     }
     // Un abonnement jamais verifie sur la chaine n'est pas actif, meme si une date figure ici.
@@ -323,7 +323,7 @@ export class CompteStore {
       transaction: l.transaction,
       actif_jusqu_au: l.actif_jusqu_au,
       verifie_le: l.verifie_le,
-      raison: actif ? null : (l.raison ?? "abonnement expire ou non verifie sur la chaine"),
+      raison: actif ? null : (l.raison ?? "subscription expired or not verified on chain"),
     };
   }
 

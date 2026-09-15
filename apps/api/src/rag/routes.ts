@@ -34,7 +34,7 @@ import {
 } from "./store.js";
 
 export const BUILD_COMMAND =
-  "cd engine && python3 -m tare.rag build   # remplit rag_chunks depuis le corpus declare";
+  "cd engine && python3 -m tare.rag build   # fills rag_chunks from the declared corpus";
 
 export interface RagConfig {
   dsn: string;
@@ -76,7 +76,7 @@ const CORPORA = ["docs", "registry", "hook_source"] as const;
 
 /** Le rappel des regles, sur chaque reponse : elles sont la specification. */
 const NOTE_NO_SUMMARY =
-  "L'API ne resume pas et ne conclut pas : elle rend des passages avec leur fichier, leurs lignes et leur distance. Rien ici n'est un nombre mesure.";
+  "The API does not summarise and does not conclude: it returns passages with their file, their lines and their distance. Nothing here is a measured number.";
 
 function statusCodeFor(status: string): 400 | 503 {
   return status === "BAD_QUERY" ? 400 : 503;
@@ -93,7 +93,7 @@ export function createRagRouter(deps: RagRouterDeps = {}) {
   };
 
   let embedderCache: { embedder: QueryEmbedder; log: string[] } | null = deps.embedder
-    ? { embedder: deps.embedder, log: [`${deps.embedder.provider}: injecte`] }
+    ? { embedder: deps.embedder, log: [`${deps.embedder.provider}: injected`] }
     : null;
   const getEmbedder = async () => {
     // Le choix du fournisseur coute un appel reseau : on ne le refait pas a chaque
@@ -108,8 +108,8 @@ export function createRagRouter(deps: RagRouterDeps = {}) {
         status,
         error: detail,
         note:
-          "aucun passage n'est renvoye et la liste n'est pas vide : elle est ABSENTE. " +
-          "Une panne de lecture n'est pas la preuve que le corpus ne contient rien.",
+          "no passage is returned and the list is not empty: it is ABSENT. " +
+          "A read failure is not proof that the corpus contains nothing.",
         build: BUILD_COMMAND,
         dsn: maskDsn(cfg.dsn),
         ...extra,
@@ -142,7 +142,7 @@ export function createRagRouter(deps: RagRouterDeps = {}) {
       dimension_match: dimOk,
       dimension_note:
         dimOk === false
-          ? "la question serait plongee dans un autre espace vectoriel que l'index : /rag/search refusera plutot que de classer au hasard"
+          ? "the question would be embedded in a different vector space from the index: /rag/search will refuse rather than rank at random"
           : undefined,
       corpora: CORPORA,
       build: BUILD_COMMAND,
@@ -160,14 +160,14 @@ export function createRagRouter(deps: RagRouterDeps = {}) {
       return c.json(
         {
           status: "BAD_QUERY",
-          error: "parametre q manquant ou vide",
+          error: "parameter q missing or empty",
           usage: "GET /rag/search?q=...&k=8&corpus=docs|registry|hook_source&address=0x...",
         },
         400,
       );
     if (q.length > 2000)
       return c.json(
-        { status: "BAD_QUERY", error: `question de ${q.length} caracteres, maximum 2000` },
+        { status: "BAD_QUERY", error: `question of ${q.length} characters, maximum 2000` },
         400,
       );
 
@@ -176,16 +176,16 @@ export function createRagRouter(deps: RagRouterDeps = {}) {
     const corpus = c.req.query("corpus") ?? null;
     if (corpus && !CORPORA.includes(corpus as (typeof CORPORA)[number]))
       return c.json(
-        { status: "BAD_QUERY", error: `corpus inconnu: ${corpus}`, corpora: CORPORA },
+        { status: "BAD_QUERY", error: `unknown corpus: ${corpus}`, corpora: CORPORA },
         400,
       );
     const address = c.req.query("address") ?? null;
     if (address && !/^0x[0-9a-fA-F]{40}$/.test(address))
-      return c.json({ status: "BAD_QUERY", error: `adresse mal formee: ${address}` }, 400);
+      return c.json({ status: "BAD_QUERY", error: `malformed address: ${address}` }, 400);
     const mdRaw = c.req.query("max_distance");
     const maxDistance = mdRaw === undefined ? null : Number(mdRaw);
     if (maxDistance !== null && !Number.isFinite(maxDistance))
-      return c.json({ status: "BAD_QUERY", error: `max_distance non numerique: ${mdRaw}` }, 400);
+      return c.json({ status: "BAD_QUERY", error: `max_distance is not numeric: ${mdRaw}` }, 400);
 
     let embedder: QueryEmbedder;
     let log: string[];
@@ -223,7 +223,7 @@ export function createRagRouter(deps: RagRouterDeps = {}) {
       n: passages.length,
       zero_note:
         passages.length === 0
-          ? "zero passage APRES filtrage : l'index est en ligne et la question a bien ete plongee. Ce n'est pas une panne."
+          ? "zero passages AFTER filtering: the index is online and the question was embedded. This is not an outage."
           : undefined,
       passages,
       note: NOTE_NO_SUMMARY,

@@ -62,7 +62,7 @@ const SECRET: Buffer = (() => {
   if (s && s.length >= 32) return Buffer.from(s, "utf8");
   if (s) {
     throw new Error(
-      "TARE_JWT_SECRET est trop court : 32 caracteres au minimum. Un secret court se casse hors ligne.",
+      "TARE_JWT_SECRET is too short: 32 characters minimum. A short secret can be cracked offline.",
     );
   }
   return randomBytes(48);
@@ -131,9 +131,9 @@ export function verifier(jeton: string, maintenant = Date.now()): Charge | { ref
 /** La phrase qui accompagne un refus, pour que l'API ne rende jamais un 401 muet. */
 export const direRefus = (r: Refus): string =>
   ({
-    forme: "le jeton n'a pas la forme d'un JWT : trois segments separes par un point",
-    algorithme: "algorithme refuse : seul HS256 est accepte",
-    signature: "signature invalide : ce jeton n'a pas ete emis par ce serveur",
-    expire: "jeton expire — ouvrez une nouvelle session",
-    charge: "charge illisible ou incomplete",
+    forme: "the token does not have the shape of a JWT: three segments separated by a dot",
+    algorithme: "algorithm refused: only HS256 is accepted",
+    signature: "invalid signature: this token was not issued by this server",
+    expire: "token expired — open a new session",
+    charge: "unreadable or incomplete payload",
   })[r];

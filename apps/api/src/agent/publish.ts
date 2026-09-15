@@ -58,7 +58,7 @@ export async function annoncer(
   cfg: HcsConfig,
   opts: { id?: Identite; ts?: string; fetchImpl?: typeof fetch } = {},
 ): Promise<AnnonceResult> {
-  if (!cfg.topicId) throw new Error("aucun topic HCS configure : HEDERA_HCS_TOPIC_ID est vide");
+  if (!cfg.topicId) throw new Error("no HCS topic configured: HEDERA_HCS_TOPIC_ID is empty");
   const id = opts.id ?? TARE;
   const message = agentMessage(id, opts.ts ?? new Date().toISOString());
 
@@ -75,7 +75,7 @@ export async function annoncer(
     published,
     verification,
     state: ok ? "ANNOUNCED" : "NOT_ANNOUNCED",
-    reason: ok ? null : (verification.reason ?? "le mirror node n'a pas rendu le message"),
+    reason: ok ? null : (verification.reason ?? "the mirror node did not return the message"),
   };
 }
 
@@ -92,21 +92,21 @@ export function identiteJson(cfg: HcsConfig | null) {
     canonical_json_sha256: messageHash(json),
     method: {
       hash: "sha384",
-      encoding: "base58 (alphabet Bitcoin)",
+      encoding: "base58 (Bitcoin alphabet)",
       note:
-        "L'empreinte ne porte QUE les six champs canoniques. Les parametres de routage " +
-        "(registry, proto, nativeId, uid) sont apres le « ; » et n'entrent pas dans le hash.",
+        "The digest covers ONLY the six canonical fields. The routing parameters " +
+        "(registry, proto, nativeId, uid) come after the \";\" and do not enter the hash.",
     },
     topic: cfg?.topicId
       ? { id: cfg.topicId, hashscan: hashscanTopic(cfg.network, cfg.topicId) }
       : null,
     limites: [
-      "La norme HCS-14 publie deux vecteurs de test AVEC leurs entrees mais SANS leurs " +
-        "empreintes : il n'existe aucun resultat de reference publie contre lequel se comparer.",
-      "Son exemple de JSON canonique montre des cles NON triees, alors que son pseudo-code " +
-        "les trie. On suit le pseudo-code, qui est executable ; l'autre lecture existe.",
-      "registry vaut « self » parce que TARE n'est inscrit dans aucun annuaire d'agents. " +
-        "Ce n'est pas une inscription, c'est une declaration.",
+      "The HCS-14 standard publishes two test vectors WITH their inputs but WITHOUT their " +
+        "digests: there is no published reference result to compare against.",
+      "Its canonical JSON example shows UNSORTED keys, whereas its pseudo-code sorts " +
+        "them. We follow the pseudo-code, which is executable; the other reading exists.",
+      "registry is \"self\" because TARE is not listed in any agent directory. " +
+        "This is not a registration, it is a declaration.",
     ],
   };
 }

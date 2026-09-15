@@ -122,7 +122,7 @@ describe.skipIf(!vivant)("le parcours de connexion", () => {
     // sans abonnement, aucun telechargement n'est ouvert, et la raison est dite
     expect(b.abonnement.actif).toBe(false);
     expect(b.telechargements).toBeNull();
-    expect(b.note).toMatch(/abonnement n'est pas actif/);
+    expect(b.note).toMatch(/subscription is not active/);
   });
 
   it("le message a signer est rendu par le serveur, pas reconstruit par le client", async () => {
@@ -145,7 +145,7 @@ describe.skipIf(!vivant)("le parcours de connexion", () => {
     expect((await post("/compte/session", { adresse: w.adresse, nonce: n.nonce, signature: sig })).status).toBe(200);
     const deux = await post("/compte/session", { adresse: w.adresse, nonce: n.nonce, signature: sig });
     expect(deux.status).toBe(401);
-    expect((await lire(deux)).error).toMatch(/nonce refuse/);
+    expect((await lire(deux)).error).toMatch(/nonce refused/);
   });
 
   it("une signature valide d'une AUTRE adresse est refusee", async () => {
@@ -162,7 +162,7 @@ describe.skipIf(!vivant)("le parcours de connexion", () => {
     });
     expect(r.status).toBe(401);
     const b = await lire(r);
-    expect(b.error).toMatch(/autre adresse/);
+    expect(b.error).toMatch(/another address/);
     expect(b.detail).toContain(imposteur.adresse.toLowerCase());
   });
 
@@ -172,7 +172,7 @@ describe.skipIf(!vivant)("le parcours de connexion", () => {
     const n = await lire(await post("/compte/nonce", { adresse: w.adresse }));
     const r = await post("/compte/session", { adresse: w.adresse, nonce: n.nonce, signature: "0xdeadbeef" });
     expect(r.status).toBe(400);
-    expect((await lire(r)).error).toMatch(/illisible/);
+    expect((await lire(r)).error).toMatch(/unreadable/);
   });
 
   it("une adresse malformee est refusee avant tout travail", async () => {
@@ -186,7 +186,7 @@ describe.skipIf(!vivant)("le parcours de connexion", () => {
     expect((await del("/compte/session", { authorization: `Bearer ${jeton}` })).status).toBe(200);
     const r = await get("/compte", { authorization: `Bearer ${jeton}` });
     expect(r.status).toBe(401);
-    expect((await lire(r)).detail).toMatch(/ferme ou expire/);
+    expect((await lire(r)).detail).toMatch(/closed or expired/);
   });
 
   it("sans en-tete, le refus DIT ce qu'il attendait", async () => {
@@ -202,7 +202,7 @@ describe.skipIf(!vivant)("les cles d'API", () => {
     const r = await post("/compte/cle", { portee: "mcp" }, { authorization: `Bearer ${jeton}` });
     expect(r.status).toBe(402);
     const b = await lire(r);
-    expect(b.error).toMatch(/abonnement inactif/);
+    expect(b.error).toMatch(/subscription inactive/);
     expect(b.detail).toBeTruthy();
   });
 
@@ -213,7 +213,7 @@ describe.skipIf(!vivant)("les cles d'API", () => {
     expect(r.status).toBe(201);
     const b = await lire(r);
     expect(b.cle).toMatch(/^tare_mcp_/);
-    expect(b.note).toMatch(/rendue qu'une fois/);
+    expect(b.note).toMatch(/returned only once/);
     // et elle n'est plus jamais lisible : la liste ne porte que le prefixe
     const compte = await lire(await get("/compte", { authorization: `Bearer ${jeton}` }));
     expect(JSON.stringify(compte.cles)).not.toContain(b.cle.slice(20));
@@ -255,7 +255,7 @@ describe.skipIf(!vivant)("les deux authentifications ne se melangent pas", () =>
     // Sans ce controle, l'historique du compte mentirait sur l'origine de ce qu'il montre.
     const r = await post("/compte/journal", { source: "mcp", quoi: "analyse" }, { "x-tare-cle": ext.cle });
     expect(r.status).toBe(401);
-    expect((await lire(r)).detail).toMatch(/portee differente/);
+    expect((await lire(r)).detail).toMatch(/scope other than/);
     // mais elle depose bien en tant qu'extension
     expect((await post("/compte/journal", { source: "extension", quoi: "verdict" }, { "x-tare-cle": ext.cle })).status).toBe(201);
   });
@@ -317,8 +317,8 @@ describe.skipIf(!vivant)("les telechargements", () => {
       const r = await get(chemin, { authorization: `Bearer ${jeton}` });
       expect(r.status).toBe(402);
       const b = await lire(r);
-      expect(b.error).toBe("abonnement inactif");
-      expect(b.note).toMatch(/fermes tant que l'abonnement/);
+      expect(b.error).toBe("subscription inactive");
+      expect(b.note).toMatch(/closed as long as the subscription/);
     });
 
     it(`${chemin} sert le fichier quand l'abonnement est actif`, async () => {
@@ -330,9 +330,9 @@ describe.skipIf(!vivant)("les telechargements", () => {
       // Ce qui n'est pas legitime, c'est un 404 ou un corps vide.
       if (r.status === 503) {
         const b = await lire(r);
-        expect(b.error).toBe("paquet non construit");
+        expect(b.error).toBe("package not built");
         expect(b.commande).toMatch(/npm run/);
-        expect(b.note).toMatch(/pas une erreur de ton cote/);
+        expect(b.note).toMatch(/not an error on your side/);
         return;
       }
 
@@ -367,7 +367,7 @@ describe.skipIf(!vivant)("les telechargements", () => {
     expect(r.status).toBe(200);
     const b = await lire(r);
     expect(b.ouverts).toBe(false);
-    expect(b.note).toMatch(/telechargement est ferme/);
+    expect(b.note).toMatch(/download is closed/);
     // decrits quand meme : l'ecran peut afficher la taille avant de proposer le bouton
     for (const p of [b.extension, b.mcp]) {
       expect(typeof p.disponible).toBe("boolean");
@@ -406,7 +406,7 @@ describe.skipIf(!vivant)("les refus qui rendaient un 500", () => {
         authorization: `Bearer ${jeton}`,
       });
       expect(r.status, `limite=${mauvais}`).toBe(400);
-      expect((await lire(r)).attendu).toMatch(/entier entre 1 et 500/);
+      expect((await lire(r)).attendu).toMatch(/integer between 1 and 500/);
     }
     // et les bonnes valeurs passent
     for (const bon of ["1", "50", "500"]) {
@@ -435,8 +435,8 @@ describe.skipIf(!vivant)("les refus qui rendaient un 500", () => {
     const apres = await post("/compte/journal", { source: "extension", quoi: "verdict", sujet: "0xb" }, { "x-tare-cle": cle });
     expect(apres.status).toBe(402);
     const b = await lire(apres);
-    expect(b.error).toBe("abonnement inactif");
+    expect(b.error).toBe("subscription inactive");
     // et le refus dit a l'extension de continuer a analyser
-    expect(b.note).toMatch(/L'analyse locale, elle, ne depend pas de ce service/);
+    expect(b.note).toMatch(/Local analysis does not depend on this service/);
   });
 });

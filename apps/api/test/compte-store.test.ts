@@ -179,7 +179,7 @@ describe.skipIf(!vivant)("l'abonnement ne s'invente pas", () => {
     const ab = await store!.abonnement(c.id);
     expect(ab.actif).toBe(false);
     expect(ab.verifie_le).toBeNull();
-    expect(ab.raison).toMatch(/aucun abonnement/);
+    expect(ab.raison).toMatch(/no subscription/);
   });
 
   it("verifie et dans sa periode, il est actif", async () => {
@@ -202,7 +202,7 @@ describe.skipIf(!vivant)("l'abonnement ne s'invente pas", () => {
     });
     const ab = await store!.abonnement(c.id);
     expect(ab.actif).toBe(false);
-    expect(ab.raison).toMatch(/expire|non verifie/);
+    expect(ab.raison).toMatch(/expired|not verified/);
   });
 });
 

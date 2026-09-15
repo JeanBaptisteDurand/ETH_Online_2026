@@ -173,7 +173,7 @@ describe("MeteringService", () => {
     const hcs = svc.hcsStatus() as Record<string, any>;
     expect(hcs.enabled).toBe(false);
     expect(hcs.unanchored_batches).toBe(1);
-    expect(String(hcs.note)).toContain("pas ancre");
+    expect(String(hcs.note)).toContain("not anchored");
     const out = await svc.anchorBatch(svc.recordBatch(batch([unit({ amount_in: "5" })])));
     expect(out.status).toBe("NOT_ANCHORED");
   });
@@ -186,7 +186,7 @@ describe("MeteringService", () => {
     await svc.anchorBatch(svc.recordBatch(batch([unit()])));
     const hcs = svc.hcsStatus() as Record<string, any>;
     expect(hcs.cost.messages_with_known_cost).toBe(0);
-    expect(String(hcs.cost.note)).toContain("pas gratuit");
+    expect(String(hcs.cost.note)).toContain("not free");
   });
 });
 

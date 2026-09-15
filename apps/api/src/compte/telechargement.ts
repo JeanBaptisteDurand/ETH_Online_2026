@@ -71,8 +71,8 @@ export function paquetExtension(): Resultat {
   if (!existsSync(zip))
     return {
       raison:
-        "l'extension n'est pas empaquetee : packages/guard/dist/tare-guard.zip est absent. " +
-        "Le paquet contient la table des mesures, qui se construit d'abord.",
+        "the extension is not packaged: packages/guard/dist/tare-guard.zip is missing. " +
+        "The package contains the measurement table, which has to be built first.",
       commande,
     };
 
@@ -93,9 +93,9 @@ export function paquetExtension(): Resultat {
       if (r.sha256 && r.sha256 !== somme)
         return {
           raison:
-            `le releve dist/tare-guard.zip.json annonce le sha256 ${r.sha256.slice(0, 16)}… mais le ` +
-            `zip present fait ${somme.slice(0, 16)}… : l'un des deux est perime. On ne sert pas un ` +
-            "paquet dont on ne sait pas ce qu'il contient",
+            `the manifest dist/tare-guard.zip.json announces sha256 ${r.sha256.slice(0, 16)}… but the ` +
+            `zip on disk hashes to ${somme.slice(0, 16)}…: one of the two is stale. A package whose ` +
+            "contents are not known is not served",
           commande,
         };
     } catch {
@@ -138,8 +138,8 @@ export function paquetMcp(): Resultat {
   if (!existsSync(entree))
     return {
       raison:
-        `le serveur MCP n'est pas construit : ${entree.replace(REPO_ROOT + "/", "")} est absent. ` +
-        "Un tarball fabrique maintenant ne contiendrait aucun code executable.",
+        `the MCP server is not built: ${entree.replace(REPO_ROOT + "/", "")} is missing. ` +
+        "A tarball made now would contain no executable code.",
       commande,
     };
 
@@ -168,7 +168,7 @@ export function paquetMcp(): Resultat {
       });
     } catch (e) {
       return {
-        raison: `npm pack a echoue : ${(e as Error).message.slice(0, 160)}`,
+        raison: `npm pack failed: ${(e as Error).message.slice(0, 160)}`,
         commande: `cd apps/mcp && npm pack --pack-destination ${DIST_MCP}`,
       };
     }
@@ -180,7 +180,7 @@ export function paquetMcp(): Resultat {
       if (!existant || m > existant.mtime) existant = { chemin: c, mtime: m };
     }
     if (!existant)
-      return { raison: "npm pack n'a laisse aucun .tgz derriere lui", commande };
+      return { raison: "npm pack left no .tgz behind", commande };
   }
 
   const st = statSync(existant.chemin);

@@ -141,7 +141,7 @@ describe("GET /rag/search — la requete", () => {
   it("refuse une adresse mal formee plutot que de chercher a cote", async () => {
     const { status, body } = await get(router(fakeStore()), "/rag/search?q=x&address=0xzz");
     expect(status).toBe(400);
-    expect(body.error).toContain("mal formee");
+    expect(body.error).toContain("malformed");
   });
 
   it("borne k au maximum configure au lieu de balayer l'index", async () => {
@@ -189,14 +189,14 @@ describe("GET /rag/search — aucun passage sans sa source", () => {
     const p = body.passages[0];
     expect(p.distance).toBeCloseTo(0.2134, 6);
     expect(p.cosine_similarity).toBeCloseTo(1 - 0.2134, 6);
-    expect(JSON.stringify(p)).not.toContain("pertinence");
+    expect(JSON.stringify(p)).not.toMatch(/pertinence|relevance/);
   });
 
   it("n'ecrit aucune synthese : l'API rend des passages, pas des conclusions", async () => {
     const { body } = await get(router(fakeStore()), "/rag/search?q=x&k=1");
     expect(body.answer).toBeUndefined();
     expect(body.summary).toBeUndefined();
-    expect(body.note).toContain("ne resume pas");
+    expect(body.note).toContain("does not summarise");
   });
 });
 
@@ -258,7 +258,7 @@ describe("GET /rag/search — une panne n'est jamais une liste vide", () => {
       expect(body.status).toBe(expected);
       expect(body.passages).toBeUndefined();
       expect(body.n).toBeUndefined();
-      expect(body.note).toContain("elle est ABSENTE");
+      expect(body.note).toContain("it is ABSENT");
     });
   }
 
@@ -284,7 +284,7 @@ describe("GET /rag/search — une panne n'est jamais une liste vide", () => {
     expect(body.status).toBe("OK");
     expect(body.n).toBe(0);
     expect(body.passages).toEqual([]);
-    expect(body.zero_note).toContain("Ce n'est pas une panne");
+    expect(body.zero_note).toContain("This is not an outage");
     expect(body.filters.max_distance).toBe(0.01);
   });
 });
@@ -328,7 +328,7 @@ describe("GET /rag/meta", () => {
       "/rag/meta",
     );
     expect(body.dimension_match).toBe(false);
-    expect(body.dimension_note).toContain("refusera");
+    expect(body.dimension_note).toContain("will refuse");
   });
 
   it("ne laisse jamais fuir le mot de passe du DSN", async () => {

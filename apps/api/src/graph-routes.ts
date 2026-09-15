@@ -758,7 +758,7 @@ export class GraphStore {
         ...base,
         verdict: "NO_REGISTRY_ENTRY",
         vanillaSwap_declared: [],
-        note: "aucune fiche au registre officiel charge : il n'y a rien a contredire. Ce n'est pas un accord.",
+        note: "no entry in the loaded official registry: there is nothing to contradict. This is not an agreement.",
       };
     const declared = this.declaredVanilla(h) ?? [];
     if (declared.length === 0)
@@ -766,34 +766,34 @@ export class GraphStore {
         ...base,
         verdict: "NO_VANILLA_DECLARED",
         vanillaSwap_declared: [],
-        note: "la fiche ne declare pas vanillaSwap : il n'y a rien a comparer a la mesure.",
+        note: "the entry does not declare vanillaSwap: there is nothing to compare with the measurement.",
       };
     if (profile.n_measured === 0)
       return {
         ...base,
         verdict: "NOT_COMPARABLE",
         vanillaSwap_declared: declared,
-        note: "aucune mesure MEASURED sur ce hook : une lecture bornee est un NOT_MEASURABLE, jamais un zero.",
+        note: "no MEASURED measurement on this hook: a clamped read is a NOT_MEASURABLE, never a zero.",
       };
     if (declared.some((v) => v === false) && profile.bps_max! <= flatBps)
       return {
         ...base,
         verdict: "REGISTRY_SAYS_ACTIVE_MEASURE_SAYS_FLAT",
         vanillaSwap_declared: declared,
-        note: `le registre declare vanillaSwap=false (le hook touche au swap) mais les ${profile.n_measured} mesures MEASURED plafonnent a ${profile.bps_max} bps, sous le seuil de ${flatBps} bps.`,
+        note: `the registry declares vanillaSwap=false (the hook acts on the swap) but the ${profile.n_measured} MEASURED measurements top out at ${profile.bps_max} bps, below the ${flatBps} bps threshold.`,
       };
     if (declared.some((v) => v === true) && profile.bps_max! > flatBps)
       return {
         ...base,
         verdict: "REGISTRY_SAYS_VANILLA_MEASURE_SAYS_ACTIVE",
         vanillaSwap_declared: declared,
-        note: `le registre declare vanillaSwap=true (swap intact) mais la mesure trouve jusqu'a ${profile.bps_max} bps. C'est le sens qui coute de l'argent a un LP.`,
+        note: `the registry declares vanillaSwap=true (swap untouched) but the measurement finds up to ${profile.bps_max} bps. That is the direction that costs an LP money.`,
       };
     return {
       ...base,
       verdict: "AGREE",
       vanillaSwap_declared: declared,
-      note: "registre et mesure disent la meme chose a ce bloc, pour ces tailles et ces sens.",
+      note: "registry and measurement say the same thing at this block, for these sizes and these directions.",
     };
   }
 
@@ -910,7 +910,7 @@ export function loadGraphStore(path: string = DEFAULT_GRAPH_PATH): GraphStore {
   try {
     st = statSync(target, { bigint: true });
   } catch {
-    throw new GraphUnavailable(target, `${target} absent — construis-le : ${BUILD_COMMAND}`);
+    throw new GraphUnavailable(target, `${target} missing — build it: ${BUILD_COMMAND}`);
   }
   const key = `${target}${SEP}${st.mtimeNs}${SEP}${st.size}`;
   const hit = CACHE.get(key);
@@ -924,13 +924,13 @@ export function loadGraphStore(path: string = DEFAULT_GRAPH_PATH): GraphStore {
   } catch (e) {
     throw new GraphUnavailable(
       target,
-      `graph.json illisible : ${(e as Error).message.slice(0, 200)}`,
+      `unreadable graph.json: ${(e as Error).message.slice(0, 200)}`,
     );
   }
   if (!Array.isArray(file.nodes) || !Array.isArray(file.edges))
     throw new GraphUnavailable(
       target,
-      "graph.json sans 'nodes'/'edges' : ce n'est pas un graphe TARE",
+      "graph.json without 'nodes'/'edges': this is not a TARE graph",
     );
   const store = new GraphStore(file, target);
   STATS.misses += 1;
@@ -963,11 +963,11 @@ export function createGraphRouter(opts: GraphRouterOptions = {}) {
   const app = new Hono();
 
   const unavailable = (e: unknown) => ({
-    error: "graphe indisponible",
+    error: "graph unavailable",
     detail: e instanceof GraphUnavailable ? e.detail : String(e).slice(0, 300),
     graph_path: path,
     build: BUILD_COMMAND,
-    note: "aucune liste vide n'est renvoyee : un graphe absent n'est pas un graphe sans clone, sans orphelin et sans contradiction.",
+    note: "no empty list is returned: a missing graph is not a graph without clones, orphans or contradictions.",
   });
 
   /** Provenance et cout, sur chaque reponse. Un nombre sans sa source ne vaut rien. */
@@ -1042,15 +1042,15 @@ export function createGraphRouter(opts: GraphRouterOptions = {}) {
           not_comparable: dis["n_not_comparable"],
         },
         routes: [
-          "GET /graph/impact/:hook        le rayon de souffle : pools, tokens, clones, pools a re-mesurer",
-          "GET /graph/twins/:hook         les hooks au meme bytecode",
-          "GET /graph/deployer/:hook      les hooks du meme deployeur",
-          "GET /graph/summary/:hook       la fiche courte d'un hook",
-          "GET /graph/disagreement/:hook  registre contre mesure, pour un hook",
-          "GET /graph/clusters            toutes les grappes de clones",
-          "GET /graph/orphans             les hooks du registre sans pool liquide connu",
-          "GET /graph/contradictions      les hooks a deux fiches de registre divergentes",
-          "GET /graph/disagreement        registre contre mesure, sur toute la chaine",
+          "GET /graph/impact/:hook        the blast radius: pools, tokens, clones, pools to re-measure",
+          "GET /graph/twins/:hook         the hooks with the same bytecode",
+          "GET /graph/deployer/:hook      the hooks from the same deployer",
+          "GET /graph/summary/:hook       the short sheet of a hook",
+          "GET /graph/disagreement/:hook  registry against measurement, for one hook",
+          "GET /graph/clusters            every clone cluster",
+          "GET /graph/orphans             the registry hooks with no known liquid pool",
+          "GET /graph/contradictions      the hooks with two diverging registry entries",
+          "GET /graph/disagreement        registry against measurement, across the whole chain",
         ],
       });
     }),
@@ -1068,9 +1068,9 @@ export function createGraphRouter(opts: GraphRouterOptions = {}) {
         if (!ADDR.test(raw))
           return c.json(
             {
-              error: "adresse invalide",
+              error: "invalid address",
               hook: raw,
-              expects: "0x suivi de 40 chiffres hexadecimaux",
+              expects: "0x followed by 40 hexadecimal digits",
             },
             400,
           );
@@ -1082,7 +1082,7 @@ export function createGraphRouter(opts: GraphRouterOptions = {}) {
               ...envelope(s, t0),
               chain_id: chain,
               ...r,
-              note: "ce hook n'est ni dans les mesures ni dans le registre charge, a cette chaine. Absent du graphe n'est pas 'sans clone' ni 'sans pool'.",
+              note: "this hook is neither in the measurements nor in the loaded registry, on this chain. Absent from the graph does not mean 'no clone' or 'no pool'.",
             },
             404,
           );
@@ -1110,7 +1110,7 @@ export function createGraphRouter(opts: GraphRouterOptions = {}) {
         n_clusters: cs.length,
         n_hooks: cs.reduce((n, x) => n + (x["n_hooks"] as number), 0),
         clusters: cs,
-        note: "meme keccak(eth_getCode) au bloc du graphe. Un clone partage le code, pas forcement l'etat ni les pools.",
+        note: "same keccak(eth_getCode) at the graph block. A clone shares the code, not necessarily the state or the pools.",
       });
     }),
   );
@@ -1126,7 +1126,7 @@ export function createGraphRouter(opts: GraphRouterOptions = {}) {
         chain_id: chain,
         ...r,
         orphans: Number.isInteger(raw) && raw > 0 ? list.slice(0, raw) : list,
-        note: "sans pool liquide DANS CE GRAPHE. Les pools connus sont ceux que la campagne a mesures : une absence ici n'est pas une absence on-chain.",
+        note: "no liquid pool IN THIS GRAPH. The known pools are the ones the campaign measured: an absence here is not an on-chain absence.",
       });
     }),
   );
@@ -1136,7 +1136,7 @@ export function createGraphRouter(opts: GraphRouterOptions = {}) {
       c.json({
         ...envelope(s, t0),
         ...s.contradictions(),
-        note: "deux fiches pour le meme couple (adresse, chainId) dans le registre officiel, et elles ne disent pas la meme chose.",
+        note: "two entries for the same (address, chainId) pair in the official registry, and they do not say the same thing.",
       }),
     ),
   );
@@ -1146,7 +1146,7 @@ export function createGraphRouter(opts: GraphRouterOptions = {}) {
       c.json({
         ...envelope(s, t0),
         ...s.disagreement(chainOf(c), flatOf(c)),
-        note: "vanillaSwap declare par la fiche, contre le maximum des mesures MEASURED du hook. Un hook sans mesure MEASURED n'est dans aucune des deux listes : il est dans not_comparable.",
+        note: "vanillaSwap declared by the entry, against the maximum of the hook's MEASURED measurements. A hook with no MEASURED measurement is in neither list: it is in not_comparable.",
       }),
     ),
   );

@@ -76,14 +76,14 @@ export async function verifierAbonnement(
     if (!res.ok)
       return {
         jusquA: null, actifJusquAu: null, transaction: null, rejeu,
-        raison: `le noeud a repondu HTTP ${res.status} : l'abonnement n'est pas verifie, donc pas actif`,
+        raison: `the node answered HTTP ${res.status}: the subscription is not verified, so not active`,
       };
     brut = await res.json();
   } catch (e) {
     // Un timeout n'est pas « pas abonne » : c'est « on ne sait pas ». On refuse, en le disant.
     return {
       jusquA: null, actifJusquAu: null, transaction: null, rejeu,
-      raison: `lecture impossible (${(e as Error).message.slice(0, 90)}) : non verifie, donc pas actif`,
+      raison: `read failed (${(e as Error).message.slice(0, 90)}): not verified, so not active`,
     };
   }
 
@@ -91,18 +91,18 @@ export async function verifierAbonnement(
   if (r.error)
     return {
       jusquA: null, actifJusquAu: null, transaction: null, rejeu,
-      raison: `le contrat a rejete l'appel : ${r.error.message ?? "sans message"}`,
+      raison: `the contract rejected the call: ${r.error.message ?? "no message"}`,
     };
   if (typeof r.result !== "string" || !/^0x[0-9a-fA-F]*$/.test(r.result))
     return {
       jusquA: null, actifJusquAu: null, transaction: null, rejeu,
-      raison: "reponse du noeud illisible : ni un mot hexadecimal ni une erreur nommee",
+      raison: "unreadable node response: neither a hexadecimal word nor a named error",
     };
   // Un `0x` vide veut dire qu'il n'y a pas de code a cette adresse — donc pas de contrat.
   if (r.result === "0x" || r.result === "0x0")
     return {
       jusquA: null, actifJusquAu: null, transaction: null, rejeu,
-      raison: `aucun code a ${cfg.contrat} sur la chaine ${cfg.chainId} : le contrat n'est pas deploye la`,
+      raison: `no code at ${cfg.contrat} on chain ${cfg.chainId}: the contract is not deployed there`,
     };
 
   const secondes = BigInt(r.result);
@@ -110,7 +110,7 @@ export async function verifierAbonnement(
     return {
       jusquA: "0", actifJusquAu: null, transaction: null, rejeu,
       // Ce zero-la vient du mapping Solidity : c'est une absence DECLAREE, pas une panne.
-      raison: "le contrat rend 0 : cette adresse ne s'est jamais abonnee",
+      raison: "the contract returns 0: this address has never subscribed",
     };
 
   const jusquAu = new Date(Number(secondes) * 1000).toISOString();
@@ -120,7 +120,7 @@ export async function verifierAbonnement(
     actifJusquAu: jusquAu,
     transaction: null,
     rejeu,
-    raison: expire ? `abonnement expire le ${jusquAu}` : null,
+    raison: expire ? `subscription expired on ${jusquAu}` : null,
   };
 }
 

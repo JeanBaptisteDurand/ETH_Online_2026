@@ -30,7 +30,7 @@ const hex = (b: Uint8Array): string =>
 function octets(h: string): Uint8Array {
   const s = h.startsWith("0x") ? h.slice(2) : h;
   if (s.length % 2 !== 0 || /[^0-9a-fA-F]/.test(s))
-    throw new SignatureInvalide(`hexadecimal malforme (${s.length} caracteres)`);
+    throw new SignatureInvalide(`malformed hexadecimal (${s.length} characters)`);
   const out = new Uint8Array(s.length / 2);
   for (let i = 0; i < out.length; i++) out[i] = parseInt(s.slice(i * 2, i * 2 + 2), 16);
   return out;
@@ -61,7 +61,7 @@ function adresseDe(pubNonCompressee: Uint8Array): string {
 export function adresseQuiASigne(message: string, signature: string): string {
   const sig = octets(signature);
   if (sig.length !== 65)
-    throw new SignatureInvalide(`signature de ${sig.length} octets, 65 attendus (r,s,v)`);
+    throw new SignatureInvalide(`signature of ${sig.length} bytes, 65 expected (r,s,v)`);
 
   const r = sig.slice(0, 32);
   const s = sig.slice(32, 64);
@@ -70,7 +70,7 @@ export function adresseQuiASigne(message: string, signature: string): string {
   // dans la nature, et refuser l'une couperait des utilisateurs reels.
   if (v >= 27) v -= 27;
   if (v !== 0 && v !== 1)
-    throw new SignatureInvalide(`octet de recuperation invalide : ${sig[64]}`);
+    throw new SignatureInvalide(`invalid recovery byte: ${sig[64]}`);
 
   const hash = hashPersonalSign(message);
   let pub: Uint8Array;
@@ -83,7 +83,7 @@ export function adresseQuiASigne(message: string, signature: string): string {
       .recoverPublicKey(hash)
       .toRawBytes(false);
   } catch (e) {
-    throw new SignatureInvalide(`recuperation impossible : ${(e as Error).message}`);
+    throw new SignatureInvalide(`recovery failed: ${(e as Error).message}`);
   }
   return adresseDe(pub);
 }
@@ -100,13 +100,13 @@ export function adresseQuiASigne(message: string, signature: string): string {
  */
 export function messageAsigner(adresse: string, nonce: string): string {
   return [
-    "TARE — connexion a votre compte",
+    "TARE — sign in to your account",
     "",
-    `Adresse : ${adresse.toLowerCase()}`,
-    `Nonce : ${nonce}`,
+    `Address: ${adresse.toLowerCase()}`,
+    `Nonce: ${nonce}`,
     "",
-    "Ce nonce ne sert qu'une fois et expire dans 5 minutes.",
-    "Signer ce message ne coute rien et n'autorise aucune depense.",
+    "This nonce can be used only once and expires in 5 minutes.",
+    "Signing this message costs nothing and authorises no spending.",
   ].join("\n");
 }
 

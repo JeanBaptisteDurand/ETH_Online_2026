@@ -47,7 +47,7 @@ export function meteringRouter(service: MeteringService, opts: MeteringRouterOpt
       returned: rows.length,
       total_rows_in_memory: service.ledger.size,
       truncated: service.ledger.size > rows.length,
-      note: "une ligne = une mesure, pas une requete.",
+      note: "one row = one measurement, not one request.",
       rows,
     });
   });
@@ -56,7 +56,7 @@ export function meteringRouter(service: MeteringService, opts: MeteringRouterOpt
     const id = c.req.param("id");
     const rows = service.ledger.rowsOf(id);
     if (rows.length === 0)
-      return c.json({ error: "lot inconnu", batch_id: id }, 404);
+      return c.json({ error: "unknown batch", batch_id: id }, 404);
     return c.json({
       batch_id: id,
       units_recorded: rows.length,
@@ -103,12 +103,12 @@ export function meteringRouter(service: MeteringService, opts: MeteringRouterOpt
   app.get("/usage/hcs/message/:seq", async (c) => {
     const seq = Number(c.req.param("seq"));
     if (!Number.isInteger(seq) || seq <= 0)
-      return c.json({ error: "sequence number invalide", value: c.req.param("seq") }, 400);
+      return c.json({ error: "invalid sequence number", value: c.req.param("seq") }, 400);
     const anchor = service.anchor;
     const cfg = opts.hcs ?? null;
     if (!anchor || !cfg)
       return c.json(
-        { error: "aucun topic HCS configure", status: "NOT_VERIFIED", sequence_number: seq },
+        { error: "no HCS topic configured", status: "NOT_VERIFIED", sequence_number: seq },
         503,
       );
     const known = service.anchorHistory().find((a) => a.publish?.sequence_number === seq);
@@ -122,8 +122,8 @@ export function meteringRouter(service: MeteringService, opts: MeteringRouterOpt
         ...v,
         hashscan: anchor.hashscan,
         note: v.verified
-          ? "contenu relu sur le mirror node, octet pour octet."
-          : "le mirror n'a pas rendu ce message : NOT_VERIFIED, jamais 'publie quand meme'.",
+          ? "content read back from the mirror node, byte for byte."
+          : "the mirror did not return this message: NOT_VERIFIED, never 'published anyway'.",
       },
       v.verified ? 200 : 503,
     );
@@ -135,12 +135,12 @@ export function meteringRouter(service: MeteringService, opts: MeteringRouterOpt
     try {
       body = (await c.req.json()) as { batch_id?: unknown };
     } catch {
-      return c.json({ error: "corps JSON invalide" }, 400);
+      return c.json({ error: "invalid JSON body" }, 400);
     }
     const batchId = typeof body.batch_id === "string" ? body.batch_id : null;
-    if (!batchId) return c.json({ error: "batch_id manquant" }, 400);
+    if (!batchId) return c.json({ error: "batch_id missing" }, 400);
     const rows = service.ledger.rowsOf(batchId);
-    if (rows.length === 0) return c.json({ error: "lot inconnu", batch_id: batchId }, 404);
+    if (rows.length === 0) return c.json({ error: "unknown batch", batch_id: batchId }, 404);
 
     const billed = rows.filter((r) => r.billable);
     const outcome = await service.anchorBatch({

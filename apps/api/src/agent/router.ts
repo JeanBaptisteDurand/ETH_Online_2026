@@ -23,7 +23,7 @@ export function createAgentRouter(): Hono {
     const cfg = hcsConfigFromEnv();
     if (!cfg?.topicId)
       return c.json(
-        { state: "NOT_CONFIGURED", reason: "HEDERA_HCS_TOPIC_ID est vide : rien a relire" },
+        { state: "NOT_CONFIGURED", reason: "HEDERA_HCS_TOPIC_ID is empty: nothing to read back" },
         503,
       );
     const lu = await readTopic(cfg, cfg.topicId);
@@ -43,14 +43,14 @@ export function createAgentRouter(): Hono {
       return c.json(
         {
           state: "NOT_READABLE",
-          reason: "la pagination du mirror node s'est interrompue : la liste serait incomplete",
+          reason: "the mirror node pagination was interrupted: the list would be incomplete",
           annonces,
         },
         503,
       );
     if (annonces.length === 0)
       return c.json(
-        { state: "NOT_ANNOUNCED", reason: "aucune annonce d'identite sur ce topic", topic: cfg.topicId },
+        { state: "NOT_ANNOUNCED", reason: "no identity announcement on this topic", topic: cfg.topicId },
         404,
       );
     return c.json({ state: "ANNOUNCED", topic: cfg.topicId, annonces });

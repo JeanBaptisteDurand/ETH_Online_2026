@@ -177,7 +177,7 @@ export class PgVectorStore implements RagStore {
     if (dim === null) {
       return {
         status: "INDEX_ABSENT",
-        reason: `la table ${CHUNKS_TABLE} n'existe pas — lancer python3 -m tare.rag build`,
+        reason: `the ${CHUNKS_TABLE} table does not exist — run python3 -m tare.rag build`,
         table: CHUNKS_TABLE,
         dim: null,
         n_chunks: null,
@@ -213,7 +213,7 @@ export class PgVectorStore implements RagStore {
       reason:
         total > 0
           ? undefined
-          : `${CHUNKS_TABLE} existe mais ne contient aucune ligne — ce n'est PAS "aucun passage ne correspond"`,
+          : `${CHUNKS_TABLE} exists but contains no row — this is NOT "no passage matches"`,
       table: CHUNKS_TABLE,
       dim,
       n_chunks: total,
@@ -228,7 +228,7 @@ export class PgVectorStore implements RagStore {
       throw new StoreError(info.reason ?? info.status, info.status);
     if (info.dim !== embedding.length)
       throw new StoreError(
-        `question en dimension ${embedding.length}, index en ${info.dim} : deux espaces vectoriels ne se comparent pas`,
+        `question in dimension ${embedding.length}, index in ${info.dim}: two vector spaces cannot be compared`,
         "DIM_MISMATCH",
       );
 

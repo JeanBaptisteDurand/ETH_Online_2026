@@ -123,7 +123,7 @@ export async function createTopic(cfg: HcsConfig, memo: string): Promise<CreateT
       .execute(client);
     const receipt = await tx.getReceipt(client);
     const topicId = receipt.topicId;
-    if (!topicId) throw new Error("recu HCS sans topicId");
+    if (!topicId) throw new Error("HCS receipt without topicId");
     return {
       topic_id: topicId.toString(),
       transaction_id: tx.transactionId.toString(),
@@ -190,7 +190,7 @@ export async function publishMessage(
   const bytes = Buffer.byteLength(message, "utf8");
   if (bytes > 1024)
     throw new Error(
-      `message HCS de ${bytes} octets : au-dela de 1024 il faudrait chunker. Le payload d'ancrage doit rester une empreinte, pas les mesures.`,
+      `HCS message of ${bytes} bytes: beyond 1024 it would have to be chunked. The anchoring payload must stay a digest, not the measurements.`,
     );
 
   const client = makeClient(cfg);
@@ -204,7 +204,7 @@ export async function publishMessage(
     const receipt = await tx.getReceipt(client);
     txIdStr = tx.transactionId.toString();
     seq = Number(receipt.topicSequenceNumber?.toString() ?? "0");
-    if (!seq) throw new Error("recu HCS sans sequence number");
+    if (!seq) throw new Error("HCS receipt without sequence number");
   } finally {
     client.close();
   }
@@ -239,26 +239,26 @@ export async function readChargedFee(
   const attempts = opts.feeAttempts ?? 8;
   const delay = opts.feeDelayMs ?? 1500;
   const url = `${cfg.mirrorUrl}/api/v1/transactions/${mirrorTxId(transactionId)}`;
-  let last = "aucune tentative";
+  let last = "no attempt";
   for (let i = 0; i < attempts; i++) {
     try {
       const res = await doFetch(url, { headers: { accept: "application/json" } });
       if (res.status === 404) {
-        last = "mirror_lag: transaction pas encore indexee";
+        last = "mirror_lag: transaction not indexed yet";
       } else if (!res.ok) {
         last = `mirror_http_${res.status}`;
       } else {
         const body = (await res.json()) as { transactions?: Array<{ charged_tx_fee?: number }> };
         const fee = body.transactions?.[0]?.charged_tx_fee;
         if (typeof fee === "number") return { tinybar: fee, note: null };
-        last = "reponse mirror sans charged_tx_fee";
+        last = "mirror response without charged_tx_fee";
       }
     } catch (e) {
       last = `mirror_error: ${(e as Error).message.slice(0, 120)}`;
     }
     if (i < attempts - 1) await new Promise((r) => setTimeout(r, delay));
   }
-  return { tinybar: null, note: `cout non lu (${last}) — non verifie, pas zero` };
+  return { tinybar: null, note: `cost not read (${last}) — not verified, not zero` };
 }
 
 export interface MirrorMessage {
@@ -300,13 +300,13 @@ export async function verifyOnMirror(
   const delay = opts.delayMs ?? 1500;
   const url = `${cfg.mirrorUrl}/api/v1/topics/${topicId}/messages/${sequenceNumber}`;
   const base = { topic_id: topicId, sequence_number: sequenceNumber, mirror_url: url };
-  let last = "aucune tentative";
+  let last = "no attempt";
 
   for (let i = 0; i < attempts; i++) {
     try {
       const res = await doFetch(url, { headers: { accept: "application/json" } });
       if (res.status === 404) {
-        last = "mirror_lag: message pas encore indexe";
+        last = "mirror_lag: message not indexed yet";
       } else if (res.status === 429) {
         last = "mirror_rate_limited";
       } else if (!res.ok) {
@@ -319,7 +319,7 @@ export async function verifyOnMirror(
           message?: string;
         };
         if (typeof body.message !== "string") {
-          last = "reponse mirror sans champ message";
+          last = "mirror response without a message field";
         } else {
           const utf8 = Buffer.from(body.message, "base64").toString("utf8");
           let parsed: AnchorPayload | null = null;
@@ -341,7 +341,7 @@ export async function verifyOnMirror(
             return {
               ...base,
               verified: false,
-              reason: "le mirror rend un contenu different de celui publie",
+              reason: "the mirror returns content different from what was published",
               message: msg,
             };
           return { ...base, verified: true, reason: null, message: msg };
@@ -381,7 +381,7 @@ export async function readTopic(
     if (pages >= maxPages)
       return {
         complete: false,
-        reason: `NOT_VERIFIED: plus de ${maxPages} pages, lecture bornee — la liste ci-dessous est incomplete`,
+        reason: `NOT_VERIFIED: more than ${maxPages} pages, bounded read — the list below is incomplete`,
         pages,
         count: messages.length,
         messages,

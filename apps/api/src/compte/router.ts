@@ -75,10 +75,10 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
 
   /** Sans base, aucune route ne fait semblant de marcher. */
   const sansBase = () => ({
-    error: "comptes indisponibles",
+    error: "accounts unavailable",
     detail:
-      "aucune base n'est configuree (TARE_PG_DSN ou DATABASE_URL). Les comptes, les cles d'API " +
-      "et l'historique en dependent ; le reste de l'API fonctionne sans.",
+      "no database is configured (TARE_PG_DSN or DATABASE_URL). Accounts, API keys " +
+      "and the history depend on it; the rest of the API works without it.",
   });
 
   /* --------------------------------------------------- la preuve de possession */
@@ -87,10 +87,10 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
     const s = await pret();
     if (!s) return c.json(sansBase(), 503);
     const corps = Nonce.safeParse(await c.req.json().catch(() => null));
-    if (!corps.success) return c.json({ error: "corps attendu : {adresse}" }, 400);
+    if (!corps.success) return c.json({ error: "expected body: {adresse}" }, 400);
     const adresse = corps.data.adresse.toLowerCase();
     if (!estAdresse(adresse))
-      return c.json({ error: `adresse malformee : ${corps.data.adresse}`, attendu: "0x + 40 hex" }, 400);
+      return c.json({ error: `malformed address: ${corps.data.adresse}`, attendu: "0x + 40 hex" }, 400);
 
     const nonce = await s.creerNonce(adresse);
     return c.json({
@@ -107,9 +107,9 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
     const s = await pret();
     if (!s) return c.json(sansBase(), 503);
     const corps = Session.safeParse(await c.req.json().catch(() => null));
-    if (!corps.success) return c.json({ error: "corps attendu : {adresse, nonce, signature}" }, 400);
+    if (!corps.success) return c.json({ error: "expected body: {adresse, nonce, signature}" }, 400);
     const adresse = corps.data.adresse.toLowerCase();
-    if (!estAdresse(adresse)) return c.json({ error: `adresse malformee : ${corps.data.adresse}` }, 400);
+    if (!estAdresse(adresse)) return c.json({ error: `malformed address: ${corps.data.adresse}` }, 400);
 
     // Le nonce d'abord : consomme-le AVANT de verifier la signature. Sinon une signature
     // invalide laisserait le nonce vivant, et on pourrait la reessayer indefiniment.
@@ -117,8 +117,8 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
     if (!ok)
       return c.json(
         {
-          error: "nonce refuse",
-          detail: "inconnu, deja utilise, expire, ou emis pour une autre adresse. Demandez-en un neuf.",
+          error: "nonce refused",
+          detail: "unknown, already used, expired, or issued for another address. Request a new one.",
         },
         401,
       );
@@ -130,14 +130,14 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
       signataire = adresseQuiASigne(messageAsigner(adresse, corps.data.nonce), corps.data.signature);
     } catch (e) {
       if (e instanceof SignatureInvalide)
-        return c.json({ error: "signature illisible", detail: e.message }, 400);
+        return c.json({ error: "unreadable signature", detail: e.message }, 400);
       throw e;
     }
     if (signataire !== adresse)
       return c.json(
         {
-          error: "signature d'une autre adresse",
-          detail: `signee par ${signataire}, annoncee pour ${adresse}`,
+          error: "signature from another address",
+          detail: `signed by ${signataire}, announced for ${adresse}`,
         },
         401,
       );
@@ -147,7 +147,7 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
     return c.json({
       jeton,
       // Le jeton n'est rendu qu'ici. On le dit, pour que le client le garde.
-      note: "ce jeton n'est rendu qu'une fois : la base n'en detient que le sha256",
+      note: "this token is returned only once: the database holds nothing but its sha256",
       compte: { adresse: compte.adresse, cree_le: compte.cree_le },
       expire_dans_j: 7,
     });
@@ -157,9 +157,9 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
     const s = await pret();
     if (!s) return c.json(sansBase(), 503);
     const jeton = bearer(c.req.header("authorization"));
-    if (!jeton) return c.json({ error: "en-tete attendu : authorization: Bearer <jeton>" }, 401);
+    if (!jeton) return c.json({ error: "expected header: authorization: Bearer <token>" }, 401);
     const ferme = await s.fermerSession(jeton);
-    return c.json({ ferme, note: ferme ? null : "session inconnue, deja fermee ou expiree" });
+    return c.json({ ferme, note: ferme ? null : "unknown session, already closed or expired" });
   });
 
   /* ------------------------------------------------------- le compte lui-meme */
@@ -185,7 +185,7 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
       telechargements: abonnement.actif
         ? { extension: "/compte/extension.zip", mcp: "/compte/mcp.tgz", details: "/compte/paquets" }
         : null,
-      note: abonnement.actif ? null : "l'abonnement n'est pas actif : les telechargements sont fermes",
+      note: abonnement.actif ? null : "the subscription is not active: downloads are closed",
     });
   });
 
@@ -198,7 +198,7 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
     if ("error" in r) return c.json(r, 401);
     const corps = NouvelleCle.safeParse(await c.req.json().catch(() => ({})));
     if (!corps.success)
-      return c.json({ error: "corps attendu : {portee: 'extension'|'mcp', nom?}" }, 400);
+      return c.json({ error: "expected body: {portee: 'extension'|'mcp', nom?}" }, 400);
 
     // Une cle ne sert a rien sans abonnement, et le dire ici vaut mieux que de la delivrer
     // pour qu'elle soit refusee plus tard, sans qu'on sache pourquoi.
@@ -217,13 +217,13 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
     // regle revient sans qu'une ligne de code change.
     const ouvertes = process.env["TARE_CLES_OUVERTES"] === "1";
     if (!ab.actif && !ouvertes)
-      return c.json({ error: "abonnement inactif", detail: ab.raison, abonnement: ab }, 402);
+      return c.json({ error: "subscription inactive", detail: ab.raison, abonnement: ab }, 402);
 
     const { cle, enregistree } = await s.creerCle(r.compte.id, corps.data.nom, corps.data.portee);
     return c.json(
       {
         cle,
-        note: "notez-la maintenant : elle n'est rendue qu'une fois, la base n'en detient que le sha256",
+        note: "write it down now: it is returned only once, the database holds nothing but its sha256",
         enregistree,
         abonnement_exige: !ouvertes,
       },
@@ -238,7 +238,7 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
     if ("error" in r) return c.json(r, 401);
     const revoquee = await s.revoquerCle(r.compte.id, c.req.param("id"));
     return c.json(
-      { revoquee, note: revoquee ? null : "cle inconnue, deja revoquee, ou appartenant a un autre compte" },
+      { revoquee, note: revoquee ? null : "unknown key, already revoked, or belonging to another account" },
       revoquee ? 200 : 404,
     );
   });
@@ -254,8 +254,8 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
     if (!cfg)
       return c.json(
         {
-          error: "abonnement non configure",
-          detail: "TARE_ABONNEMENT_CONTRAT et TARE_ABONNEMENT_RPC sont requis pour lire la chaine",
+          error: "subscription not configured",
+          detail: "TARE_ABONNEMENT_CONTRAT and TARE_ABONNEMENT_RPC are required to read the chain",
         },
         503,
       );
@@ -297,10 +297,10 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
     if (!ab.actif)
       return c.json(
         {
-          error: "abonnement inactif",
+          error: "subscription inactive",
           detail: ab.raison,
           abonnement: ab,
-          note: "les telechargements sont fermes tant que l'abonnement n'est pas actif sur la chaine",
+          note: "downloads are closed as long as the subscription is not active on chain",
         },
         402,
       );
@@ -309,15 +309,15 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
     try {
       p = produire();
     } catch (e) {
-      return c.json({ error: "empaquetage impossible", detail: (e as Error).message.slice(0, 200) }, 503);
+      return c.json({ error: "packaging failed", detail: (e as Error).message.slice(0, 200) }, 503);
     }
     if (estAbsent(p))
       return c.json(
         {
-          error: "paquet non construit",
+          error: "package not built",
           raison: p.raison,
           commande: p.commande,
-          note: "ce n'est pas une erreur de ton cote : l'artefact n'a pas ete produit sur le serveur",
+          note: "this is not an error on your side: the artefact was not produced on the server",
         },
         503,
       );
@@ -345,7 +345,7 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
         // Le sha256 est dans un en-tete pour qu'on puisse verifier le fichier recu sans
         // nous refaire confiance : `shasum -a 256 tare-guard.zip`.
         "x-tare-sha256": p.sha256,
-        "x-tare-version": p.version ?? "inconnue",
+        "x-tare-version": p.version ?? "unknown",
         "x-tare-construit-le": p.construit_le,
         "cache-control": "no-store",
       },
@@ -384,7 +384,7 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
       mcp: decrire(paquetMcp()),
       note: ab.actif
         ? null
-        : "les paquets sont decrits mais leur telechargement est ferme : l'abonnement n'est pas actif",
+        : "the packages are described but their download is closed: the subscription is not active",
     });
   });
 
@@ -397,7 +397,7 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
     if ("error" in r) return c.json(r, 401);
     const quoiBrut = c.req.query("quoi");
     if (quoiBrut && !(NATURES as readonly string[]).includes(quoiBrut))
-      return c.json({ error: `nature inconnue : ${quoiBrut}`, attendu: NATURES }, 400);
+      return c.json({ error: `unknown nature: ${quoiBrut}`, attendu: NATURES }, 400);
 
     // `Number("abc")` vaut NaN, et un NaN traverse Math.min/Math.max intact pour finir dans
     // un `LIMIT` SQL, ou Postgres refuse et ou l'API rendait un 500 muet. Le refus est ici,
@@ -407,13 +407,13 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
     if (limiteBrute !== undefined) {
       if (!/^[0-9]+$/.test(limiteBrute))
         return c.json(
-          { error: `limite invalide : ${limiteBrute}`, attendu: "un entier entre 1 et 500" },
+          { error: `invalid limite: ${limiteBrute}`, attendu: "an integer between 1 and 500" },
           400,
         );
       limite = Number(limiteBrute);
       if (limite < 1 || limite > 500)
         return c.json(
-          { error: `limite hors bornes : ${limite}`, attendu: "un entier entre 1 et 500" },
+          { error: `limite out of bounds: ${limite}`, attendu: "an integer between 1 and 500" },
           400,
         );
     }
@@ -434,10 +434,10 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
     const s = await pret();
     if (!s) return c.json(sansBase(), 503);
     const cle = c.req.header("x-tare-cle");
-    if (!cle) return c.json({ error: "en-tete attendu : x-tare-cle" }, 401);
+    if (!cle) return c.json({ error: "expected header: x-tare-cle" }, 401);
     const corps = Evenement.safeParse(await c.req.json().catch(() => null));
     if (!corps.success)
-      return c.json({ error: "corps attendu : {source, quoi, sujet?, detail?}", attendu: { source: SOURCES, quoi: NATURES } }, 400);
+      return c.json({ error: "expected body: {source, quoi, sujet?, detail?}", attendu: { source: SOURCES, quoi: NATURES } }, 400);
 
     // La source declaree doit correspondre a la portee de la cle. Sans ce controle, une cle
     // d'extension pourrait deposer des lignes en se disant 'mcp', et l'historique du compte
@@ -447,8 +447,8 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
     if (!compte)
       return c.json(
         {
-          error: "cle refusee",
-          detail: `inconnue, revoquee, ou de portee differente de « ${portee} » (deduite de source=${corps.data.source})`,
+          error: "key refused",
+          detail: `unknown, revoked, or of a scope other than "${portee}" (inferred from source=${corps.data.source})`,
         },
         401,
       );
@@ -465,12 +465,12 @@ export function createCompteRouter(deps: CompteRouterDeps = {}): Hono {
     if (!ab.actif)
       return c.json(
         {
-          error: "abonnement inactif",
+          error: "subscription inactive",
           detail: ab.raison,
           abonnement: ab,
           note:
-            "la cle est valide mais l'abonnement ne l'est plus : l'historique est ferme. " +
-            "L'analyse locale, elle, ne depend pas de ce service et continue de fonctionner.",
+            "the key is valid but the subscription no longer is: the history is closed. " +
+            "Local analysis does not depend on this service and keeps working.",
         },
         402,
       );
@@ -501,9 +501,9 @@ async function parSession(
 ): Promise<{ compte: Compte } | { error: string; detail: string }> {
   const jeton = bearer(header);
   if (!jeton)
-    return { error: "non authentifie", detail: "en-tete attendu : authorization: Bearer <jeton>" };
+    return { error: "not authenticated", detail: "expected header: authorization: Bearer <token>" };
   const compte = await s.compteDeSession(jeton);
   if (!compte)
-    return { error: "session refusee", detail: "jeton inconnu, ferme ou expire. Reconnectez-vous." };
+    return { error: "session refused", detail: "token unknown, closed or expired. Sign in again." };
   return { compte };
 }

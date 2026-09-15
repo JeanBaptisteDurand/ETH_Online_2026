@@ -127,9 +127,9 @@ export function hmacGuard(opts: HmacGuardOptions): MiddlewareHandler {
     if (!res.ok) {
       return c.json(
         {
-          error: "signature invalide",
+          error: "invalid signature",
           reason: res.reason,
-          how_to_sign: `hex(hmac_sha256(secret, "<${TS_HEADER}>\\n<corps brut>")) dans ${SIG_HEADER}`,
+          how_to_sign: `hex(hmac_sha256(secret, "<${TS_HEADER}>\\n<raw body>")) in ${SIG_HEADER}`,
         },
         401,
       );

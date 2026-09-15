@@ -43,13 +43,13 @@ const OPENAI_DIMS: Record<string, number> = {
 
 /** Le vecteur rendu par un fournisseur, verifie avant d'etre utilise. */
 function check(v: unknown, dim: number, who: string): number[] {
-  if (!Array.isArray(v)) throw new EmbedError(`${who}: pas de vecteur dans la reponse`);
+  if (!Array.isArray(v)) throw new EmbedError(`${who}: no vector in the response`);
   if (v.length !== dim)
-    throw new EmbedError(`${who}: vecteur de dimension ${v.length}, attendu ${dim}`);
+    throw new EmbedError(`${who}: vector of dimension ${v.length}, ${dim} expected`);
   const out = v.map(Number);
   if (out.some((x) => !Number.isFinite(x)))
-    throw new EmbedError(`${who}: le vecteur contient une valeur non finie`);
-  if (out.every((x) => x === 0)) throw new EmbedError(`${who}: vecteur entierement nul`);
+    throw new EmbedError(`${who}: the vector contains a non-finite value`);
+  if (out.every((x) => x === 0)) throw new EmbedError(`${who}: all-zero vector`);
   return out;
 }
 
@@ -74,7 +74,7 @@ async function postJson(
       return JSON.parse(text);
     } catch {
       // Une reponse tronquee n'est pas une reponse (regle 3, faux resultat #2).
-      throw new EmbedError(`${url}: reponse non-JSON (${text.length} octets)`);
+      throw new EmbedError(`${url}: non-JSON response (${text.length} bytes)`);
     }
   } catch (e) {
     if (e instanceof EmbedError) throw e;
@@ -103,10 +103,10 @@ export class OllamaEmbedder implements QueryEmbedder {
       const body = (await res.json()) as { models?: { name?: string }[] };
       const names = new Set((body.models ?? []).map((m) => m.name));
       if (!names.has(this.model))
-        return { ok: false, why: `${this.baseUrl}: modele ${this.model} absent` };
+        return { ok: false, why: `${this.baseUrl}: model ${this.model} missing` };
       return { ok: true, why: "" };
     } catch (e) {
-      return { ok: false, why: `${this.baseUrl} injoignable: ${(e as Error).message}` };
+      return { ok: false, why: `${this.baseUrl} unreachable: ${(e as Error).message}` };
     } finally {
       clearTimeout(timer);
     }
@@ -139,11 +139,11 @@ export class OpenAIEmbedder implements QueryEmbedder {
   async available(): Promise<{ ok: boolean; why: string }> {
     return this.apiKey
       ? { ok: true, why: "" }
-      : { ok: false, why: "OPENAI_API_KEY absente" };
+      : { ok: false, why: "OPENAI_API_KEY missing" };
   }
 
   async embed(text: string): Promise<number[]> {
-    if (!this.apiKey) throw new EmbedError("OPENAI_API_KEY absente", "EMBED_UNAVAILABLE");
+    if (!this.apiKey) throw new EmbedError("OPENAI_API_KEY missing", "EMBED_UNAVAILABLE");
     const r = (await postJson(
       `${this.baseUrl}/embeddings`,
       { model: this.model, input: text },
@@ -179,13 +179,13 @@ export async function pickEmbedder(cfg: {
   for (const cand of order) {
     const { ok, why } = await cand.available();
     if (ok) {
-      log.push(`${cand.provider}: retenu (${cand.model}, ${cand.dim} dims)`);
+      log.push(`${cand.provider}: selected (${cand.model}, ${cand.dim} dims)`);
       return { embedder: cand, log };
     }
-    log.push(`${cand.provider}: ecarte — ${why}`);
+    log.push(`${cand.provider}: skipped — ${why}`);
   }
   throw new EmbedError(
-    `aucun fournisseur d'embeddings disponible. ${log.join(" | ")}`,
+    `no embedding provider available. ${log.join(" | ")}`,
     "EMBED_UNAVAILABLE",
   );
 }

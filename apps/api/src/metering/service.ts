@@ -119,11 +119,11 @@ export class MeteringService {
         unit: "measurement",
         model: "per-measurement",
         definition:
-          "Une unite = UNE mesure = une paire de cotations du meme swap (avec le hook, puis avec le stub inerte de 89 octets). Une requete qui demande 5 tailles x 2 sens vaut 10 unites, pas 1.",
+          "One unit = ONE measurement = one pair of quotes of the same swap (with the hook, then with the inert 89-byte stub). A request asking for 5 sizes x 2 directions is worth 10 units, not 1.",
         not_billed:
-          "Une mesure etiquetee NOT_MEASURABLE n'est pas facturable : lecture bornee, timeout ou moteur muet ne produisent pas d'unite due.",
+          "A measurement labelled NOT_MEASURABLE is not billable: a clamped read, a timeout or a silent engine produce no unit due.",
         credit:
-          "Mais x402 encaisse AVANT que le moteur ne tourne — le prix est fige au 402, l'argent bouge au reglement, l'etiquette n'existe qu'apres. Une unite non facturable deja payee n'est donc pas gratuite : elle devient un CREDIT. `amount_usd` dit ce qui est du, `amount_settled_usd` ce qui a reellement ete preleve on-chain, `credit_usd` l'ecart que le service doit.",
+          "But x402 collects BEFORE the engine runs — the price is fixed at the 402, the money moves at settlement, the label only exists afterwards. A non-billable unit that was already paid for is therefore not free: it becomes a CREDIT. `amount_usd` says what is due, `amount_settled_usd` what was actually taken on-chain, `credit_usd` the gap the service owes.",
       },
       totals: all,
       since_month_start: month,
@@ -198,7 +198,7 @@ export class MeteringService {
     if (!this.anchor)
       return {
         enabled: false,
-        note: "aucun topic HCS configure (HEDERA_HCS_TOPIC_ID absent) : les lots ne sont pas ancres. Ce n'est pas 'ancre a zero', c'est 'pas ancre'.",
+        note: "no HCS topic configured (HEDERA_HCS_TOPIC_ID missing): batches are not anchored. This is not 'anchored at zero', it is 'not anchored'.",
         anchored_batches: 0,
         unanchored_batches: this.ledger.unanchoredBatches().length,
       };
@@ -224,7 +224,7 @@ export class MeteringService {
           }
         : {
             messages_with_known_cost: 0,
-            note: "aucun cout lu sur le mirror node — non verifie, pas gratuit",
+            note: "no cost read on the mirror node — not verified, not free",
           },
       recent: this.anchors.slice(-10).map((a) => ({
         batch_id: a.batch_id,
@@ -260,7 +260,7 @@ export class MeteringService {
         ok: false,
         status: "NOT_ANCHORED",
         batch_id: receipt.batch_id,
-        reason: "aucun topic HCS configure",
+        reason: "no HCS topic configured",
         publish: null,
         verification: null,
       };
@@ -296,7 +296,7 @@ export class MeteringService {
         ok: false,
         status: "NOT_ANCHORED",
         batch_id: receipt.batch_id,
-        reason: `publication refusee: ${(e as Error).message.slice(0, 200)}`,
+        reason: `publication refused: ${(e as Error).message.slice(0, 200)}`,
         publish: null,
         verification: null,
       };
@@ -312,7 +312,7 @@ export class MeteringService {
           ok: false,
           status: "NOT_ANCHORED",
           batch_id: receipt.batch_id,
-          reason: verification.reason ?? "mirror node muet",
+          reason: verification.reason ?? "silent mirror node",
           publish: published,
           verification,
         };

@@ -245,6 +245,6 @@ describe("le cout d'un message", () => {
     });
     expect(fee.tinybar).toBeNull();
     expect(fee.tinybar).not.toBe(0);
-    expect(fee.note).toContain("non verifie, pas zero");
+    expect(fee.note).toContain("not verified, not zero");
   });
 });

@@ -211,9 +211,9 @@ describe("ce que GET /agent rend", () => {
 
   it("dit ses limites, et nomme celle qui compte", () => {
     const tout = j.limites.join(" ");
-    expect(tout).toMatch(/aucun resultat de reference publie/);
+    expect(tout).toMatch(/no published reference result/);
     expect(tout).toMatch(/pseudo-code/);
-    expect(tout).toMatch(/aucun annuaire/);
+    expect(tout).toMatch(/not listed in any agent directory/);
   });
 
   it("sans topic configure, ne fait pas croire a une publication", () => {

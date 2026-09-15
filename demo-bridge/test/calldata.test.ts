@@ -14,6 +14,7 @@ import { poolId } from "../vendor/guard/src/poolkey.js";
 import {
   ACTES,
   ACTES_DE_LA_DEMO,
+  CORPUS,
   TAILLE_WEI,
   distribution,
   lirePorte,
@@ -21,7 +22,7 @@ import {
   USDC_BASE,
   ADRESSE_NULLE,
 } from "../src/corpus.js";
-import { construireMessage, champTake } from "../src/message.js";
+import { construireMessage, champTake, champTakeBref } from "../src/message.js";
 import { TARE_GUARD_TYPES, TARE_GUARD_PRIMARY_TYPE } from "../vendor/guard/src/ledger.js";
 
 const UNIVERSAL_ROUTER_BASE = "0x6ff5693b99212da76ad316178a184ab56d299b43";
@@ -176,12 +177,24 @@ describe("le corpus, et rien que lui", () => {
   });
 });
 
-describe("le message EIP-712", () => {
-  it("porte le type du depot, sans le reinventer", () => {
+describe("le message EIP-712 — le schema COURT, celui que la demo signe", () => {
+  it("porte un nom DISTINCT du schema publie : deux structures ne partagent pas un nom", () => {
     const m = construireMessage("stop");
-    expect(m.typed.primaryType).toBe(TARE_GUARD_PRIMARY_TYPE);
-    expect(m.typed.types).toBe(TARE_GUARD_TYPES);
+    expect(m.typed.primaryType).toBe("TareGuardBrief");
+    expect(m.typed.primaryType).not.toBe(TARE_GUARD_PRIMARY_TYPE);
     expect(Object.keys(m.typed.message)).toEqual([
+      "verdict",
+      "summary",
+      "gates",
+      "dataset",
+      "measuredAtBlock",
+      "promptDigest",
+    ]);
+  });
+
+  it("le schema publie reste construit et disponible, il n'a pas ete efface", () => {
+    expect(TARE_GUARD_PRIMARY_TYPE).toBe("TareGuardApproval");
+    expect(TARE_GUARD_TYPES.TareGuardApproval!.map((f) => f.name)).toEqual([
       "verdict",
       "summary",
       "swaps",
@@ -193,33 +206,76 @@ describe("le message EIP-712", () => {
     ]);
   });
 
-  it("acte stop : le verdict affiche est celui du corpus, et les deux portes sont montrees", () => {
-    const m = construireMessage("stop");
-    const msg = m.typed.message as Record<string, unknown>;
-    expect(msg.verdict).toBe("OK"); // gradue par les centiles, pas par le nom de l'acte
+  it("AUCUN CHIFFRE N'A DISPARU : take, taille, bloc, et le take de la meilleure porte", () => {
+    const msg = construireMessage("stop").typed.message as Record<string, unknown>;
+    const gates = msg.gates as Array<Record<string, string>>;
+    expect(gates).toHaveLength(1); // une seule structure, pas deux
+    expect(gates[0]!.take).toBe("4.0933 bps [MEASURED]"); // la valeur ET son etiquette
+    expect(gates[0]!.size).toBe("1000000000000 in");
+    expect(gates[0]!.direction).toBe("0->1");
     expect(msg.measuredAtBlock).toBe(50614000);
-    const swaps = msg.swaps as Array<Record<string, string>>;
-    expect(swaps).toHaveLength(2);
-    expect(swaps[0]!.take).toBe("4.09 bps");
-    expect(swaps[1]!.take).toBe("0.00 bps");
+    // le prelevement de la MEILLEURE porte n'est pas perdu : il est dans le resume
+    expect(msg.summary).toBe("Takes 4.0933 bps. Best gate: 0.0000.");
+    expect(msg.dataset).toBe("125072 meas, 7817 pools, chain 8453");
     expect(String(msg.promptDigest)).toMatch(/^0x[0-9a-f]{64}$/);
   });
 
-  it("acte queue : l'extreme s'affiche toujours, avec son verdict BLOCK", () => {
-    const msg = construireMessage("queue").typed.message as Record<string, unknown>;
-    expect(msg.verdict).toBe("BLOCK");
-    const swaps = msg.swaps as Array<Record<string, string>>;
-    expect(swaps).toHaveLength(1);
-    expect(swaps[0]!.take).toBe("9999.53 bps");
-    expect(swaps[0]!.hook).toBe("0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc");
+  it("le resume tient sur UN ecran de Nano — 43 caracteres", () => {
+    for (const nom of ["stop", "substitution", "queue"] as const) {
+      const msg = construireMessage(nom).typed.message as Record<string, unknown>;
+      expect(String(msg.summary).length, `${nom}.summary`).toBeLessThanOrEqual(43);
+      expect(String(msg.dataset).length, `${nom}.dataset`).toBeLessThanOrEqual(43);
+      const g = (msg.gates as Array<Record<string, string>>)[0]!;
+      expect(String(g.take).length, `${nom}.take`).toBeLessThanOrEqual(43);
+      expect(String(g.size).length, `${nom}.size`).toBeLessThanOrEqual(43);
+    }
   });
 
-  it("acte substitution : les deux portes sont affichees, l'actuelle puis la proposee", () => {
-    const swaps = (construireMessage("substitution").typed.message as Record<string, unknown>)
-      .swaps as Array<Record<string, string>>;
-    expect(swaps).toHaveLength(2);
-    expect(swaps[0]!.take).toBe("4.09 bps");
-    expect(swaps[1]!.take).toBe("0.00 bps");
+  it("acte stop : le verdict affiche est celui du corpus, pas celui du nom de l'acte", () => {
+    const msg = construireMessage("stop").typed.message as Record<string, unknown>;
+    expect(msg.verdict).toBe("OK");
+  });
+
+  it("acte queue : l'extreme s'affiche toujours, avec son verdict BLOCK et son chiffre", () => {
+    const msg = construireMessage("queue").typed.message as Record<string, unknown>;
+    expect(msg.verdict).toBe("BLOCK");
+    const g = (msg.gates as Array<Record<string, string>>)[0]!;
+    expect(g.take).toBe("9999.5279 bps [MEASURED]");
+    expect(g.hook).toBe("0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc");
+    expect(msg.summary).toBe("Takes 9999.5279 bps. Corpus max of 63156.");
+  });
+
+  it("le texte SCELLE porte ce que l'ecran ne porte plus : stub, moteur, rejeu, ecart", () => {
+    const m = construireMessage("stop");
+    expect(m.texte).toContain(CORPUS.stub_hash!);
+    expect(m.texte).toContain("tare-engine/0.3.0");
+    expect(m.texte).toContain("replay: python3");
+    expect(m.texte).toContain("spread  4.0933 bps");
+    expect(m.texte).toContain(ACTES.stop.meilleure_porte!.pool_id);
+  });
+
+  it("TOUT ce que l'appareil affiche est en anglais — c'est l'objet que le jury fixe", () => {
+    const FRANCAIS = /\b(mesures?|chaine|moteur|en entree|aucun|retard nul|prend|a ta taille|ce n'est pas zero|nulle part)\b/i;
+    for (const nom of ["stop", "substitution", "queue"] as const) {
+      const m = construireMessage(nom);
+      const msg = m.typed.message as Record<string, unknown>;
+      for (const [champ, v] of Object.entries(msg)) {
+        if (typeof v === "string") expect(v, `${nom}.${champ}`).not.toMatch(FRANCAIS);
+      }
+      for (const g of msg.gates as Array<Record<string, string>>) {
+        for (const [champ, v] of Object.entries(g)) expect(v, `${nom}.gates.${champ}`).not.toMatch(FRANCAIS);
+      }
+      expect(m.texte, `${nom}.texte`).not.toMatch(FRANCAIS);
+    }
+  });
+
+  it("promptDigest est le keccak256 du texte rendu — pas d'une phrase qu'on n'affiche plus", async () => {
+    const { keccak256, toHex } = await import("../vendor/guard/src/keccak.js");
+    for (const nom of ["stop", "substitution", "queue"] as const) {
+      const m = construireMessage(nom);
+      const attendu = toHex(keccak256(new TextEncoder().encode(m.texte)));
+      expect((m.typed.message as Record<string, unknown>).promptDigest, nom).toBe(attendu);
+    }
   });
 
   it("un message deja mis en champs est recopie, pas reecrit", () => {
@@ -242,32 +298,6 @@ describe("le message EIP-712", () => {
     expect(msg.verdict).toBe("WARN");
     expect(msg.summary).toBe("phrase de la page");
     expect((msg.swaps as unknown[])).toHaveLength(1);
-  });
-
-  it("TOUT ce que l'appareil affiche est en anglais — c'est l'objet que le jury fixe", () => {
-    // Les mots francais qui trainaient avant : « mesures », « chaine », « moteur »,
-    // « en entree », « aucun », « retard », « prend », « a ta taille ».
-    const FRANCAIS = /\b(mesures?|chaine|moteur|en entree|aucun|retard nul|prend|a ta taille|ce n'est pas zero|nulle part)\b/i;
-    for (const nom of ["stop", "substitution", "queue"] as const) {
-      const m = construireMessage(nom);
-      const msg = m.typed.message as Record<string, unknown>;
-      for (const [champ, v] of Object.entries(msg)) {
-        if (typeof v === "string") expect(v, `${nom}.${champ}`).not.toMatch(FRANCAIS);
-      }
-      for (const sw of msg.swaps as Array<Record<string, string>>) {
-        for (const [champ, v] of Object.entries(sw)) expect(v, `${nom}.swaps.${champ}`).not.toMatch(FRANCAIS);
-      }
-      expect(m.texte, `${nom}.texte`).not.toMatch(FRANCAIS);
-    }
-  });
-
-  it("promptDigest est le keccak256 du texte rendu — pas d'une phrase qu'on n'affiche plus", async () => {
-    const { keccak256, toHex } = await import("../vendor/guard/src/keccak.js");
-    for (const nom of ["stop", "substitution", "queue"] as const) {
-      const m = construireMessage(nom);
-      const attendu = toHex(keccak256(new TextEncoder().encode(m.texte)));
-      expect((m.typed.message as Record<string, unknown>).promptDigest, nom).toBe(attendu);
-    }
   });
 
   it("un hook qui n'est pas une adresse est refuse, pas corrige en silence", () => {

@@ -32,7 +32,7 @@ def voir(cle, valeur):
 
 
 for cle, valeur in (d.get("message") or {}).items():
-    if cle == "swaps":
+    if cle in ("swaps", "gates"):
         for swap in valeur or []:
             for k, v in (swap or {}).items():
                 voir("swaps." + k, v)

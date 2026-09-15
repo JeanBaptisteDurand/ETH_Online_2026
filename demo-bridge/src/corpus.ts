@@ -134,8 +134,17 @@ export interface Acte {
   etat: "MEILLEURE_PORTE" | "PORTE_UNIQUE" | "DEJA_LA_MEILLEURE";
   /** le verdict du corpus pour CE prelevement, gradue par verdict.ts et ses centiles */
   verdict: "ok" | "warn" | "block";
-  /** la phrase a montrer, deja ecrite, sans nombre qui ne vienne pas du corpus */
+  /** la phrase a montrer sur la PAGE, deja ecrite, sans nombre qui ne vienne pas du corpus */
   phrase: string;
+  /**
+   * LA MEME CHOSE POUR L'APPAREIL, EN UNE LIGNE.
+   *
+   * L'ecran d'un Nano tient ~43 caracteres ; au-dela il decoupe, et chaque decoupe ajoute un
+   * « Press right button to continue message ». Sept ecrans de prose noyaient le chiffre que
+   * le presentateur venait justement montrer. Cette ligne-ci porte les MEMES nombres que la
+   * phrase — celui de la porte et celui de la meilleure — et rien d'autre.
+   */
+  resume: string;
 }
 
 export const ADRESSE_NULLE = "0x0000000000000000000000000000000000000000";
@@ -250,6 +259,20 @@ function verifierComparables(a: Porte, b: Porte): void {
   }
 }
 
+/**
+ * UNE LIGNE, DEUX NOMBRES. Celui de la porte qu'on signe, et celui de la meilleure — parce
+ * que c'est la comparaison qui decide, et qu'elle ne doit pas disparaitre avec la prose.
+ * Quand il n'y a pas de meilleure porte mesuree, on le DIT, on ne laisse pas un blanc.
+ */
+function resumeDeuxPortes(porte: Porte, meilleure: Porte, economie: number | null): string {
+  if (porte.bps === null) return `Not measured at this size. Not zero.`;
+  if (meilleure.bps === null || economie === null) {
+    return `Takes ${porte.bps.toFixed(4)} bps. No better gate measured.`;
+  }
+  if (economie <= 0) return `Takes ${porte.bps.toFixed(4)} bps. Best measured gate.`;
+  return `Takes ${porte.bps.toFixed(4)} bps. Best gate: ${meilleure.bps.toFixed(4)}.`;
+}
+
 function bps4(p: Porte): string {
   return p.bps === null ? `not measured (${p.etiquette})` : p.bps.toFixed(4);
 }
@@ -294,6 +317,7 @@ function construireStop(): Acte {
     etat,
     verdict: verdictDeLaPorte(porte),
     phrase,
+    resume: resumeDeuxPortes(porte, meilleure, economie),
   };
 }
 
@@ -323,6 +347,7 @@ function construireSubstitution(): Acte {
     etat,
     verdict: verdictDeLaPorte(porte),
     phrase,
+    resume: resumeDeuxPortes(porte, meilleure, economie),
   };
 }
 
@@ -370,6 +395,10 @@ function construireQueue(): Acte {
     etat: "PORTE_UNIQUE",
     verdict: verdictDeLaPorte(porte),
     phrase,
+    resume:
+      porte.bps === null
+        ? `Not measured at this size. Not zero.`
+        : `Takes ${porte.bps.toFixed(4)} bps. Corpus max of ${d.n}.`,
   };
 }
 

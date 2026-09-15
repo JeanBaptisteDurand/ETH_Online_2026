@@ -7,13 +7,46 @@
  *      depot s'en charge, mot pour mot — c'est le chemin dont docs/ledger/ECRANS.md est la trace ;
  *   2. un MESSAGE deja mis en champs (il a `swaps`) : on le recopie en completant ce qui
  *      manque avec le corpus, et on le dit dans `source` ;
- *   3. un simple NOM D'ACTE ("stop" / "substitution"), ou rien du tout : le message est
- *      construit depuis le corpus.
+ *   3. un simple NOM D'ACTE ("stop" / "substitution" / "queue"), ou rien du tout : le message
+ *      est construit depuis le corpus.
  *
  * AUCUN NOMBRE N'EST INVENTE NULLE PART. Quand le corpus ne mesure pas un point, `take` porte
- * « non mesure — ce n'est pas zero », exactement comme takeField() du depot. Jamais « 0.00 bps ».
+ * « not measured, not zero » avec son etiquette, exactement comme takeField() du depot. Jamais
+ * « 0.00 bps ».
+ *
+ * ────────────────────────────────────────────────────────────────────────────────────────
+ * LE SCHEMA COURT, ET POURQUOI IL EXISTE
+ *
+ * `TareGuardApproval` — celui de packages/guard/src/ledger.ts, celui dont EIP712.md et
+ * docs/ledger/ECRANS.md portent la capture — demande **57 ecrans** sur un Nano X, dont 34 du
+ * seul message « Press right button to continue message or press both to skip ». Mesure, pas
+ * impression : scripts/chrono-ecrans.sh les compte. Sur scene, ce message revient sans cesse et
+ * NOIE le contenu ; le presentateur perd l'attention du jury avant d'arriver au chiffre.
+ *
+ * On a d'abord essaye de vider les champs plutot que de toucher au schema. **Ca ne marche
+ * pas** : un champ a chaine vide occupe quand meme un ecran. Mesure : avec `summary`,
+ * `dataset`, `freshness` et `warnings` tous vides et UNE seule porte, l'appareil affiche
+ * encore 24 ecrans. Le plancher du schema long est donc au-dessus de la cible.
+ *
+ * D'ou `TareGuardBrief`, un schema PLUS COURT et NOMME AUTREMENT. Il n'usurpe pas le nom du
+ * schema publie : deux structures differentes sous un meme nom seraient exactement le genre
+ * d'ambiguite silencieuse que ce projet refuse. L'appareil affiche « Review struct
+ * TareGuardBrief », et personne ne peut confondre les deux captures.
+ *
+ * CE QU'IL PERD : `freshness` (le bloc de mesure et celui du fork sont le meme — `measuredAtBlock`
+ * le dit deja), `warnings` (un champ qui dit « none » a chaque fois coute un ecran pour zero
+ * information), et le detail de `dataset` (reduit a une ligne de comptes).
+ *
+ * CE QU'IL NE PERD PAS — et c'est la regle dure : **aucun chiffre**. Le prelevement, la taille,
+ * le bloc, le pool, le hook, le sens sont tous la. Le prelevement de la MEILLEURE porte, qui
+ * occupait sept ecrans de seconde structure, est desormais dans `summary`, en toutes lettres.
+ * Et `promptDigest` scelle le texte integral — moteur et empreinte du stub compris — donc rien
+ * de ce qui a disparu de l'ecran n'a disparu de la signature.
+ *
+ * Le schema long reste construit et disponible : DEMO_MESSAGE=long y revient en une ligne.
+ * ────────────────────────────────────────────────────────────────────────────────────────
  */
-import { buildGuardTypedData, type Eip712TypedData } from "../vendor/guard/src/ledger.js";
+import { buildGuardTypedData, type Eip712Field, type Eip712TypedData } from "../vendor/guard/src/ledger.js";
 import { TARE_GUARD_TYPES, TARE_GUARD_PRIMARY_TYPE } from "../vendor/guard/src/ledger.js";
 import { keccak256, toHex } from "../vendor/guard/src/keccak.js";
 import { ACTES, CORPUS, EST_ACTE, TABLE, type Acte, type NomActe, type Porte } from "./corpus.js";
@@ -33,6 +66,72 @@ const MOT32 = /^0x[0-9a-fA-F]{64}$/;
  * jamais un nombre. « not measured — this is not zero » est la traduction exacte de
  * takeField() de packages/guard/src/ledger.ts, et elle dit la meme chose.
  */
+
+/**
+ * LE SCHEMA COURT. `TareSwap` du depot porte six champs ; `TareGate` en porte cinq, parce que
+ * `take` et `label` y sont FONDUS EN UN SEUL. Ce n'est pas une perte : la regle du projet est
+ * que l'etiquette voyage avec la valeur (« un take sans son etiquette laisserait croire qu'une
+ * absence de mesure vaut zero »), et les fondre rend cette regle inviolable — on ne peut plus
+ * lire l'un sans l'autre, meme en photographiant un seul ecran.
+ */
+export const TARE_BREF_TYPES: Record<string, Eip712Field[]> = {
+  EIP712Domain: [
+    { name: "name", type: "string" },
+    { name: "version", type: "string" },
+    { name: "chainId", type: "uint256" },
+  ],
+  TareGuardBrief: [
+    { name: "verdict", type: "string" },
+    { name: "summary", type: "string" },
+    { name: "gates", type: "TareGate[]" },
+    { name: "dataset", type: "string" },
+    { name: "measuredAtBlock", type: "uint256" },
+    { name: "promptDigest", type: "bytes32" },
+  ],
+  TareGate: [
+    { name: "hook", type: "address" },
+    { name: "poolId", type: "bytes32" },
+    { name: "take", type: "string" },
+    { name: "size", type: "string" },
+    { name: "direction", type: "string" },
+  ],
+};
+
+export const TARE_BREF_PRIMARY_TYPE = "TareGuardBrief";
+
+/** `long` rend le schema publie (57 ecrans) ; `bref` celui qui tient en 20. */
+export const FORME_MESSAGE = (process.env.DEMO_MESSAGE ?? "bref").toLowerCase() === "long" ? "long" : "bref";
+
+/**
+ * Le prelevement, a la precision du corpus, AVEC son etiquette et sur la meme ligne.
+ * 4 decimales : c'est la precision que la table porte, ni plus ni moins.
+ */
+export function champTakeBref(p: Porte): string {
+  if (p.bps === null) return `not measured, not zero [${p.etiquette}]`;
+  return `${p.bps.toFixed(4)} bps [${p.etiquette}]`;
+}
+
+/** Une porte, en cinq champs. */
+function porteBreve(p: Porte) {
+  return {
+    hook: p.hook,
+    poolId: p.pool_id,
+    take: champTakeBref(p),
+    size: `${p.taille_wei} in`,
+    direction: p.sens,
+  };
+}
+
+/**
+ * LE CORPUS EN UNE LIGNE, et pas quatre.
+ *
+ * Les comptes restent — ce sont des chiffres, et on ne coupe pas les chiffres. Le moteur et
+ * l'empreinte du stub sortent de l'ecran mais RESTENT dans le texte scelle par promptDigest :
+ * la signature les engage toujours, la page les affiche, l'ecran ne les repete plus.
+ */
+export function champDatasetBref(): string {
+  return `${CORPUS.n_measurements} meas, ${CORPUS.n_pools} pools, chain ${CORPUS.chain_id}`;
+}
 
 /** Ce qui a produit les nombres, cite depuis la table elle-meme et non ecrit en dur. */
 export function champDataset(): string {
@@ -82,64 +181,93 @@ function estRapport(v: unknown): v is { findings: unknown[]; table: unknown } {
 }
 
 /**
- * LE TEXTE DONT promptDigest PORTE LE KECCAK.
+ * LE TEXTE SCELLE PAR promptDigest.
  *
- * Il est en anglais comme le reste, et c'est PLUS qu'une question de langue : l'empreinte
- * scelle le texte montre a l'humain. Traduire le texte SANS recalculer l'empreinte laisserait
- * l'appareil attester une phrase que plus personne n'affiche. Il est donc rendu tel quel par
- * /demo/preparer et /demo/message, pour que la page puisse afficher la MEME empreinte que
- * l'appareil, et qu'on puisse le verifier a la main.
+ * Il porte PLUS que l'ecran, et c'est voulu : le moteur, l'empreinte du stub, la commande de
+ * rejeu et la comparaison des deux portes ne tiennent pas sur un Nano, mais la signature doit
+ * les engager. La page l'affiche en entier a cote de l'appareil, et /demo/message le rend tel
+ * quel — c'est ce qui permet de refaire le keccak a la main et de verifier qu'appareil, page
+ * et calcul disent le meme nombre.
+ *
+ * Il est en anglais comme le reste : traduire l'ecran sans retraduire ce texte laisserait
+ * l'appareil attester une phrase que plus personne n'affiche.
  */
 function texteDe(acte: Acte): string {
   const p = acte.porte;
-  return [
+  const m = acte.meilleure_porte;
+  const lignes = [
     `TARE — ${acte.nom.toUpperCase()}`,
+    acte.resume,
     acte.phrase,
-    `pool ${p.pool_id}`,
-    `hook ${p.hook}`,
-    `take ${champTake(p)} [${p.etiquette}]`,
-    `size ${p.taille_wei} in, direction ${p.sens}`,
-    `measured at block ${CORPUS.block_number}, chain ${CORPUS.chain_id}`,
-    `replay: ${p.rejeu}`,
-  ].join("\n");
+    `gate  ${p.pool_id}`,
+    `hook  ${p.hook}`,
+    `take  ${champTakeBref(p)}`,
+    `size  ${p.taille_wei} in, direction ${p.sens}`,
+  ];
+  if (m) {
+    lignes.push(`best gate  ${m.pool_id}`);
+    lignes.push(`best hook  ${m.hook}`);
+    lignes.push(`best take  ${champTakeBref(m)}`);
+    if (acte.economie_bps !== null) lignes.push(`spread  ${acte.economie_bps.toFixed(4)} bps`);
+  }
+  lignes.push(`measured at block ${CORPUS.block_number}, chain ${CORPUS.chain_id}`);
+  lignes.push(`dataset  ${champDataset()}`);
+  lignes.push(`replay: ${p.rejeu}`);
+  return lignes.join("\n");
 }
 
-/**
- * Le verdict affiche sur l'appareil vient du CORPUS, pas du nom de l'acte.
- *
- * `acte.verdict` est gradue par verdict.ts avec les centiles de la table — warn au 90e,
- * block au 99e. Ecrire « BLOCK » parce que l'acte s'appelle « stop » serait inventer une
- * gravite que la mesure ne porte pas : la porte d'ouverture prend 4,09 bps, soit moins que
- * 90 % du corpus, et l'appareil doit le dire.
- */
 function verdictDe(acte: Acte): string {
   return acte.verdict.toUpperCase();
+}
+
+/** Le message COURT — celui que la demo signe. Vingt ecrans sur un Nano X, mesures. */
+function messageBref(acte: Acte, texte: string): Eip712TypedData {
+  return {
+    domain: { name: "TARE Guard", version: "1", chainId: CORPUS.chain_id },
+    types: TARE_BREF_TYPES,
+    primaryType: TARE_BREF_PRIMARY_TYPE,
+    message: {
+      verdict: verdictDe(acte),
+      summary: acte.resume,
+      // UNE porte : celle qu'on signe. Le prelevement de la meilleure est dans `summary`,
+      // en toutes lettres — aucun chiffre n'est perdu, seule la seconde structure disparait.
+      gates: [porteBreve(acte.porte)],
+      dataset: champDatasetBref(),
+      measuredAtBlock: CORPUS.block_number,
+      promptDigest: toHex(keccak256(utf8(texte))),
+    },
+  };
+}
+
+/** Le message LONG — le schema publie dans EIP712.md. 57 ecrans. DEMO_MESSAGE=long. */
+function messageLong(acte: Acte, texte: string): Eip712TypedData {
+  const swaps = [swapDe(acte.porte)];
+  if (acte.meilleure_porte) swaps.push(swapDe(acte.meilleure_porte));
+  return {
+    domain: { name: "TARE Guard", version: "1", chainId: CORPUS.chain_id },
+    types: TARE_GUARD_TYPES,
+    primaryType: TARE_GUARD_PRIMARY_TYPE,
+    message: {
+      verdict: verdictDe(acte),
+      summary: acte.phrase,
+      swaps,
+      dataset: champDataset(),
+      measuredAtBlock: CORPUS.block_number,
+      freshness: `measured at block ${CORPUS.block_number}; the demo fork is pinned to the same block, zero lag`,
+      warnings: "none",
+      promptDigest: toHex(keccak256(utf8(texte))),
+    },
+  };
 }
 
 /** Le message construit depuis le corpus, pour un acte. */
 export function messageDeActe(nom: NomActe): MessageConstruit {
   const acte = ACTES[nom];
   const texte = texteDe(acte);
-  const swaps = [swapDe(acte.porte)];
-  if (acte.meilleure_porte) swaps.push(swapDe(acte.meilleure_porte));
   return {
     source: "corpus",
     texte,
-    typed: {
-      domain: { name: "TARE Guard", version: "1", chainId: CORPUS.chain_id },
-      types: TARE_GUARD_TYPES,
-      primaryType: TARE_GUARD_PRIMARY_TYPE,
-      message: {
-        verdict: verdictDe(acte),
-        summary: acte.phrase,
-        swaps,
-        dataset: champDataset(),
-        measuredAtBlock: CORPUS.block_number,
-        freshness: `measured at block ${CORPUS.block_number}; the demo fork is pinned to the same block, zero lag`,
-        warnings: "none",
-        promptDigest: toHex(keccak256(utf8(texte))),
-      },
-    },
+    typed: FORME_MESSAGE === "long" ? messageLong(acte, texte) : messageBref(acte, texte),
   };
 }
 

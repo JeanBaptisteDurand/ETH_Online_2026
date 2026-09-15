@@ -39,6 +39,7 @@ import {
   setBalance,
   snapshot,
   crediterErc20,
+  figerHorloge,
   emplacementDuSolde,
   BLOC_EPINGLE,
   USDC_EMPLACEMENT_SOLDES,
@@ -141,6 +142,8 @@ const SURFACES = {
 let snapshotBase: string | null = null;
 let blocDeBase: number | null = null;
 let motifBase: string | null = null;
+/** L'horloge du fork est-elle figee sur l'horodatage du bloc epingle ? Publie par /demo/etat. */
+let horlogeFigee: { fige: boolean; motif: string | null } = { fige: false, motif: "non tentee" };
 /** Les adresses creditees, re-creditees apres chaque retour pour que la demo se rejoue. */
 const adressesCreditees = new Set<string>(PORTEFEUILLES_DEMO);
 
@@ -220,6 +223,9 @@ function blocDotation() {
 
 async function assurerBase(): Promise<void> {
   if (snapshotBase) return;
+  // L'HORLOGE AVANT TOUT LE RESTE. Un fork epingle au bloc 50 614 000 dont le temps avance
+  // n'execute plus le swap dans le contexte ou le corpus l'a mesure — voir figerHorloge().
+  horlogeFigee = await figerHorloge();
   const b = await blockNumber();
   // LES FONDS AVANT LA BASE. Si l'etat de base ne portait pas la dotation, le premier
   // rembobinage la reprendrait, et le portefeuille du presentateur retomberait a ses vrais
@@ -249,6 +255,9 @@ async function rembobiner(): Promise<{ block_number: number; snapshot: string }>
         `Un nouvel etat de base vient d'etre pris au bloc ${blocDeBase}.`,
     );
   }
+  // On refige l'horloge a chaque retour : le reglage survit a evm_revert (verifie), mais il
+  // ne coute rien de le redire, et un fork redemarre entre-temps le perdrait en silence.
+  horlogeFigee = await figerHorloge();
   // re-crediter AVANT de reprendre la base, pour que la base porte les fonds. En ETH ET en
   // USDC : le retour a l'etat epingle rendrait sinon au portefeuille ses vrais soldes de Base.
   derniereDotation = await dotterTout();
@@ -327,6 +336,13 @@ app.get("/demo/etat", async (c) => {
       conforme: blocDeBase === BLOC_EPINGLE,
       motif: motifBase,
       adresses_creditees: [...adressesCreditees],
+      /**
+       * L'horloge du fork, figee sur l'horodatage du bloc epingle. Sans ca, le bloc qui
+       * execute le swap n'est plus dans le contexte temporel de la mesure, et le hook de la
+       * porte de remplacement rend 2444 USDC ou zero selon l'heure — voir figerHorloge().
+       */
+      horloge_figee: horlogeFigee.fige,
+      horloge_motif: horlogeFigee.motif,
     },
     dotation: blocDotation(),
     corpus: CORPUS,
@@ -422,6 +438,13 @@ app.post("/demo/preparer", async (c) => {
       conforme: blocDeBase === BLOC_EPINGLE,
       motif: motifBase,
       adresses_creditees: [...adressesCreditees],
+      /**
+       * L'horloge du fork, figee sur l'horodatage du bloc epingle. Sans ca, le bloc qui
+       * execute le swap n'est plus dans le contexte temporel de la mesure, et le hook de la
+       * porte de remplacement rend 2444 USDC ou zero selon l'heure — voir figerHorloge().
+       */
+      horloge_figee: horlogeFigee.fige,
+      horloge_motif: horlogeFigee.motif,
     },
     dotation: blocDotation(),
     transaction: construite.transaction,
@@ -436,6 +459,9 @@ app.post("/demo/preparer", async (c) => {
     plancher: construite.plancher,
     tolerance_bps: construite.tolerance_bps,
     echeance: construite.echeance,
+    echeance_iso: construite.echeance_iso,
+    horodatage_chaine: construite.horodatage_chaine,
+    marge_secondes: construite.marge_secondes,
     relecture: construite.relecture,
     meilleure_porte: acte.meilleure_porte ? porteRendue(acte.meilleure_porte) : null,
     economie_bps: acte.economie_bps,

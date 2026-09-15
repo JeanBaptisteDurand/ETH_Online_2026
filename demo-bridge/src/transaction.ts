@@ -46,8 +46,36 @@ export const UNIVERSAL_ROUTER_BASE = "0x6ff5693b99212da76ad316178a184ab56d299b43
  * cesse simplement d'etre un pari sur le temps qui passe entre la cotation et l'inclusion.
  */
 export const TOLERANCE_BPS = Number(process.env.DEMO_TOLERANCE_BPS ?? 300);
-/** L'echeance : 20 minutes de temps de CHAINE. Assez pour etre inclus, trop court pour etre rejoue. */
-export const ECHEANCE_SECONDES = 1200n;
+/**
+ * L'ECHEANCE DU SWAP, ET POURQUOI ELLE EST ENORME ICI.
+ *
+ * Elle valait 1200 secondes — vingt minutes de temps de CHAINE. Sur un reseau reel c'est le
+ * bon ordre de grandeur : une transaction sans echeance peut etre retenue dans le mempool et
+ * rejouee des heures plus tard, a un prix qui n'a plus rien a voir avec celui qu'on a montre.
+ * C'est la raison qu'envoi.ts donne, et elle est juste.
+ *
+ * ELLE NE VAUT RIEN SUR UN FORK EPINGLE DE DEMONSTRATION, et le constater a coute une
+ * repetition : MetaMask affichait « This transaction is likely to fail — Custom error:
+ * 0x5bf6f916 », soit `TransactionDeadlinePassed()`, sur un calldata parfaitement valide.
+ *
+ * Le mecanisme, mesure et non suppose. L'horloge du fork n'avance pas toute seule : elle
+ * avance du TEMPS REEL ECOULE ENTRE DEUX BLOCS MINES. Releve sur l'instance :
+ *
+ *     apres rembobinage   latest  bloc 50614000  ts=1788017347
+ *     evm_mine tout de suite      bloc 50614001  ts=1788017347
+ *     evm_mine 20 s plus tard     bloc 50614002  ts=1788017368   (+21)
+ *
+ * L'echeance etait donc « le dernier bloc + 20 minutes », et le fork est PARTAGE : la page,
+ * les tests, une autre repetition minent des blocs et font avancer cette horloge. Vingt
+ * minutes de blocs mines cumules suffisaient a perimer un calldata prepare plus tot — et
+ * MetaMask, qui simule avant d'afficher, le voyait avant meme qu'on appuie.
+ *
+ * Ici, une echeance courte ne protege de rien : il n'y a pas de mempool public, pas de
+ * retention, pas de rejeu. UN AN, donc — et toujours derivee de l'horloge de la chaine, pas
+ * une constante magique comme le `0xffffffff` (7 fevrier 2106) que l'encodeur avait pour
+ * defaut et qu'envoi.ts denonce a juste titre : elle reste lisible, datee, et verifiable.
+ */
+export const ECHEANCE_SECONDES = BigInt(process.env.DEMO_ECHEANCE_SECONDES ?? 31_536_000);
 
 export type EtatTransaction = "PRETE" | "SANS_PLANCHER" | "RELECTURE_DIVERGENTE";
 
@@ -61,6 +89,11 @@ export interface TransactionConstruite {
   tolerance_bps: number;
   /** l'echeance de l'`execute`, horodatage Unix en secondes (temps de chaine) */
   echeance: string | null;
+  /** la meme, lisible — pour qu'un ecran puisse la montrer sans la convertir */
+  echeance_iso: string | null;
+  /** l'horodatage du dernier bloc au moment de la construction, et la marge qui en decoule */
+  horodatage_chaine: string | null;
+  marge_secondes: string;
   motif: string | null;
   /** ce que le decodeur du depot a relu dans le calldata construit */
   relecture: { pool_id: string; hook: string; sens: string; taille: string | null } | null;
@@ -98,10 +131,12 @@ export async function construireTransaction(porte: Porte): Promise<TransactionCo
   const plancher =
     c.amountOut === null ? null : (c.amountOut * BigInt(10000 - TOLERANCE_BPS)) / 10000n;
 
-  // 2. l'echeance, en temps de chaine
+  // 2. l'echeance, en temps de chaine, avec une marge d'un an (voir ECHEANCE_SECONDES)
   let echeance: bigint | null = null;
+  let horodatage: bigint | null = null;
   try {
-    echeance = (await horodatageChaine()) + ECHEANCE_SECONDES;
+    horodatage = await horodatageChaine();
+    echeance = horodatage + ECHEANCE_SECONDES;
   } catch {
     echeance = null;
   }
@@ -123,6 +158,9 @@ export async function construireTransaction(porte: Porte): Promise<TransactionCo
       plancher: plancher?.toString() ?? null,
       tolerance_bps: TOLERANCE_BPS,
       echeance: echeance?.toString() ?? null,
+      echeance_iso: echeance === null ? null : new Date(Number(echeance) * 1000).toISOString(),
+      horodatage_chaine: horodatage?.toString() ?? null,
+      marge_secondes: ECHEANCE_SECONDES.toString(),
       motif: `relecture_incomplete: ${relu.issues.map((i) => `${i.where}:${i.reason}`).join(" | ") || `${relu.legs.length}_jambes`}`,
       relecture: null,
     };
@@ -146,6 +184,9 @@ export async function construireTransaction(porte: Porte): Promise<TransactionCo
       plancher: plancher?.toString() ?? null,
       tolerance_bps: TOLERANCE_BPS,
       echeance: echeance?.toString() ?? null,
+      echeance_iso: echeance === null ? null : new Date(Number(echeance) * 1000).toISOString(),
+      horodatage_chaine: horodatage?.toString() ?? null,
+      marge_secondes: ECHEANCE_SECONDES.toString(),
       motif: `relecture_divergente: attendu ${porte.pool_id}/${porte.hook}/${porte.sens}/${porte.taille_wei}, relu ${relecture.pool_id}/${relecture.hook}/${relecture.sens}/${relecture.taille}`,
       relecture,
     };
@@ -162,6 +203,9 @@ export async function construireTransaction(porte: Porte): Promise<TransactionCo
     plancher: plancher?.toString() ?? null,
     tolerance_bps: TOLERANCE_BPS,
     echeance: echeance?.toString() ?? null,
+    echeance_iso: echeance === null ? null : new Date(Number(echeance) * 1000).toISOString(),
+    horodatage_chaine: horodatage?.toString() ?? null,
+    marge_secondes: ECHEANCE_SECONDES.toString(),
     motif:
       plancher === null
         ? `plancher_absent: ${c.raison ?? "cotation indisponible"} — amountOutMinimum vaut 0 dans ce calldata, ne l'envoie pas sur un reseau reel`

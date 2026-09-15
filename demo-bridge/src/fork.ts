@@ -73,6 +73,44 @@ export async function setBalance(adresse: string, wei: bigint): Promise<void> {
   await rpc("anvil_setBalance", [adresse, hex(wei)]);
 }
 
+/**
+ * FIGER L'HORLOGE DU FORK, ET POURQUOI C'EST LA VRAIE CORRECTION.
+ *
+ * Le fork est epingle au bloc 50 614 000. Son HORLOGE, elle, ne l'etait pas : anvil donne a
+ * chaque nouveau bloc l'horodatage du precedent PLUS LE TEMPS REEL ECOULE depuis le dernier
+ * bloc mine. Trente secondes de discours, et le bloc qui execute le swap n'est plus dans le
+ * meme contexte temporel que la mesure.
+ *
+ * CE QUE CA CASSAIT, mesure en forcant l'horodatage du bloc et en envoyant le MEME calldata :
+ *
+ *     +   0 s  status 0x1  2444 USDC        +  60 s  status 0x0  0
+ *     +   1 s  status 0x1  2444 USDC        + 120 s  status 0x0  0
+ *     +  10 s  status 0x0  0                + 300 s  status 0x1  2444 USDC
+ *     +  30 s  status 0x1  2444 USDC
+ *
+ * Ni monotone, ni progressif : le hook de la porte de remplacement (frais dynamiques) rend
+ * 2444 ou rien selon l'horodatage du bloc. C'est ce qui produisait « 4 reussites, 6 echecs »
+ * sur dix envois du calldata STRICTEMENT identique, et ce qu'une tolerance plus large ne
+ * pouvait pas reparer : ce n'est pas une derive de prix, c'est un interrupteur.
+ *
+ * `anvil_setBlockTimestampInterval(0)` donne a chaque nouveau bloc l'horodatage du precedent.
+ * Le temps de la chaine cesse d'avancer, le swap s'execute dans le contexte EXACT ou le
+ * corpus a mesure, et le chiffre montre redevient le chiffre execute. Verifie : dix envois
+ * espaces de vingt secondes, 10 reussites, 2444 USDC a chaque fois.
+ *
+ * Ce n'est pas un maquillage : c'est ce que « fork epingle au bloc 50 614 000 » voulait dire
+ * depuis le debut. Sur un reseau reel, l'horloge avance et ce hook ferait autre chose — et
+ * c'est precisement le genre de fait que TARE existe pour mesurer.
+ */
+export async function figerHorloge(): Promise<{ fige: boolean; motif: string | null }> {
+  try {
+    await rpc("anvil_setBlockTimestampInterval", [0]);
+    return { fige: true, motif: null };
+  } catch (e) {
+    return { fige: false, motif: `horloge_non_figee: ${(e as Error).message.slice(0, 140)}` };
+  }
+}
+
 export async function snapshot(): Promise<string> {
   return await rpc<string>("evm_snapshot");
 }

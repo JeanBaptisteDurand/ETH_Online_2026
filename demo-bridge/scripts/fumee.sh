@@ -2,7 +2,7 @@
 #
 #   LE SCRIPT DE FUMEE — a lancer AVANT la demo, et a relire ligne par ligne.
 #
-#   Il exerce les CINQ routes contre le service reel et rend un verdict par ligne :
+#   Il exerce les routes du pont contre le service reel et rend un verdict par ligne :
 #   OK, ou ECHEC suivi de la raison. Aucune connaissance du code n'est requise.
 #
 #   USAGE
@@ -288,8 +288,13 @@ print("  ecrans affiches par l appareil : %d, dont %d champs NOMMES et lisibles 
 for x in clair[:20]: print("         " + x)
 aveugle=[x for x in e if "Sign hash" in x or "blind sign" in x.lower() and "ahead" not in x.lower()]
 print("  ATTENTION : signature AVEUGLE detectee -> " + str(aveugle) if aveugle else "  aucun ecran de signature aveugle : les champs sont rendus en clair.")'
-  T="$(printf '%s' "$A" | python3 -c 'import json,sys;print(json.load(sys.stdin).get("message",{}).get("swaps",[{}])[0].get("take","?"))' 2>/dev/null)"
-  [ -n "$T" ] && ok "le prelevement affiche sur l'appareil : « $T »"
+  # le schema court porte `gates`, le long `swaps` : on lit les deux, et une absence est un ECHEC
+  T="$(printf '%s' "$A" | python3 -c 'import json,sys
+m=json.load(sys.stdin).get("message",{}) or {}
+l=m.get("gates") or m.get("swaps") or [{}]
+print(l[0].get("take",""))' 2>/dev/null)"
+  [ -n "$T" ] && ok "le prelevement affiche sur l'appareil : « $T »" \
+              || ko "le message signe ne porte aucun prelevement lisible"
 elif [ "$REF" = "4001" ]; then
   ok "REFUS enregistre comme tel : $(printf '%s' "$A" | champ raison) — c'est le bon comportement si tu as appuye sur Reject"
 elif [ "$ERR" = "speculos_injoignable" ]; then
@@ -334,6 +339,73 @@ if [ -x "$RACINE/node_modules/.bin/tsx" ] && [ -n "$DERNIER_DIGEST" ]; then
   [ "$DERNIER_DIGEST" = "$DIGP" ] \
     && ok "l appareil a affiche la MEME empreinte que celle rendue a la page" \
     || ko "l appareil a affiche $DERNIER_DIGEST et la page recevra $DIGP — les deux doivent etre le meme nombre"
+fi
+
+# ------------------------------------------------------- 6ter. les trois choix
+titre "6ter. POST /demo/choisir — les trois choix se font SUR L'APPAREIL"
+# Deux questions signees : « 1 of 3: keep your route », puis « 2 of 3: take the cheaper gate » ;
+# rejeter la seconde vaut « 3 of 3: cancel ». Voir src/choix.ts.
+C="$(curl -sS -m 15 -X POST -H 'content-type: application/json' -d '{"acte":"nimporte"}' "$BASE/demo/choisir" 2>&1)"
+[ "$(printf '%s' "$C" | champ erreur)" = "acte_inconnu" ] && ok "un acte inconnu est refuse, avec son nom (acte_inconnu)" \
+                                                          || ko "un acte inconnu n est pas refuse proprement : ${C:0:160}"
+V="$(curl -sS -m 15 "$BASE/demo/choix" 2>&1)"
+MANQUE=""
+for k in id en_cours rang option depuis_ms digest_en_cours options etapes resultat erreur; do
+  [ "$(printf '%s' "$V" | champ "$k")" = "__ABSENT__" ] && MANQUE="$MANQUE $k"
+done
+[ -z "$MANQUE" ] && ok "GET /demo/choix rend l avancement complet : question affichee, etapes, resultat, erreur" \
+                 || ko "GET /demo/choix ne rend pas :$MANQUE"
+
+# suit une conversation jusqu'a sa fin : FIN_CHOIX recoit l'etat final, RANGS_VUS les questions
+# vues en vol. Appelee DIRECTEMENT, jamais dans $( ) : un sous-shell perdrait les deux variables.
+RANGS_VUS=""; FIN_CHOIX=""
+suivre_choix() {
+  local id="$1" v="" i r
+  RANGS_VUS=""
+  for i in $(seq 1 600); do
+    v="$(curl -sS -m 10 "$BASE/demo/choix" 2>/dev/null)"
+    [ "$(printf '%s' "$v" | champ id)" != "$id" ] && break
+    r="$(printf '%s' "$v" | champ rang)"
+    case " $RANGS_VUS " in *" $r "*) ;; *) [ -n "$r" ] && RANGS_VUS="$RANGS_VUS $r";; esac
+    [ "$(printf '%s' "$v" | champ en_cours)" = "False" ] && break
+    sleep 0.5
+  done
+  FIN_CHOIX="$v"
+}
+
+OCC="$(curl -sS -m 15 "$BASE/demo/etat" 2>/dev/null | champ speculos.occupe)"
+if [ -n "$OCC" ] && [ "$OCC" != "__ABSENT__" ]; then
+  ko "l appareil est occupe ($OCC) : les trois issues n ont pas ete jouees — personne ne doit repeter pendant la fumee"
+elif [ "$AUTO" = "1" ]; then
+  for ATTENDU in actuelle optimisee annuler; do
+    D="$(curl -sS -m 20 -X POST -H 'content-type: application/json' -d "{\"acte\":\"substitution\",\"auto\":\"$ATTENDU\"}" "$BASE/demo/choisir" 2>&1)"
+    ID="$(printf '%s' "$D" | champ id)"
+    if [ -z "$ID" ] || [ "$ID" = "__ABSENT__" ]; then
+      ko "« $ATTENDU » : la conversation n a pas demarre — $(printf '%s' "$D" | champ erreur) $(printf '%s' "$D" | champ motif)"
+      continue
+    fi
+    suivre_choix "$ID"; F="$FIN_CHOIX"
+    CHOIX="$(printf '%s' "$F" | champ resultat.choix)"
+    SIG="$(printf '%s' "$F" | champ resultat.signature)"
+    NQ="$(printf '%s' "$F" | python3 -c 'import json,sys; print(len(json.load(sys.stdin).get("etapes",[])))' 2>/dev/null)"
+    if [ "$CHOIX" != "$ATTENDU" ]; then
+      ko "« $ATTENDU » : l appareil a rendu « $CHOIX » — erreur : $(printf '%s' "$F" | champ erreur)"
+    elif [ "$ATTENDU" = "annuler" ] && [ -n "$SIG" ]; then
+      ko "« annuler » porte une signature : rien ne devait etre signe"
+    elif [ "$ATTENDU" != "annuler" ] && [ "${SIG:0:2}" != "0x" ]; then
+      ko "« $ATTENDU » n a pas de signature de l appareil"
+    else
+      ok "« $ATTENDU » decide sur l appareil en $NQ question(s), questions vues en vol :$RANGS_VUS"
+    fi
+  done
+else
+  echo "  FUMEE_AUTO=0 : reponds sur l appareil. Sign a la 1 = keep · Reject puis Sign = cheaper · Reject deux fois = cancel."
+  D="$(curl -sS -m 20 -X POST -H 'content-type: application/json' -d '{"acte":"substitution"}' "$BASE/demo/choisir" 2>&1)"
+  ID="$(printf '%s' "$D" | champ id)"
+  suivre_choix "$ID"; F="$FIN_CHOIX"
+  CHOIX="$(printf '%s' "$F" | champ resultat.choix)"
+  [ -n "$CHOIX" ] && [ "$CHOIX" != "__ABSENT__" ] && ok "l humain a choisi « $CHOIX » sur l appareil" \
+                                                  || ko "aucun choix rendu — $(printf '%s' "$F" | champ erreur)"
 fi
 
 # ------------------------------------------------- 7. les surfaces publiques

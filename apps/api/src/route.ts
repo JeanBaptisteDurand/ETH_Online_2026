@@ -506,9 +506,9 @@ export function buildRouteAnswer(q: RouteQuery, index: PairIndex, census: Census
   const censusCaveat = !census.available
     ? null
     : census.unreadable_pools === null
-      ? "le manifeste du balayage ne dit pas combien de pools sont restes illisibles : on ne sait pas de combien ce recensement est un minorant."
+      ? "the discovery scan manifest does not say how many pools stayed unreadable: we do not know by how much this census is a lower bound."
       : census.unreadable_pools > 0
-        ? `le balayage de decouverte n'a pas pu lire ${census.unreadable_pools} pools (voir ${basename(censusScanPath())}, unknown_pools) et le manifeste ne dit pas a quelles paires ils appartiennent : ce recensement est un MINORANT.`
+        ? `the discovery scan could not read ${census.unreadable_pools} pools (see ${basename(censusScanPath())}, unknown_pools) and the manifest does not say which pairs they belong to: this census is a LOWER BOUND.`
         : null;
 
   const structure = census.available
@@ -522,18 +522,18 @@ export function buildRouteAnswer(q: RouteQuery, index: PairIndex, census: Census
         is_lower_bound: census.unreadable_pools === null || census.unreadable_pools > 0,
         caveat: censusCaveat,
         sentence:
-          `Sur ${census.pairs} paires decouvertes` +
-          (census.block_number !== null ? ` au bloc ${census.block_number}` : "") +
-          `, ${census.pairs_multi} ${census.pairs_multi > 1 ? "offrent" : "offre"} un choix de pool` +
+          `Of ${census.pairs} pairs discovered` +
+          (census.block_number !== null ? ` at block ${census.block_number}` : "") +
+          `, ${census.pairs_multi} ${census.pairs_multi > 1 ? "offer" : "offers"} a choice of pool` +
           ` (${round4((census.pairs_multi / census.pairs) * 100)} %).` +
-          ` Pour ${census.pairs - census.pairs_multi === 1 ? "la seule autre" : `les ${census.pairs - census.pairs_multi} autres`}, il n'existe qu'une porte :` +
-          ` un prelevement n'y est pas un prix concurrentiel, c'est un peage sur la seule route.`,
+          ` For ${census.pairs - census.pairs_multi === 1 ? "the one other pair" : `the other ${census.pairs - census.pairs_multi} pairs`}, there is only one gate:` +
+          ` a take there is not a competitive price, it is a toll on the only route.`,
       }
     : null;
 
   const structure_note = census.available
     ? null
-    : `recensement absent ou illisible (${census.path}) : la phrase structurelle n'est pas calculable. On ne la remplace pas par des chiffres memorises.`;
+    : `census missing or unreadable (${census.path}): the structural sentence cannot be computed. It is not replaced by remembered figures.`;
 
   /* -------------------------------------------------- portes non mesurees */
 
@@ -544,14 +544,14 @@ export function buildRouteAnswer(q: RouteQuery, index: PairIndex, census: Census
     .map((p) => ({
       pool_id: null as string | null,
       pool_id_note:
-        "poolId non calcule ici : la route ne derive pas d'identifiant qu'elle n'a pas lu. La PoolKey ci-dessous suffit a le recalculer.",
+        "poolId not computed here: this route does not derive an identifier it has not read. The PoolKey below is enough to recompute it.",
       hook: p.hooks,
       key_fee: p.fee,
       tick_spacing: p.tick_spacing,
       fee_is_dynamic: p.fee_is_dynamic,
       liquidity_raw: p.liquidity_raw,
       label: "NOT_MEASURED",
-      note: "cette porte est au recensement mais aucune mesure ne la couvre. Ce n'est pas un cout de zero.",
+      note: "this gate is in the census but no measurement covers it. This is not a cost of zero.",
       replay_to_measure:
         q.amount !== null && census.block_number !== null
           ? buildReplay(
@@ -571,7 +571,7 @@ export function buildRouteAnswer(q: RouteQuery, index: PairIndex, census: Census
       replay_note:
         q.amount !== null && census.block_number !== null
           ? null
-          : "commande de mesure non construite : il manque le parametre amount ou le bloc du recensement.",
+          : "measurement command not built: the amount parameter or the census block is missing.",
     }));
 
   /* ------------------------------------------------------ portes mesurees */
@@ -623,7 +623,7 @@ export function buildRouteAnswer(q: RouteQuery, index: PairIndex, census: Census
       unranked.push({
         ...gate,
         why: "NO_ROW_IN_DIRECTION",
-        why_fr: `aucune mesure dans le sens ${zeroForOne ? "0->1" : "1->0"} pour ce pool.`,
+        why_fr: `no measurement in direction ${zeroForOne ? "0->1" : "1->0"} for this pool.`,
         total_bps: null,
         numeric_in_other_direction: ms.some((m) => m.bps !== null),
       });
@@ -637,7 +637,7 @@ export function buildRouteAnswer(q: RouteQuery, index: PairIndex, census: Census
         ...gate,
         why: "NO_QUOTED_ROW_IN_DIRECTION",
         why_fr:
-          "toutes les lignes de ce pool dans ce sens sont NOT_QUOTABLE ou NOT_MEASURABLE. Non mesure n'est pas zero : ce pool n'a pas de cout a comparer.",
+          "every row of this pool in this direction is NOT_QUOTABLE or NOT_MEASURABLE. Not measured is not zero: this pool has no cost to compare.",
         total_bps: null,
         numeric_in_other_direction: ms.some((m) => m.bps !== null && m.zero_for_one !== zeroForOne),
       });
@@ -656,7 +656,7 @@ export function buildRouteAnswer(q: RouteQuery, index: PairIndex, census: Census
       unranked.push({
         ...gate,
         why: "NOT_QUOTABLE_AT_REQUESTED_SIZE",
-        why_fr: `a la taille demandee (${q.amount} wei) ce pool rend ${exactRow.label}. Ce n'est pas un cout de zero, et on ne lui substitue pas une autre taille pour le classer.`,
+        why_fr: `at the requested size (${q.amount} wei) this pool returns ${exactRow.label}. This is not a cost of zero, and no other size is substituted to rank it.`,
         label_at_requested_size: exactRow.label,
         reason_at_requested_size: exactRow.reason,
         measurement_at_requested_size: exactRow.id,
@@ -670,7 +670,7 @@ export function buildRouteAnswer(q: RouteQuery, index: PairIndex, census: Census
           label: fallback.label,
           measurement_id: fallback.id,
           replay: fallback.replay.command_exact,
-          note: "cette valeur est a une AUTRE taille que celle demandee. Elle n'a pas servi au classement.",
+          note: "this value is at a size OTHER than the one requested. It was not used for the ranking.",
         },
       });
       continue;
@@ -711,7 +711,7 @@ export function buildRouteAnswer(q: RouteQuery, index: PairIndex, census: Census
         ...gate,
         why: "NO_STORED_LP_FEE",
         why_fr:
-          "stored_lp_fee absent pour ce pool : le cout total ne peut pas etre compose. Le prelevement du hook seul reste lisible dans points[].",
+          "stored_lp_fee missing for this pool: the total cost cannot be composed. The hook take alone stays readable in points[].",
         total_bps: null,
         hook_bps: chosen.bps,
         measurement_id: chosen.id,
@@ -727,11 +727,11 @@ export function buildRouteAnswer(q: RouteQuery, index: PairIndex, census: Census
       // Les deux termes viennent de la MEME ligne, et la ligne est nommee juste apres
       // (measurement_id). C'est ce qui rend la somme verifiable.
       total_bps: round4(lpChosen + chosen.bps!),
-      total_bps_formula: `stored_lp_fee/100 (${round4(lpChosen)}) + hook_bps (${chosen.bps}) = ${round4(lpChosen + chosen.bps!)}  [mesure ${chosen.id}]`,
+      total_bps_formula: `stored_lp_fee/100 (${round4(lpChosen)}) + hook_bps (${chosen.bps}) = ${round4(lpChosen + chosen.bps!)}  [measurement ${chosen.id}]`,
       lp_fee_divergent_rows: lpDivergent
         ? {
             values_seen: [...lpVus],
-            note: "Les lignes de ce pool ne portent pas toutes le meme stored_lp_fee (une lecture de slot0 a echoue sur au moins une). Le cout total ci-dessus n'utilise que la ligne nommee dans measurement_id.",
+            note: "The rows of this pool do not all carry the same stored_lp_fee (a slot0 read failed on at least one). The total cost above uses only the row named in measurement_id.",
           }
         : null,
       label: chosen.label,
@@ -741,10 +741,10 @@ export function buildRouteAnswer(q: RouteQuery, index: PairIndex, census: Census
         used_wei: chosen.amount_in,
         exact_match: size_exact,
         note: size_exact
-          ? "cout lu a la taille demandee."
+          ? "cost read at the requested size."
           : q.amount === null
-            ? "aucune taille demandee : le cout affiche est le PLUS ELEVE mesure dans ce sens, toutes tailles confondues. Les autres tailles sont dans points[]."
-            : `la taille demandee (${q.amount} wei) n'a pas ete mesuree sur ce pool. Le cout affiche est celui de la taille mesuree la plus proche (${chosen.amount_in} wei).`,
+            ? "no size requested: the cost shown is the HIGHEST measured in this direction, across all sizes. The other sizes are in points[]."
+            : `the requested size (${q.amount} wei) was not measured on this pool. The cost shown is that of the nearest measured size (${chosen.amount_in} wei).`,
       },
       measurement_id: chosen.id,
       block_number: chosen.block_number,
@@ -777,21 +777,21 @@ export function buildRouteAnswer(q: RouteQuery, index: PairIndex, census: Census
   if (poolsMeasured === 0) {
     verdict = "NOT_MEASURED";
     headline =
-      "Cette paire n'est couverte par aucune mesure du jeu. Ce n'est pas un cout de zero, c'est une absence de mesure.";
+      "No measurement in the dataset covers this pair. This is not a cost of zero, it is an absence of measurement.";
   } else if (poolsMeasured === 1) {
     verdict = "SINGLE_POOL";
     headline =
       ranked.length === 1
-        ? "Un seul pool mesure pour cette paire : il n'y a pas de recommandation a faire, il y a un peage a connaitre."
-        : `Un seul pool mesure pour cette paire, et il n'a pas de cout mesure dans le sens ${dirLabel} a cette taille. Il est liste hors classement : non mesure n'est pas zero.`;
+        ? "One pool measured for this pair: there is no recommendation to make, there is a toll to know."
+        : `One pool measured for this pair, and it has no measured cost in direction ${dirLabel} at this size. It is listed outside the ranking: not measured is not zero.`;
   } else {
     verdict = "MULTIPLE_POOLS";
     headline =
       ranked.length === 0
-        ? `${poolsMeasured} pools mesures pour cette paire, mais aucun n'a de cout mesure dans le sens ${dirLabel} a cette taille : il n'y a pas de classement a rendre.`
+        ? `${poolsMeasured} pools measured for this pair, but none has a measured cost in direction ${dirLabel} at this size: there is no ranking to return.`
         : ranked.length === 1
-          ? `${poolsMeasured} pools mesures pour cette paire, un seul a un cout mesure dans le sens ${dirLabel} a cette taille. Les autres sont listes hors classement, sans cout.`
-          : `${poolsMeasured} pools mesures pour cette paire : le classement ci-dessous va du cout total mesure le plus faible au plus eleve.`;
+          ? `${poolsMeasured} pools measured for this pair, only one has a measured cost in direction ${dirLabel} at this size. The others are listed outside the ranking, with no cost.`
+          : `${poolsMeasured} pools measured for this pair: the ranking below runs from the lowest measured total cost to the highest.`;
   }
 
   // Deux pools au MEME cout total mesure ne sont pas classables l'un devant l'autre.
@@ -809,22 +809,22 @@ export function buildRouteAnswer(q: RouteQuery, index: PairIndex, census: Census
   if (!census.available) {
     claim = "INDETERMINE";
     claim_sentence =
-      "le recensement n'est pas charge : on ne peut pas affirmer qu'aucune alternative n'existe a ce bloc.";
+      "the census is not loaded: we cannot claim that no alternative exists at this block.";
   } else if (censusPools.length === 0) {
     claim = "INDETERMINE";
     claim_sentence =
-      "cette paire n'apparait pas dans le recensement de decouverte : on ne peut rien affirmer sur ses alternatives.";
+      "this pair does not appear in the discovery census: nothing can be claimed about its alternatives.";
   } else if (censusPools.length === 1) {
     claim = "AUCUNE_ALTERNATIVE";
     claim_sentence =
-      `le recensement ne voit qu'un seul pool v4 pour cette paire au bloc ${census.block_number ?? "(bloc inconnu)"} : aucune alternative n'existe a ce bloc, on ne peut pas contourner le hook.` +
-      (censusCaveat ? ` Reserve : ${censusCaveat}` : "");
+      `the census sees only one v4 pool for this pair at block ${census.block_number ?? "(block unknown)"}: no alternative exists at this block, the hook cannot be bypassed.` +
+      (censusCaveat ? ` Caveat: ${censusCaveat}` : "");
   } else if (unmeasured_gates.length > 0) {
     claim = "ALTERNATIVES_NON_MESUREES";
-    claim_sentence = `le recensement voit ${censusPools.length} portes pour cette paire, ${poolsMeasured} sont mesurees et ${unmeasured_gates.length} ne le sont pas. On ne peut donc pas affirmer que le classement couvre toutes les alternatives.`;
+    claim_sentence = `the census sees ${censusPools.length} gates for this pair, ${poolsMeasured} are measured and ${unmeasured_gates.length} are not. So we cannot claim that the ranking covers every alternative.`;
   } else {
     claim = "PLUSIEURS_PORTES";
-    claim_sentence = `le recensement voit ${censusPools.length} portes pour cette paire, toutes couvertes par au moins une mesure.`;
+    claim_sentence = `the census sees ${censusPools.length} gates for this pair, all covered by at least one measurement.`;
   }
 
   /* ------------------------------------------------------------- reponse */
@@ -832,14 +832,14 @@ export function buildRouteAnswer(q: RouteQuery, index: PairIndex, census: Census
   const blockList = [...blocks].sort((a, b) => a - b);
 
   return {
-    question: `echanger ${canon0} contre ${canon1} : par quel pool passer ?`,
+    question: `swap ${canon0} for ${canon1}: which pool to go through?`,
     verdict,
     headline,
     pair: {
       currency0: canon0,
       currency1: canon1,
       as_asked: [q.currency0.toLowerCase(), q.currency1.toLowerCase()],
-      note: "la paire est insensible a l'ordre des arguments ; l'ordre canonique est celui de la PoolKey (currency0 < currency1).",
+      note: "the pair is insensitive to the order of the arguments; the canonical order is the PoolKey one (currency0 < currency1).",
     },
     direction: {
       zero_for_one: zeroForOne,
@@ -847,11 +847,11 @@ export function buildRouteAnswer(q: RouteQuery, index: PairIndex, census: Census
       source: directionSource,
       note:
         directionSource === "ordre_des_arguments"
-          ? "sens deduit de l'ordre des arguments : le premier jeton donne est celui que l'on vend. Passe zeroForOne pour l'imposer."
-          : "sens impose par le parametre zeroForOne.",
+          ? "direction inferred from the order of the arguments: the first token given is the one being sold. Pass zeroForOne to force it."
+          : "direction forced by the zeroForOne parameter.",
       hint:
         ranked.length === 0 && poolsQuotedOtherDirection > 0
-          ? `aucune porte ne cote dans le sens ${dirLabel}, mais ${poolsQuotedOtherDirection} pool(s) cotent dans l'autre sens : relance avec zeroForOne=${zeroForOne ? "false" : "true"}. Cette route ne bascule pas de sens toute seule.`
+          ? `no gate quotes in direction ${dirLabel}, but ${poolsQuotedOtherDirection} pool(s) quote in the other direction: retry with zeroForOne=${zeroForOne ? "false" : "true"}. This route does not flip direction on its own.`
           : null,
       pools_quoted_in_other_direction: poolsQuotedOtherDirection,
     },
@@ -859,18 +859,18 @@ export function buildRouteAnswer(q: RouteQuery, index: PairIndex, census: Census
       requested_wei: q.amount,
       note:
         q.amount === null
-          ? "aucune taille demandee : chaque pool est classe sur son cout MESURE LE PLUS ELEVE dans ce sens, toutes tailles confondues (cost_basis=pire_cout_mesure). Les autres tailles restent dans points[]."
-          : "chaque pool porte son propre champ size : exact_match dit si la taille demandee a ete mesuree telle quelle.",
+          ? "no size requested: each pool is ranked on its HIGHEST MEASURED cost in this direction, across all sizes (cost_basis=pire_cout_mesure). The other sizes stay in points[]."
+          : "each pool carries its own size field: exact_match says whether the requested size was measured as such.",
     },
     block: {
       measurements: blockList,
       census: census.block_number,
       note:
         blockList.length === 0
-          ? "aucune mesure : aucun bloc a porter."
+          ? "no measurement: no block to carry."
           : blockList.length === 1
-            ? "toutes les mesures de cette paire viennent de ce bloc."
-            : "les mesures de cette paire viennent de plusieurs blocs : elles ne sont pas comparables entre elles sans precaution.",
+            ? "every measurement of this pair comes from this block."
+            : "the measurements of this pair come from several blocks: they are not comparable with one another without care.",
     },
     alternatives: {
       claim,
@@ -881,7 +881,7 @@ export function buildRouteAnswer(q: RouteQuery, index: PairIndex, census: Census
       census_available: census.available,
       pools_in_census_note: census.available
         ? null
-        : "recensement indisponible : pools_in_census est null, ce qui ne veut PAS dire zero porte.",
+        : "census unavailable: pools_in_census is null, which does NOT mean zero gates.",
     },
     structure,
     structure_note,
@@ -899,18 +899,18 @@ export function buildRouteAnswer(q: RouteQuery, index: PairIndex, census: Census
     ranked,
     unranked,
     ranking_note: tied
-      ? "au moins deux pools ont le MEME cout total mesure : leur ordre relatif est deterministe (frais LP puis adresse du hook) mais arbitraire. La mesure ne les separe pas."
+      ? "at least two pools have the SAME measured total cost: their relative order is deterministic (LP fee then hook address) but arbitrary. The measurement does not separate them."
       : null,
     unranked_note:
-      "ces pools sont LISTES et jamais classes : aucun cout ne leur est invente, aucun zero ne leur est prete, et leur place dans cette liste ne dit rien de leur prix.",
+      "these pools are LISTED and never ranked: no cost is invented for them, no zero is lent to them, and their place in this list says nothing about their price.",
     unmeasured_gates,
     cost_model: {
       formula: "total_bps = stored_lp_fee / 100 + hook_bps",
-      stored_lp_fee: "frais LP lus dans slot0 au bloc de la mesure, en centiemes de bps (pips).",
+      stored_lp_fee: "LP fee read from slot0 at the block of the measurement, in hundredths of a bp (pips).",
       hook_bps:
-        "prelevement du hook, mesure par contrefactuel : le meme swap cote deux fois, une fois avec le bytecode du hook, une fois avec un stub inerte de 89 octets pose par anvil_setCode. La PoolKey ne bouge pas.",
+        "hook take, measured by counterfactual: the same swap quoted twice, once with the hook bytecode, once with an inert 89-byte stub installed by anvil_setCode. The PoolKey does not move.",
       assumption:
-        "l'addition suppose que la cotation sans hook paie exactement stored_lp_fee — ce que slot0 dit a ce bloc. Si un hook modifiait le frais stocke hors du chemin de swap, cette hypothese tomberait ; on ne l'a pas verifiee ici.",
+        "the addition assumes the hookless quote pays exactly stored_lp_fee — what slot0 says at this block. If a hook changed the stored fee outside the swap path, that assumption would fall; it has not been checked here.",
     },
     sources: index.sources,
     census_source: {
@@ -923,20 +923,20 @@ export function buildRouteAnswer(q: RouteQuery, index: PairIndex, census: Census
       unreadable_pools: census.unreadable_pools,
       unreadable_pools_note:
         census.unreadable_pools === null
-          ? "le manifeste du balayage ne porte pas ce compte : ce n'est pas zero, c'est inconnu."
-          : "pools que le balayage de decouverte n'a pas pu lire. Leurs paires sont inconnues : ils ne peuvent pas etre ecartes d'une paire donnee.",
+          ? "the scan manifest does not carry this count: it is not zero, it is unknown."
+          : "pools the discovery scan could not read. Their pairs are unknown: they cannot be ruled out of a given pair.",
       rescan_command: census.rescan_command,
     },
     dataset_notes: {
       duplicates_dropped: index.duplicates_dropped,
       skipped_without_pair: index.skipped_without_pair,
-      note: "les deux jsonl sont ecrits en direct par les balayages : rejected_lines compte les lignes illisibles, elles ne sont pas avalees.",
+      note: "both jsonl files are written live by the scans: rejected_lines counts the unreadable lines, they are not swallowed.",
     },
     honesty: [
-      "Aucun cout n'est estime : chaque nombre vient d'une mesure identifiee, avec son bloc, sa taille, son sens et sa commande de rejeu.",
-      "NOT_QUOTABLE et NOT_MEASURABLE ne sont pas des zeros : les pools concernes sont listes hors classement.",
-      "Une taille non mesuree n'est jamais inventee : elle est signalee par size.exact_match=false et size.used_wei.",
-      "Les chiffres de structure sont derives du recensement a chaque appel, jamais ecrits en dur.",
+      "No cost is estimated: every number comes from an identified measurement, with its block, its size, its direction and its replay command.",
+      "NOT_QUOTABLE and NOT_MEASURABLE are not zeros: the pools concerned are listed outside the ranking.",
+      "A size that was not measured is never invented: it is flagged by size.exact_match=false and size.used_wei.",
+      "The structural figures are derived from the census on every call, never hard-coded.",
     ],
   };
 }
@@ -956,11 +956,11 @@ function parseBool(raw: string): boolean | null {
 const USAGE = {
   route: "GET /route",
   params: {
-    currency0: "adresse (obligatoire). L'ordre des deux jetons est indifferent pour trouver la paire.",
-    currency1: "adresse (obligatoire).",
-    amount: "taille en wei (optionnel). Entier decimal, strictement positif.",
+    currency0: "address (required). The order of the two tokens does not matter for finding the pair.",
+    currency1: "address (required).",
+    amount: "size in wei (optional). Decimal integer, strictly positive.",
     zeroForOne:
-      "sens (optionnel : true|false|1|0). Sans lui, le sens est deduit de l'ordre des arguments.",
+      "direction (optional: true|false|1|0). Without it, the direction is inferred from the order of the arguments.",
   },
   example: "/route?currency0=0x0000000000000000000000000000000000000000&currency1=0x833589fcd6edb6e08f4c7c32d4f71b54bda02913&amount=1000000000000000000",
 };
@@ -974,14 +974,14 @@ export function createRouteRouter() {
     const q0 = c.req.query("currency0");
     const q1 = c.req.query("currency1");
     if (!q0 || !q1)
-      return c.json({ error: "currency0 et currency1 sont obligatoires", usage: USAGE }, 400);
+      return c.json({ error: "currency0 and currency1 are required", usage: USAGE }, 400);
     if (!ADDR.test(q0) || !ADDR.test(q1))
       return c.json(
-        { error: "adresse invalide", currency0: q0, currency1: q1, usage: USAGE },
+        { error: "invalid address", currency0: q0, currency1: q1, usage: USAGE },
         400,
       );
     if (q0.toLowerCase() === q1.toLowerCase())
-      return c.json({ error: "currency0 et currency1 sont identiques : il n'y a pas de paire", usage: USAGE }, 400);
+      return c.json({ error: "currency0 and currency1 are identical: there is no pair", usage: USAGE }, 400);
 
     const rawAmount = c.req.query("amount");
     let amount: string | null = null;
@@ -989,9 +989,9 @@ export function createRouteRouter() {
       // On refuse plutot que d'ignorer : une taille silencieusement jetee ferait
       // repondre a une autre question que celle posee.
       if (!UINT.test(rawAmount))
-        return c.json({ error: "amount doit etre un entier decimal en wei", amount: rawAmount, usage: USAGE }, 400);
+        return c.json({ error: "amount must be a decimal integer in wei", amount: rawAmount, usage: USAGE }, 400);
       if (BigInt(rawAmount) === 0n)
-        return c.json({ error: "amount doit etre strictement positif", amount: rawAmount, usage: USAGE }, 400);
+        return c.json({ error: "amount must be strictly positive", amount: rawAmount, usage: USAGE }, 400);
       amount = rawAmount;
     }
 
@@ -1000,7 +1000,7 @@ export function createRouteRouter() {
     if (rawDir !== undefined && rawDir !== "") {
       zeroForOne = parseBool(rawDir);
       if (zeroForOne === null)
-        return c.json({ error: "zeroForOne doit valoir true|false|1|0", zeroForOne: rawDir, usage: USAGE }, 400);
+        return c.json({ error: "zeroForOne must be true|false|1|0", zeroForOne: rawDir, usage: USAGE }, 400);
     }
 
     const index = loadPairIndex();

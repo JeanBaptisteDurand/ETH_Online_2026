@@ -72,9 +72,9 @@ describe("les alertes", () => {
       m({ zero_for_one: false, bps: 9990 }),
     ];
     const f = buildTokenSheet(JETON, rows, vide);
-    const asym = f.alertes.find((a) => /ASYMETRIE/.test(a));
+    const asym = f.alertes.find((a) => /ASYMMETRY/.test(a));
     expect(asym).toBeTruthy();
-    expect(asym).toMatch(/plus cher d'en sortir/);
+    expect(asym).toMatch(/getting out costs more/);
   });
 
   it("signale un cout qui varie avec la taille", () => {
@@ -84,20 +84,20 @@ describe("les alertes", () => {
     ];
     const f = buildTokenSheet(JETON, rows, vide);
     expect(f.tu_achetes?.varies_with_size).toBe(true);
-    expect(f.alertes.some((a) => /change avec la taille/.test(a))).toBe(true);
+    expect(f.alertes.some((a) => /changes with size/.test(a))).toBe(true);
   });
 
   it("dit qu'un seul sens est mesure — sans rendre l'autre a zero", () => {
     const f = buildTokenSheet(JETON, [m({ zero_for_one: true, bps: 42 })], vide);
     expect(f.tu_vends).toBeNull();
-    expect(f.alertes.some((a) => /NON MESURE/.test(a))).toBe(true);
+    expect(f.alertes.some((a) => /NOT MEASURED/.test(a))).toBe(true);
   });
 
   it("signale un hook absent du registre — l'absence de declaration EST une information", () => {
     const f = buildTokenSheet(JETON, [m()], vide);
     expect(f.platform).toBeNull();
     expect(f.platform_declared).toBe(false);
-    expect(f.alertes.some((a) => /pas decrit au registre/.test(a))).toBe(true);
+    expect(f.alertes.some((a) => /not described in the official hook registry/.test(a))).toBe(true);
   });
 
   it("rend le nom declare quand le registre le porte", () => {

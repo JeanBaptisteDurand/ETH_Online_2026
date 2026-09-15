@@ -140,7 +140,7 @@ export function loadDataset(force = false): Dataset {
     const rows: RawMeasurement[] = Array.isArray(parsed) ? parsed : (parsed.measurements ?? []);
     value = buildDataset(rows, v1, "v1-fallback", []);
   } else {
-    value = buildDataset([], "(aucune source)", "empty", []);
+    value = buildDataset([], "(no source)", "empty", []);
   }
   datasetCache = { key, value };
   return value;

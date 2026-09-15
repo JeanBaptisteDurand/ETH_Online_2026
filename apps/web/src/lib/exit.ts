@@ -107,8 +107,8 @@ export function testDeSortie(token: string, lignes: Ligne[]): TestSortie | Refus
       raison:
         sens.length === 0
           ? "no figured measurement on this token, in either direction"
-          : `un seul sens est mesure (${sens[0]}). L'autre n'est pas gratuit : il est INCONNU, ` +
-            `et le composer avec zero rendrait un nombre faux.`,
+          : `only one direction is measured (${sens[0]}). The other is not free: it is UNKNOWN, ` +
+            `and composing it with zero would return a false number.`,
       sensMesures: sens,
     }
   }
@@ -136,14 +136,14 @@ export function testDeSortie(token: string, lignes: Ligne[]): TestSortie | Refus
   return { ok: true, token: t, poolId: premiere.pool_id, hook: premiere.hook, blockNumber: premiere.block_number, points, pire }
 }
 
-/** « il te reste 98,01 € sur 100 » — la phrase que lit un humain. */
+/** « you are left with 98.01 € out of 100 » — the sentence a human reads. */
 export function phraseSortie(t: TestSortie, montant: number, devise = '€'): string {
   const lo = (t.pire.gardeMin * montant).toFixed(2)
   const hi = (t.pire.gardeMax * montant).toFixed(2)
   // Deux bornes qui s'affichent pareil ne sont pas un intervalle : l'annoncer userait la
   // confiance pour rien.
-  if (t.pire.exact || lo === hi) return `il te reste ${lo} ${devise}`
-  return `il te reste entre ${lo} et ${hi} ${devise}`
+  if (t.pire.exact || lo === hi) return `you are left with ${lo} ${devise}`
+  return `you are left with between ${lo} and ${hi} ${devise}`
 }
 
 /** Les monnaies de cotation : ce n'est pas d'elles qu'on demande un test de sortie. */

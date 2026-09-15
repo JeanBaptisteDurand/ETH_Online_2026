@@ -44,10 +44,10 @@ export interface AppDeps {
 }
 
 const HONESTY = [
-  "1. Le modele ne produit jamais un nombre : il choisit quoi interroger et explique ce qui revient.",
-  "2. Chaque mesure porte une etiquette : MEASURED | INTERPOLATED | NOT_MEASURABLE | NOT_QUOTABLE.",
-  "3. Une lecture bornee ou tronquee est un NOT_MEASURABLE, jamais une valeur.",
-  "4. Chaque valeur porte son bloc, sa taille et son sens, et se rejoue en une commande.",
+  "1. The model never produces a number: it chooses what to query and explains what comes back.",
+  "2. Every measurement carries a label: MEASURED | INTERPOLATED | NOT_MEASURABLE | NOT_QUOTABLE.",
+  "3. A clamped or truncated read is a NOT_MEASURABLE, never a value.",
+  "4. Every value carries its block, its size and its direction, and replays in one command.",
 ];
 
 export function createApp(deps: AppDeps = {}) {
@@ -62,42 +62,42 @@ export function createApp(deps: AppDeps = {}) {
   app.get("/", (c) =>
     c.json({
       service: "TARE",
-      what: "Mesure ce qu'un hook Uniswap v4 prend reellement sur un swap.",
+      what: "Measures what a Uniswap v4 hook actually takes on a swap.",
       method:
-        "Sur un fork epingle, anvil_setCode remplace le bytecode du hook par un stub inerte de 89 octets. Le pool ne bouge pas ; seul le code du hook change. On cote le meme swap deux fois. L'ecart EST ce que le hook a pris.",
+        "On a pinned fork, anvil_setCode replaces the hook bytecode with an inert 89-byte stub. The pool does not move; only the hook code changes. The same swap is quoted twice. The gap IS what the hook took.",
       honesty_rules: HONESTY,
       routes: [
-        "GET  /hooks               le classement par hook",
-        "GET  /hook/:address       la fiche : tous les profils du hook",
-        "GET  /exit/:address?montant=100   LE test de sortie : tu mets 100, tu recuperes combien",
-        "GET  /token/:address      la fiche d'un jeton : combien coute l'acheter, combien coute le revendre",
-        "GET  /measurement/:id     une mesure et sa commande de rejeu",
-        "POST /measure             la mesure a la demande (payante, x402)",
-        "GET  /usage               le compteur, unite = 1 mesure",
-        "GET  /meta                sources, moteur, peage",
-        "GET  /graph               le graphe : ce que les traversees revelent",
-        "GET  /rag/search?q=..     les passages du corpus, avec fichier, ligne et distance",
-        "GET  /rag/meta            l'etat de l'index vectoriel, lu en base",
-        "GET  /route?currency0=..&currency1=..  par quel pool passer, et ce que ca coute",
-        "POST /alternative        cette porte contre les autres, et — s'il y a mieux — la transaction de remplacement a signer",
-        "GET  /agent              l'identite HCS-14 de l'agent, et son UAID",
-        "GET  /agent/hcs          le message du registre Hedera qui la publie",
+        "GET  /hooks               the ranking by hook",
+        "GET  /hook/:address       the sheet: every profile of the hook",
+        "GET  /exit/:address?montant=100   THE exit test: you put in 100, you get back how much",
+        "GET  /token/:address      a token sheet: what buying it costs, what selling it back costs",
+        "GET  /measurement/:id     one measurement and its replay command",
+        "POST /measure             measurement on demand (paid, x402)",
+        "GET  /usage               the meter, unit = 1 measurement",
+        "GET  /meta                sources, engine, toll",
+        "GET  /graph               the graph: what the traversals reveal",
+        "GET  /rag/search?q=..     the corpus passages, with file, line and distance",
+        "GET  /rag/meta            the state of the vector index, read from the database",
+        "GET  /route?currency0=..&currency1=..  which pool to go through, and what it costs",
+        "POST /alternative        this gate against the others, and — if there is better — the replacement transaction to sign",
+        "GET  /agent              the HCS-14 identity of the agent, and its UAID",
+        "GET  /agent/hcs          the Hedera registry message that publishes it",
       ],
       // Le parcours du compte, dans l'ordre ou il se vit. Il etait documente uniquement dans
       // l'en-tete de src/compte/router.ts : personne d'exterieur ne pouvait le decouvrir.
       compte: [
-        "POST   /compte/nonce         {adresse} -> un nonce et le TEXTE exact a signer",
-        "POST   /compte/session       {adresse, nonce, signature} -> un jeton de session",
-        "GET    /compte               le compte, son abonnement lu sur la chaine, ses cles, ses compteurs",
-        "POST   /compte/abonnement    relit l'abonnement sur le contrat et rafraichit le cache",
-        "POST   /compte/cle           {nom, portee} -> une cle d'API. Le secret est rendu UNE SEULE FOIS",
-        "DELETE /compte/cle/:id       revoque une cle",
-        "GET    /compte/journal       l'historique : analyses, verdicts, substitutions",
-        "POST   /compte/journal       l'extension et le MCP y deposent (en-tete x-tare-cle)",
-        "DELETE /compte/session       deconnexion",
+        "POST   /compte/nonce         {adresse} -> a nonce and the exact TEXT to sign",
+        "POST   /compte/session       {adresse, nonce, signature} -> a session token",
+        "GET    /compte               the account, its on-chain subscription, its keys, its counters",
+        "POST   /compte/abonnement    re-reads the subscription from the contract and refreshes the cache",
+        "POST   /compte/cle           {nom, portee} -> an API key. The secret is returned ONLY ONCE",
+        "DELETE /compte/cle/:id       revokes a key",
+        "GET    /compte/journal       the history: analyses, verdicts, substitutions",
+        "POST   /compte/journal       the extension and the MCP write here (x-tare-cle header)",
+        "DELETE /compte/session       sign out",
       ],
       deux_authentifications:
-        "le jeton de session (authorization: Bearer) appartient a un humain devant un navigateur et ouvre la lecture du compte et la gestion des cles ; la cle d'API (x-tare-cle) appartient a une machine et n'ouvre que l'ecriture au journal. Une cle ne peut jamais en creer une autre.",
+        "the session token (authorization: Bearer) belongs to a human in front of a browser and opens reading the account and managing keys; the API key (x-tare-cle) belongs to a machine and opens nothing but writing to the journal. A key can never create another one.",
     }),
   );
 
@@ -132,19 +132,19 @@ export function createApp(deps: AppDeps = {}) {
         entries: reg.count,
         note:
           reg.path === null
-            ? "aucun fichier de registre dans docs/ : le champ registry vaut null partout, ce qui ne veut PAS dire 'absent du registre'"
-            : "registre charge : registry=null signifie alors 'absent du registre officiel'",
+            ? "no registry file in docs/: the registry field is null everywhere, which does NOT mean 'absent from the registry'"
+            : "registry loaded: registry=null then means 'absent from the official registry'",
       },
       pools_with_liquidity: loadPools().length,
       engine: health,
       x402: cfg.x402Enabled
         ? layer.describe()
-        : { enabled: false, note: "peage desactive (X402_ENABLED=0)" },
+        : { enabled: false, note: "toll disabled (X402_ENABLED=0)" },
       billing: {
         unit: "measurement",
         model: "per-measurement",
         unit_price_usd: cfg.unitPriceUsd,
-        example: `3 mesures => ${priceFor(3, cfg.unitPriceUsd)}`,
+        example: `3 measurements => ${priceFor(3, cfg.unitPriceUsd)}`,
       },
     });
   });
@@ -168,7 +168,7 @@ export function createApp(deps: AppDeps = {}) {
   app.get("/hook/:address", (c) => {
     const addr = c.req.param("address").toLowerCase();
     if (!/^0x[0-9a-f]{40}$/.test(addr))
-      return c.json({ error: "adresse invalide", address: c.req.param("address") }, 400);
+      return c.json({ error: "invalid address", address: c.req.param("address") }, 400);
 
     const ds = loadDataset();
     const reg = loadRegistry();
@@ -185,7 +185,7 @@ export function createApp(deps: AppDeps = {}) {
           registry_available: available,
           in_registry: available ? Boolean(entry) : null,
           registry: entry ? entry.fields : null,
-          note: "aucune mesure publiee pour ce hook. Ce n'est pas un zero : c'est une absence de mesure.",
+          note: "no measurement published for this hook. This is not a zero: it is an absence of measurement.",
         },
         200,
       );
@@ -272,9 +272,9 @@ export function createApp(deps: AppDeps = {}) {
     if (!/^0x[0-9a-fA-F]{40}$/.test(raw))
       return c.json(
         {
-          error: `adresse malformee : ${raw}`,
-          attendu: "0x suivi de 40 chiffres hexadecimaux",
-          note: "colle l'adresse du CONTRAT du jeton, celle que montrent les explorateurs.",
+          error: `malformed address: ${raw}`,
+          attendu: "0x followed by 40 hexadecimal digits",
+          note: "paste the token CONTRACT address, the one the explorers show.",
         },
         400,
       );
@@ -283,10 +283,10 @@ export function createApp(deps: AppDeps = {}) {
     if (isQuoteCurrency(t))
       return c.json(
         {
-          error: "cette adresse est une monnaie de cotation, pas un jeton a auditer",
+          error: "this address is a quote currency, not a token to audit",
           address: t,
           symbol: QUOTE_CURRENCIES[t],
-          note: "ETH, WETH et USDC sont l'autre cote de l'echange. Colle le jeton dont tu veux le cout.",
+          note: "ETH, WETH and USDC are the other side of the swap. Paste the token whose cost you want.",
         },
         400,
       );
@@ -299,12 +299,12 @@ export function createApp(deps: AppDeps = {}) {
     if (rows.length === 0)
       return c.json(
         {
-          error: "jeton inconnu du jeu de mesures",
+          error: "token unknown to the measurement dataset",
           address: t,
           note:
-            "le balayage couvre les pools v4 a liquidite non nulle de Base au bloc " +
-            `${cfg.forkBlock}. Un jeton absent n'est pas un jeton sans prelevement : il est NON MESURE.`,
-          mesurer: "POST /measure avec la PoolKey complete, si tu la connais",
+            "the scan covers the Base v4 pools with non-zero liquidity at block " +
+            `${cfg.forkBlock}. An absent token is not a token with no take: it is NOT MEASURED.`,
+          mesurer: "POST /measure with the full PoolKey, if you know it",
           couverture: { measurements: ds.measurements.length, block: cfg.forkBlock },
         },
         404,
@@ -327,14 +327,14 @@ export function createApp(deps: AppDeps = {}) {
     const raw = c.req.param("address");
     if (!/^0x[0-9a-fA-F]{40}$/.test(raw))
       return c.json(
-        { error: `adresse malformee : ${raw}`, attendu: "0x suivi de 40 chiffres hexadecimaux" },
+        { error: `malformed address: ${raw}`, attendu: "0x followed by 40 hexadecimal digits" },
         400,
       );
     const t = raw.toLowerCase();
     if (isQuoteCurrency(t))
       return c.json(
         {
-          error: "cette adresse est une monnaie de cotation, pas un jeton a tester",
+          error: "this address is a quote currency, not a token to test",
           symbol: QUOTE_CURRENCIES[t],
         },
         400,
@@ -342,7 +342,7 @@ export function createApp(deps: AppDeps = {}) {
 
     const montant = Number(c.req.query("montant") ?? 100);
     if (!Number.isFinite(montant) || montant <= 0)
-      return c.json({ error: `montant invalide : ${c.req.query("montant")}` }, 400);
+      return c.json({ error: `invalid montant: ${c.req.query("montant")}` }, 400);
 
     const ds = loadDataset();
     const rows = ds.measurements.filter(
@@ -351,10 +351,10 @@ export function createApp(deps: AppDeps = {}) {
     if (rows.length === 0)
       return c.json(
         {
-          error: "jeton inconnu du jeu de mesures",
+          error: "token unknown to the measurement dataset",
           note:
-            `le balayage couvre les pools v4 a liquidite non nulle de Base au bloc ${cfg.forkBlock}. ` +
-            `Un jeton absent n'est pas un jeton sans prelevement : il est NON MESURE.`,
+            `the scan covers the Base v4 pools with non-zero liquidity at block ${cfg.forkBlock}. ` +
+            `An absent token is not a token with no take: it is NOT MEASURED.`,
         },
         404,
       );
@@ -373,9 +373,9 @@ export function createApp(deps: AppDeps = {}) {
     if (!m)
       return c.json(
         {
-          error: "mesure inconnue",
+          error: "unknown measurement",
           id,
-          hint: "les ids sont deterministes : sha256(chain|bloc|hook|pool|sens|taille). Liste-les via /hooks puis /hook/:address.",
+          hint: "ids are deterministic: sha256(chain|block|hook|pool|direction|size). List them via /hooks then /hook/:address.",
         },
         404,
       );
@@ -383,9 +383,9 @@ export function createApp(deps: AppDeps = {}) {
       ...m,
       replay_command: m.replay.command_exact,
       how_to_replay: [
-        "1. docker compose up -d   (fork anvil epingle au bloc)",
+        "1. docker compose up -d   (anvil fork pinned to the block)",
         `2. ${m.replay.command_exact}`,
-        `   ou, court : ${m.replay.command}`,
+        `   or, short: ${m.replay.command}`,
       ],
     });
   });
@@ -435,7 +435,7 @@ export function createApp(deps: AppDeps = {}) {
     try {
       body = (await c.req.json()) as Record<string, unknown>;
     } catch {
-      return c.json({ error: "corps JSON invalide" }, 400);
+      return c.json({ error: "invalid JSON body" }, 400);
     }
     const plan = buildPlan(body, {
       defaultBlock: cfg.forkBlock,
@@ -447,8 +447,8 @@ export function createApp(deps: AppDeps = {}) {
           error: plan.error,
           billing: { unit: "measurement", unit_price_usd: cfg.unitPriceUsd },
           accepts_body: {
-            hook: "0x… (un hook connu de docs/pools-liquides.json)",
-            pool_id: "0x… (un pool deja mesure)",
+            hook: "0x… (a hook known to docs/pools-liquides.json)",
+            pool_id: "0x… (a pool already measured)",
             pool: { currency0: "0x…", currency1: "0x…", fee: 8388608, tick_spacing: 200, hooks: "0x…" },
             sizes: ["1000000000000000"],
             directions: ["0->1", "1->0"],
@@ -523,10 +523,10 @@ export function createApp(deps: AppDeps = {}) {
       if (slotEchec) slotEchec.receipt = echec;
       return c.json(
         {
-          error: "moteur indisponible",
+          error: "engine unavailable",
           detail: (e as Error).message.slice(0, 300),
           plan: { units: plan.units, block: plan.block },
-          note: "aucun nombre n'est renvoye : un moteur muet est un NOT_MEASURABLE, pas un zero.",
+          note: "no number is returned: a silent engine is a NOT_MEASURABLE, not a zero.",
         },
         503,
       );
@@ -632,7 +632,7 @@ export function createApp(deps: AppDeps = {}) {
 
   app.get("/replay/:id", (c) => {
     const m = loadDataset().byId.get(c.req.param("id"));
-    if (!m) return c.text("mesure inconnue\n", 404);
+    if (!m) return c.text("unknown measurement\n", 404);
     return c.text(m.replay.command_exact + "\n");
   });
 
@@ -656,11 +656,11 @@ export function createApp(deps: AppDeps = {}) {
     if (typeof httpe.getResponse === "function") return httpe.getResponse();
     return c.json(
       {
-        error: "erreur interne",
+        error: "internal error",
         detail: e.message.slice(0, 300),
         route: `${c.req.method} ${c.req.path}`,
         reference: ref,
-        note: "la reference figure aussi dans les journaux du serveur ; la pile n'est pas publiee, elle porte des chemins internes",
+        note: "the reference also appears in the server logs; the stack is not published, it carries internal paths",
       },
       500,
     );
@@ -670,9 +670,9 @@ export function createApp(deps: AppDeps = {}) {
   app.notFound((c) =>
     c.json(
       {
-        error: "route inconnue",
+        error: "unknown route",
         route: `${c.req.method} ${c.req.path}`,
-        note: "GET / liste toutes les routes, y compris celles du compte",
+        note: "GET / lists every route, the account ones included",
       },
       404,
     ),

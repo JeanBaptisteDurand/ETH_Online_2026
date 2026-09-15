@@ -87,7 +87,7 @@ describe("POST /measure sans paiement", () => {
     const res = await post(app, { hook: "0x0000000000000000000000000000000000000009" });
     expect(res.status).toBe(400);
     expect(res.headers.get("payment-required")).toBeNull();
-    expect((await res.json() as any).error).toContain("aucun pool");
+    expect((await res.json() as any).error).toContain("no pool");
   });
 
   it("plafonne le nombre d'unites par requete", async () => {
@@ -98,7 +98,7 @@ describe("POST /measure sans paiement", () => {
     });
     const res = await post(app, { pool: POOL, sizes: ["1", "2", "3", "4"] });
     expect(res.status).toBe(400);
-    expect((await res.json() as any).error).toContain("maximum est 3");
+    expect((await res.json() as any).error).toContain("maximum is 3");
   });
 });
 
@@ -139,7 +139,7 @@ describe("POST /measure execute", () => {
     const res = await post(app, { pool: POOL, sizes: ["1000000000000000"] });
     expect(res.status).toBe(503);
     const body = await res.json() as any;
-    expect(body.error).toBe("moteur indisponible");
+    expect(body.error).toBe("engine unavailable");
     expect(body.note).toContain("NOT_MEASURABLE");
     expect(JSON.stringify(body)).not.toContain("bps");
   });
@@ -191,21 +191,21 @@ describe("un refus accuse le bon champ", () => {
     const p = buildPlan({ pool_id: "0xdeadbeef" }, { defaultBlock: 50614000, maxUnits: 10 });
     expect(p.ok).toBe(false);
     if (!p.ok) {
-      expect(p.error).toMatch(/pool_id malforme/);
-      expect(p.error).not.toMatch(/il faut "hook"/);
+      expect(p.error).toMatch(/malformed pool_id/);
+      expect(p.error).not.toMatch(/one of "hook"/);
     }
   });
 
   it("hook malforme : pareil", () => {
     const p = buildPlan({ hook: "pas une adresse" }, { defaultBlock: 50614000, maxUnits: 10 });
     expect(p.ok).toBe(false);
-    if (!p.ok) expect(p.error).toMatch(/hook malforme/);
+    if (!p.ok) expect(p.error).toMatch(/malformed hook/);
   });
 
   it("pool objet mais incomplete : nomme les champs qui manquent", () => {
     const p = buildPlan({ pool: { currency0: "0x1" } }, { defaultBlock: 50614000, maxUnits: 10 });
     expect(p.ok).toBe(false);
-    if (!p.ok) expect(p.error).toMatch(/pool\.currency0.*doivent etre des adresses/);
+    if (!p.ok) expect(p.error).toMatch(/pool\.currency0.*must be addresses/);
   });
 
   it.each([[null], [123], ["abc"]])(
@@ -215,7 +215,7 @@ describe("un refus accuse le bon champ", () => {
       // pouvoir transformer un refus en 500.
       const p = buildPlan({ pool: valeur }, { defaultBlock: 50614000, maxUnits: 10 });
       expect(p.ok).toBe(false);
-      if (!p.ok) expect(p.error).toMatch(/pool inutilisable/);
+      if (!p.ok) expect(p.error).toMatch(/unusable pool/);
     },
   );
 
@@ -237,7 +237,7 @@ describe("un refus accuse le bon champ", () => {
   it("corps vide : la, le champ est vraiment absent", () => {
     const p = buildPlan({}, { defaultBlock: 50614000, maxUnits: 10 });
     expect(p.ok).toBe(false);
-    if (!p.ok) expect(p.error).toMatch(/il faut "hook"/);
+    if (!p.ok) expect(p.error).toMatch(/one of "hook"/);
   });
 });
 
@@ -274,7 +274,7 @@ describe("le noeud doit etre celui qu'on croit", () => {
       throw new Error("aurait du refuser");
     } catch (e) {
       const m = (e as Error).message;
-      expect(m).toMatch(/mauvaise chaine/);
+      expect(m).toMatch(/wrong chain/);
       expect(m).toMatch(/4663/);
       expect(m).toMatch(/lsof/); // le refus doit dire quoi verifier
     }
@@ -286,12 +286,12 @@ describe("le noeud doit etre celui qu'on croit", () => {
         { ...sain, fork: { block_number: 57794845 } },
         { chainId: 8453, block: 50614000 },
       ),
-    ).toThrow(/mauvais bloc.*57794845/);
+    ).toThrow(/wrong block.*57794845/);
   });
 
   it("refuse un noeud SANS fork : le contrefactuel exige un etat fige", () => {
     expect(() => assertNodeMatches({ ...sain, fork: null }, { chainId: 8453, block: 50614000 })).toThrow(
-      /pas un fork epingle/,
+      /not a pinned fork/,
     );
   });
 
@@ -301,6 +301,6 @@ describe("le noeud doit etre celui qu'on croit", () => {
         { ...sain, reachable: false, error: "ECONNREFUSED" },
         { chainId: 8453, block: 50614000 },
       ),
-    ).toThrow(/injoignable.*ECONNREFUSED/);
+    ).toThrow(/unreachable.*ECONNREFUSED/);
   });
 });

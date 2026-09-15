@@ -52,7 +52,7 @@ function parseSizes(raw: unknown): { sizes: string[]; error: string | null } {
   const sizes: string[] = [];
   for (const v of arr) {
     const s = String(v).trim();
-    if (!/^[0-9]+$/.test(s) || s === "0") return { sizes: [], error: `taille invalide: ${s}` };
+    if (!/^[0-9]+$/.test(s) || s === "0") return { sizes: [], error: `invalid size: ${s}` };
     sizes.push(s);
   }
   return { sizes, error: null };
@@ -68,7 +68,7 @@ function parseDirections(body: Record<string, unknown>): { dirs: boolean[]; erro
     const s = String(v).trim();
     if (s === "0->1" || s === "true" || s === "zeroForOne") dirs.push(true);
     else if (s === "1->0" || s === "false" || s === "oneForZero") dirs.push(false);
-    else return { dirs: [], error: `sens invalide: ${s}` };
+    else return { dirs: [], error: `invalid direction: ${s}` };
   }
   return { dirs: dirs.length ? dirs : [true], error: null };
 }
@@ -106,9 +106,9 @@ export function buildPlan(
   if (explicit && typeof explicit === "object") {
     const { currency0, currency1, fee, tick_spacing, hooks } = explicit as Record<string, unknown>;
     if (!isAddress(currency0) || !isAddress(currency1) || !isAddress(hooks))
-      return fail("pool.currency0, pool.currency1 et pool.hooks doivent etre des adresses", block);
+      return fail("pool.currency0, pool.currency1 and pool.hooks must be addresses", block);
     if (!Number.isFinite(Number(fee)) || !Number.isFinite(Number(tick_spacing)))
-      return fail("pool.fee et pool.tick_spacing doivent etre des entiers", block);
+      return fail("pool.fee and pool.tick_spacing must be integers", block);
     targets = [
       {
         pool_id: null,
@@ -120,14 +120,14 @@ export function buildPlan(
       },
     ];
     via = "explicit-pool";
-    note = "PoolKey fournie telle quelle par l'appelant";
+    note = "PoolKey supplied as-is by the caller";
     considered = 1;
   } else if (isPoolId(body.pool_id)) {
     const pid = body.pool_id.toLowerCase();
     const known = loadPoolIndex().get(pid);
     if (!known)
       return fail(
-        `pool_id inconnu du jeu de mesures : ${pid}. Fournis "pool" (la PoolKey complete) pour un pool jamais mesure.`,
+        `pool_id unknown to the measurement dataset: ${pid}. Supply "pool" (the full PoolKey) for a pool that was never measured.`,
         block,
       );
     targets = [
@@ -141,7 +141,7 @@ export function buildPlan(
       },
     ];
     via = "pool_id";
-    note = `PoolKey reconstruite depuis ${known.from}`;
+    note = `PoolKey rebuilt from ${known.from}`;
     considered = 1;
   } else if (isAddress(body.hook)) {
     const hook = body.hook.toLowerCase();
@@ -149,7 +149,7 @@ export function buildPlan(
     considered = pools.length;
     if (pools.length === 0)
       return fail(
-        `aucun pool a liquidite non nulle connu pour ce hook : ${hook}. Fournis "pool" pour forcer une PoolKey.`,
+        `no pool with non-zero liquidity known for this hook: ${hook}. Supply "pool" to force a PoolKey.`,
         block,
       );
     pools.sort((a, b) => b.liquidity_approx - a.liquidity_approx);
@@ -164,19 +164,19 @@ export function buildPlan(
       hooks: p.hooks,
     }));
     via = "hook";
-    note = `${take.length} pool(s) retenu(s) sur ${pools.length}, par liquidite approchee decroissante (docs/pools-liquides.json)`;
+    note = `${take.length} pool(s) kept out of ${pools.length}, by decreasing approximate liquidity (docs/pools-liquides.json)`;
   } else {
     // Un champ FOURNI mais malforme n'est pas un champ absent, et le dire serait accuser le
     // mauvais probleme : l'appelant a bien donne un pool_id, il est juste au mauvais format.
     // Le message doit pointer l'erreur reelle, sinon il envoie corriger ce qui va bien.
     if (body.pool_id !== undefined)
       return fail(
-        `pool_id malforme : ${JSON.stringify(body.pool_id)}. Attendu 0x suivi de 64 chiffres hexadecimaux.`,
+        `malformed pool_id: ${JSON.stringify(body.pool_id)}. Expected 0x followed by 64 hexadecimal digits.`,
         block,
       );
     if (body.hook !== undefined)
       return fail(
-        `hook malforme : ${JSON.stringify(body.hook)}. Attendu une adresse 0x suivie de 40 chiffres hexadecimaux.`,
+        `malformed hook: ${JSON.stringify(body.hook)}. Expected an address: 0x followed by 40 hexadecimal digits.`,
         block,
       );
     if (body.pool !== undefined) {
@@ -186,14 +186,14 @@ export function buildPlan(
       const cles =
         body.pool !== null && typeof body.pool === "object" && !Array.isArray(body.pool)
           ? JSON.stringify(Object.keys(body.pool as Record<string, unknown>))
-          : `un ${body.pool === null ? "null" : typeof body.pool}`;
+          : `a ${body.pool === null ? "null" : typeof body.pool}`;
       return fail(
-        'pool inutilisable : il faut un objet avec currency0, currency1, fee, tick_spacing ' +
-          `et hooks. Recu : ${cles}.`,
+        'unusable pool: an object with currency0, currency1, fee, tick_spacing and hooks ' +
+          `is required. Received: ${cles}.`,
         block,
       );
     }
-    return fail('il faut "hook", "pool_id" ou "pool" (la PoolKey complete)', block);
+    return fail('one of "hook", "pool_id" or "pool" (the full PoolKey) is required', block);
   }
 
   const items: PlanItem[] = [];
@@ -203,7 +203,7 @@ export function buildPlan(
 
   if (items.length > opts.maxUnits)
     return fail(
-      `${items.length} mesures demandees, le maximum est ${opts.maxUnits} par requete`,
+      `${items.length} measurements requested, the maximum is ${opts.maxUnits} per request`,
       block,
     );
 

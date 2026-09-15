@@ -131,30 +131,30 @@ export function buildTokenSheet(
 
   if (acheter?.varies_with_size)
     alertes.push(
-      `Le cout d'ACHAT change avec la taille : de ${acheter.min_bps} a ${acheter.max_bps} bps. ` +
-        `Un devis pris sur une petite taille ne vaut pas pour une grosse.`,
+      `The BUY cost changes with size: from ${acheter.min_bps} to ${acheter.max_bps} bps. ` +
+        `A quote taken on a small size does not hold for a large one.`,
     );
   if (vendre?.varies_with_size)
     alertes.push(
-      `Le cout de VENTE change avec la taille : de ${vendre.min_bps} a ${vendre.max_bps} bps.`,
+      `The SELL cost changes with size: from ${vendre.min_bps} to ${vendre.max_bps} bps.`,
     );
   if (acheter && vendre) {
     const ecart = Math.abs(vendre.max_bps - acheter.max_bps);
     if (ecart > ASYM_BPS)
       alertes.push(
-        `ASYMETRIE de ${Math.round(ecart)} bps entre acheter et vendre` +
+        `ASYMMETRY of ${Math.round(ecart)} bps between buying and selling` +
           (vendre.max_bps > acheter.max_bps
-            ? ` — il est plus cher d'en sortir que d'y entrer.`
-            : ` — il est plus cher d'y entrer que d'en sortir.`),
+            ? ` — getting out costs more than getting in.`
+            : ` — getting in costs more than getting out.`),
       );
   }
   if (!acheter || !vendre)
     alertes.push(
-      `Un seul sens est mesure. L'autre n'est pas a zero : il est NON MESURE, et rien ne permet de le supposer.`,
+      `Only one direction is measured. The other is not at zero: it is NOT MEASURED, and nothing lets us assume it.`,
     );
   if (!entry)
     alertes.push(
-      `Le hook de ce pool n'est pas decrit au registre officiel des hooks. Personne n'a declare ce qu'il fait.`,
+      `The hook of this pool is not described in the official hook registry. Nobody has declared what it does.`,
     );
 
   const pools = [...new Set(rows.map((r) => r.pool_id))];
@@ -173,9 +173,9 @@ export function buildTokenSheet(
     alertes,
     non_chiffre: nonChiffre,
     honesty: [
-      "Chaque bps vient d'une mesure identifiee, avec son bloc, sa taille, son sens et sa commande de rejeu.",
-      "Un sens ou une taille non mesure n'est jamais rendu a zero : il est absent, et c'est dit.",
-      "Le nom de la plateforme vient du registre declaratif, pas de la mesure : c'est une declaration, pas une preuve.",
+      "Every bps comes from an identified measurement, with its block, its size, its direction and its replay command.",
+      "A direction or a size that was not measured is never returned as zero: it is absent, and that is said.",
+      "The platform name comes from the declarative registry, not from the measurement: it is a declaration, not a proof.",
     ],
   };
 }

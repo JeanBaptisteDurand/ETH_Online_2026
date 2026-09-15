@@ -45,7 +45,7 @@ describe("composer deux sens mesures", () => {
       ]),
     );
     expect(t.pire.garde_min).toBeCloseTo(0.9801, 6);
-    expect(phrase(t, 100)).toBe("tu mets 100 EUR, il te reste 98.01 EUR");
+    expect(phrase(t, 100)).toBe("you put in 100 EUR, you are left with 98.01 EUR");
   });
 
   it("ajoute les frais LP au prelevement du hook", () => {
@@ -67,7 +67,7 @@ describe("composer deux sens mesures", () => {
       ]),
     );
     expect(t.pire.garde_min).toBe(0);
-    expect(phrase(t, 100)).toBe("tu mets 100 EUR, il te reste 0.00 EUR");
+    expect(phrase(t, 100)).toBe("you put in 100 EUR, you are left with 0.00 EUR");
   });
 });
 
@@ -84,7 +84,7 @@ describe("l'intervalle, et quand il disparait", () => {
     expect(t.pire.garde_min).toBeLessThan(0.01);
     expect(t.pire.garde_max).toBeGreaterThan(0.99);
     // l'achat coute 1 bps, la revente 0 au mieux et 9990 au pire : de presque tout a presque rien
-    expect(phrase(t, 100)).toBe("tu mets 100 EUR, il te reste entre 0.10 et 99.99 EUR");
+    expect(phrase(t, 100)).toBe("you put in 100 EUR, you are left with between 0.10 and 99.99 EUR");
   });
 
   it("deux bornes qui s'affichent pareil ne s'annoncent pas comme un intervalle", () => {
@@ -119,7 +119,7 @@ describe("le refus, quand un sens manque", () => {
     const r = buildExitTest(JETON, [m({ zero_for_one: true, bps: 42 })]);
     expect(r).toHaveProperty("refus");
     if ("refus" in r) {
-      expect(r.raison).toMatch(/INCONNU/);
+      expect(r.raison).toMatch(/UNKNOWN/);
       expect(r.sens_mesures).toEqual(["achat"]);
     }
   });
@@ -152,9 +152,9 @@ describe("les limites sont toujours dites", () => {
     const t = ok(
       buildExitTest(JETON, [m({ zero_for_one: true, bps: 1 }), m({ zero_for_one: false, bps: 1 })]),
     );
-    expect(t.limites.join(" ")).toMatch(/impact de prix/);
-    expect(t.limites.join(" ")).toMatch(/taille de revente est inconnue/);
-    expect(t.limites.join(" ")).toMatch(/un seul bloc/);
+    expect(t.limites.join(" ")).toMatch(/price impact/);
+    expect(t.limites.join(" ")).toMatch(/sell-back size is unknown/);
+    expect(t.limites.join(" ")).toMatch(/a single block/);
   });
 });
 

@@ -69,7 +69,7 @@ const Corps = z
     construire: z.boolean().default(true),
   })
   .refine((b) => b.calldata !== undefined || (b.pool_id !== undefined && b.direction !== undefined), {
-    message: "donne soit `calldata`, soit `pool_id` + `direction`",
+    message: "give either `calldata`, or `pool_id` + `direction`",
   });
 
 export interface AlternativeRouterDeps {
@@ -82,18 +82,18 @@ export interface AlternativeRouterDeps {
 
 const USAGE = {
   route: "POST /alternative",
-  quoi: "compare cette porte aux autres portes MESUREES du meme jeton, a la meme taille, et — seulement s'il y en a une moins chere — construit la transaction de remplacement",
+  quoi: "compares this gate with the other MEASURED gates of the same token, at the same size, and — only if a cheaper one exists — builds the replacement transaction",
   corps: {
-    calldata: "0x… le calldata du swap a examiner (ou pool_id + direction + amount_in)",
-    pool_id: "0x… (64 hex) l'identifiant du pool vise",
-    direction: "'0->1' ou '1->0'",
-    amount_in: "la taille, en unites du jeton d'entree",
-    proprietaire: "0x… l'adresse qui signera. Sans elle, l'etat Permit2 n'est pas lu et la reponse s'arrete a la comparaison",
-    tolerance_bps: "la marge de prix du plancher de sortie (50 par defaut, soit 0,5 %)",
-    permit: "un permit deja signe, pour que la transaction ne demande qu'un envoi",
-    construire: "false pour n'obtenir que la comparaison, sans aucun appel reseau",
+    calldata: "0x… the calldata of the swap to examine (or pool_id + direction + amount_in)",
+    pool_id: "0x… (64 hex) the identifier of the pool aimed at",
+    direction: "'0->1' or '1->0'",
+    amount_in: "the size, in units of the input token",
+    proprietaire: "0x… the address that will sign. Without it, the Permit2 state is not read and the answer stops at the comparison",
+    tolerance_bps: "the price margin of the output floor (50 by default, i.e. 0.5 %)",
+    permit: "an already signed permit, so that the transaction only needs sending",
+    construire: "false to get the comparison alone, with no network call",
   },
-  ce_qu_elle_ne_fait_pas: "elle n'envoie rien et ne signe rien : elle rend une transaction a signer, ou dit ce qui manque",
+  ce_qu_elle_ne_fait_pas: "it sends nothing and signs nothing: it returns a transaction to sign, or says what is missing",
 };
 
 export function createAlternativeRouter(deps: AlternativeRouterDeps = {}): Hono {
@@ -117,12 +117,12 @@ export function createAlternativeRouter(deps: AlternativeRouterDeps = {}): Hono 
     try {
       brut = await c.req.json();
     } catch {
-      return c.json({ error: "corps JSON illisible", usage: USAGE }, 400);
+      return c.json({ error: "unreadable JSON body", usage: USAGE }, 400);
     }
     const parse = Corps.safeParse(brut);
     if (!parse.success)
       return c.json(
-        { error: "corps invalide", details: parse.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`), usage: USAGE },
+        { error: "invalid body", details: parse.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`), usage: USAGE },
         400,
       );
     const b = parse.data;
@@ -144,11 +144,11 @@ export function createAlternativeRouter(deps: AlternativeRouterDeps = {}): Hono 
       if (rapport.findings.length > 1)
         return c.json(
           {
-            error: "chemin multi-saut",
+            error: "multi-hop path",
             raison:
-              `ce calldata porte ${rapport.findings.length} jambes. A partir du deuxieme saut, la ` +
-              "taille depend de l'execution du premier : comparer deux portes a taille egale est " +
-              "impossible, et fabriquer une economie serait pire que de ne rien proposer",
+              `this calldata carries ${rapport.findings.length} legs. From the second hop on, the ` +
+              "size depends on the execution of the first: comparing two gates at equal size is " +
+              "impossible, and manufacturing a saving would be worse than proposing nothing",
             headline: rapport.headline,
           },
           422,
@@ -156,7 +156,7 @@ export function createAlternativeRouter(deps: AlternativeRouterDeps = {}): Hono 
       if (!f)
         return c.json(
           {
-            error: "aucune jambe de swap lue",
+            error: "no swap leg read",
             raison: rapport.headline,
             calldata_lu_en_entier: rapport.complete,
             warnings: rapport.warnings,
@@ -170,13 +170,13 @@ export function createAlternativeRouter(deps: AlternativeRouterDeps = {}): Hono 
     }
 
     if (!poolId || !direction)
-      return c.json({ error: "porte non determinee", usage: USAGE }, 400);
+      return c.json({ error: "gate not determined", usage: USAGE }, 400);
 
     /* ------------------------------- etage 1 : la comparaison, sans un octet de reseau */
 
     const alt = g.chercherAlternative(t, poolId, direction, amountIn);
     if (!alt)
-      return c.json({ error: "comparaison impossible", pool_id: poolId, direction }, 422);
+      return c.json({ error: "comparison impossible", pool_id: poolId, direction }, 422);
 
     const base = {
       lu,
@@ -203,8 +203,8 @@ export function createAlternativeRouter(deps: AlternativeRouterDeps = {}): Hono 
         envoi: {
           etat: "NON_DEMANDE",
           raison:
-            "une porte mesuree moins chere existe, mais `construire` vaut false : aucune lecture " +
-            "on-chain n'a ete faite, donc aucune transaction n'est rendue",
+            "a cheaper measured gate exists, but `construire` is false: no on-chain read was " +
+            "made, so no transaction is returned",
         },
       });
 
@@ -226,7 +226,7 @@ export function createAlternativeRouter(deps: AlternativeRouterDeps = {}): Hono 
       amountIn: montant,
     });
     appels += 1;
-    lectures.push({ quoi: "cotation de la porte proposee", rejeu: cot.rejeu, raison: cot.raison });
+    lectures.push({ quoi: "quote of the proposed gate", rejeu: cot.rejeu, raison: cot.raison });
 
     // (b) et (c) l'etat Permit2, seulement si le swap depense un ERC-20 et qu'aucun permit
     // signe n'a ete fourni. En ETH natif il n'y a rien a autoriser : deux appels economises.
@@ -245,9 +245,9 @@ export function createAlternativeRouter(deps: AlternativeRouterDeps = {}): Hono 
           envoi: {
             etat: "ETAT_PERMIT2_INCONNU",
             raison:
-              `ce swap depense un ERC-20 (${monnaieEntree}) : l'etat Permit2 depend de QUI signe, et ` +
-              "`proprietaire` n'a pas ete donne. Rappelle la route avec l'adresse du signataire, ou " +
-              "fournis un permit deja signe",
+              `this swap spends an ERC-20 (${monnaieEntree}): the Permit2 state depends on WHO signs, and ` +
+              "`proprietaire` was not given. Call the route again with the signer address, or " +
+              "supply an already signed permit",
             monnaieEntree,
             native: false,
           },
@@ -267,8 +267,8 @@ export function createAlternativeRouter(deps: AlternativeRouterDeps = {}): Hono 
         }),
       ]);
       appels += 2;
-      lectures.push({ quoi: "allowance du jeton vers Permit2", rejeu: all.rejeu, raison: all.raison });
-      lectures.push({ quoi: "autorisation du routeur chez Permit2", rejeu: aut.rejeu, raison: aut.raison });
+      lectures.push({ quoi: "token allowance towards Permit2", rejeu: all.rejeu, raison: all.raison });
+      lectures.push({ quoi: "router authorisation at Permit2", rejeu: aut.rejeu, raison: aut.raison });
       etatPermit2 = { allowanceVersPermit2: all.montant, autorisationDuRouteur: aut.autorisation };
     }
 
@@ -303,7 +303,7 @@ export function createAlternativeRouter(deps: AlternativeRouterDeps = {}): Hono 
       lectures,
       envoi,
       // Le rappel qui doit rester a l'ecran : ceci n'est pas envoye.
-      note: "cette transaction n'a pas ete envoyee et ne le sera pas par cette route. Signe-la, ou non.",
+      note: "this transaction has not been sent and will not be sent by this route. Sign it, or do not.",
     });
   });
 

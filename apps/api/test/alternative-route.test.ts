@@ -215,7 +215,7 @@ describe("le couple reel a 78,67 bps : ERC-20 en entree", () => {
     });
     const c = r.corps as { envoi: { etat: string }; lectures: { quoi: string; raison: string | null }[] };
     expect(c.envoi.etat).toBe("NONCE_NON_LU");
-    const l = c.lectures.find((x) => x.quoi.includes("autorisation du routeur"))!;
+    const l = c.lectures.find((x) => x.quoi.includes("router authorisation"))!;
     expect(l.raison).not.toBeNull();
   });
 
@@ -276,6 +276,6 @@ describe("les refus d'entree disent lesquels", () => {
   it("GET /alternative rend le mode d'emploi, y compris ce qu'elle ne fait pas", async () => {
     const res = await appli().request("/alternative");
     const b = (await res.json()) as { usage: { ce_qu_elle_ne_fait_pas: string } };
-    expect(b.usage.ce_qu_elle_ne_fait_pas).toMatch(/n'envoie rien/);
+    expect(b.usage.ce_qu_elle_ne_fait_pas).toMatch(/sends nothing/);
   });
 });

@@ -279,8 +279,8 @@ describe("paire a choix multiple", () => {
     expect(body.structure.pairs_discovered).toBe(5);
     expect(body.structure.pairs_with_more_than_one_pool).toBe(2);
     expect(body.structure.share_pct).toBe(40);
-    expect(body.structure.sentence).toContain("Sur 5 paires decouvertes au bloc 50614000");
-    expect(body.structure.sentence).toContain("peage sur la seule route");
+    expect(body.structure.sentence).toContain("Of 5 pairs discovered at block 50614000");
+    expect(body.structure.sentence).toContain("toll on the only route");
   });
 
   it("liste la porte du recensement qu'aucune mesure ne couvre, sans lui preter un cout", async () => {
@@ -330,7 +330,7 @@ describe("pool entierement non cotable", () => {
     expect(u.labels_in_direction).toEqual({ NOT_QUOTABLE: 1, NOT_MEASURABLE: 1 });
     // aucune de ses lignes ne porte de nombre
     for (const p of u.points) expect(p.hook_bps).toBeNull();
-    expect(body.unranked_note).toContain("jamais classes");
+    expect(body.unranked_note).toContain("never ranked");
   });
 
   it("refuse de classer un pool non cotable A LA TAILLE DEMANDEE, et le dit", async () => {
@@ -345,7 +345,7 @@ describe("pool entierement non cotable", () => {
     // la valeur d'une autre taille est fournie, mais etiquetee comme telle
     expect(u.nearest_quoted.amount_in).toBe(SMALL);
     expect(u.nearest_quoted.total_bps).toBe(40);
-    expect(u.nearest_quoted.note).toContain("n'a pas servi au classement");
+    expect(u.nearest_quoted.note).toContain("not used for the ranking");
   });
 });
 
@@ -354,12 +354,12 @@ describe("paire a pool unique", () => {
     const { status, body } = await ask(`currency0=${T_C}&currency1=${T_D}&amount=${SMALL}`);
     expect(status).toBe(200);
     expect(body.verdict).toBe("SINGLE_POOL");
-    expect(body.headline).toContain("pas de recommandation a faire");
-    expect(body.headline).toContain("peage a connaitre");
+    expect(body.headline).toContain("no recommendation to make");
+    expect(body.headline).toContain("toll to know");
     expect(body.ranked.length).toBe(1);
     expect(body.ranked[0].total_bps).toBe(72); // 3000/100 + 42
     expect(body.alternatives.claim).toBe("AUCUNE_ALTERNATIVE");
-    expect(body.alternatives.sentence).toContain(`au bloc ${BLOCK}`);
+    expect(body.alternatives.sentence).toContain(`at block ${BLOCK}`);
     expect(body.alternatives.pools_in_census).toBe(1);
     expect(body.unmeasured_gates).toEqual([]);
   });
@@ -368,9 +368,9 @@ describe("paire a pool unique", () => {
     // le manifeste de la fixture ne porte pas n_unknown : "on ne sait pas" n'est pas "zero"
     const a = await ask(`currency0=${T_C}&currency1=${T_D}&amount=${SMALL}`);
     expect(a.body.census_source.unreadable_pools).toBeNull();
-    expect(a.body.census_source.unreadable_pools_note).toContain("ce n'est pas zero, c'est inconnu");
-    expect(a.body.alternatives.caveat).toContain("minorant");
-    expect(a.body.alternatives.sentence).toContain("Reserve :");
+    expect(a.body.census_source.unreadable_pools_note).toContain("it is not zero, it is unknown");
+    expect(a.body.alternatives.caveat).toContain("lower bound");
+    expect(a.body.alternatives.sentence).toContain("Caveat:");
     expect(a.body.structure.is_lower_bound).toBe(true);
 
     // avec un manifeste qui dit 0 pool illisible, la reserve disparait
@@ -380,7 +380,7 @@ describe("paire a pool unique", () => {
       const b = await ask(`currency0=${T_C}&currency1=${T_D}&amount=${SMALL}`);
       expect(b.body.census_source.unreadable_pools).toBe(0);
       expect(b.body.alternatives.caveat).toBeNull();
-      expect(b.body.alternatives.sentence).not.toContain("Reserve :");
+      expect(b.body.alternatives.sentence).not.toContain("Caveat:");
       expect(b.body.structure.is_lower_bound).toBe(false);
 
       // et avec 64 pools illisibles, elle revient en nommant le compte
@@ -389,7 +389,7 @@ describe("paire a pool unique", () => {
       const d = await ask(`currency0=${T_C}&currency1=${T_D}&amount=${SMALL}`);
       expect(d.body.alternatives.claim).toBe("AUCUNE_ALTERNATIVE");
       expect(d.body.alternatives.caveat).toContain("64 pools");
-      expect(d.body.structure.caveat).toContain("MINORANT");
+      expect(d.body.structure.caveat).toContain("LOWER BOUND");
     } finally {
       writeFileSync(census + ".scan.json", JSON.stringify({ block_number: BLOCK }), "utf8");
       resetRouteCaches();
@@ -405,7 +405,7 @@ describe("paire a pool unique", () => {
       expect(body.alternatives.claim).toBe("INDETERMINE");
       expect(body.alternatives.pools_in_census).toBeNull();
       expect(body.structure).toBeNull();
-      expect(body.structure_note).toContain("On ne la remplace pas par des chiffres memorises");
+      expect(body.structure_note).toContain("not replaced by remembered figures");
       // le cout mesure, lui, reste rendu : c'est la structure qui manque, pas la mesure
       expect(body.ranked[0].total_bps).toBe(72);
     } finally {
@@ -424,7 +424,7 @@ describe("taille non mesuree", () => {
     expect(r.size.exact_match).toBe(false);
     expect(r.size.used_wei).toBe(SMALL);
     expect(r.cost_basis).toBe("taille_mesuree_la_plus_proche");
-    expect(r.size.note).toContain("n'a pas ete mesuree");
+    expect(r.size.note).toContain("was not measured");
     expect(r.total_bps).toBe(12); // 500/100 + 7
     expect(r.replay).toContain(`--amount-in ${SMALL}`);
   });
@@ -452,7 +452,7 @@ describe("paire inconnue", () => {
     const { status, body } = await ask(`currency0=${T_G}&currency1=${T_H}&amount=${SMALL}`);
     expect(status).toBe(200);
     expect(body.verdict).toBe("NOT_MEASURED");
-    expect(body.headline).toContain("absence de mesure");
+    expect(body.headline).toContain("absence of measurement");
     expect(body.ranked).toEqual([]);
     expect(body.unranked).toEqual([]);
     expect(body.counts.pairs_covered_by_measurements).toBe(4);
@@ -478,7 +478,7 @@ describe("sens sans cotation", () => {
     const { body } = await ask(`currency0=${T_I}&currency1=${T_J}&amount=${SMALL}`);
     expect(body.direction.human).toBe("0->1");
     expect(body.ranked).toEqual([]);
-    expect(body.headline).toContain("aucun n'a de cout mesure dans le sens 0->1");
+    expect(body.headline).toContain("none has a measured cost in direction 0->1");
     expect(body.direction.pools_quoted_in_other_direction).toBe(2);
     expect(body.direction.hint).toContain("zeroForOne=false");
     for (const u of body.unranked) {
@@ -492,7 +492,7 @@ describe("sens sans cotation", () => {
     expect(body.ranked.length).toBe(2);
     // 6000/100 = 60 bps de frais LP + 264 bps de hook
     expect(body.ranked.map((r: any) => r.total_bps)).toEqual([324, 324]);
-    expect(body.ranking_note).toContain("arbitraire");
+    expect(body.ranking_note).toContain("arbitrary");
     expect(body.direction.hint).toBeNull();
   });
 

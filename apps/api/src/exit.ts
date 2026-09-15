@@ -100,7 +100,7 @@ function reste(bps: number): number {
 export function buildExitTest(token: string, rows: Measurement[]): ExitTest | ExitRefus {
   const t = token.toLowerCase();
   const first = rows[0];
-  if (!first) return { refus: "jeton inconnu", raison: "aucune mesure pour ce jeton", sens_mesures: [] };
+  if (!first) return { refus: "unknown token", raison: "no measurement for this token", sens_mesures: [] };
 
   const tokenIsCurrency1 = (first.currency1 ?? "").toLowerCase() === t;
   // Une ligne n'entre dans le calcul que si TOUT ce qu'on compose y est lu. `stored_lp_fee`
@@ -123,12 +123,12 @@ export function buildExitTest(token: string, rows: Measurement[]): ExitTest | Ex
     if (achats.length) sens.push("achat");
     if (reventes.length) sens.push("revente");
     return {
-      refus: "aller-retour non calculable",
+      refus: "round trip not computable",
       raison:
         sens.length === 0
-          ? "aucune mesure chiffree sur ce jeton, dans aucun sens"
-          : `un seul sens est mesure (${sens[0]}). L'autre n'est pas gratuit : il est INCONNU, ` +
-            `et le composer avec zero rendrait un nombre faux.`,
+          ? "no figured measurement on this token, in either direction"
+          : `only one direction is measured (${sens[0]}). The other is not free: it is UNKNOWN, ` +
+            `and composing it with zero would return a false number.`,
       sens_mesures: sens,
     };
   }
@@ -167,15 +167,15 @@ export function buildExitTest(token: string, rows: Measurement[]): ExitTest | Ex
     points,
     pire,
     methode:
-      "composition des deux prelevements mesures (achat puis revente) sur le meme pool, au meme " +
-      "bloc. total = prelevement du hook + frais LP lus dans slot0.",
+      "composition of the two measured takes (buy then sell back) on the same pool, at the same " +
+      "block. total = hook take + LP fee read from slot0.",
     limites: [
-      "Ce n'est PAS un aller-retour execute : l'impact de prix du premier echange sur le second est ignore.",
-      "La taille de revente est inconnue — on sait ce qu'on met, pas combien de jetons on obtient. Le prelevement de revente est donc BORNE, d'ou l'intervalle.",
+      "This is NOT an executed round trip: the price impact of the first swap on the second is ignored.",
+      "The sell-back size is unknown — we know what goes in, not how many tokens come out. The sell-back take is therefore BOUNDED, hence the interval.",
       reventePlate
-        ? "Ici la revente est plate a toutes les tailles mesurees : les deux bornes coincident, la reponse est exacte a la composition pres."
-        : "Ici la revente varie selon la taille : la reponse est un intervalle, jamais un nombre unique.",
-      "Tout est mesure a un seul bloc. Un hook qui a change de comportement depuis n'est pas decrit.",
+        ? "Here the sell-back is flat at every measured size: the two bounds coincide, the answer is exact up to the composition."
+        : "Here the sell-back varies with size: the answer is an interval, never a single number.",
+      "Everything is measured at a single block. A hook whose behaviour has changed since is not described.",
     ],
   };
 }
@@ -187,6 +187,6 @@ export function phrase(test: ExitTest, montant: number, devise = "EUR"): string 
   const hi = (p.garde_max * montant).toFixed(2);
   // Deux bornes qui s'affichent pareil ne sont pas un intervalle : « entre 98.01 et 98.01 »
   // annonce une incertitude que le lecteur ne voit pas, ce qui use la confiance pour rien.
-  if (p.exact || lo === hi) return `tu mets ${montant} ${devise}, il te reste ${lo} ${devise}`;
-  return `tu mets ${montant} ${devise}, il te reste entre ${lo} et ${hi} ${devise}`;
+  if (p.exact || lo === hi) return `you put in ${montant} ${devise}, you are left with ${lo} ${devise}`;
+  return `you put in ${montant} ${devise}, you are left with between ${lo} and ${hi} ${devise}`;
 }

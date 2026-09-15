@@ -55,7 +55,7 @@ test('un seul sens mesure : pas de reponse, et la raison dit que l autre est INC
   assert.equal(r.ok, false)
   if (r.ok) return
   assert.deepEqual(r.sensMesures, ['achat'])
-  assert.match(r.raison, /INCONNU/)
+  assert.match(r.raison, /UNKNOWN/)
   // et surtout : rien qui ressemble a un montant.
   assert.doesNotMatch(r.raison, /\d+[.,]\d\d/)
 })
@@ -124,7 +124,7 @@ test('la composition n est pas une somme : 100 bps puis 100 bps laisse 98,01 et 
   ])
   assert.equal(r.ok, true)
   if (!r.ok) return
-  assert.equal(phraseSortie(r, 100), 'il te reste 98.01 €')
+  assert.equal(phraseSortie(r, 100), 'you are left with 98.01 €')
 })
 
 test('les frais LP entrent dans le compte : stored_lp_fee est en centiemes de bps', () => {
@@ -136,7 +136,7 @@ test('les frais LP entrent dans le compte : stored_lp_fee est en centiemes de bp
   assert.equal(r.ok, true)
   if (r.ok) {
     assert.equal(r.pire.achat.totalBps, 30)
-    assert.equal(phraseSortie(r, 100), 'il te reste 99.40 €')
+    assert.equal(phraseSortie(r, 100), 'you are left with 99.40 €')
   }
 })
 
@@ -146,7 +146,7 @@ test('un prelevement au-dela de 100 % ne rend jamais un negatif', () => {
     ligne({ zero_for_one: false, bps: 10029 }),
   ])
   assert.equal(r.ok, true)
-  if (r.ok) assert.equal(phraseSortie(r, 100), 'il te reste 0.00 €')
+  if (r.ok) assert.equal(phraseSortie(r, 100), 'you are left with 0.00 €')
 })
 
 // ------------------------------------------------- 3. l intervalle et le pire
@@ -161,7 +161,7 @@ test('une revente qui varie rend un intervalle, borne par le pire et le meilleur
   if (!r.ok) return
   assert.equal(r.pire.exact, false)
   assert.ok(r.pire.gardeMin < r.pire.gardeMax)
-  assert.equal(phraseSortie(r, 100), 'il te reste entre 49.50 et 98.01 €')
+  assert.equal(phraseSortie(r, 100), 'you are left with between 49.50 and 98.01 €')
 })
 
 test('deux bornes qui s affichent pareil au centime ne sont pas annoncees comme un intervalle', () => {
@@ -173,7 +173,7 @@ test('deux bornes qui s affichent pareil au centime ne sont pas annoncees comme 
     ligne({ zero_for_one: false, bps: 99.9999, amount_in: '2' }),
   ])
   assert.equal(r.ok, true)
-  if (r.ok) assert.doesNotMatch(phraseSortie(r, 100), /entre/)
+  if (r.ok) assert.doesNotMatch(phraseSortie(r, 100), /between/)
 })
 
 test('le point retenu est le PIRE achat, pas le premier ni le moyen', () => {
@@ -270,7 +270,7 @@ for (const [nom, lignes] of CAS) {
     // L API rend une phrase autonome ; le navigateur n en rend que la queue, parce que l ecran
     // ecrit lui-meme « Tu mets 100 € » autour du champ de saisie. Le reste doit coincider au
     // caractere pres — c est la que « entre » apparait ou disparait.
-    assert.equal(phrase(la, 100, 'EUR'), `tu mets 100 EUR, ${phraseSortie(ici, 100, 'EUR')}`)
+    assert.equal(phrase(la, 100, 'EUR'), `you put in 100 EUR, ${phraseSortie(ici, 100, 'EUR')}`)
   })
 }
 
@@ -298,7 +298,7 @@ test('sur le jeu embarque, le pool piege 0xb2000000…5615bfb8 ne laisse rien', 
   assert.ok(lignes.length > 0, 'le jeton doit etre dans le jeu embarque')
   const r = testDeSortie(t, lignes)
   assert.equal(r.ok, true)
-  if (r.ok) assert.equal(phraseSortie(r, 100), 'il te reste 0.00 €')
+  if (r.ok) assert.equal(phraseSortie(r, 100), 'you are left with 0.00 €')
 })
 
 test('les monnaies de cotation ne sont pas des jetons a tester', () => {

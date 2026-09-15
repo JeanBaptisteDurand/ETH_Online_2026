@@ -151,7 +151,7 @@ export class UsageMeter {
       s.units_requested += e.units_requested;
       s.units_executed += e.units_executed;
       s.amount_usd += e.amount_usd;
-      const payer = e.payer ?? "(non paye)";
+      const payer = e.payer ?? "(unpaid)";
       const bucket = (s.by_payer[payer] ??= { calls: 0, units: 0, amount_usd: 0 });
       bucket.calls += 1;
       bucket.units += e.units_requested;

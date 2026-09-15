@@ -342,7 +342,7 @@ export class MeteringLedger {
   rollupByPayer(sinceIso: string | null = null): PayerRollup[] {
     const acc = new Map<string, PayerRollup & { _batches: Set<string>; _tx: Map<string, { ok: boolean; units: number }> }>();
     for (const r of this.since(sinceIso)) {
-      const key = r.payer ?? "(non paye)";
+      const key = r.payer ?? "(unpaid)";
       let e = acc.get(key);
       if (!e) {
         e = {

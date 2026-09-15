@@ -70,7 +70,7 @@ export function createPaymentLayer(
   const routes: RoutesConfig = {
     "POST /measure": {
       description:
-        "Une mesure TARE = une paire de cotations du meme swap, avec le hook puis avec le stub inerte. Facture a la mesure, pas a la requete.",
+        "A TARE measurement = a pair of quotes of the same swap, with the hook then with the inert stub. Billed per measurement, not per request.",
       mimeType: "application/json",
       serviceName: "TARE",
       accepts: [
@@ -118,7 +118,7 @@ export function createPaymentLayer(
               total_usd: plan.ok
                 ? Number((plan.units * cfg.unitPriceUsd).toFixed(6))
                 : null,
-              note: "Une mesure = un couple de cotations (avec hook / avec stub). Cinq tailles = cinq unites.",
+              note: "One measurement = one pair of quotes (with hook / with stub). Five sizes = five units.",
             },
             plan: plan.ok
               ? { units: plan.units, block: plan.block, resolution: plan.resolution }
@@ -150,7 +150,7 @@ export function createPaymentLayer(
         unit: "measurement",
         unit_price_usd: cfg.unitPriceUsd,
         max_units_per_request: cfg.maxUnitsPerRequest,
-        pricing: "dynamique : prix = unites x prix unitaire",
+        pricing: "dynamic: price = units x unit price",
       };
     },
   };

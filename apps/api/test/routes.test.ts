@@ -89,7 +89,7 @@ describe("GET /hook/:address", () => {
     const body = await res.json() as any;
     expect(res.status).toBe(200);
     expect(body.measurements).toEqual([]);
-    expect(body.note).toContain("absence de mesure");
+    expect(body.note).toContain("absence of measurement");
   });
 });
 
@@ -111,6 +111,6 @@ describe("GET /measurement/:id", () => {
   it("rend 404 sur un id inconnu, jamais une mesure vide", async () => {
     const res = await app.request("/measurement/m_0000000000000000");
     expect(res.status).toBe(404);
-    expect((await res.json() as any).error).toBe("mesure inconnue");
+    expect((await res.json() as any).error).toBe("unknown measurement");
   });
 });

@@ -121,28 +121,28 @@ export function assertNodeMatches(
 ): void {
   if (!health.reachable)
     throw new EngineError(
-      `moteur injoignable sur ${health.rpc}${health.error ? ` : ${health.error}` : ""}`,
+      `engine unreachable at ${health.rpc}${health.error ? `: ${health.error}` : ""}`,
     );
 
   if (health.chain_id !== null && health.chain_id !== expected.chainId)
     throw new EngineError(
-      `mauvaise chaine : le noeud sur ${health.rpc} annonce chain_id ${health.chain_id}, ` +
-        `on attend ${expected.chainId}. Un autre anvil ecoute probablement sur ce port — ` +
-        `verifie avec : lsof -nP -iTCP:8545 -sTCP:LISTEN`,
+      `wrong chain: the node at ${health.rpc} announces chain_id ${health.chain_id}, ` +
+        `${expected.chainId} was expected. Another anvil is probably listening on this port — ` +
+        `check with: lsof -nP -iTCP:8545 -sTCP:LISTEN`,
     );
 
   const fork = health.fork?.block_number ?? null;
   if (fork !== null && fork !== expected.block)
     throw new EngineError(
-      `mauvais bloc : le fork du noeud est epingle au bloc ${fork}, on attend ${expected.block}. ` +
-        `Une mesure prise ici ne rejouerait pas le corpus.`,
+      `wrong block: the node fork is pinned to block ${fork}, ${expected.block} was expected. ` +
+        `A measurement taken here would not replay the corpus.`,
     );
 
   // Sans fork, ce n'est pas une copie epinglee : les deux cotations ne porteraient pas sur le
   // meme etat, et l'ecart ne serait plus attribuable au seul code du hook.
   if (health.fork === null || fork === null)
     throw new EngineError(
-      `le noeud sur ${health.rpc} n'est pas un fork epingle. Le contrefactuel exige un etat fige : ` +
+      `the node at ${health.rpc} is not a pinned fork. The counterfactual requires a frozen state: ` +
         `docker compose up -d anvil`,
     );
 }
@@ -161,6 +161,6 @@ export async function runPlans(
     timeoutMs,
   );
   const parsed = JSON.parse(out);
-  if (!Array.isArray(parsed)) throw new EngineError("le pont n'a pas rendu un tableau");
+  if (!Array.isArray(parsed)) throw new EngineError("the bridge did not return an array");
   return parsed as RawMeasurement[];
 }

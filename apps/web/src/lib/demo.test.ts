@@ -30,6 +30,7 @@ import {
   plusGrandEcart,
 } from '../demo/scenario.ts'
 import { ETIQUETTE, tableDuCorpus } from '../demo/table.ts'
+import { MOITIE_EN_BPS, distribution, lpFeeBps, POURCENT_EN_BPS } from '../demo/distribution.ts'
 import {
   chercherAlternative,
   consult,
@@ -43,6 +44,7 @@ const ICI = import.meta.dirname
 const lire = (p: string) => readFileSync(resolve(ICI, p), 'utf8')
 
 const ECRAN = lire('../components/Demo.tsx')
+const BANDE = lire('../components/DemoDistribution.tsx')
 const SCENARIO = lire('../demo/scenario.ts')
 const PONT = lire('../demo/pont.ts')
 const TABLE_TS = lire('../demo/table.ts')
@@ -73,7 +75,7 @@ test('la route #/demo est branchee a cote des autres, et la barre y mene', () =>
 
 /* ----------------------------------- 2. les deux actes sont DERIVES, pas ecrits */
 
-test('l acte 1 est le plus gros prelevement MESURE du corpus, et rien d autre', () => {
+test('la queue est le plus gros prelevement MESURE du corpus, et rien d autre', () => {
   const a = acteStop()
   assert.ok(a, 'le corpus porte des mesures chiffrees')
   const pire = pirePorte()!
@@ -82,11 +84,11 @@ test('l acte 1 est le plus gros prelevement MESURE du corpus, et rien d autre', 
   // C'est bien un MAXIMUM : aucune ligne mesuree ne prend davantage.
   for (const r of dataset.rows) {
     if (r.label !== 'MESURE' || typeof r.bps !== 'number') continue
-    assert.ok(r.bps <= a.actuelle.bps!, `${r.pool_id} prend ${r.bps}, plus que l acte 1`)
+    assert.ok(r.bps <= a.actuelle.bps!, `${r.pool_id} prend ${r.bps}, plus que la queue`)
   }
 })
 
-test('l acte 2 est le plus grand ecart ETH -> USDC, a taille et monnaies egales', () => {
+test('la paire des deux actes est le plus grand ecart ETH -> USDC, a taille et monnaies egales', () => {
   const a = acteSubstitution()
   assert.ok(a, 'le corpus porte au moins un echange ETH -> USDC a deux portes mesurees')
   assert.ok(a.proposee, 'un acte de substitution a une porte de remplacement')
@@ -103,7 +105,7 @@ test('l acte 2 est le plus grand ecart ETH -> USDC, a taille et monnaies egales'
   assert.equal(a.ecartBps, Number((a.actuelle.bps! - a.proposee.bps!).toFixed(4)))
 })
 
-test('les deux portes de l acte 2 sont MESUREES : une porte inconnue n est pas moins chere', () => {
+test('les deux portes de la paire sont MESUREES : une porte inconnue n est pas moins chere', () => {
   const a = acteSubstitution()!
   assert.equal(a.actuelle.row.label, 'MESURE')
   assert.equal(a.proposee!.row.label, 'MESURE')
@@ -116,6 +118,127 @@ test('une porte non mesuree rend null, jamais zero', () => {
   assert.ok(nonMesuree, 'le corpus porte des lignes non mesurees')
   const t = plusGrandEcart(ETH_NATIF, USDC_BASE, [nonMesuree])
   assert.equal(t, null, 'une seule ligne non mesuree ne fabrique aucune comparaison')
+})
+
+/* ---------------- 2 bis. la distribution porte la these, et elle vient du corpus */
+
+test('la mediane affichee vient du corpus, et de nulle part ailleurs', () => {
+  const d = distribution()
+  // On la recalcule ici A LA MAIN, depuis les lignes brutes, avec le meme estimateur que
+  // packages/guard/scripts/build-table.mjs. Si les deux divergeaient, le chiffre de la page
+  // et le seuil que la garde applique ne parleraient plus du meme corpus.
+  const v = dataset.rows
+    .filter((r) => r.label === 'MESURE' && typeof r.bps === 'number')
+    .map((r) => r.bps as number)
+    .sort((a, b) => a - b)
+  assert.equal(d.n, v.length, 'le denominateur est le nombre de lignes qui portent un nombre')
+  assert.equal(d.mediane, v[Math.floor((v.length * 50) / 100)])
+  assert.equal(d.p90, v[Math.floor((v.length * 90) / 100)])
+  assert.equal(d.p99, v[Math.floor((v.length * 99) / 100)])
+  assert.equal(d.max, v[v.length - 1])
+
+  // Et c'est EXACTEMENT le meme estimateur que celui des seuils de la garde.
+  const t = tableDuCorpus()
+  assert.equal(d.p90, t.seuils!.warn_bps, 'le 90e centile affiche est le seuil warn applique')
+  assert.equal(d.p99, t.seuils!.block_bps, 'le 99e centile affiche est le seuil block applique')
+
+  // L'ecran ne l'ecrit nulle part : il la lit.
+  assert.ok(BANDE.includes('d.mediane'), 'la bande doit rendre la mediane, pas la recopier')
+  assert.ok(!jsxSeul(BANDE).includes(String(d.mediane)))
+  assert.ok(!jsxSeul(BANDE).includes(d.mediane.toFixed(2)))
+})
+
+test('les lignes sans nombre ne sont ni comptees, ni appelees zero', () => {
+  const d = distribution()
+  assert.equal(d.n + d.nSansNombre, d.nLignes)
+  assert.ok(d.nSansNombre > 0, 'le corpus porte des lignes etiquetees sans valeur')
+  // Une ligne NON_COTABLE compterait comme 0 si on la laissait entrer : la part a zero
+  // serait alors gonflee, et c'est exactement le mensonge que ce projet refuse.
+  const zeros = dataset.rows.filter((r) => r.label === 'MESURE' && r.bps === 0).length
+  assert.equal(d.zero.n, zeros)
+  assert.ok(d.zero.n < d.nSansNombre, 'sinon on aurait melange « rien » et « inconnu »')
+  // Et le denominateur est affiche a cote de chaque part.
+  assert.ok(BANDE.includes('d.n'), 'le denominateur doit etre a l ecran')
+  assert.ok(BANDE.includes('d.nSansNombre'))
+})
+
+test('les valeurs NEGATIVES sont comptees a part, pas noyees dans les zeros', () => {
+  const d = distribution()
+  const negs = dataset.rows.filter((r) => r.label === 'MESURE' && (r.bps as number) < 0).length
+  assert.equal(d.negatives.n, negs)
+  assert.ok(negs > 0, 'le corpus porte des hooks qui rendent')
+  // `palierOf` les range avec les zeros (la rampe n a pas de palier sous zero) : les taire
+  // aurait ete le meme geste que de taire la queue.
+  assert.ok(BANDE.includes('d.negatives'), 'elles doivent etre dites')
+  assert.ok(BANDE.includes('a hook can give back'))
+})
+
+test('les tranches de la bande sont celles de la rampe du site, et elles somment a tout', () => {
+  const d = distribution()
+  assert.equal(d.tranches.length, 7, 'sept paliers, ceux de src/lib/ramp.ts')
+  assert.equal(
+    d.tranches.reduce((a, t) => a + t.n, 0),
+    d.n,
+    'aucune ligne chiffree ne tombe hors des tranches',
+  )
+  assert.ok(Math.abs(d.tranches[d.tranches.length - 1]!.cumul - 1) < 1e-12)
+  // Les largeurs sont PROPORTIONNELLES : une bande a segments egaux mentirait sur la forme.
+  assert.ok(BANDE.includes('t.part * 1000'))
+  assert.ok(BANDE.includes('`var(--m-${t.palier})`'), 'la couleur est celle de la rampe du site')
+})
+
+test('le seuil de comparaison est les frais que le pool de l acte 1 prend DEJA', () => {
+  const a = acteSubstitution()!
+  assert.notEqual(a.actuelle.row.stored_lp_fee, null, 'sinon aucune comparaison n est tiree')
+  assert.equal(lpFeeBps(a.actuelle.row.stored_lp_fee!), a.actuelle.row.stored_lp_fee! / 100)
+  // L'ecran passe CE chiffre a la bande : il ne l'ecrit pas, et il ne le devine pas.
+  assert.ok(ECRAN.includes('lpFeeBps(paire.actuelle.row.stored_lp_fee)'))
+  assert.ok(BANDE.includes('bpsTexte(fraisDuPool!)'))
+  // Et quand il n'est pas lu, la comparaison DISPARAIT au lieu de prendre une valeur par defaut.
+  assert.ok(BANDE.includes('fraisDuPool === null'))
+  assert.ok(BANDE.includes('no comparison is drawn'))
+})
+
+test('la queue est montree comme une queue, jamais comme le titre', () => {
+  const d = distribution()
+  const q = acteStop()!
+  assert.equal(d.maxLigne.pool_id.toLowerCase(), q.actuelle.poolId)
+  assert.equal(d.max, q.actuelle.bps)
+  // Les DEUX actes portent la paire, pas l extreme.
+  assert.ok(ECRAN.includes("vue === 'queue' ? queue : paire"), 'l extreme n ouvre plus la demonstration')
+  assert.ok(ECRAN.includes('act 1 — you read what you sign'))
+  assert.ok(ECRAN.includes('act 2 — there is better'))
+  // Il reste accessible en un clic, depuis la bande.
+  assert.ok(BANDE.includes('see the tail'))
+  assert.ok(BANDE.includes('We publish those too'))
+  // Et la part qu il represente est calculee, jamais affirmee. Le seuil qui la nomme est une
+  // UNITE — la moitie de ce qu'on echange — et non un chiffre rond deguise en frontiere.
+  const au = d.auDessusDe(MOITIE_EN_BPS)
+  assert.equal(MOITIE_EN_BPS, 50 * POURCENT_EN_BPS)
+  assert.ok(au.n > 0 && au.part < 0.01, `la queue vaut ${(au.part * 100).toFixed(2)} %`)
+  assert.ok(BANDE.includes('take more than half of what you swap'))
+  assert.ok(!jsxSeul(BANDE).includes('5000') && !jsxSeul(BANDE).includes('5 000'))
+})
+
+test('le bandeau ne porte aucun chiffre en dur : tout vient de distribution()', () => {
+  const d = distribution()
+  const jsx = jsxSeul(BANDE)
+  const interdits = [
+    String(d.n),
+    String(d.nLignes),
+    String(d.nSansNombre),
+    String(d.zero.n),
+    d.mediane.toFixed(2),
+    d.max.toFixed(2),
+    String(d.p90),
+    String(d.p99),
+    (d.zero.part * 100).toFixed(2),
+    (d.auDessusDe(POURCENT_EN_BPS).part * 100).toFixed(2),
+  ]
+  for (const mot of interdits) {
+    if (mot.length < 4) continue
+    assert.ok(!jsx.includes(mot), `« ${mot} » est ecrit en dur dans DemoDistribution.tsx`)
+  }
 })
 
 /* ------------------------------ 3. rien n est recopie a la main dans l ecran */
@@ -145,6 +268,10 @@ test('l ecran ne porte aucune grandeur du projet en dur — elles viendraient a 
     String(table.seuils!.block_bps),
     // le code de refus EIP-1193 : il vient de pont.ts, jamais du JSX
     '4001',
+    // et les grandeurs de la distribution, qui portent desormais la these
+    distribution().mediane.toFixed(2),
+    String(distribution().n),
+    (distribution().zero.part * 100).toFixed(2),
   ]
   const jsx = jsxSeul(ECRAN)
   for (const mot of interdits) {
@@ -171,7 +298,7 @@ test('une absence de mesure s affiche « unknown », jamais zero ni un blanc', (
   assert.ok(ECRAN.includes('unknown'), 'le mot doit etre a l ecran')
   assert.ok(ECRAN.includes('const Inconnu ='), 'un primitif, pour que toutes les absences se disent pareil')
   // Chaque valeur en bps rendue passe par le test d absence.
-  for (const garde of ['p.bps === null ?', 'lecture.consultation.bps === null ?', 'economie_bps === null ?']) {
+  for (const garde of ['p.bps === null ?', 'l.consultation.bps === null ?', 'economie_bps === null ?']) {
     assert.ok(ECRAN.includes(garde), `l ecran doit gerer l absence : ${garde}`)
   }
   // Et le corpus ne laisse jamais un nombre sur une etiquette qui ne peut pas le porter.
@@ -204,8 +331,91 @@ test('les trois boutons de l appareil sont cables sur les trois routes de Specul
   assert.ok(PONT.includes('`${SPECULOS}/button/${bouton}`'))
   assert.ok(PONT.includes("'press-and-release'"), 'sans action, le bouton reste enfonce')
   for (const b of ['left', 'right', 'both']) {
-    assert.ok(ECRAN.includes(`onBouton('${b}')`), `le bouton ${b} doit etre cable`)
+    assert.ok(ECRAN.includes(`appuyerUne('${b}')`), `le bouton ${b} doit etre cable`)
   }
+})
+
+test("les boutons disent ce qu'ils FONT, et la sequence reelle est ecrite", () => {
+  // Le defaut mesure en direct : le premier ecran de l'appareil est une garde de signature
+  // aveugle ou l'appui GAUCHE n'a aucun effet. Un bouton libelle « Reject (left) » y
+  // enseignait donc un geste qui ne refuse rien, pendant que l'operateur le repetait.
+  for (const libelle of ['previous (left)', 'next (right)', 'confirm (both)']) {
+    assert.ok(ECRAN.includes(libelle), `le libelle « ${libelle} » doit etre a l ecran`)
+  }
+  // Les anciens libelles ont le droit d'etre CITES dans l'en-tete du fichier — c'est meme la
+  // seule facon qu'on ne les remette pas dans six mois. Ils n'ont plus le droit d'etre rendus.
+  const rendu = jsxSeul(ECRAN)
+  assert.ok(!rendu.includes('Reject (left)'), 'ce libelle enseignait le mauvais geste')
+  assert.ok(!rendu.includes('Approve (both)'), 'idem : « confirm » dit ce que le bouton fait')
+  // La sequence, dans l'ordre, et la ou se trouve vraiment le refus.
+  assert.ok(ECRAN.includes('blind signing ahead'))
+  assert.ok(ECRAN.includes('the left button'), 'on dit que la gauche ne fait rien sur la garde')
+  assert.ok(ECRAN.includes('walks every field'), 'on dit ce que « next » parcourt')
+  assert.ok(ECRAN.includes('is the\n        refusal') || ECRAN.includes('is the refusal'))
+})
+
+test('le compteur d ecrans est MESURE, jamais un total annonce d avance', () => {
+  // Un total ecrit (« 46 ecrans ») deviendrait faux au premier champ ajoute au rapport.
+  assert.ok(ECRAN.includes('screens seen'))
+  assert.ok(ECRAN.includes('setEcrans((n) => n + 1)'), 'il avance quand le texte de l ecran change')
+  assert.ok(!/46\s*(screens|presses)/.test(ECRAN), 'aucun total ecrit')
+  // Et quand le texte n est pas lisible, le compteur dit « unknown », jamais zero.
+  assert.ok(ECRAN.includes('quoi="the device screen text"'))
+  // Une rafale existe : quarante-six appuis a la main devant un jury, c est trop long.
+  assert.ok(ECRAN.includes('const APPUIS_PAR_RAFALE'))
+  assert.ok(ECRAN.includes('next ×{APPUIS_PAR_RAFALE}'))
+})
+
+test("l'attente de l'appareil a son PROPRE delai, et les lectures gardent le court", () => {
+  // Mesure faite : parcourir les champs demande 46 appuis, 19,7 a 36,4 s pour une machine et
+  // trois a cinq fois plus pour une main. Sous les 12 s des autres routes, la page abandonnait
+  // TOUJOURS — un ERR_ABORTED, puis « did not answer in 12 s » pendant que l'appareil attendait.
+  assert.match(PONT, /const DELAI_MS = (\d+)/)
+  assert.match(PONT, /const DELAI_APPAREIL_MS = (\d+)/)
+  const court = Number(/const DELAI_MS = (\d+)/.exec(PONT)![1])
+  const long = Number(/const DELAI_APPAREIL_MS = (\d+)/.exec(PONT)![1])
+  assert.ok(long >= 240000, `le delai de l appareil vaut ${long} ms, trop court pour une main`)
+  assert.ok(court <= 15000, "les lectures doivent rester courtes : un silence long s'y lit comme un chargement")
+  // Et il ne s'applique QU'A /demo/approuver.
+  assert.match(PONT, /'\/demo\/approuver',[\s\S]{0,120}DELAI_APPAREIL_MS/)
+  for (const route of ['/demo/etat', '/demo/revenir']) {
+    assert.ok(!new RegExp(`'${route}'[^)]*DELAI_APPAREIL_MS`).test(PONT), `${route} doit rester court`)
+  }
+  // L'ecran dit combien de temps il accepte d'attendre, et depuis combien il attend.
+  assert.ok(ECRAN.includes('DELAI_APPAREIL_S'))
+  assert.ok(ECRAN.includes('${attente} s'))
+})
+
+test('un double clic ne part jamais deux fois : le verrou ferme avant le premier await', () => {
+  // Le defaut mesure : « prepare » ne se desarmait qu'apres l'aller-retour vers le
+  // portefeuille — 60 a 120 ms — et le second clic declenchait une SECONDE preparation, donc
+  // un second snapshot, et le fork derivait sous la demonstration.
+  assert.ok(ECRAN.includes('const enVol = useRef(false)'))
+  for (const geste of ['demanderPreparation', 'demanderAppareil', 'signerEtEnvoyer', 'remettre']) {
+    const i = ECRAN.indexOf(`const ${geste} = async`)
+    assert.ok(i > 0, `${geste} doit exister`)
+    const tete = ECRAN.slice(i, i + 220)
+    assert.ok(tete.includes('if (enVol.current) return'), `${geste} doit poser le verrou`)
+  }
+  // Et il est pose AVANT le premier await, sinon il ne ferme rien.
+  const i = ECRAN.indexOf('const demanderPreparation = async')
+  const tete = ECRAN.slice(i, ECRAN.indexOf('await', i))
+  assert.ok(tete.includes('enVol.current = true') && tete.includes("setOccupe('bridge')"))
+})
+
+test("l'ecran ne rend aucun texte francais du service, ni aucun guillemet francais", () => {
+  // Le service ecrit ses `consequence` et ses `phrase` en francais ; cet ecran-ci est lu par
+  // un jury anglophone. On rend les champs STRUCTURES, pas la prose.
+  assert.ok(!ECRAN.includes('d.consequence'), 'la consequence du service est en francais')
+  assert.ok(ECRAN.includes('announced ${d.annonce}, corpus ${d.corpus}'))
+  assert.ok(!ECRAN.includes('.phrase'), 'la phrase du service est en francais')
+  const rendu = ECRAN.split('\n')
+    .filter((l) => {
+      const t = l.trimStart()
+      return !t.startsWith('//') && !t.startsWith('*') && !t.startsWith('/*')
+    })
+    .join('\n')
+  assert.ok(!rendu.includes('«') && !rendu.includes('»'), 'les guillemets du site sont anglais')
 })
 
 /* ------------------------------------ 6. le contrat du service, tel qu il est */
@@ -352,11 +562,12 @@ test('l acte 2 ne signe QUE la transaction de remplacement, jamais celle d origi
 
 test('les divergences entre le scenario et le corpus sont AFFICHEES, pas tues', () => {
   assert.ok(ECRAN.includes('etatOk.divergences'), 'le service les publie : les taire serait choisir en silence')
-  assert.ok(ECRAN.includes('what the script announces, and what the corpus measures'))
+  assert.ok(ECRAN.includes('divergence(s) between the script and the corpus'))
+  assert.ok(ECRAN.includes('the corpus wins'), 'et on dit laquelle des deux gagne')
 })
 
 test('le refus se demande a l appareil, et son code vient de la reponse', () => {
-  assert.ok(ECRAN.includes('approuver(acte)'), 'le rapport EIP-712 part vers l appareil')
+  assert.ok(ECRAN.includes('approuver(acteBridge)'), 'le rapport EIP-712 part vers l appareil')
   assert.ok(ECRAN.includes("typeof appareil.refus === 'number'"), 'le code rendu est lu, pas suppose')
 })
 

@@ -259,7 +259,9 @@ function Head({
     { h: '/', t: 'check a token', actif: vue.quoi === 'accueil' },
     { h: '/instrument', t: 'the measurements', actif: vue.quoi === 'instrument' },
     { h: '/deck', t: 'the deck', actif: vue.quoi === 'deck' },
-    { h: '/demo', t: 'live demo', actif: vue.quoi === 'demo' },
+    // « demo » et non « live demo » : a 390 px la barre porte deja cinq entrees, et chaque
+    // caractere de plus pousse un lien hors du cadre visible.
+    { h: '/demo', t: 'demo', actif: vue.quoi === 'demo' },
     { h: '/developpeurs', t: 'developers', actif: vue.quoi === 'developpeurs' || vue.quoi === 'feuille' },
   ]
   const lienRoute = (x: { h: string; t: string; actif: boolean }) => (

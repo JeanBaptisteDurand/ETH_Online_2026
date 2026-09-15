@@ -32,8 +32,25 @@ export const SPECULOS =
     (import.meta.env?.['VITE_DEMO_SPECULOS'] as string | undefined) ?? 'https://speculos.tare-hooks.tech'
   ).replace(/\/+$/, '')
 
-/** Au-dela, on n'attend plus. Un ecran qui tourne pour toujours est un silence deguise. */
+/**
+ * Au-dela, on n'attend plus. Un ecran qui tourne pour toujours est un silence deguise.
+ *
+ * Ce delai-la vaut pour les routes qui LISENT : l'etat du fork, les soldes, la preparation.
+ * Elles repondent en moins d'une seconde, et un silence de douze secondes y est deja une panne.
+ */
 const DELAI_MS = 12000
+
+/**
+ * LE DELAI DE L'APPAREIL — quatre minutes, et ce n'est pas de la prudence.
+ *
+ * `/demo/approuver` ne rend la main que lorsque l'HUMAIN a tranche sur le Ledger. Faire
+ * defiler les champs du rapport EIP-712 demande 46 appuis : mesure faite, entre 19,7 et
+ * 36,4 secondes quand c'est une machine qui appuie, trois a cinq fois plus quand c'est une
+ * main. Sous les douze secondes des autres routes, la page abandonnait TOUJOURS — un
+ * `net::ERR_ABORTED`, puis « did not answer in 12 s » en rouge, pendant que l'appareil
+ * attendait toujours. Le delai doit couvrir le geste, pas la requete.
+ */
+const DELAI_APPAREIL_MS = 240000
 
 export interface Refus {
   refus: 'injoignable' | 'expire' | 'erreur' | 'refuse'
@@ -56,19 +73,19 @@ export const estRefus = (x: unknown): x is Refus =>
   x !== null &&
   typeof (x as Record<string, unknown>)['refus'] === 'string'
 
-async function appeler<T>(chemin: string, corps?: unknown): Promise<T | Refus> {
+async function appeler<T>(chemin: string, corps?: unknown, delai = DELAI_MS): Promise<T | Refus> {
   let res: Response
   try {
     res = await fetch(`${PONT}${chemin}`, {
       method: corps === undefined ? 'GET' : 'POST',
       headers: corps === undefined ? undefined : { 'content-type': 'application/json' },
       body: corps === undefined ? undefined : JSON.stringify(corps),
-      signal: AbortSignal.timeout(DELAI_MS),
+      signal: AbortSignal.timeout(delai),
     })
   } catch (e) {
     const err = e as Error
     return err.name === 'TimeoutError'
-      ? { refus: 'expire', raison: `${PONT}${chemin} did not answer in ${DELAI_MS / 1000} s` }
+      ? { refus: 'expire', raison: `${PONT}${chemin} did not answer in ${delai / 1000} s` }
       : { refus: 'injoignable', raison: `${PONT} unreachable (${err.message})` }
   }
   const corpsRendu = (await res.json().catch(() => null)) as Record<string, unknown> | null
@@ -197,8 +214,19 @@ export const lireEtat = (): Promise<EtatDemo | Refus> => appeler<EtatDemo>('/dem
 export const preparer = (adresse: string, acte: 'stop' | 'substitution'): Promise<Preparation | Refus> =>
   appeler<Preparation>('/demo/preparer', { adresse, acte })
 
+/**
+ * Envoie le rapport a l'appareil et ATTEND LA MAIN HUMAINE. Quatre minutes, pas douze
+ * secondes : voir DELAI_APPAREIL_MS. C'est la seule route de ce module qui attende quelqu'un.
+ */
 export const approuver = (acte: 'stop' | 'substitution', verdict?: unknown): Promise<Approbation | Refus> =>
-  appeler<Approbation>('/demo/approuver', verdict === undefined ? { acte } : { acte, verdict })
+  appeler<Approbation>(
+    '/demo/approuver',
+    verdict === undefined ? { acte } : { acte, verdict },
+    DELAI_APPAREIL_MS,
+  )
+
+/** Publie pour que l'ecran puisse dire combien de temps il accepte d'attendre. */
+export const DELAI_APPAREIL_S = DELAI_APPAREIL_MS / 1000
 
 export const revenir = (): Promise<{ ok: boolean; block_number?: number } | Refus> =>
   appeler<{ ok: boolean; block_number?: number }>('/demo/revenir', {})

@@ -173,6 +173,14 @@ async function rpc(method: string, params: unknown[] = []): Promise<any> {
 }
 
 const bloc = async () => parseInt((await rpc('eth_blockNumber')).result, 16)
+
+/** Le journal garde 5 lignes : « transaction prepared » d'un acte precedent y traine. On lit
+ *  donc l'indicateur d'occupation, qui dit « waiting on the bridge… » puis revient au repos. */
+async function attendrePreparation(p: Page, msMax = 60_000) {
+  await expect(p.locator('text=both acts are searched in the corpus, not written down')).toBeVisible({
+    timeout: msMax,
+  })
+}
 const dormir = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 /* ---------------------------------------------------------------------- le test */
@@ -198,6 +206,12 @@ test('audit complet de #/demo contre le site en ligne', async ({ browser }) => {
   })
 
   const etatPont = (await (await fetch(`${PONT}/demo/etat`)).json()) as any
+  // FILET : une sauvegarde prise au bloc epingle. Si le rembobinage du pont ne suffit pas
+  // (il ne revient qu'au DERNIER snapshot, qui peut avoir ete pris apres la transaction),
+  // on restaure celle-ci. Un audit ne laisse pas le fork ailleurs qu'ou il l'a trouve.
+  const blocDepart = await bloc()
+  const sauvegarde = (await rpc('evm_snapshot')).result as string
+  note(`FILET . sauvegarde ${sauvegarde} prise au bloc ${blocDepart}`)
 
   try {
     /* ================================================================ 0. arrivee */
@@ -257,7 +271,8 @@ test('audit complet de #/demo contre le site en ligne', async ({ browser }) => {
     await page.getByRole('button', { name: 'act 1 — do not sign' }).click()
     await mesurer('ACTE 1 . prepare on the fork', async () => {
       await page.getByRole('button', { name: 'prepare on the fork' }).click()
-      await expect(page.locator('text=/transaction prepared for act/')).toBeVisible({ timeout: 60_000 })
+      await expect(page.locator('text=waiting on the bridge…')).toBeVisible({ timeout: 10_000 })
+      await attendrePreparation(page)
     })
 
     const c1 = platL(await page.locator('body').innerText())
@@ -271,7 +286,7 @@ test('audit complet de #/demo contre le site en ligne', async ({ browser }) => {
     note(`acte 1, pool servi par le pont : ${pool1}`)
     note(`acte 1, verdict : ${(c1.match(/verdict [^\n]{0,120}/i) ?? ['(absent)'])[0]}`)
     note(`acte 1, router : ${(c1.match(/router [^\n]{0,70}/) ?? ['(absent)'])[0]}`)
-    expect.soft(c1, 'l etat PORTE_UNIQUE est dit en anglais').toContain('there is only one door for this swap')
+    expect.soft(c1.toLowerCase(), 'l etat PORTE_UNIQUE est dit en anglais').toContain('there is only one door for this swap')
     await shot(page, 'acte1-prepare')
 
     /* ---------------- l'appareil ---------------- */
@@ -295,13 +310,24 @@ test('audit complet de #/demo contre le site en ligne', async ({ browser }) => {
     expect.soft(bouge, 'l appareil quitte son menu quand on lui envoie le rapport').toBe(true)
     await shot(page, 'acte1-appareil-premier-ecran')
 
-    /* On DEROULE les champs comme le ferait le presentateur : « next (right) » jusqu'a voir
-       take / 9999.53, ou jusqu'a l'ecran de signature. On compte les appuis ET le temps. */
+    /* LE VRAI GESTE. « Reject (left) » ne fait RIEN sur l'ecran « Blind signing ahead » : il
+       faut « next (right) » jusqu'a « Reject message », puis « Approve (both) ». On deroule donc
+       avec les boutons DE LA PAGE, on compte les appuis, et on chronometre. */
+    /* L'ecran « Blind signing ahead » est une GARDE a deux choix : « both » pour accepter le
+       risque et entrer dans les champs, « right » pour aller sur « Reject transaction ».
+       C'est donc « Approve (both) » qu'il faut presser pour COMMENCER A LIRE — et le bouton
+       « Reject (left) » de la page n'y fait rien du tout (verifie separement). */
     const tNav = Date.now()
+    if (/blind signing/i.test(premier)) {
+      note('acte 1, garde « Blind signing ahead » : il faut « Approve (both) » pour entrer dans les champs')
+      await page.getByRole('button', { name: 'Approve (both)' }).click()
+      await dormir(600)
+    }
     let appuis = 0
     let vuTake = false
     let vuChiffre = false
-    let ecranFinal = ''
+    let msTake: number | null = null
+    let msReject: number | null = null
     const suivant = page.getByRole('button', { name: 'next (right)' })
     const vus: string[] = []
     for (let i = 0; i < 70; i++) {
@@ -309,12 +335,13 @@ test('audit complet de #/demo contre le site en ligne', async ({ browser }) => {
       if (e && e !== vus[vus.length - 1]) vus.push(e)
       if (/\btake\b/i.test(e)) vuTake = true
       if (/9999\.53/.test(e)) vuChiffre = true
-      if (/sign message/i.test(e) || /^Reject/i.test(e)) {
-        ecranFinal = e
-        break
+      if (vuTake && vuChiffre && msTake === null) {
+        msTake = Date.now() - t0
+        tic(`ACTE 1 . « take 9999.53 bps » visible sur l appareil (${appuis} appuis)`, msTake)
       }
-      if (vuTake && vuChiffre) {
-        ecranFinal = e
+      if (/^Reject/i.test(e)) {
+        msReject = Date.now() - t0
+        tic(`ACTE 1 . ecran « Reject » atteint (${appuis} appuis)`, msReject)
         break
       }
       await suivant.click().catch(() => undefined)
@@ -322,20 +349,19 @@ test('audit complet de #/demo contre le site en ligne', async ({ browser }) => {
       await dormir(170)
     }
     tic(`ACTE 1 . derouler l appareil (${appuis} appuis sur « next »)`, Date.now() - tNav)
-    note(`acte 1, ecran atteint : « ${ecranFinal} »`)
-    note(`acte 1, ecrans traverses : ${vus.length}`)
+    note(`acte 1, ecrans distincts traverses : ${vus.length}`)
+    for (const v of vus) note(`   ECRAN : « ${v} »`)
 
     const nouveaux = (await evenements()).slice(avantEvts)
     const tous = nouveaux.join(' ').replace(/\s+/g, ' ')
     note(`acte 1, nouveaux evenements /ecran/events : ${nouveaux.length}`)
-    note(`acte 1, extrait de l ecran : ${tous.slice(0, 900)}`)
     expect.soft(tous, '« take » apparait bien sur l ecran de l appareil').toMatch(/\btake\b/i)
     expect.soft(tous, '« 9999.53 » apparait bien sur l ecran de l appareil').toContain('9999.53')
     await shot(page, 'acte1-appareil-champs')
 
-    /* ---------------- le refus ---------------- */
+    /* ---------------- le refus, par le geste qui marche ---------------- */
     const tRefus = Date.now()
-    await page.getByRole('button', { name: 'Reject (left)' }).click()
+    await page.getByRole('button', { name: 'Approve (both)' }).click()
     const reponse = page.locator(
       'text=/code 4001|did not answer in|unreachable|reglage_manquant|speculos_injoignable/i',
     )
@@ -346,7 +372,7 @@ test('audit complet de #/demo contre le site en ligne', async ({ browser }) => {
     } catch {
       ditRefus = '(la page n a rien dit en 60 s)'
     }
-    tic('ACTE 1 . du « Reject » a la reponse de la page', Date.now() - tRefus)
+    tic('ACTE 1 . du refus sur l appareil a la reponse de la page', Date.now() - tRefus)
     tic('ACTE 1 . TOTAL du bouton « send the report » a la reponse', Date.now() - t0)
     note(`acte 1, la page repond : « ${ditRefus} »`)
 
@@ -358,7 +384,7 @@ test('audit complet de #/demo contre le site en ligne', async ({ browser }) => {
     expect.soft(c1b, 'la page affiche « code 4001 »').toContain('code 4001')
     note(`acte 1, ecrans rendus dits par la page : ${(c1b.match(/\d+ screens rendered[^\n]{0,40}/) ?? ['(absent)'])[0]}`)
     note(`acte 1, ligne « answer » : ${(c1b.match(/answer code \d+[^\n]{0,70}/) ?? ['(absent)'])[0]}`)
-    note(`acte 1, journal device : ${(c1b.match(/device [^\n]{0,160}/) ?? ['(absent)'])[0]}`)
+    note(`acte 1, journal : ${(c1b.match(/device [^\n]{0,170}/) ?? ['(absent)'])[0]}`)
 
     // On remet l'appareil au repos si le refus l'a laisse sur un ecran d'erreur.
     for (let i = 0; i < 10; i++) {
@@ -379,7 +405,8 @@ test('audit complet de #/demo contre le site en ligne', async ({ browser }) => {
 
     await mesurer('ACTE 2 . prepare on the fork', async () => {
       await page.getByRole('button', { name: 'prepare on the fork' }).click()
-      await expect(page.locator('text=/transaction prepared for act/')).toBeVisible({ timeout: 60_000 })
+      await expect(page.locator('text=waiting on the bridge…')).toBeVisible({ timeout: 10_000 })
+      await attendrePreparation(page)
     })
 
     const c2 = platL(await page.locator('body').innerText())
@@ -390,7 +417,7 @@ test('audit complet de #/demo contre le site en ligne', async ({ browser }) => {
     note(`acte 2, output floor : ${(c2.match(/output floor [^\n]{0,150}/) ?? ['(absent)'])[0]}`)
     note(`acte 2, examined : ${(c2.match(/examined [^\n]{0,220}/) ?? ['(absent)'])[0]}`)
     expect.soft(c2, 'la porte a 0 bps est bien citee').toMatch(/cheaper door[\s\S]{0,150}0 bps/)
-    expect.soft(c2, 'l etat MEILLEURE_PORTE est dit').toContain('another door is measured cheaper, at the same size')
+    expect.soft(c2.toLowerCase(), 'l etat MEILLEURE_PORTE est dit').toContain('another door is measured cheaper, at the same size')
     const avantSoldes = c2.match(/before: ([0-9 ]+) wei . ([0-9 ]+) USDC/)
     note(`acte 2, soldes avant : ${avantSoldes?.[1] ?? '?'} wei | ${avantSoldes?.[2] ?? '?'} USDC`)
     await shot(page, 'acte2-prepare')
@@ -472,14 +499,26 @@ test('audit complet de #/demo contre le site en ligne', async ({ browser }) => {
 
     await page.setViewportSize({ width: 1440, height: 900 })
     await dormir(500)
-    const m1440 = await page.evaluate(() => ({
-      sw: document.documentElement.scrollWidth,
-      iw: window.innerWidth,
-      sh: document.documentElement.scrollHeight,
-      ih: window.innerHeight,
-    }))
+    const m1440 = await page.evaluate(() => {
+      let sh = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight)
+      let quoi = 'document'
+      document.querySelectorAll('*').forEach((el) => {
+        const e = el as HTMLElement
+        if (e.scrollHeight > e.clientHeight + 4 && e.scrollHeight > sh) {
+          sh = e.scrollHeight
+          quoi = `${e.tagName.toLowerCase()}.${String(e.className).slice(0, 30)}`
+        }
+      })
+      return {
+        sw: document.documentElement.scrollWidth,
+        iw: window.innerWidth,
+        sh,
+        ih: window.innerHeight,
+        quoi,
+      }
+    })
     note(
-      `1440x900 : largeur ${m1440.sw}/${m1440.iw} | hauteur ${m1440.sh}/${m1440.ih} (${(m1440.sh / m1440.ih).toFixed(2)} ecran(s) de defilement)`,
+      `1440x900 : largeur ${m1440.sw}/${m1440.iw} | hauteur ${m1440.sh}/${m1440.ih} sur ${m1440.quoi} (${(m1440.sh / m1440.ih).toFixed(2)} ecran(s) de defilement)`,
     )
     expect.soft(m1440.sw, 'aucun debordement horizontal a 1440 px').toBeLessThanOrEqual(m1440.iw + 1)
     await shot(page, 'mise-en-page-1440x900')
@@ -512,12 +551,17 @@ test('audit complet de #/demo contre le site en ligne', async ({ browser }) => {
     const btnPrep = page.getByRole('button', { name: 'prepare on the fork' })
     const tD = Date.now()
     await btnPrep.click()
-    await dormir(120)
-    const desarme = await btnPrep.isDisabled().catch(() => false)
+    const echantillons: string[] = []
+    for (let i = 0; i < 6; i++) {
+      echantillons.push(`${i * 60}ms:${await btnPrep.isDisabled().catch(() => 'err')}`)
+      await dormir(60)
+    }
+    note(`HORS . etat du bouton juste apres le clic : ${echantillons.join(' ')}`)
+    const desarme = echantillons.some((e) => e.endsWith(':true'))
     note(`HORS . double « prepare » : le bouton est desarme pendant l appel = ${desarme}`)
     const second = await btnPrep.click({ timeout: 2500 }).then(() => true).catch(() => false)
     note(`HORS . le 2e clic a-t-il pu partir ? ${second}`)
-    await expect(page.locator('text=/transaction prepared for act/')).toBeVisible({ timeout: 60_000 })
+    await attendrePreparation(page)
     tic('HORS . double « prepare »', Date.now() - tD)
     const cD = platL(await page.locator('body').innerText())
     note(`HORS . apres double prepare, gap affiche = ${(cD.match(/measured gap [^\n]{0,70}/) ?? ['(absent)'])[0]}`)
@@ -548,7 +592,7 @@ test('audit complet de #/demo contre le site en ligne', async ({ browser }) => {
     /* (c) changer d'acte au milieu */
     await p2.getByRole('button', { name: 'act 1 — do not sign' }).click()
     await p2.getByRole('button', { name: 'prepare on the fork' }).click()
-    await expect(p2.locator('text=/transaction prepared for act/')).toBeVisible({ timeout: 60_000 })
+    await attendrePreparation(p2)
     await p2.getByRole('button', { name: 'act 2 — there is better' }).click()
     await dormir(500)
     const cC = platL(await p2.locator('body').innerText())
@@ -566,7 +610,7 @@ test('audit complet de #/demo contre le site en ligne', async ({ browser }) => {
     /* (d) le portefeuille refuse (4001) sur eth_sendTransaction */
     await page.getByRole('button', { name: 'act 2 — there is better' }).click()
     await page.getByRole('button', { name: 'prepare on the fork' }).click()
-    await expect(page.locator('text=/transaction prepared for act/')).toBeVisible({ timeout: 60_000 })
+    await attendrePreparation(page)
     await page.evaluate(() => ((window as any).__audit.refuserEnvoi = true))
     await page.getByRole('button', { name: 'sign and send' }).click()
     let ditWallet = '(rien)'
@@ -614,8 +658,23 @@ test('audit complet de #/demo contre le site en ligne', async ({ browser }) => {
       })
     ).json()
     note(`REMBOBINAGE . POST /pont/demo/revenir : ${JSON.stringify(rev)}`)
-    const apresRev = await bloc().catch(() => -1)
-    note(`REMBOBINAGE . bloc apres : ${apresRev}`)
+    let apresRev = await bloc().catch(() => -1)
+    note(`REMBOBINAGE . bloc apres le pont : ${apresRev}`)
+    if (apresRev !== BLOC_EPINGLE) {
+      note(`REMBOBINAGE . le pont N A PAS suffi : on restaure la sauvegarde ${sauvegarde}`)
+      await rpc('evm_revert', [sauvegarde])
+      apresRev = await bloc().catch(() => -1)
+      note(`REMBOBINAGE . bloc apres le filet : ${apresRev}`)
+      // Le pont tient un snapshot devenu invalide : on lui en fait reprendre un valide.
+      const rattrapage = await (
+        await fetch(`${PONT}/demo/preparer`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ adresse: COMPTE, acte: 'stop' }),
+        })
+      ).json()
+      note(`REMBOBINAGE . le pont reprend un snapshot valide : ${rattrapage.snapshot} (bloc ${await bloc()})`)
+    }
     await shot(page, 'rembobinage')
     expect.soft(apresRev, 'le fork est revenu au bloc epingle').toBe(BLOC_EPINGLE)
 

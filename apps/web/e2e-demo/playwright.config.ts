@@ -13,7 +13,10 @@ import { defineConfig, devices } from '@playwright/test'
 
 export default defineConfig({
   testDir: '.',
-  testMatch: /.*\.spec\.ts/,
+  // UNIQUEMENT demo.spec.ts : le dossier accueille aussi l'audit en direct d'un autre agent,
+  // qui parle aux services REELS et ne peut donc pas etre deterministe. Les deux suites ne se
+  // melangent pas — celle-ci doit rester verte sans DNS, sans fork et sans appareil.
+  testMatch: /demo\.spec\.ts/,
   fullyParallel: false,
   workers: 1,
   reporter: [['list']],

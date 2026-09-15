@@ -1,4 +1,24 @@
 {
+  "distribution": {
+    "n": "63 156",
+    "nSansNombre": "61 916",
+    "medianeBps": "100.00",
+    "medianePct": "1.00",
+    "maxBps": "9 999.53",
+    "p90": "119.7604",
+    "p99": "300",
+    "fraisDuPoolBps": "5",
+    "partAuDessusDesFrais": "90.28 %",
+    "partAuDessusDunPourCent": "22.93 %",
+    "partZero": "6.65 %",
+    "nZero": "4 200",
+    "nNegatives": "51",
+    "nQueue": "54",
+    "partQueue": "0.09 %",
+    "moitieBps": "5 000",
+    "nLignes": "125 072",
+    "maxExact": "9 999.5279"
+  },
   "corpus": {
     "block_number": 50614000,
     "chain_id": 8453,

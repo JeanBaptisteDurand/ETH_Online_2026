@@ -1951,3 +1951,34 @@ span a[href] {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+
+/* LE BANDEAU DE DISTRIBUTION (route #/demo).
+   Trois blocs : le chiffre de la page, les parts, la bande. Empiles sous 900 px — a 390 px la
+   bande garde toute sa largeur et ne pousse rien, parce qu'elle est en viewBox proportionnel.
+   Cote a cote au-dela, ou la lecture se fait d'un coup d'oeil pendant qu'on parle. */
+.demo-bande {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+}
+.demo-bande > * + * {
+  border-top: 1px solid var(--line);
+  border-left: none !important;
+}
+@media (min-width: 900px) {
+  .demo-bande {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr) minmax(0, 1.4fr);
+  }
+  .demo-bande > * + * {
+    border-top: none;
+    border-left: 1px solid var(--line) !important;
+  }
+}
+
+/* La vue « queue » n'a que trois etapes : elles se partagent la largeur au lieu de laisser
+   une colonne vide a droite. */
+@media (min-width: 1280px) {
+  .demo-etapes-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

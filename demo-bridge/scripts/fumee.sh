@@ -166,6 +166,27 @@ elif [ "$USD" = "$DOT_USDC_ATTENDU" ]; then
 else
   ko "solde USDC apres credit : « $USD » au lieu de la dotation « $DOT_USDC_ATTENDU » — l'ecriture de stockage n'a pas pris"
 fi
+# CE QUE METAMASK FAIT AVANT D AFFICHER : il SIMULE. Un `eth_call` sur la transaction au
+# bloc « pending ». S il revert, le portefeuille ecrit « This transaction is likely to fail »
+# et le jury le lit avant nous. Rien ne testait ca ; c est ce qui a casse une repetition.
+RPCU2="$(printf '%s' "$ETAT" | champ fork.rpc)"
+SIM="$(curl -sS -m 25 -X POST -H 'content-type: application/json' \
+  --data "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"eth_call\",\"params\":[{\"from\":\"$ADRESSE\",\"to\":\"$TO\",\"data\":\"$DATA\",\"value\":\"$VAL\"},\"pending\"]}" \
+  "$RPCU2" 2>/dev/null | "$ICI/nommer-erreur.py")"
+case "$ACTE/$SIM" in
+  */OK)   ok "MetaMask ne predira pas d echec : la simulation au bloc pending passe";;
+  # « queue » depense un ERC-20 obscur que le portefeuille ne detient pas : son revert est
+  # ATTENDU et n'a rien a voir avec la demo. On le DIT plutot que de le masquer.
+  queue/*) ok "acte queue : la simulation revert, et c'est normal — l'entree est un ERC-20 que"
+           echo "         le portefeuille ne detient pas. Cet acte se montre, il ne s'envoie pas."
+           echo "         ($SIM)";;
+  *)      ko "MetaMask affichera « This transaction is likely to fail » — $SIM";;
+esac
+HFIG="$(printf '%s' "$ETAT" | champ base.horloge_figee)"
+{ [ "$HFIG" = "True" ] || [ "$HFIG" = "true" ]; } \
+  && ok "l horloge du fork est FIGEE sur l horodatage du bloc epingle (le swap s execute dans le contexte de la mesure)" \
+  || ko "l horloge du fork n est pas figee : le rendement du swap changera avec le temps de parole — $(printf '%s' "$ETAT" | champ base.horloge_motif)"
+
 case "$ETT" in
   PRETE) ok "transaction PRETE : le plancher de sortie vient d'une cotation vivante du fork";;
   SANS_PLANCHER) ko "transaction SANS PLANCHER — $MOT";;
@@ -366,16 +387,16 @@ for CHEMIN in /apdu /automation /finger "/events/../apdu" "/button/left/../../ap
   # reseau. On reessaie une fois avant de conclure — un script de verification qui crie au
   # loup sur un aleas de connexion finit par ne plus etre lu.
   HC=""; CT=""
-  for _essai in 1 2 3; do
+  for _essai in 1 2 3 4 5; do
     LIGNE="$(curl -sS -m 15 -D - -o /dev/null -X POST -H 'content-type: application/json' \
           -d '{"data":"e0020000"}' "$ECRU$CHEMIN" 2>/dev/null)"
     HC="$(printf '%s' "$LIGNE" | head -1 | tr -d '\r' | awk '{print $2}')"
     CT="$(printf '%s' "$LIGNE" | grep -i '^content-type:' | head -1 | tr -d '\r')"
     [ -n "$HC" ] && break
-    sleep 1
+    sleep 2
   done
   if [ -z "$HC" ]; then
-    ko "injoignable (trois essais) : $ECRU$CHEMIN — probleme de reseau, pas une fuite"
+    ko "injoignable (cinq essais) : $ECRU$CHEMIN — probleme de reseau, pas une fuite"
     FUITE=1
     continue
   fi

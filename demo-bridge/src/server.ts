@@ -175,14 +175,14 @@ async function dotter(adresse: string): Promise<Dotation> {
   } catch (e) {
     motifs.push(`eth: ${(e as Error).message.slice(0, 100)}`);
   }
-  let usdc: bigint | null = null;
-  if (DOTATION_USDC > 0n) {
-    const r = await crediterErc20(USDC_BASE, a, DOTATION_USDC);
-    usdc = r.lu;
-    if (!r.ok && r.motif) motifs.push(r.motif);
-  } else {
-    usdc = await erc20Balance(USDC_BASE, a).catch(() => null);
-  }
+  // ZERO EST UNE VALEUR, PAS UNE ABSENCE. `DEMO_DOTATION_USDC=0` veut dire « pars d'un solde
+  // nul » — pour que l'arrivee du swap se lise 0 -> 0,002444 au lieu de 10000,000000 ->
+  // 10000,002444. Se contenter alors de LIRE laissait en place les 10 000 USDC qu'une
+  // execution precedente avait ecrits dans l'etat de base, et la consigne n'avait aucun effet
+  // visible. On ECRIT donc toujours, zero compris, et on relit.
+  const r = await crediterErc20(USDC_BASE, a, DOTATION_USDC);
+  const usdc: bigint | null = r.lu;
+  if (!r.ok && r.motif) motifs.push(r.motif);
   return {
     adresse: a,
     eth_wei: eth === null ? null : eth.toString(),

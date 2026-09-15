@@ -178,6 +178,7 @@ export async function crediterErc20(
   }
   const lu = await erc20Balance(jeton, adresse).catch(() => null);
   if (lu === null) return { ok: false, lu: null, motif: "relecture_impossible: balanceOf n'a rien rendu de lisible" };
+  // Un solde a zero relu apres avoir ecrit zero est une REUSSITE, pas une absence de lecture.
   if (lu !== montant) {
     return {
       ok: false,

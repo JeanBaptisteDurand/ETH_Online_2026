@@ -9,6 +9,8 @@
  *   GET  /demo/etat      l'etat du fork, de Speculos, du snapshot
  *   POST /demo/preparer  credite, prend un snapshot, construit le calldata du swap d'origine
  *   POST /demo/approuver envoie l'EIP-712 a l'appareil et attend la decision de l'humain
+ *   POST /demo/choisir   pose les trois choix SUR L'APPAREIL, et rend la main tout de suite
+ *   GET  /demo/choix     quelle question l'appareil affiche, et ce que l'humain a decide
  *   POST /demo/revenir   revient au snapshot pour rejouer a l'identique
  *   GET  /demo/soldes    les soldes lus sur le fork
  *
@@ -48,6 +50,7 @@ import {
 } from "./fork.js";
 import { construireTransaction } from "./transaction.js";
 import { construireMessage, messageDeActe } from "./message.js";
+import { abandonnerChoix, demarrerChoix, lireChoix } from "./choix.js";
 import {
   estRefus,
   joignable,
@@ -325,6 +328,8 @@ app.get("/demo/etat", async (c) => {
       ecran_sous_domaine: SURFACES.ecran_sous_domaine,
       /** non nul quand une demande occupe deja l'appareil : Speculos n'a qu'une session APDU */
       occupe: occupationAppareil(),
+      /** la conversation des trois choix : la question affichee, et ce qui a ete decide */
+      choix: lireChoix(),
     },
     surfaces: SURFACES,
     snapshot: snapshotBase,
@@ -539,6 +544,58 @@ app.post("/demo/approuver", async (c) => {
   }
 });
 
+/* ------------------------------------------------------ 3 bis. les trois choix */
+
+/**
+ * LES TROIS CHOIX, SUR L'APPAREIL.
+ *
+ * Rend la main TOUT DE SUITE (202) : deux questions lues par un humain peuvent durer plusieurs
+ * minutes, et une requete aussi longue se ferait couper par un proxy. La page suit ensuite
+ * GET /demo/choix. Voir src/choix.ts.
+ *
+ * `auto` ("actuelle" | "optimisee" | "annuler") ne sert qu'a la verification hors public.
+ */
+app.post("/demo/choisir", async (c) => {
+  let corps: Record<string, unknown> = {};
+  try {
+    corps = (await c.req.json()) as Record<string, unknown>;
+  } catch {
+    /* un corps vide vaut l'acte de substitution */
+  }
+  const nom = String(corps.acte ?? "substitution");
+  if (!EST_ACTE(nom)) {
+    return c.json({ erreur: "acte_inconnu", motif: `acte attendu : ${Object.keys(ACTES).join(", ")}` }, 400);
+  }
+  const auto =
+    corps.auto === "actuelle" || corps.auto === "optimisee" || corps.auto === "annuler" ? corps.auto : undefined;
+
+  if (!(await joignable())) {
+    return c.json({ erreur: "speculos_injoignable", motif: `The device does not answer (${SPECULOS_URL}). Nothing was sent.` }, 503);
+  }
+  try {
+    const d = demarrerChoix(nom as NomActe, { auto });
+    return c.json({ ok: true, id: d.id, options: d.options }, 202);
+  } catch (e) {
+    if (e instanceof AppareilOccupe) {
+      return c.json(
+        {
+          erreur: "appareil_occupe",
+          motif: "The device is already handling another request. Nothing was signed and nothing was sent.",
+          detail: e.message,
+          occupe: occupationAppareil(),
+        },
+        409,
+      );
+    }
+    return c.json({ erreur: "choix_impossible", motif: (e as Error).message, rien_envoye: true }, 500);
+  }
+});
+
+app.get("/demo/choix", (c) => c.json(lireChoix()));
+
+/** La page reprend la main : la question ouverte est refusee sur l'appareil, et c'est tout. */
+app.post("/demo/choix/abandonner", (c) => c.json({ ok: true, abandonne: abandonnerChoix() }));
+
 /* ----------------------------------------------------------------- 4. revenir */
 
 app.post("/demo/revenir", async (c) => {
@@ -614,7 +671,7 @@ app.get("/demo/message", (c) => {
 
 app.get("/demo/sante", (c) => c.json({ ok: true, service: "tare-demo-bridge", port: PORT }));
 
-app.notFound((c) => c.json({ erreur: "route_inconnue", routes: ["/demo/etat", "/demo/preparer", "/demo/approuver", "/demo/revenir", "/demo/soldes"] }, 404));
+app.notFound((c) => c.json({ erreur: "route_inconnue", routes: ["/demo/etat", "/demo/preparer", "/demo/approuver", "/demo/choisir", "/demo/choix", "/demo/revenir", "/demo/soldes"] }, 404));
 
 serve({ fetch: app.fetch, hostname: HOTE, port: PORT }, (info) => {
   console.log(`[demo-bridge] http://${HOTE}:${info.port}`);

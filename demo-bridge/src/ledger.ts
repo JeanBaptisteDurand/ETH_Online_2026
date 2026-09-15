@@ -129,16 +129,30 @@ export function estRefus(x: Resultat): x is Refus {
 }
 
 /**
+ * `auto` n'existe que pour la verification hors public : `true` ou `"approuver"` signe,
+ * `"rejeter"` refuse. `abandon` est lu a chaque ecran : des qu'il rend vrai, la question en cours
+ * est REFUSEE sur l'appareil — c'est ainsi que la page reprend la main sans laisser un flux ouvert.
+ */
+export interface OptionsSignature {
+  auto?: boolean | "approuver" | "rejeter";
+  timeoutMs?: number;
+  abandon?: () => boolean;
+}
+
+/**
  * Envoie le message a l'appareil et attend la decision d'un humain.
  *
  * `ecrans` porte la trace de TOUT ce qui s'est affiche : c'est elle qui fait preuve, pas le
  * resultat. Une signature dont on ne sait pas ce qui a ete montre ne prouve rien.
  */
-async function signerUneFois(
-  typed: Eip712TypedData,
-  opts: { auto?: boolean; timeoutMs?: number } = {},
-): Promise<Resultat> {
+async function signerUneFois(typed: Eip712TypedData, opts: OptionsSignature = {}): Promise<Resultat> {
   const auto = opts.auto ?? process.env.DEMO_AUTO === "1";
+  const modeAuto = (): "approuver" | "rejeter" | null => {
+    if (opts.abandon?.()) return "rejeter";
+    if (auto === true || auto === "approuver") return "approuver";
+    if (auto === "rejeter") return "rejeter";
+    return null;
+  };
   const limite = opts.timeoutMs ?? Number(process.env.DEMO_TIMEOUT_MS ?? 240000);
 
   // ATTENDRE LE REPOS AVANT D'OUVRIR UNE SESSION. Une demande qui arrive pendant que
@@ -208,16 +222,21 @@ async function signerUneFois(
       ecrans.push(s);
       dernier = s;
     }
-    if (!auto) continue;
+    const mode = modeAuto();
+    if (!mode) continue;
     if (/app is ready|App settings|App info|Quit app/i.test(s)) continue;
     if (/blind signing ahead/i.test(s)) {
       await presser("both");
       await dodo(300);
     } else if (/^Sign message$/i.test(s) || /^Approve$/i.test(s)) {
-      await presser("both");
+      await presser(mode === "approuver" ? "both" : "right");
+      await dodo(300);
+    } else if (/^Reject/i.test(s)) {
+      // en mode « approuver », on passe devant sans jamais appuyer dessus
+      await presser(mode === "rejeter" ? "both" : "right");
       await dodo(300);
     } else {
-      await presser("right"); // « Reject » compris : on passe devant, on n'appuie jamais dessus
+      await presser("right");
     }
   }
 
@@ -275,17 +294,25 @@ export class AppareilIndisponible extends Error {}
  * (un refus humain, lui, n'est pas une panne et ne se rejoue pas), et une seule fois — une
  * boucle de rattrapage devant un public serait pire que l'erreur.
  */
-export async function signer(
-  typed: Eip712TypedData,
-  opts: { auto?: boolean; timeoutMs?: number } = {},
-): Promise<Resultat> {
+export async function signer(typed: Eip712TypedData, opts: OptionsSignature = {}): Promise<Resultat> {
   return enExclusivite("une signature", () => signerAvecRattrapage(typed, opts));
 }
 
-async function signerAvecRattrapage(
-  typed: Eip712TypedData,
-  opts: { auto?: boolean; timeoutMs?: number },
-): Promise<Resultat> {
+/** Signe sous un verrou DEJA pris. Ne l'appeler que depuis `sousVerrou`. */
+export type SignerSousVerrou = (typed: Eip712TypedData, opts?: OptionsSignature) => Promise<Resultat>;
+
+/**
+ * PLUSIEURS QUESTIONS D'AFFILEE SOUS UN SEUL VERROU.
+ *
+ * Les trois choix se posent en deux messages. Entre les deux, l'appareil repasse par son repos :
+ * sans verrou tenu d'un bout a l'autre, une autre demande pourrait s'intercaler, et la seconde
+ * question arriverait sur un appareil qui repond a quelqu'un d'autre.
+ */
+export function sousVerrou<T>(quoi: string, fn: (signerIci: SignerSousVerrou) => Promise<T>): Promise<T> {
+  return enExclusivite(quoi, () => fn((typed, opts = {}) => signerAvecRattrapage(typed, opts)));
+}
+
+async function signerAvecRattrapage(typed: Eip712TypedData, opts: OptionsSignature): Promise<Resultat> {
   try {
     return await signerUneFois(typed, opts);
   } catch (e) {

@@ -260,6 +260,164 @@ function messageLong(acte: Acte, texte: string): Eip712TypedData {
   };
 }
 
+/* ------------------------------------------------------------ les trois choix */
+
+/**
+ * LES TROIS CHOIX, POSES SUR L'APPAREIL.
+ *
+ * L'application Ethereum ne termine un message que par « Sign message » ou « Reject » : elle ne
+ * sait pas porter un menu a trois lignes. Un vrai menu exigerait une application Ledger a nous.
+ * Les trois reponses se posent donc en DEUX questions signees, dans cet ordre :
+ *
+ *   question 1 « 1 of 3: keep your route »       Sign   -> la transaction d'origine part
+ *                                                Reject -> question 2
+ *   question 2 « 2 of 3: take the cheaper gate » Sign   -> le remplacement part, en second appel
+ *                                                Reject -> « 3 of 3: cancel », rien ne part
+ *
+ * Sans porte de remplacement (acte `stop`), il n'y a qu'une question, « 1 of 2 », et Reject
+ * annule. La decision est donc prise ENTIEREMENT sur l'appareil : la page ne fait qu'afficher
+ * ce qu'il demande.
+ *
+ * LE SCHEMA EST AUSSI COURT QUE POSSIBLE, parce qu'il se traverse jusqu'a deux fois par swap.
+ * Chaque champ coute deux ecrans sur un Nano (le champ, puis « Press right button to continue
+ * message or press both to skip »). Mesure sur l'appareil : appuyer sur les DEUX boutons sur un
+ * de ces separateurs mene directement a « Sign message ». L'ordre des champs est donc celui de la
+ * decision : quelle question, ce que prend cette porte, ou mene le refus (avec le chiffre de
+ * l'autre porte) — puis, sautables, le hook et `promptDigest`, qui scelle le texte integral.
+ * Soit 15 appuis pour signer une question et 16 pour la refuser, contre 25 ecrans au depart.
+ */
+export type OptionChoix = "actuelle" | "optimisee" | "annuler";
+export type OptionPosee = Exclude<OptionChoix, "annuler">;
+
+export interface OptionAnnoncee {
+  rang: 1 | 2 | 3;
+  option: OptionChoix;
+  libelle: string;
+}
+
+/**
+ * LE DOMAINE NE PORTE QUE SON NOM. Mesure sur l'appareil (Nano X, Ethereum 1.22.3) : chaque
+ * champ du domaine coute deux ecrans, et `version` + `chainId` en ajoutaient quatre A CHAQUE
+ * question, avant meme le premier mot du choix. La chaine n'est pas perdue : le texte scelle par
+ * `promptDigest` porte « chain 8453 ».
+ */
+export const TARE_CHOIX_TYPES: Record<string, Eip712Field[]> = {
+  EIP712Domain: [{ name: "name", type: "string" }],
+  TareGuardChoice: [
+    { name: "choice", type: "string" },
+    { name: "take", type: "string" },
+    { name: "ifRejected", type: "string" },
+    { name: "hook", type: "address" },
+    { name: "promptDigest", type: "bytes32" },
+  ],
+};
+
+export const TARE_CHOIX_PRIMARY_TYPE = "TareGuardChoice";
+
+/** Les reponses possibles pour un acte, dans l'ordre ou l'appareil les pose. */
+export function optionsDe(nom: NomActe): OptionAnnoncee[] {
+  const acte = ACTES[nom];
+  const m = acte.meilleure_porte;
+  if (!m) {
+    return [
+      { rang: 1, option: "actuelle", libelle: `keep your route · ${champTakeBref(acte.porte)}` },
+      { rang: 2, option: "annuler", libelle: "cancel · nothing is sent" },
+    ];
+  }
+  return [
+    { rang: 1, option: "actuelle", libelle: `keep your route · ${champTakeBref(acte.porte)}` },
+    { rang: 2, option: "optimisee", libelle: `take the cheaper gate · ${champTakeBref(m)}` },
+    { rang: 3, option: "annuler", libelle: "cancel · nothing is sent" },
+  ];
+}
+
+/** Les questions reellement posees : toutes les options sauf l'annulation, qui est le refus final. */
+export function questionsDe(nom: NomActe): OptionPosee[] {
+  return optionsDe(nom)
+    .map((o) => o.option)
+    .filter((o): o is OptionPosee => o !== "annuler");
+}
+
+export interface QuestionConstruite {
+  rang: 1 | 2;
+  option: OptionPosee;
+  typed: Eip712TypedData;
+  texte: string;
+  prompt_digest: string;
+}
+
+/** Le texte scelle d'une question : plus que l'ecran, comme pour le rapport. */
+function texteDeQuestion(acte: Acte, option: OptionPosee, choix: string, siRejet: string): string {
+  const p = option === "actuelle" ? acte.porte : acte.meilleure_porte!;
+  const autre = option === "actuelle" ? acte.meilleure_porte : acte.porte;
+  const lignes = [
+    `TARE — ${choix.toUpperCase()}`,
+    option === "actuelle"
+      ? "sign: the original transaction goes to the wallet, unchanged"
+      : "sign: the page sends the replacement as a second call, and the wallet opens on it",
+    `reject: ${siRejet}`,
+    `gate  ${p.pool_id}`,
+    `hook  ${p.hook}`,
+    `take  ${champTakeBref(p)}`,
+    `size  ${p.taille_wei} in, direction ${p.sens}`,
+  ];
+  if (autre) {
+    lignes.push(`other gate  ${autre.pool_id}`);
+    lignes.push(`other hook  ${autre.hook}`);
+    lignes.push(`other take  ${champTakeBref(autre)}`);
+    if (acte.economie_bps !== null) lignes.push(`spread  ${acte.economie_bps.toFixed(4)} bps`);
+  }
+  lignes.push(`measured at block ${CORPUS.block_number}, chain ${CORPUS.chain_id}`);
+  lignes.push(`dataset  ${champDataset()}`);
+  lignes.push(`replay: ${p.rejeu}`);
+  return lignes.join("\n");
+}
+
+/** Une question de l'appareil, construite depuis le corpus. Aucun nombre n'y est ecrit a la main. */
+export function questionDe(nom: NomActe, option: OptionPosee): QuestionConstruite {
+  const acte = ACTES[nom];
+  const options = optionsDe(nom);
+  const total = options.length;
+  const moi = options.find((o) => o.option === option);
+  if (!moi) throw new Error(`question_impossible: l'acte ${nom} ne propose pas « ${option} »`);
+  if (option === "optimisee" && !acte.meilleure_porte) {
+    throw new Error(`question_impossible: l'acte ${nom} n'a pas de porte de remplacement`);
+  }
+  const suivante = options[moi.rang]; // rang est 1-indexe : options[rang] est la suivante
+  if (!suivante) throw new Error(`question_impossible: rien ne suit « ${option} » dans l'acte ${nom}`);
+  const p = option === "actuelle" ? acte.porte : acte.meilleure_porte!;
+
+  const choix =
+    option === "actuelle" ? `${moi.rang} of ${total}: keep your route` : `${moi.rang} of ${total}: take the cheaper gate`;
+  const siRejet =
+    suivante.option === "annuler"
+      ? `${suivante.rang} of ${total}: cancel, nothing is sent`
+      : `${suivante.rang} of ${total}: cheaper gate, ${champTakeBref(acte.meilleure_porte!)}`;
+
+  const texte = texteDeQuestion(acte, option, choix, siRejet);
+  const prompt_digest = toHex(keccak256(utf8(texte)));
+  return {
+    rang: moi.rang as 1 | 2,
+    option,
+    texte,
+    prompt_digest,
+    typed: {
+      // Le type du depot exige `version` et `chainId` ; EIP-712 ne les exige pas, et le schema
+      // ci-dessus ne les declare pas — ils ne seraient donc ni affiches ni signes.
+      domain: { name: "TARE Guard" } as Eip712TypedData["domain"],
+      types: TARE_CHOIX_TYPES,
+      primaryType: TARE_CHOIX_PRIMARY_TYPE,
+      message: {
+        choice: choix,
+        take: champTakeBref(p),
+        ifRejected: siRejet,
+        hook: p.hook,
+        promptDigest: prompt_digest,
+      },
+    },
+  };
+}
+
 /** Le message construit depuis le corpus, pour un acte. */
 export function messageDeActe(nom: NomActe): MessageConstruit {
   const acte = ACTES[nom];

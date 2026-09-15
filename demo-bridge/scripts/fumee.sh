@@ -153,9 +153,19 @@ elif [ "$BPS" = "None" ] || [ "$BPS" = "null" ]; then
 else
   ok "prelevement mesure : $BPS bps, taille $TW wei, sens $SENS, au bloc 50614000"
 fi
-[ "$ETH" = "10000000000000000000" ] && ok "l'adresse a bien ete creditee de 10 ETH sur le fork" \
-                                    || ko "solde ETH apres credit : « $ETH » wei au lieu de 10000000000000000000"
-[ "$USD" != "__ABSENT__" ] && ok "solde USDC lu sur le fork : $USD" || ko "solde USDC illisible"
+# La dotation n'est pas ecrite ici : elle est LUE dans /demo/etat. Ecrire « 10 ETH » en dur
+# faisait echouer ce controle le jour ou la dotation est passee a 100 ETH — un faux echec.
+DOT_ETH_ATTENDU="$(printf '%s' "$ETAT" | champ dotation.eth_wei)"
+DOT_USDC_ATTENDU="$(printf '%s' "$ETAT" | champ dotation.usdc)"
+[ "$ETH" = "$DOT_ETH_ATTENDU" ] && ok "l'adresse a bien ete creditee de la dotation ($ETH wei)" \
+                                 || ko "solde ETH apres credit : « $ETH » wei au lieu de la dotation « $DOT_ETH_ATTENDU »"
+if [ "$USD" = "__ABSENT__" ]; then
+  ko "solde USDC illisible"
+elif [ "$USD" = "$DOT_USDC_ATTENDU" ]; then
+  ok "l'adresse a aussi ete creditee en USDC ($USD unites, soit $((USD / 1000000)) USDC)"
+else
+  ko "solde USDC apres credit : « $USD » au lieu de la dotation « $DOT_USDC_ATTENDU » — l'ecriture de stockage n'a pas pris"
+fi
 case "$ETT" in
   PRETE) ok "transaction PRETE : le plancher de sortie vient d'une cotation vivante du fork";;
   SANS_PLANCHER) ko "transaction SANS PLANCHER — $MOT";;
@@ -204,9 +214,32 @@ R2="$(curl -sS -m 30 -X POST "$BASE/demo/revenir" 2>&1)"
 [ "$(printf '%s' "$R2" | champ ok)" = "True" ] || [ "$(printf '%s' "$R2" | champ ok)" = "true" ] \
   && ok "un SECOND retour marche aussi : la demo se rejoue autant de fois qu'il faut" \
   || ko "le second retour a echoue : $(printf '%s' "$R2" | champ motif) — la demo ne se rejouerait qu'une fois"
+# LA DOTATION SURVIT-ELLE AU REMBOBINAGE ? C'est le detail qui casse une repetition sans
+# prevenir : sans redotation, un retour a l'etat epingle rend au portefeuille du presentateur
+# ses VRAIS soldes de Base (0,248 ETH, 0 USDC) et la demo devient injouable au deuxieme tour.
+DOT_ETH="$(printf '%s' "$R2" | champ dotation.eth_wei)"
+DOT_USDC="$(printf '%s' "$R2" | champ dotation.usdc)"
+TOUS="$(printf '%s' "$R2" | champ dotation.tous_conformes)"
 E2="$(curl -sS -m 20 "$BASE/demo/soldes?adresse=$ADRESSE" | champ eth_wei)"
-[ "$E2" = "10000000000000000000" ] && ok "apres retour, l'adresse a toujours ses 10 ETH" \
-                                   || ko "apres retour le solde vaut « $E2 » : le snapshot n'a pas ete pris au bon moment"
+[ "$E2" = "$DOT_ETH" ] && ok "apres retour, l'adresse preparee a de nouveau ses $DOT_ETH wei" \
+                        || ko "apres retour le solde vaut « $E2 » au lieu de « $DOT_ETH » : le snapshot n'a pas ete pris au bon moment"
+if [ "$TOUS" = "True" ] || [ "$TOUS" = "true" ]; then
+  ok "apres retour, TOUS les portefeuilles de demonstration sont refinances (dotation relue, pas supposee)"
+else
+  ko "apres retour, au moins un portefeuille de demonstration n est pas finance — la repetition casserait au deuxieme tour"
+fi
+printf '%s' "$R2" | python3 -c "
+import json,sys
+try: d=json.load(sys.stdin)
+except Exception: raise SystemExit
+for w in (d.get('dotation') or {}).get('dernier') or []:
+    e=int(w['eth_wei'] or 0)/1e18; u=int(w['usdc'] or 0)/1e6
+    etat='' if w['conforme'] else '  <- NON CONFORME: '+str(w['motif'])
+    print('         %s : %.4f ETH · %.6f USDC%s' % (w['adresse'], e, u, etat))"
+PORTES="$(printf '%s' "$ETAT" | champ dotation.portefeuilles_demo)"
+[ -n "$PORTES" ] && [ "$PORTES" != "[]" ] && [ "$PORTES" != "__ABSENT__" ] \
+  && ok "portefeuilles de demonstration configures : $PORTES (dotation $DOT_ETH wei + $DOT_USDC USDC)" \
+  || ko "aucun portefeuille de demonstration configure : DEMO_PORTEFEUILLES est vide"
 
 # ------------------------------------------------------------------ 6. approuver
 titre "6. POST /demo/approuver — l'EIP-712 sur l'ecran de l'appareil"
@@ -253,7 +286,14 @@ fi
 
 # ------------------------------- 6bis. la langue de l ecran, et l empreinte partagee
 titre "6bis. Ce que l appareil AFFICHE : la langue, et l empreinte que la page montre aussi"
-MSG="$(curl -sS -m 20 "$BASE/demo/message?acte=stop" 2>&1)"
+# Trois essais : une reponse vide n'est pas une faute du service, c'est un aleas de
+# connexion — et un script de verification qui crie au loup dessus finit par ne plus etre lu.
+MSG=""
+for _essai in 1 2 3; do
+  MSG="$(curl -sS -m 20 "$BASE/demo/message?acte=stop" 2>&1)"
+  [ -n "$MSG" ] && break
+  sleep 1
+done
 DIGP="$(printf '%s' "$MSG" | champ prompt_digest)"
 case "$DIGP" in
   0x????????????????????????????????????????????????????????????????) ok "la page recevra l empreinte $DIGP";;
@@ -263,8 +303,11 @@ esac
 # scripts/verifier-langue.py : une expression reguliere de cette taille ne survit pas a une
 # imbrication de guillemets dans un script shell — essaye et relis, c'est illisible.
 FR="$("$ICI/verifier-langue.py" <<< "$MSG")"
-[ -z "$FR" ] && ok "tout ce que l appareil affiche est en anglais" \
-              || ko "du francais subsiste sur l ecran de l appareil, champs : $FR"
+case "$FR" in
+  "")            ok "tout ce que l appareil affiche est en anglais";;
+  __ILLISIBLE__*) ko "/demo/message n a rien rendu de lisible — la langue n a PAS pu etre verifiee ($FR)";;
+  *)             ko "du francais subsiste sur l ecran de l appareil, champs : $FR";;
+esac
 # l empreinte rendue a la page est-elle bien le keccak du texte scelle ?
 if [ -x "$RACINE/node_modules/.bin/tsx" ] && [ -n "$DERNIER_DIGEST" ]; then
   [ "$DERNIER_DIGEST" = "$DIGP" ] \
@@ -287,8 +330,18 @@ CID="$(curl -sS -m 20 -X POST -H 'content-type: application/json' \
                        || ko "le RPC annonce ne repond pas 0x2105 mais « $CID » — MetaMask refusera le reseau"
 BNH="$(curl -sS -m 20 -X POST -H 'content-type: application/json' \
         --data '{"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]}' "$RPCU" 2>/dev/null | champ result)"
-[ "$BNH" = "0x3044ef0" ] && ok "le RPC est au bloc 50614000 (0x3044ef0), celui du corpus" \
-                          || ko "le RPC est au bloc « $BNH » au lieu de 0x3044ef0"
+# Le bloc AVANCE des qu'une transaction est envoyee, et c'est normal en pleine demo : ce qui
+# doit etre vrai, c'est que /demo/revenir ramene au bloc epingle — verifie en section 5.
+# Exiger 50614000 ici faisait echouer le script pendant qu'on repetait, ce qui est absurde.
+BN="$(printf '%s' "$BNH" | python3 -c "import sys;v=sys.stdin.read().strip();print(int(v,16) if v.startswith('0x') else -1)")"
+if [ "$BN" = "50614000" ]; then
+  ok "le RPC est au bloc epingle 50614000, celui du corpus"
+elif [ "$BN" -gt 50614000 ] 2>/dev/null; then
+  ok "le RPC est au bloc $BN : des transactions ont ete envoyees depuis le dernier rembobinage (normal)"
+  echo "         /demo/revenir le ramene a 50614000 — verifie plus haut, section 5."
+else
+  ko "le RPC rend le bloc « $BNH » : ce n est pas une chaine epinglee au corpus"
+fi
 NACO="$(curl -sS -m 20 -D - -o /dev/null -X POST -H 'content-type: application/json' \
         --data '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' "$RPCU" 2>/dev/null | grep -ci 'access-control-allow-origin')"
 [ "$NACO" = "1" ] && ok "un seul en-tete Access-Control-Allow-Origin (deux feraient echouer le navigateur)" \

@@ -8,6 +8,9 @@
  * Aucune boucle, aucun balayage : chaque route fait un nombre BORNE d'appels, et tous vont a
  * un fork local — aucune requete de ce service n'atteint le fournisseur payant.
  */
+import { keccak256, toHex } from "../vendor/guard/src/keccak.js";
+import { hexToBytes } from "../vendor/guard/src/abi.js";
+
 const RPC = process.env.DEMO_RPC ?? "http://127.0.0.1:8546";
 /**
  * L'URL publique du meme fork, celle que le portefeuille de l'utilisateur ajoute.
@@ -80,6 +83,73 @@ export async function revert(id: string): Promise<boolean> {
 
 export async function ethBalance(adresse: string): Promise<bigint> {
   return BigInt(await rpc<string>("eth_getBalance", [adresse, "latest"]));
+}
+
+/* ------------------------------------------------- crediter un portefeuille de demo */
+
+/**
+ * L'EMPLACEMENT DU MAPPING DES SOLDES DANS USDC, ET POURQUOI IL EST ECRIT ICI.
+ *
+ * Crediter de l'ETH est trivial (`anvil_setBalance`). Crediter un ERC-20 ne l'est pas : il
+ * faut ECRIRE dans le stockage du contrat, a l'emplacement exact ou il range le solde. Pour
+ * un mapping Solidity, Solidity le calcule ainsi :
+ *
+ *     emplacement = keccak256(pad32(adresse) ++ pad32(numero_du_mapping))
+ *
+ * Le numero du mapping `balances` d'USDC sur Base vaut **9**. Il n'est PAS devine : il a ete
+ * verifie a la main — ecriture a cet emplacement, puis `balanceOf` relu, qui a rendu la valeur
+ * ecrite. Et ce fichier le REVERIFIE a chaque credit : si la relecture ne rend pas le montant
+ * ecrit, on ne dit pas « credite », on dit ce qu'on a lu. Un solde annonce et absent ferait
+ * echouer la demo en direct sans prevenir, ce qui est pire que de ne pas crediter du tout.
+ */
+export const USDC_BASE = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913";
+export const USDC_EMPLACEMENT_SOLDES = Number(process.env.DEMO_USDC_SLOT ?? 9);
+/** USDC a 6 decimales : 10 000 USDC = 10 000 000 000 unites. */
+export const USDC_DECIMALES = 6;
+
+function mot32(x: bigint | string): string {
+  if (typeof x === "string") return x.toLowerCase().replace(/^0x/, "").padStart(64, "0");
+  return x.toString(16).padStart(64, "0");
+}
+
+/** keccak256(pad32(cle) ++ pad32(emplacement)) — la derivation Solidity, pas une supposition. */
+export function emplacementDuSolde(adresse: string, emplacement = USDC_EMPLACEMENT_SOLDES): string {
+  const brut = mot32(adresse) + mot32(BigInt(emplacement));
+  return toHex(keccak256(hexToBytes("0x" + brut)));
+}
+
+export async function setStorageAt(contrat: string, emplacement: string, valeur: string): Promise<void> {
+  await rpc("anvil_setStorageAt", [contrat, emplacement, "0x" + mot32(valeur.replace(/^0x/, ""))]);
+}
+
+/**
+ * Credite un ERC-20 en ecrivant son stockage, PUIS relit le solde pour verifier.
+ * Rend ce qui a ete LU, jamais ce qu'on a voulu ecrire.
+ */
+export async function crediterErc20(
+  jeton: string,
+  adresse: string,
+  montant: bigint,
+  emplacement = USDC_EMPLACEMENT_SOLDES,
+): Promise<{ ok: boolean; lu: bigint | null; motif: string | null }> {
+  const cle = emplacementDuSolde(adresse, emplacement);
+  try {
+    await setStorageAt(jeton, cle, montant.toString(16));
+  } catch (e) {
+    return { ok: false, lu: null, motif: `ecriture_refusee: ${(e as Error).message.slice(0, 120)}` };
+  }
+  const lu = await erc20Balance(jeton, adresse).catch(() => null);
+  if (lu === null) return { ok: false, lu: null, motif: "relecture_impossible: balanceOf n'a rien rendu de lisible" };
+  if (lu !== montant) {
+    return {
+      ok: false,
+      lu,
+      motif:
+        `relecture_divergente: ecrit ${montant} a l'emplacement ${emplacement}, relu ${lu}. ` +
+        `Le numero du mapping des soldes n'est peut-etre pas ${emplacement} sur ce jeton.`,
+    };
+  }
+  return { ok: true, lu, motif: null };
 }
 
 /** balanceOf(address) — le selecteur est ecrit ici parce qu'il est universel et verifiable. */

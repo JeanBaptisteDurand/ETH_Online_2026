@@ -56,6 +56,10 @@ for i in $(seq 1 "$N"); do
   VAL="$(printf '%s' "$P" | python3 -c "import json,sys;d=json.load(sys.stdin);t=d.get('$CLE');print(t['value'] if t else '')")"
   PLANCHER="$(printf '%s' "$P" | jq1 plancher)"
   if [ -z "$DATA" ]; then echo "  $i : ECHEC — le service n'a pas rendu de calldata ($CLE)"; KO=$((KO+1)); continue; fi
+  # Le solde USDC AVANT. Les portefeuilles de demonstration partent desormais dotes : un
+  # « USDC > 0 » ne prouverait plus rien, seul l ECART prouve que le swap a bien rendu.
+  AVANT="$(rpc '{"jsonrpc":"2.0","id":1,"method":"eth_call","params":[{"to":"'"$USDC"'","data":"0x70a08231000000000000000000000000'"${A#0x}"'"},"latest"]}' | jq1 result)"
+  AVANT=$((16#${AVANT#0x}))
   # 3. envoyer POUR DE VRAI, et miner
   H="$(rpc '{"jsonrpc":"2.0","id":1,"method":"eth_sendTransaction","params":[{"from":"'"$A"'","to":"'"$TO"'","data":"'"$DATA"'","value":"'"$VAL"'","gas":"0x7a120"}]}' | jq1 result)"
   if [ -z "$H" ]; then echo "  $i : ECHEC — envoi refuse par le noeud"; KO=$((KO+1)); continue; fi
@@ -79,12 +83,13 @@ for i in $(seq 1 "$N"); do
     printf '  %2d : ECHEC  le rembobinage a rendu le bloc %s, pas le bloc epingle\n' "$i" "$BLOC"
     KO=$((KO+1)); continue
   fi
-  if [ "$ST" = "0x1" ] && [ "$USD" -gt 0 ]; then
-    printf '  %2d : OK     depart %s -> mine en %s · status 0x1 · gas %s · %s logs · USDC recu %s · plancher %s\n' "$i" "$BLOC" "$BLOCMINE" "$GAS" "$NLOG" "$USD" "$PLANCHER"
+  RECU=$((USD - AVANT))
+  if [ "$ST" = "0x1" ] && [ "$RECU" -gt 0 ]; then
+    printf '  %2d : OK     depart %s -> mine en %s · status 0x1 · gas %s · %s logs · USDC recu %s · plancher %s\n' "$i" "$BLOC" "$BLOCMINE" "$GAS" "$NLOG" "$RECU" "$PLANCHER"
     OK=$((OK+1))
   else
     TRACE="$(rpc '{"jsonrpc":"2.0","id":1,"method":"eth_call","params":[{"from":"'"$A"'","to":"'"$TO"'","data":"'"$DATA"'","value":"'"$VAL"'"},"latest"]}' | python3 -c "import json,sys;d=json.load(sys.stdin);e=d.get('error') or {};print((e.get('data') or e.get('message') or '')[:80])")"
-    printf '  %2d : ECHEC  bloc de depart %s · status %s · gas %s · %s logs · USDC %s · trace %s\n' "$i" "$BLOC" "${ST:-?}" "$GAS" "$NLOG" "$USD" "$TRACE"
+    printf '  %2d : ECHEC  bloc de depart %s · status %s · gas %s · %s logs · USDC recu %s · trace %s\n' "$i" "$BLOC" "${ST:-?}" "$GAS" "$NLOG" "$RECU" "$TRACE"
     KO=$((KO+1))
   fi
 done

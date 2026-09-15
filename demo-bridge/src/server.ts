@@ -38,7 +38,10 @@ import {
   revert,
   setBalance,
   snapshot,
+  crediterErc20,
+  emplacementDuSolde,
   BLOC_EPINGLE,
+  USDC_EMPLACEMENT_SOLDES,
   RPC_PUBLIC,
   RPC_SOUS_DOMAINE,
 } from "./fork.js";
@@ -64,8 +67,38 @@ const ORIGINES = (process.env.DEMO_ORIGINS ?? "https://tare-hooks.tech,https://w
   .map((s) => s.trim())
   .filter(Boolean);
 
-/** 10 ETH : de quoi payer le gaz et le swap de 1e12 wei, et rien de plus. */
-const DOTATION_WEI = BigInt(process.env.DEMO_DOTATION_WEI ?? "10000000000000000000");
+/**
+ * LA DOTATION. 100 ETH et 10 000 USDC — de quoi repeter la demo autant de fois qu'il faut sans
+ * jamais se demander si le portefeuille a de quoi payer le gaz.
+ *
+ * Elle est publiee dans /demo/etat avec ce qui a REELLEMENT ete lu apres ecriture : une
+ * dotation annoncee et absente ferait echouer la repetition sans prevenir.
+ */
+const DOTATION_WEI = BigInt(process.env.DEMO_DOTATION_WEI ?? "100000000000000000000");
+/** 10 000 USDC (6 decimales). Mettre DEMO_DOTATION_USDC=0 pour partir d'un solde nul. */
+const DOTATION_USDC = BigInt(process.env.DEMO_DOTATION_USDC ?? "10000000000");
+
+/**
+ * LES PORTEFEUILLES DE DEMONSTRATION.
+ *
+ * Ceux avec lesquels on REPETE. Sans eux, un rembobinage ramenait le portefeuille du
+ * presentateur a ses VRAIS soldes de Base — 0,248 ETH et 0 USDC — et la demo devenait
+ * injouable au deuxieme tour, en silence. Ils sont donc redotes au demarrage, apres CHAQUE
+ * rembobinage, et a chaque /demo/preparer.
+ *
+ * La liste est une variable d'environnement et non une adresse en dur : un autre presentateur,
+ * un autre portefeuille, une seule ligne a changer.
+ *   DEMO_PORTEFEUILLES=0x…,0x…
+ */
+/** Au-dela, on oublie la plus ancienne adresse ad hoc — jamais un portefeuille configure. */
+const MAX_ADRESSES_CREDITEES = Number(process.env.DEMO_MAX_ADRESSES ?? 16);
+
+const PORTEFEUILLES_DEMO = (
+  process.env.DEMO_PORTEFEUILLES ?? "0x7d85bF7a82470837A1d832e4fa503a7ebF20ca97"
+)
+  .split(",")
+  .map((x) => x.trim().toLowerCase())
+  .filter((x) => /^0x[0-9a-f]{40}$/.test(x));
 
 const ADRESSE = /^0x[0-9a-fA-F]{40}$/;
 
@@ -109,11 +142,89 @@ let snapshotBase: string | null = null;
 let blocDeBase: number | null = null;
 let motifBase: string | null = null;
 /** Les adresses creditees, re-creditees apres chaque retour pour que la demo se rejoue. */
-const adressesCreditees = new Set<string>();
+const adressesCreditees = new Set<string>(PORTEFEUILLES_DEMO);
+
+/** Ce qu'on a ecrit, et ce qu'on a RELU juste apres. Publie tel quel par /demo/etat. */
+export interface Dotation {
+  adresse: string;
+  eth_wei: string | null;
+  usdc: string | null;
+  /** true seulement si les deux soldes relus valent la dotation voulue */
+  conforme: boolean;
+  motif: string | null;
+}
+
+/**
+ * Credite une adresse en ETH ET en USDC, puis RELIT les deux.
+ *
+ * L'ETH passe par `anvil_setBalance`. L'USDC n'a pas d'equivalent : on ecrit dans le stockage
+ * du contrat, a l'emplacement du mapping des soldes, et on relit par `balanceOf` — voir
+ * fork.ts. Aucune des deux operations ne mine de bloc : la chaine ne bouge pas.
+ */
+async function dotter(adresse: string): Promise<Dotation> {
+  const a = adresse.toLowerCase();
+  const motifs: string[] = [];
+  let eth: bigint | null = null;
+  try {
+    await setBalance(a, DOTATION_WEI);
+    eth = await ethBalance(a);
+    if (eth !== DOTATION_WEI) motifs.push(`eth_relu_${eth}_au_lieu_de_${DOTATION_WEI}`);
+  } catch (e) {
+    motifs.push(`eth: ${(e as Error).message.slice(0, 100)}`);
+  }
+  let usdc: bigint | null = null;
+  if (DOTATION_USDC > 0n) {
+    const r = await crediterErc20(USDC_BASE, a, DOTATION_USDC);
+    usdc = r.lu;
+    if (!r.ok && r.motif) motifs.push(r.motif);
+  } else {
+    usdc = await erc20Balance(USDC_BASE, a).catch(() => null);
+  }
+  return {
+    adresse: a,
+    eth_wei: eth === null ? null : eth.toString(),
+    usdc: usdc === null ? null : usdc.toString(),
+    conforme: motifs.length === 0,
+    motif: motifs.length ? motifs.join(" | ") : null,
+  };
+}
+
+/** Redote TOUTES les adresses connues. Ne mine aucun bloc. */
+async function dotterTout(): Promise<Dotation[]> {
+  const out: Dotation[] = [];
+  for (const a of adressesCreditees) out.push(await dotter(a));
+  return out;
+}
+
+/** La derniere dotation appliquee, telle qu'elle a ete RELUE. Publiee par /demo/etat. */
+let derniereDotation: Dotation[] = [];
+
+/**
+ * CE QUE LE SERVICE A CREDITE, ET CE QU'IL A RELU JUSTE APRES.
+ *
+ * Rendu par /demo/etat, /demo/preparer et /demo/revenir, pour qu'on n'ait rien a deviner
+ * avant une repetition : `tous_conformes: false` dit exactement ce qui manque, et `dernier`
+ * porte les soldes RELUS — pas ceux qu'on a voulu ecrire.
+ */
+function blocDotation() {
+  return {
+    eth_wei: DOTATION_WEI.toString(),
+    usdc: DOTATION_USDC.toString(),
+    jeton_usdc: USDC_BASE,
+    emplacement_mapping_usdc: USDC_EMPLACEMENT_SOLDES,
+    portefeuilles_demo: PORTEFEUILLES_DEMO,
+    dernier: derniereDotation,
+    tous_conformes: derniereDotation.length > 0 && derniereDotation.every((d) => d.conforme),
+  };
+}
 
 async function assurerBase(): Promise<void> {
   if (snapshotBase) return;
   const b = await blockNumber();
+  // LES FONDS AVANT LA BASE. Si l'etat de base ne portait pas la dotation, le premier
+  // rembobinage la reprendrait, et le portefeuille du presentateur retomberait a ses vrais
+  // soldes de Base — 0,248 ETH — au beau milieu de la repetition.
+  derniereDotation = await dotterTout();
   snapshotBase = await snapshot();
   blocDeBase = b;
   motifBase =
@@ -138,8 +249,9 @@ async function rembobiner(): Promise<{ block_number: number; snapshot: string }>
         `Un nouvel etat de base vient d'etre pris au bloc ${blocDeBase}.`,
     );
   }
-  // re-crediter AVANT de reprendre la base, pour que la base porte les fonds
-  for (const a of adressesCreditees) await setBalance(a, DOTATION_WEI);
+  // re-crediter AVANT de reprendre la base, pour que la base porte les fonds. En ETH ET en
+  // USDC : le retour a l'etat epingle rendrait sinon au portefeuille ses vrais soldes de Base.
+  derniereDotation = await dotterTout();
   snapshotBase = await snapshot();
   return { block_number: await blockNumber(), snapshot: snapshotBase };
 }
@@ -216,6 +328,7 @@ app.get("/demo/etat", async (c) => {
       motif: motifBase,
       adresses_creditees: [...adressesCreditees],
     },
+    dotation: blocDotation(),
     corpus: CORPUS,
     actes: Object.fromEntries(
       (Object.keys(ACTES) as NomActe[]).map((n) => [
@@ -273,8 +386,20 @@ app.post("/demo/preparer", async (c) => {
     // « rembobiner » ramenerait a l'etat d'apres l'envoi, et le bandeau afficherait un
     // bloc qui n'est pas celui du corpus.
     await assurerBase();
+    // La liste est BORNEE. Chaque rembobinage redote toutes les adresses connues ; sans borne,
+    // une page qui prepare en boucle avec des adresses differentes ferait grossir ce travail
+    // sans fin, et le rembobinage — le geste qu'on repete devant un jury — ralentirait a vue
+    // d'oeil. Les portefeuilles de demonstration configures ne sont jamais oublies.
+    if (adressesCreditees.size >= MAX_ADRESSES_CREDITEES) {
+      for (const a of adressesCreditees) {
+        if (PORTEFEUILLES_DEMO.includes(a)) continue;
+        adressesCreditees.delete(a);
+        if (adressesCreditees.size < MAX_ADRESSES_CREDITEES) break;
+      }
+    }
     adressesCreditees.add(adresse);
-    await setBalance(adresse, DOTATION_WEI);
+    // l'adresse demandee ET les portefeuilles de demonstration, en ETH et en USDC
+    derniereDotation = await dotterTout();
   } catch (e) {
     return c.json({ erreur: "fork_indisponible", motif: (e as Error).message }, 502);
   }
@@ -298,6 +423,7 @@ app.post("/demo/preparer", async (c) => {
       motif: motifBase,
       adresses_creditees: [...adressesCreditees],
     },
+    dotation: blocDotation(),
     transaction: construite.transaction,
     porte: porteRendue(acte.porte),
     soldes: { eth_wei: soldes.eth_wei, usdc: soldes.usdc },
@@ -402,6 +528,7 @@ app.post("/demo/revenir", async (c) => {
       conforme,
       motif: conforme ? null : motifBase,
       adresses_recreditees: [...adressesCreditees],
+      dotation: blocDotation(),
     });
   } catch (e) {
     const code = e instanceof ErreurFork ? 502 : 500;
@@ -475,9 +602,16 @@ serve({ fetch: app.fetch, hostname: HOTE, port: PORT }, (info) => {
   // L'ETAT DE BASE EST PRIS TOUT DE SUITE, pas au premier /demo/preparer. Si quelqu'un envoie
   // une transaction avant d'avoir prepare, la base serait sinon celle d'APRES l'envoi, et
   // « rembobiner » ne ramenerait jamais au bloc du corpus.
-  void assurerBase().catch((e) =>
-    console.log(`[demo-bridge] etat de base impossible a prendre : ${(e as Error).message}`),
-  );
+  void assurerBase()
+    .then(() => {
+      for (const d of derniereDotation) {
+        console.log(
+          `[demo-bridge] dotation ${d.adresse} : ${d.eth_wei} wei, ${d.usdc} USDC` +
+            (d.conforme ? "" : ` — NON CONFORME : ${d.motif}`),
+        );
+      }
+    })
+    .catch((e) => console.log(`[demo-bridge] etat de base impossible a prendre : ${(e as Error).message}`));
 
   // AU DEMARRAGE, ON REJOUE « Raw messages ». Le reglage vit en RAM du conteneur Speculos ;
   // sans lui l'appareil repond 0x6a80 au lieu d'afficher les champs. On ne bloque pas le

@@ -11,7 +11,16 @@ import { describe, expect, it } from "vitest";
 import { encodeUniversalRouterExactInSingle } from "../vendor/guard/src/encode.js";
 import { decodeUniversalRouterCalldata } from "../vendor/guard/src/calldata.js";
 import { poolId } from "../vendor/guard/src/poolkey.js";
-import { ACTES, TAILLE_WEI, lirePorte, TABLE, USDC_BASE, ADRESSE_NULLE } from "../src/corpus.js";
+import {
+  ACTES,
+  ACTES_DE_LA_DEMO,
+  TAILLE_WEI,
+  distribution,
+  lirePorte,
+  TABLE,
+  USDC_BASE,
+  ADRESSE_NULLE,
+} from "../src/corpus.js";
 import { construireMessage, champTake } from "../src/message.js";
 import { TARE_GUARD_TYPES, TARE_GUARD_PRIMARY_TYPE } from "../vendor/guard/src/ledger.js";
 
@@ -32,7 +41,7 @@ function construire(porte: (typeof ACTES)["stop"]["porte"], plancher = 1n) {
 }
 
 describe("le calldata construit se relit avec le decodeur du depot", () => {
-  for (const nom of ["stop", "substitution"] as const) {
+  for (const nom of ["stop", "substitution", "queue"] as const) {
     it(`acte ${nom} : PoolKey, hook, sens et taille retrouves a l'identique`, () => {
       const porte = ACTES[nom].porte;
       const data = construire(porte);
@@ -68,7 +77,7 @@ describe("le calldata construit se relit avec le decodeur du depot", () => {
   });
 
   it("le poolId rendu est bien keccak(abi.encode(PoolKey)) — pas une chaine recopiee", () => {
-    for (const nom of ["stop", "substitution"] as const) {
+    for (const nom of ["stop", "substitution", "queue"] as const) {
       const p = ACTES[nom].porte;
       expect(poolId(p.pool_key)).toBe(p.pool_id);
     }
@@ -97,7 +106,7 @@ describe("le corpus, et rien que lui", () => {
   it("les deux actes tirent leurs nombres de la table du bloc 50 614 000", () => {
     expect(TABLE.block_number).toBe(50614000);
     expect(TABLE.chain_id).toBe(8453);
-    for (const nom of ["stop", "substitution"] as const) {
+    for (const nom of ["stop", "substitution", "queue"] as const) {
       const p = ACTES[nom].porte;
       expect(p.block_number).toBe(50614000);
       const brut = TABLE.pools[p.pool_id]!.dirs[p.sens]!.find((x) => x.amount_in === p.taille_wei)!;
@@ -106,14 +115,42 @@ describe("le corpus, et rien que lui", () => {
     }
   });
 
-  it("acte stop : le hook annonce, le prelevement annonce, et aucune alternative", () => {
-    const p = ACTES.stop.porte;
+  it("acte stop : la MEME paire que la substitution, ETH -> USDC, et une meilleure porte existe", () => {
+    const a = ACTES.stop;
+    expect(a.porte.pool_id).toBe(ACTES.substitution.porte.pool_id);
+    expect(a.porte.monnaie_entree).toBe(ADRESSE_NULLE);
+    expect(a.porte.monnaie_sortie).toBe(USDC_BASE);
+    expect(a.porte.bps).toBe(4.0933);
+    expect(a.porte.sens).toBe("0->1");
+    expect(a.porte.taille_wei).toBe("1000000000000");
+    expect(a.meilleure_porte).not.toBeNull();
+    expect(a.meilleure_porte!.bps).toBe(0);
+    expect(a.etat).toBe("MEILLEURE_PORTE");
+    // l'acte ne dit plus « nulle part ou aller » : ce serait faux de cette porte-ci
+    expect(a.phrase).not.toMatch(/nowhere to go/i);
+    expect(a.phrase).toMatch(/4\.0933 bps/);
+    expect(a.phrase).toMatch(/Another gate/);
+    expect(a.phrase).toMatch(/a refusal on the device sends nothing/);
+  });
+
+  it("acte stop : le verdict vient des centiles du corpus, pas du nom de l'acte", () => {
+    // 4,0933 bps est sous le 90e centile (119,7604) : ecrire BLOCK serait inventer une gravite
+    expect(ACTES.stop.verdict).toBe("ok");
+    expect(ACTES.queue.verdict).toBe("block"); // 9999,53 > 99e centile (300)
+  });
+
+  it("acte queue : la ligne extreme reste accessible, et elle est la meme qu'avant", () => {
+    const p = ACTES.queue.porte;
     expect(p.hook).toBe("0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc");
     expect(p.bps).not.toBeNull();
     expect(p.bps!.toFixed(2)).toBe("9999.53");
-    expect(p.taille_wei).toBe("1000000000000");
-    expect(ACTES.stop.meilleure_porte).toBeNull();
-    expect(ACTES.stop.etat).toBe("PORTE_UNIQUE");
+    expect(p.sens).toBe("1->0");
+    expect(ACTES.queue.etat).toBe("PORTE_UNIQUE");
+    // elle n'ouvre plus la demonstration
+    expect(ACTES_DE_LA_DEMO).toEqual(["stop", "substitution"]);
+    expect(ACTES_DE_LA_DEMO).not.toContain("queue");
+    // et sa phrase la remet a sa place, avec le compte
+    expect(ACTES.queue.phrase).toMatch(/54 of 63156 measured lines exceed 5000 bps/);
   });
 
   it("acte substitution : ETH -> USDC, 4.0933 bps contre 0 bps, meme sens et meme taille", () => {
@@ -135,7 +172,7 @@ describe("le corpus, et rien que lui", () => {
     const p = lirePorte(ACTES.substitution.porte.pool_id, "1->0", TAILLE_WEI);
     expect(p.bps).toBeNull();
     expect(p.motif).not.toBeNull();
-    expect(champTake(p)).toBe("non mesure — ce n'est pas zero");
+    expect(champTake(p)).toBe("not measured — this is not zero");
   });
 });
 
@@ -156,16 +193,25 @@ describe("le message EIP-712", () => {
     ]);
   });
 
-  it("acte stop : verdict BLOCK et le prelevement du corpus a l'ecran", () => {
+  it("acte stop : le verdict affiche est celui du corpus, et les deux portes sont montrees", () => {
     const m = construireMessage("stop");
     const msg = m.typed.message as Record<string, unknown>;
-    expect(msg.verdict).toBe("BLOCK");
+    expect(msg.verdict).toBe("OK"); // gradue par les centiles, pas par le nom de l'acte
     expect(msg.measuredAtBlock).toBe(50614000);
+    const swaps = msg.swaps as Array<Record<string, string>>;
+    expect(swaps).toHaveLength(2);
+    expect(swaps[0]!.take).toBe("4.09 bps");
+    expect(swaps[1]!.take).toBe("0.00 bps");
+    expect(String(msg.promptDigest)).toMatch(/^0x[0-9a-f]{64}$/);
+  });
+
+  it("acte queue : l'extreme s'affiche toujours, avec son verdict BLOCK", () => {
+    const msg = construireMessage("queue").typed.message as Record<string, unknown>;
+    expect(msg.verdict).toBe("BLOCK");
     const swaps = msg.swaps as Array<Record<string, string>>;
     expect(swaps).toHaveLength(1);
     expect(swaps[0]!.take).toBe("9999.53 bps");
     expect(swaps[0]!.hook).toBe("0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc");
-    expect(String(msg.promptDigest)).toMatch(/^0x[0-9a-f]{64}$/);
   });
 
   it("acte substitution : les deux portes sont affichees, l'actuelle puis la proposee", () => {
@@ -198,6 +244,32 @@ describe("le message EIP-712", () => {
     expect((msg.swaps as unknown[])).toHaveLength(1);
   });
 
+  it("TOUT ce que l'appareil affiche est en anglais — c'est l'objet que le jury fixe", () => {
+    // Les mots francais qui trainaient avant : « mesures », « chaine », « moteur »,
+    // « en entree », « aucun », « retard », « prend », « a ta taille ».
+    const FRANCAIS = /\b(mesures?|chaine|moteur|en entree|aucun|retard nul|prend|a ta taille|ce n'est pas zero|nulle part)\b/i;
+    for (const nom of ["stop", "substitution", "queue"] as const) {
+      const m = construireMessage(nom);
+      const msg = m.typed.message as Record<string, unknown>;
+      for (const [champ, v] of Object.entries(msg)) {
+        if (typeof v === "string") expect(v, `${nom}.${champ}`).not.toMatch(FRANCAIS);
+      }
+      for (const sw of msg.swaps as Array<Record<string, string>>) {
+        for (const [champ, v] of Object.entries(sw)) expect(v, `${nom}.swaps.${champ}`).not.toMatch(FRANCAIS);
+      }
+      expect(m.texte, `${nom}.texte`).not.toMatch(FRANCAIS);
+    }
+  });
+
+  it("promptDigest est le keccak256 du texte rendu — pas d'une phrase qu'on n'affiche plus", async () => {
+    const { keccak256, toHex } = await import("../vendor/guard/src/keccak.js");
+    for (const nom of ["stop", "substitution", "queue"] as const) {
+      const m = construireMessage(nom);
+      const attendu = toHex(keccak256(new TextEncoder().encode(m.texte)));
+      expect((m.typed.message as Record<string, unknown>).promptDigest, nom).toBe(attendu);
+    }
+  });
+
   it("un hook qui n'est pas une adresse est refuse, pas corrige en silence", () => {
     expect(() => construireMessage({ swaps: [{ hook: "pas-une-adresse", poolId: "0x" + "00".repeat(32) }] })).toThrow(
       /hook n'est pas une adresse/,
@@ -214,8 +286,67 @@ describe("la transaction rendue", () => {
     expect(ACTES.substitution.porte.native).toBe(true);
   });
 
-  it("acte stop : la monnaie d'entree est un ERC-20, donc value vaut 0x0", () => {
-    expect(ACTES.stop.porte.native).toBe(false);
-    expect(ACTES.stop.porte.monnaie_entree).toBe("0xdc4f058c103f3879fea72d0fc86eded309f43b07");
+  it("acte stop : la monnaie d'entree est l'ETH natif, comme la substitution", () => {
+    expect(ACTES.stop.porte.native).toBe(true);
+  });
+
+  it("acte queue : la monnaie d'entree est un ERC-20, donc value vaudra 0x0", () => {
+    expect(ACTES.queue.porte.native).toBe(false);
+    expect(ACTES.queue.porte.monnaie_entree).toBe("0xdc4f058c103f3879fea72d0fc86eded309f43b07");
+  });
+});
+
+describe("la distribution du corpus — calculee, jamais recopiee", () => {
+  const d = distribution();
+
+  it("porte sur les 63 156 lignes MESUREES qui ont une valeur", () => {
+    expect(d.n).toBe(63156);
+    expect(d.n).toBe(TABLE.seuils!.derives_de);
+    expect(d.n_mesures_table).toBe(125072);
+  });
+
+  it("ses centiles sont EXACTEMENT ceux que la table publie — pas un second jeu de chiffres", () => {
+    const c = TABLE.seuils!.centiles;
+    expect(d.mediane_bps).toBe(c.p50);
+    expect(d.p75_bps).toBe(c.p75);
+    expect(d.p90_bps).toBe(c.p90);
+    expect(d.p95_bps).toBe(c.p95);
+    expect(d.p99_bps).toBe(c.p99);
+    expect(d.p99_9_bps).toBe(c.p99_9);
+  });
+
+  it("la mediane vaut 100,00 bps et la moyenne lui est INFERIEURE", () => {
+    expect(d.mediane_bps.toFixed(2)).toBe("100.00");
+    expect(d.moyenne_bps.toFixed(2)).toBe("97.17");
+    expect(d.moyenne_bps).toBeLessThan(d.mediane_bps);
+  });
+
+  it("les parts au-dessus des seuils ronds", () => {
+    expect(d.part_au_dessus_de_5_bps.toFixed(2)).toBe("90.28");
+    expect(d.part_au_dessus_de_50_bps.toFixed(2)).toBe("74.93");
+    expect(d.part_au_dessus_de_100_bps.toFixed(2)).toBe("22.93");
+    expect(d.part_au_dessus_de_1000_bps.toFixed(2)).toBe("0.30");
+    expect(d.part_au_dessus_de_5000_bps.toFixed(2)).toBe("0.09");
+    expect(d.part_a_zero_bps.toFixed(2)).toBe("6.65");
+  });
+
+  it("le nombre qui remet le cas extreme a sa place : 54 lignes au-dessus de 5 000 bps", () => {
+    expect(d.n_au_dessus_de_5000_bps).toBe(54);
+    expect(d.n_au_dessus_de_1000_bps).toBe(191);
+    expect(d.max_bps).toBe(9999.5279);
+    // et c'est bien la ligne de l'acte « queue »
+    expect(ACTES.queue.porte.bps).toBe(d.max_bps);
+  });
+
+  it("le minimum est NEGATIF : un hook peut rendre plus que le pool n'aurait rendu", () => {
+    expect(d.min_bps).toBe(-100);
+    expect(d.n_negatives).toBe(51);
+  });
+
+  it("les seuils publies sont ceux de la table, pas les replis ecrits", () => {
+    expect(d.seuils.source).toBe("table");
+    expect(d.seuils.warn_bps).toBe(119.7604);
+    expect(d.seuils.block_bps).toBe(300);
+    expect(d.seuils.derives_de).toBe(63156);
   });
 });

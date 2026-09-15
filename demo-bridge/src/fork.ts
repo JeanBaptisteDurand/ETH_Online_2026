@@ -24,6 +24,13 @@ export const RPC_PUBLIC = process.env.DEMO_RPC_PUBLIC ?? "https://tare-hooks.tec
 /** Le meme fork par son sous-domaine dedie — joignable seulement une fois le DNS pose. */
 export const RPC_SOUS_DOMAINE = process.env.DEMO_RPC_SOUS_DOMAINE ?? "https://rpc.tare-hooks.tech";
 
+/**
+ * LE BLOC EPINGLE. C'est celui du corpus, et c'est l'etat auquel tout rembobinage doit
+ * ramener : un bandeau qui annonce 50 614 001 dit que les chiffres montres ne sont plus ceux
+ * qui ont ete mesures.
+ */
+export const BLOC_EPINGLE = Number(process.env.DEMO_BLOC ?? 50614000);
+
 export class ErreurFork extends Error {}
 
 let compteur = 1;

@@ -20,8 +20,11 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import {
   ACTES,
+  ACTES_DE_LA_DEMO,
   CORPUS,
   DIVERGENCES,
+  EST_ACTE,
+  distribution,
   USDC_BASE,
   type NomActe,
   type Porte,
@@ -35,17 +38,21 @@ import {
   revert,
   setBalance,
   snapshot,
+  BLOC_EPINGLE,
   RPC_PUBLIC,
   RPC_SOUS_DOMAINE,
 } from "./fork.js";
 import { construireTransaction } from "./transaction.js";
-import { construireMessage } from "./message.js";
+import { construireMessage, messageDeActe } from "./message.js";
 import {
   estRefus,
   joignable,
   ecran,
   signer,
   activerRawMessages,
+  occupationAppareil,
+  AppareilOccupe,
+  AppareilIndisponible,
   SPECULOS_URL,
   CHEMIN_BIP32,
 } from "./ledger.js";
@@ -80,8 +87,62 @@ const SURFACES = {
   ecran_sous_domaine: "https://speculos.tare-hooks.tech",
 } as const;
 
-/** L'unique etat mutable du service : le dernier snapshot pris. */
-let dernierSnapshot: string | null = null;
+/**
+ * L'ETAT DE BASE DU FORK, ET POURQUOI IL N'Y EN A QU'UN.
+ *
+ * `/demo/preparer` reprenait un `evm_snapshot` A CHAQUE APPEL. Consequence mesuree : preparer
+ * APRES avoir envoye une transaction epinglait l'etat d'APRES, et « rembobiner » ramenait au
+ * bloc 50 614 001, puis 50 614 002 — le bandeau annoncait alors un bloc qui n'est pas celui du
+ * corpus, et les chiffres montres n'etaient plus ceux qui ont ete mesures.
+ *
+ * Il n'y a donc plus qu'UN snapshot : celui du bloc epingle, pris une seule fois. Preparer n'y
+ * touche pas. Rembobiner y retourne, toujours.
+ *
+ * DEUX SUBTILITES D'ANVIL, apprises en les heurtant :
+ *  - `evm_revert` CONSOMME le snapshot rendu (et invalide tous ceux pris apres). On en reprend
+ *    donc un immediatement, sinon le second rembobinage echouerait ;
+ *  - `anvil_setBalance` ne mine pas de bloc. On peut donc re-crediter apres un retour sans
+ *    faire avancer la chaine — et il FAUT le faire, sinon le retour a l'etat epingle reprendrait
+ *    a l'utilisateur les 10 ETH qu'on vient de lui donner.
+ */
+let snapshotBase: string | null = null;
+let blocDeBase: number | null = null;
+let motifBase: string | null = null;
+/** Les adresses creditees, re-creditees apres chaque retour pour que la demo se rejoue. */
+const adressesCreditees = new Set<string>();
+
+async function assurerBase(): Promise<void> {
+  if (snapshotBase) return;
+  const b = await blockNumber();
+  snapshotBase = await snapshot();
+  blocDeBase = b;
+  motifBase =
+    b === BLOC_EPINGLE
+      ? null
+      : `le fork etait au bloc ${b} et non ${BLOC_EPINGLE} au moment ou l'etat de base a ete pris : ` +
+        `un rembobinage ramenera a ${b}. Redemarre tare-demo-anvil pour repartir du bloc du corpus.`;
+  if (motifBase) console.log(`[demo-bridge] ATTENTION ${motifBase}`);
+  else console.log(`[demo-bridge] etat de base pris au bloc ${b} (snapshot ${snapshotBase})`);
+}
+
+/** Le retour a l'etat de base. Rend le bloc atteint, qui doit etre celui du corpus. */
+async function rembobiner(): Promise<{ block_number: number; snapshot: string }> {
+  if (!snapshotBase) await assurerBase();
+  const ok = await revert(snapshotBase!);
+  if (!ok) {
+    // le snapshot n'existe plus : anvil a redemarre, et son etat vit en RAM
+    snapshotBase = null;
+    await assurerBase();
+    throw new ErreurFork(
+      `snapshot_perdu: l'etat de base n'existe plus sur le fork (anvil a redemarre ?). ` +
+        `Un nouvel etat de base vient d'etre pris au bloc ${blocDeBase}.`,
+    );
+  }
+  // re-crediter AVANT de reprendre la base, pour que la base porte les fonds
+  for (const a of adressesCreditees) await setBalance(a, DOTATION_WEI);
+  snapshotBase = await snapshot();
+  return { block_number: await blockNumber(), snapshot: snapshotBase };
+}
 
 const app = new Hono();
 
@@ -141,9 +202,20 @@ app.get("/demo/etat", async (c) => {
       api: SPECULOS_URL,
       ecran_public: SURFACES.ecran,
       ecran_sous_domaine: SURFACES.ecran_sous_domaine,
+      /** non nul quand une demande occupe deja l'appareil : Speculos n'a qu'une session APDU */
+      occupe: occupationAppareil(),
     },
     surfaces: SURFACES,
-    snapshot: dernierSnapshot,
+    snapshot: snapshotBase,
+    /** l'etat de base : le bloc auquel /demo/revenir ramene, quoi qu'on ait fait avant */
+    base: {
+      snapshot: snapshotBase,
+      block_number: blocDeBase,
+      bloc_epingle: BLOC_EPINGLE,
+      conforme: blocDeBase === BLOC_EPINGLE,
+      motif: motifBase,
+      adresses_creditees: [...adressesCreditees],
+    },
     corpus: CORPUS,
     actes: Object.fromEntries(
       (Object.keys(ACTES) as NomActe[]).map((n) => [
@@ -153,10 +225,19 @@ app.get("/demo/etat", async (c) => {
           meilleure_porte: ACTES[n].meilleure_porte ? porteRendue(ACTES[n].meilleure_porte!) : null,
           economie_bps: ACTES[n].economie_bps,
           etat: ACTES[n].etat,
+          verdict: ACTES[n].verdict,
           phrase: ACTES[n].phrase,
         },
       ]),
     ),
+    /** Les actes que la demo joue, dans l'ordre. « queue » n'y est pas : elle se demande. */
+    actes_de_la_demo: ACTES_DE_LA_DEMO,
+    /**
+     * LA FORME DU CORPUS. Elle est publiee pour qu'aucun chiffre montre ne puisse passer pour
+     * le milieu alors qu'il est le bout de la queue — l'erreur que cette demo a failli faire
+     * en s'ouvrant sur 9 999,53 bps. Tout y est CALCULE depuis la table, rien n'y est ecrit.
+     */
+    distribution: distribution(),
     divergences: DIVERGENCES,
   });
 });
@@ -175,18 +256,30 @@ app.post("/demo/preparer", async (c) => {
   if (!ADRESSE.test(adresse)) {
     return c.json({ erreur: "adresse_invalide", motif: `« ${String(corps.adresse)} » n'est pas une adresse 0x + 40` }, 400);
   }
-  if (acteNom !== "stop" && acteNom !== "substitution") {
-    return c.json({ erreur: "acte_inconnu", motif: `acte attendu : "stop" ou "substitution", recu « ${acteNom} »` }, 400);
+  if (!EST_ACTE(acteNom)) {
+    return c.json(
+      {
+        erreur: "acte_inconnu",
+        motif: `acte attendu : "stop", "substitution" ou "queue", recu « ${acteNom} »`,
+        actes: Object.keys(ACTES),
+      },
+      400,
+    );
   }
   const acte = ACTES[acteNom as NomActe];
 
   try {
+    // L'etat de base est pris UNE fois, au bloc epingle. Preparer n'y touche pas : sinon
+    // « rembobiner » ramenerait a l'etat d'apres l'envoi, et le bandeau afficherait un
+    // bloc qui n'est pas celui du corpus.
+    await assurerBase();
+    adressesCreditees.add(adresse);
     await setBalance(adresse, DOTATION_WEI);
-    dernierSnapshot = await snapshot();
   } catch (e) {
     return c.json({ erreur: "fork_indisponible", motif: (e as Error).message }, 502);
   }
 
+  const msg = messageDeActe(acteNom);
   const construite = await construireTransaction(acte.porte);
   const soldes = await soldesDe(adresse);
 
@@ -195,12 +288,22 @@ app.post("/demo/preparer", async (c) => {
   const remplacement = acte.meilleure_porte ? await construireTransaction(acte.meilleure_porte) : null;
 
   return c.json({
-    snapshot: dernierSnapshot,
+    snapshot: snapshotBase,
+    /** l'etat de base : le bloc auquel /demo/revenir ramene, quoi qu'on ait fait avant */
+    base: {
+      snapshot: snapshotBase,
+      block_number: blocDeBase,
+      bloc_epingle: BLOC_EPINGLE,
+      conforme: blocDeBase === BLOC_EPINGLE,
+      motif: motifBase,
+      adresses_creditees: [...adressesCreditees],
+    },
     transaction: construite.transaction,
     porte: porteRendue(acte.porte),
     soldes: { eth_wei: soldes.eth_wei, usdc: soldes.usdc },
     // au-dela du contrat :
     acte: acteNom,
+    verdict: acte.verdict,
     etat_transaction: construite.etat,
     motif: construite.motif,
     cotation: construite.cotation,
@@ -213,6 +316,12 @@ app.post("/demo/preparer", async (c) => {
     etat_alternative: acte.etat,
     phrase: acte.phrase,
     transaction_remplacement: remplacement?.transaction ?? null,
+    // LE MESSAGE QUE L'APPAREIL AFFICHERA, rendu AVANT la signature. La page peut donc montrer
+    // exactement les memes champs et la MEME empreinte que l'appareil — `promptDigest` est le
+    // keccak256 de `texte_signe`, et les deux sont ici pour qu'on puisse le refaire a la main.
+    message: msg.typed.message,
+    texte_signe: msg.texte,
+    prompt_digest: (msg.typed.message as Record<string, unknown>).promptDigest,
     corpus: CORPUS,
   });
 });
@@ -255,24 +364,45 @@ app.post("/demo/approuver", async (c) => {
       message: message.typed.message,
     });
   } catch (e) {
-    return c.json({ erreur: "appareil", motif: (e as Error).message }, 502);
+    // Deux demandes qui se chevauchent verraient leurs reponses APDU se croiser : on refuse
+    // la seconde tout de suite, avec un nom, plutot que de rendre des octets qui n'en sont pas.
+    if (e instanceof AppareilOccupe) {
+      return c.json(
+        {
+          erreur: "appareil_occupe",
+          motif: "The device is already handling another request. Nothing was signed and nothing was sent.",
+          detail: e.message,
+          occupe: occupationAppareil(),
+        },
+        409,
+      );
+    }
+    // L'appareil n'a pas pu OUVRIR la demande (0x6a00, 0x6a80 non rattrapes). Ce n'est ni un
+    // refus humain — on ne met donc pas de code numerique, que la page lirait comme un 4001 —
+    // ni une panne du pont. On le dit en toutes lettres, et on redit que rien n'est parti.
+    if (e instanceof AppareilIndisponible) {
+      return c.json({ erreur: "appareil_indisponible", motif: e.message, rien_envoye: true }, 409);
+    }
+    return c.json({ erreur: "appareil", motif: (e as Error).message, rien_envoye: true }, 502);
   }
 });
 
 /* ----------------------------------------------------------------- 4. revenir */
 
 app.post("/demo/revenir", async (c) => {
-  if (!dernierSnapshot) {
-    return c.json({ ok: false, motif: "aucun_snapshot: appelle /demo/preparer d'abord" }, 409);
-  }
   try {
-    const ok = await revert(dernierSnapshot);
-    if (!ok) {
-      return c.json({ ok: false, motif: `snapshot_refuse: ${dernierSnapshot} n'existe plus sur le fork` }, 409);
-    }
-    // anvil consomme le snapshot rendu : on en reprend un tout de suite, pour pouvoir rejouer.
-    dernierSnapshot = await snapshot();
-    return c.json({ ok: true, block_number: await blockNumber(), snapshot: dernierSnapshot });
+    const r = await rembobiner();
+    const conforme = r.block_number === BLOC_EPINGLE;
+    return c.json({
+      ok: true,
+      block_number: r.block_number,
+      // au-dela du contrat : de quoi verifier d'un coup d'oeil que le bandeau ne ment pas
+      snapshot: r.snapshot,
+      bloc_epingle: BLOC_EPINGLE,
+      conforme,
+      motif: conforme ? null : motifBase,
+      adresses_recreditees: [...adressesCreditees],
+    });
   } catch (e) {
     const code = e instanceof ErreurFork ? 502 : 500;
     return c.json({ ok: false, motif: (e as Error).message }, code);
@@ -305,6 +435,30 @@ app.post("/demo/speculos/raw", async (c) => {
   return c.json({ ok, etat: r.etat, ecrans: r.ecrans }, ok ? 200 : 503);
 });
 
+/**
+ * LE MESSAGE SIGNABLE, SANS SIGNER.
+ *
+ * La page l'affiche champ par champ a cote de l'ecran de l'appareil. `prompt_digest` est le
+ * keccak256 de `texte_signe` : les deux sont rendus pour que l'empreinte montree par la page
+ * et celle affichee par l'appareil soient le MEME nombre, verifiable a la main.
+ */
+app.get("/demo/message", (c) => {
+  const n = String(c.req.query("acte") ?? "stop");
+  if (!EST_ACTE(n)) {
+    return c.json({ erreur: "acte_inconnu", motif: `acte attendu : ${Object.keys(ACTES).join(", ")}` }, 400);
+  }
+  const m = messageDeActe(n);
+  return c.json({
+    acte: n,
+    primaryType: m.typed.primaryType,
+    domain: m.typed.domain,
+    types: m.typed.types,
+    message: m.typed.message,
+    texte_signe: m.texte,
+    prompt_digest: (m.typed.message as Record<string, unknown>).promptDigest,
+  });
+});
+
 app.get("/demo/sante", (c) => c.json({ ok: true, service: "tare-demo-bridge", port: PORT }));
 
 app.notFound((c) => c.json({ erreur: "route_inconnue", routes: ["/demo/etat", "/demo/preparer", "/demo/approuver", "/demo/revenir", "/demo/soldes"] }, 404));
@@ -318,16 +472,35 @@ serve({ fetch: app.fetch, hostname: HOTE, port: PORT }, (info) => {
   console.log(`[demo-bridge] origines CORS : ${ORIGINES.join(", ")}`);
   console.log(`[demo-bridge] RPC annonce a la page : ${SURFACES.rpc} (sous-domaine : ${SURFACES.rpc_sous_domaine})`);
 
+  // L'ETAT DE BASE EST PRIS TOUT DE SUITE, pas au premier /demo/preparer. Si quelqu'un envoie
+  // une transaction avant d'avoir prepare, la base serait sinon celle d'APRES l'envoi, et
+  // « rembobiner » ne ramenerait jamais au bloc du corpus.
+  void assurerBase().catch((e) =>
+    console.log(`[demo-bridge] etat de base impossible a prendre : ${(e as Error).message}`),
+  );
+
   // AU DEMARRAGE, ON REJOUE « Raw messages ». Le reglage vit en RAM du conteneur Speculos ;
   // sans lui l'appareil repond 0x6a80 au lieu d'afficher les champs. On ne bloque pas le
   // demarrage dessus — le service doit repondre meme si l'appareil est absent — et on ne
   // touche a rien si l'appareil est occupe.
+  //
+  // ET IL REESSAIE, parce que OCCUPE n'est pas une reponse definitive : l'appareil peut etre
+  // en pleine signature au moment du redemarrage (constate — un test de la page tournait), et
+  // abandonner la laisserait sans reglage pour la suite. Cinq essais espaces de 20 s, puis on
+  // arrete : le rattrapage sur 0x6a80 et la veille docker restent derriere.
   if (process.env.DEMO_SANS_AMORCAGE !== "1") {
-    setTimeout(() => {
-      void activerRawMessages()
-        .then((r) => console.log(`[demo-bridge] amorcage « Raw messages » : ${r.etat}`))
-        .catch((e) => console.log(`[demo-bridge] amorcage « Raw messages » impossible : ${(e as Error).message}`));
-    }, 1500);
+    const amorcer = async (essai: number): Promise<void> => {
+      try {
+        const r = await activerRawMessages();
+        console.log(`[demo-bridge] amorcage « Raw messages » (essai ${essai}) : ${r.etat}`);
+        if (r.etat === "ACTIVE" || r.etat === "DEJA_ACTIVE") return;
+      } catch (e) {
+        console.log(`[demo-bridge] amorcage « Raw messages » (essai ${essai}) impossible : ${(e as Error).message}`);
+      }
+      if (essai < 5) setTimeout(() => void amorcer(essai + 1), 20000);
+      else console.log("[demo-bridge] amorcage abandonne — le rattrapage sur 0x6a80 prendra le relais");
+    };
+    setTimeout(() => void amorcer(1), 1500);
   }
 });
 

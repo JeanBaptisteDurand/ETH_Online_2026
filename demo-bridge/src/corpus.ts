@@ -17,6 +17,7 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { assertTable, consult, type GuardTable, type TablePool } from "../vendor/guard/src/table.js";
+import { gradeBps, thresholdsFor } from "../vendor/guard/src/verdict.js";
 import { poolId as calculerPoolId } from "../vendor/guard/src/poolkey.js";
 import type { PoolKey } from "../vendor/guard/src/types.js";
 
@@ -42,17 +43,28 @@ export const TAILLE_WEI = "1000000000000";
  * publiee.
  */
 const REFERENCES = {
+  /**
+   * L'ACTE D'OUVERTURE. La MEME paire que la substitution : ETH -> USDC, la porte que
+   * n'importe qui emprunte.
+   *
+   * POURQUOI IL A CHANGE. Il visait un hook a 9 999,53 bps sur un ERC-20 obscur — UNE ligne
+   * sur 125 072. Ouvrir sur elle, c'est presenter l'exception comme la norme, et c'est
+   * exactement ce que ce projet reproche aux autres. L'exception reste accessible sous le nom
+   * « queue », pour qui la demande ; elle n'ouvre plus la demonstration.
+   *
+   * CE QU'IL DEMONTRE MAINTENANT : personne ne pouvait connaitre ce prelevement avant de
+   * signer, et refuser sur l'appareil n'envoie rien.
+   */
   stop: {
-    /** Le pool du corpus qui porte le hook et le prelevement annonces. */
     pool_id:
       process.env.DEMO_STOP_POOL ??
-      "0xdc3539d6012cafa36bb679c3b268ce1aed33d5dbce7fc170f7730686886c135d",
-    hook_annonce: "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
-    bps_annonce: 9999.53,
-    sens: "1->0" as Sens,
-    /** Ce que le brief donnait comme pool. Verifie a l'amorcage, jamais servi tel quel. */
-    pool_id_annonce: "0x010d0023c9e072f62720b6627a13973b9505a3d80dccd59acdb2ca803826c538",
+      "0x2fcc6c5ff68b185fee2521a889a0a4e3c17dc7c981349b9ec68614a844ea9aff",
+    meilleure_pool_id:
+      process.env.DEMO_STOP_MEILLEURE ??
+      "0x0640a8b46f4a47061bb9e742de5551e1c52bcbfd8f662a5da57c6ebe664a5ff5",
+    sens: "0->1" as Sens,
   },
+  /** La meme porte, et le calldata de remplacement qui va avec. */
   substitution: {
     pool_id:
       process.env.DEMO_SUBST_POOL ??
@@ -60,13 +72,29 @@ const REFERENCES = {
     meilleure_pool_id:
       process.env.DEMO_SUBST_MEILLEURE ??
       "0x0640a8b46f4a47061bb9e742de5551e1c52bcbfd8f662a5da57c6ebe664a5ff5",
-    bps_annonce: 4.0933,
-    meilleure_bps_annonce: 0,
     sens: "0->1" as Sens,
+  },
+  /**
+   * LA QUEUE DE LA DISTRIBUTION, gardee accessible et rien de plus.
+   *
+   * 9 999,53 bps, le maximum du corpus : 54 lignes sur 63 156 depassent 5 000 bps, soit
+   * 0,09 %. On la montre si un juge la demande, en disant ce qu'elle est — le bout de la
+   * queue, pas le milieu. Le `pool_id` annonce par le brief pour ce cas etait faux : voir
+   * `divergences`, publie par /demo/etat.
+   */
+  queue: {
+    pool_id:
+      process.env.DEMO_QUEUE_POOL ??
+      "0xdc3539d6012cafa36bb679c3b268ce1aed33d5dbce7fc170f7730686886c135d",
+    hook_annonce: "0xb429d62f8f3bffb98cdb9569533ea23bf0ba28cc",
+    bps_annonce: 9999.53,
+    sens: "1->0" as Sens,
+    /** Ce que le brief donnait comme pool. Verifie a l'amorcage, jamais servi tel quel. */
+    pool_id_annonce: "0x010d0023c9e072f62720b6627a13973b9505a3d80dccd59acdb2ca803826c538",
   },
 } as const;
 
-export type NomActe = "stop" | "substitution";
+export type NomActe = "stop" | "substitution" | "queue";
 
 /** Une porte : un pool, un sens, une taille, et ce que le corpus en dit a ce point exact. */
 export interface Porte {
@@ -103,7 +131,9 @@ export interface Acte {
   /** l'ecart mesure entre les deux portes, en bps. null des qu'un cote n'est pas mesure. */
   economie_bps: number | null;
   /** l'etat nomme de la substitution, du vocabulaire d'alternative.ts */
-  etat: "MEILLEURE_PORTE" | "PORTE_UNIQUE";
+  etat: "MEILLEURE_PORTE" | "PORTE_UNIQUE" | "DEJA_LA_MEILLEURE";
+  /** le verdict du corpus pour CE prelevement, gradue par verdict.ts et ses centiles */
+  verdict: "ok" | "warn" | "block";
   /** la phrase a montrer, deja ecrite, sans nombre qui ne vienne pas du corpus */
   phrase: string;
 }
@@ -190,18 +220,129 @@ function arrondi2(x: number | null): string {
   return x === null ? "null" : x.toFixed(2);
 }
 
+/** Les seuils du corpus — les centiles de la table, jamais un chiffre rond ecrit a la main. */
+const SEUILS = thresholdsFor(TABLE);
+
+/**
+ * Le verdict de CE prelevement, gradue par `verdict.ts` du depot avec les centiles de la
+ * table : `warn` au 90e, `block` au 99e. On ne decide pas de la severite d'apres le NOM de
+ * l'acte — un acte appele « stop » dont la porte prend 4,09 bps ne merite pas `BLOCK`, et
+ * l'ecrire serait inventer une gravite que le corpus ne mesure pas.
+ */
+function verdictDeLaPorte(p: Porte): "ok" | "warn" | "block" {
+  if (p.bps === null) return "warn"; // non mesure n'est pas inoffensif, et n'est pas zero
+  return gradeBps(p.bps, SEUILS);
+}
+
+/** L'ecart entre deux portes, quand les deux sont mesurees. null des qu'un cote manque. */
+function economieEntre(a: Porte, b: Porte): number | null {
+  if (a.bps === null || b.bps === null) return null;
+  return Math.round((a.bps - b.bps) * 1e4) / 1e4;
+}
+
+function verifierComparables(a: Porte, b: Porte): void {
+  // Regles 2 et 3 d'alternative.ts : meme echange, meme sens, meme taille. On le VERIFIE.
+  if (a.monnaie_entree !== b.monnaie_entree || a.monnaie_sortie !== b.monnaie_sortie) {
+    throw new Error("portes_non_comparables: les deux pools ne font pas le meme echange");
+  }
+  if (a.sens !== b.sens || a.taille_wei !== b.taille_wei) {
+    throw new Error("portes_non_comparables: sens ou taille differents");
+  }
+}
+
+function bps4(p: Porte): string {
+  return p.bps === null ? `not measured (${p.etiquette})` : p.bps.toFixed(4);
+}
+
+/**
+ * L'acte d'ouverture : ETH -> USDC, la porte que n'importe qui emprunte.
+ *
+ * Il ne dit plus « il n'y a nulle part ou aller » — c'etait vrai de l'ancien pool extreme, pas
+ * de celui-ci. Il dit ce que la porte prend, il dit qu'une autre existe, et il laisse le choix
+ * ou il doit etre. Ce qu'il demontre tient en deux faits : ce prelevement n'etait connaissable
+ * nulle part avant la signature, et un refus sur l'appareil n'envoie rien.
+ */
 function construireStop(): Acte {
   const r = REFERENCES.stop;
   const porte = lirePorte(r.pool_id, r.sens, TAILLE_WEI);
-  verifier("stop", "hook", r.hook_annonce, porte.hook, "le hook servi est celui du corpus");
-  verifier("stop", "bps", r.bps_annonce.toFixed(2), arrondi2(porte.bps), "le bps servi est celui du corpus");
+  const meilleure = lirePorte(r.meilleure_pool_id, r.sens, TAILLE_WEI);
+  verifierComparables(porte, meilleure);
+  verifier("stop", "monnaie_entree", ADRESSE_NULLE, porte.monnaie_entree, "la monnaie servie est celle du corpus");
+  verifier("stop", "monnaie_sortie", USDC_BASE, porte.monnaie_sortie, "la monnaie servie est celle du corpus");
 
-  // Le pool annonce par le brief existe, mais il ne porte ni ce hook ni ce prelevement.
+  const economie = economieEntre(porte, meilleure);
+  const etat = economie !== null && economie > 0 ? "MEILLEURE_PORTE" : "DEJA_LA_MEILLEURE";
+  // EN ANGLAIS, comme tout ce que l'appareil affiche. C'est l'objet que le jury va fixer
+  // pendant trente secondes : un ecran en francais sur un site en anglais est une faute de
+  // presentation, et elle coute plus cher que n'importe quelle ligne de code.
+  const phrase =
+    porte.bps === null
+      ? `This gate is not measured at this size (${porte.etiquette}) — that is not zero, and nothing here decides for you.`
+      : `This gate takes ${bps4(porte)} bps on your ETH to USDC swap, at your size of ${TAILLE_WEI} wei, ` +
+        `measured at block ${porte.block_number}. That number was published nowhere before you signed. ` +
+        (economie !== null && economie > 0
+          ? `Another gate, measured at the same block, same direction and same size, takes ${bps4(meilleure)} bps: ` +
+            `${economie.toFixed(4)} bps apart. `
+          : "") +
+        `The choice is yours: sign it, substitute it, or refuse — and a refusal on the device sends nothing.`;
+
+  return {
+    nom: "stop",
+    porte,
+    meilleure_porte: meilleure,
+    economie_bps: economie,
+    etat,
+    verdict: verdictDeLaPorte(porte),
+    phrase,
+  };
+}
+
+/** La meme porte, et le calldata de remplacement qui va avec. */
+function construireSubstitution(): Acte {
+  const r = REFERENCES.substitution;
+  const porte = lirePorte(r.pool_id, r.sens, TAILLE_WEI);
+  const meilleure = lirePorte(r.meilleure_pool_id, r.sens, TAILLE_WEI);
+  verifierComparables(porte, meilleure);
+  verifier("substitution", "monnaie_sortie", USDC_BASE, porte.monnaie_sortie, "la monnaie servie est celle du corpus");
+  verifier("substitution", "monnaie_entree", ADRESSE_NULLE, porte.monnaie_entree, "la monnaie servie est celle du corpus");
+
+  const economie = economieEntre(porte, meilleure);
+  const etat = economie !== null && economie > 0 ? "MEILLEURE_PORTE" : "DEJA_LA_MEILLEURE";
+  const phrase =
+    economie === null
+      ? "One of the two gates is not measured at this size: no comparison is made, and nothing is proposed."
+      : `This gate takes ${bps4(porte)} bps at your size. Another gate, measured at the same block, same ` +
+        `direction and same size, takes ${bps4(meilleure)} bps: ${economie.toFixed(4)} bps apart. ` +
+        `The replacement calldata is handed to you — you sign it, or you do not.`;
+
+  return {
+    nom: "substitution",
+    porte,
+    meilleure_porte: meilleure,
+    economie_bps: economie,
+    etat,
+    verdict: verdictDeLaPorte(porte),
+    phrase,
+  };
+}
+
+/**
+ * LA QUEUE DE LA DISTRIBUTION. Le maximum du corpus, montre pour ce qu'il est.
+ *
+ * Il n'ouvre plus la demonstration : 54 lignes sur 63 156 depassent 5 000 bps. La phrase le
+ * dit avec son chiffre, pour qu'on ne puisse pas confondre le bout de la queue et le milieu.
+ */
+function construireQueue(): Acte {
+  const r = REFERENCES.queue;
+  const porte = lirePorte(r.pool_id, r.sens, TAILLE_WEI);
+  verifier("queue", "hook", r.hook_annonce, porte.hook, "le hook servi est celui du corpus");
+  verifier("queue", "bps", r.bps_annonce.toFixed(2), arrondi2(porte.bps), "le bps servi est celui du corpus");
+
   const annonce = TABLE.pools[r.pool_id_annonce.toLowerCase()];
   if (annonce && annonce.hook.toLowerCase() !== porte.hook) {
     const c = consult(TABLE, r.pool_id_annonce.toLowerCase(), annonce.hook, "0->1", TAILLE_WEI);
     divergences.push({
-      acte: "stop",
+      acte: "queue",
       champ: "pool_id",
       annonce: r.pool_id_annonce,
       corpus: porte.pool_id,
@@ -211,53 +352,146 @@ function construireStop(): Acte {
     });
   }
 
+  const d = distribution();
   const phrase =
     porte.bps === null
-      ? `Le hook ${porte.hook.slice(0, 10)}… n'est pas mesure sur ce pool a cette taille (${porte.etiquette}) — ce n'est pas zero.`
-      : `Le hook ${porte.hook.slice(0, 10)}… prend ${porte.bps.toFixed(2)} bps (${(porte.bps / 100).toFixed(2)} %) ` +
-        `a ta taille de ${TAILLE_WEI} wei, mesure au bloc ${porte.block_number}. Aucun autre pool du corpus ne fait cet echange : ` +
-        `il n'y a nulle part ou aller, et la seule reponse est de ne pas signer.`;
+      ? `This pool is not measured at this size (${porte.etiquette}) — that is not zero.`
+      : `Hook ${porte.hook.slice(0, 10)}... takes ${porte.bps.toFixed(2)} bps (${(porte.bps / 100).toFixed(2)} %) ` +
+        `at your size of ${TAILLE_WEI} wei, measured at block ${porte.block_number}. This is the MAXIMUM of the ` +
+        `corpus, and it has to be named as such: ${d.n_au_dessus_de_5000_bps} of ${d.n} measured lines exceed ` +
+        `5000 bps, that is ${d.part_au_dessus_de_5000_bps.toFixed(2)} %. The median is ` +
+        `${d.mediane_bps.toFixed(2)} bps. This case is the tail, not the middle.`;
 
-  return { nom: "stop", porte, meilleure_porte: null, economie_bps: null, etat: "PORTE_UNIQUE", phrase };
+  return {
+    nom: "queue",
+    porte,
+    meilleure_porte: null,
+    economie_bps: null,
+    etat: "PORTE_UNIQUE",
+    verdict: verdictDeLaPorte(porte),
+    phrase,
+  };
 }
 
-function construireSubstitution(): Acte {
-  const r = REFERENCES.substitution;
-  const porte = lirePorte(r.pool_id, r.sens, TAILLE_WEI);
-  const meilleure = lirePorte(r.meilleure_pool_id, r.sens, TAILLE_WEI);
-  verifier("substitution", "bps", r.bps_annonce.toFixed(4), porte.bps === null ? "null" : porte.bps.toFixed(4), "le bps servi est celui du corpus");
-  verifier(
-    "substitution",
-    "meilleure_bps",
-    r.meilleure_bps_annonce.toFixed(4),
-    meilleure.bps === null ? "null" : meilleure.bps.toFixed(4),
-    "le bps servi est celui du corpus",
-  );
-  verifier("substitution", "monnaie_sortie", USDC_BASE, porte.monnaie_sortie, "la monnaie servie est celle du corpus");
-  verifier("substitution", "monnaie_entree", ADRESSE_NULLE, porte.monnaie_entree, "la monnaie servie est celle du corpus");
-  // La comparaison n'a de sens qu'a monnaies, sens et taille identiques — regle 2 et 3
-  // d'alternative.ts. On le VERIFIE, on ne le suppose pas.
-  if (porte.monnaie_entree !== meilleure.monnaie_entree || porte.monnaie_sortie !== meilleure.monnaie_sortie) {
-    throw new Error("portes_non_comparables: les deux pools ne font pas le meme echange");
-  }
+/* ------------------------------------------------- la forme du corpus, pas une anecdote */
 
-  const economie =
-    porte.bps === null || meilleure.bps === null ? null : Math.round((porte.bps - meilleure.bps) * 1e4) / 1e4;
-  const etat = economie !== null && economie > 0 ? "MEILLEURE_PORTE" : "PORTE_UNIQUE";
-  const phrase =
-    economie === null
-      ? "L'une des deux portes n'est pas mesuree a cette taille : on ne compare pas, et on ne propose rien."
-      : `Cette porte prend ${porte.bps!.toFixed(4)} bps a ta taille. Une autre porte, mesuree au meme bloc, au meme sens ` +
-        `et a la meme taille, prend ${meilleure.bps!.toFixed(4)} bps : ${economie.toFixed(4)} bps d'ecart. ` +
-        `C'est le calldata de remplacement qui t'est rendu — c'est toi qui signes, ou pas.`;
+export interface Distribution {
+  /** le nombre de lignes MESUREES portant une valeur ; les autres n'en ont pas */
+  n: number;
+  n_mesures_table: number;
+  mediane_bps: number;
+  moyenne_bps: number;
+  p75_bps: number;
+  p90_bps: number;
+  p95_bps: number;
+  p99_bps: number;
+  p99_9_bps: number;
+  min_bps: number;
+  max_bps: number;
+  part_au_dessus_de_5_bps: number;
+  part_au_dessus_de_50_bps: number;
+  part_au_dessus_de_100_bps: number;
+  part_au_dessus_de_1000_bps: number;
+  part_au_dessus_de_5000_bps: number;
+  n_au_dessus_de_1000_bps: number;
+  /** le nombre qui remet le cas extreme a sa place */
+  n_au_dessus_de_5000_bps: number;
+  part_a_zero_bps: number;
+  n_a_zero_bps: number;
+  /** un hook peut RENDRE plus que le pool n'aurait rendu : ces lignes-la sont negatives */
+  n_negatives: number;
+  part_negatives: number;
+  /** les seuils appliques par la garde, et d'ou ils viennent */
+  seuils: { warn_bps: number; block_bps: number; source: string; derives_de: number | null };
+  methode: string;
+  block_number: number;
+  chain_id: number;
+}
 
-  return { nom: "substitution", porte, meilleure_porte: meilleure, economie_bps: economie, etat, phrase };
+let _distribution: Distribution | null = null;
+
+/**
+ * LA FORME DU CORPUS, CALCULEE ICI ET NON RECOPIEE.
+ *
+ * Elle existe pour empecher exactement l'erreur qu'on vient de corriger : ouvrir la demo sur
+ * une ligne a 9 999,53 bps, c'est montrer le maximum en laissant croire au milieu. Publier la
+ * mediane, les centiles et le NOMBRE de lignes extremes remet chaque cas a sa place.
+ *
+ * LA METHODE EST CELLE DE LA TABLE, deliberement : meme population (label MEASURED portant une
+ * valeur), meme rang (`tous[floor(n*q/100)]`, tri croissant) que scripts/build-table.mjs. Un
+ * autre estimateur donnerait d'autres centiles pour le MEME corpus — deux chiffres pour la
+ * meme phrase, ce que ce projet refuse. Verification : les centiles calcules ici sont
+ * identiques a `seuils.centiles` publie dans la table.
+ */
+export function distribution(): Distribution {
+  if (_distribution) return _distribution;
+  const tous: number[] = [];
+  for (const p of Object.values(TABLE.pools))
+    for (const pts of Object.values(p.dirs))
+      for (const pt of pts) if (pt.label === "MEASURED" && typeof pt.bps === "number") tous.push(pt.bps);
+  tous.sort((a, b) => a - b);
+  const n = tous.length;
+  if (n === 0) throw new Error("corpus_sans_mesure_chiffree");
+  const c = (q: number) => tous[Math.min(n - 1, Math.floor((n * q) / 100))]!;
+  const pct = (k: number) => Math.round((10000 * k) / n) / 100;
+  const auDessus = (seuil: number) => tous.filter((x) => x > seuil).length;
+  const n1000 = auDessus(1000);
+  const n5000 = auDessus(5000);
+  const nzero = tous.filter((x) => x === 0).length;
+  const nneg = tous.filter((x) => x < 0).length;
+
+  _distribution = {
+    n,
+    n_mesures_table: TABLE.n_measurements,
+    mediane_bps: c(50),
+    moyenne_bps: Math.round((tous.reduce((s, x) => s + x, 0) / n) * 1e4) / 1e4,
+    p75_bps: c(75),
+    p90_bps: c(90),
+    p95_bps: c(95),
+    p99_bps: c(99),
+    p99_9_bps: c(99.9),
+    min_bps: tous[0]!,
+    max_bps: tous[n - 1]!,
+    part_au_dessus_de_5_bps: pct(auDessus(5)),
+    part_au_dessus_de_50_bps: pct(auDessus(50)),
+    part_au_dessus_de_100_bps: pct(auDessus(100)),
+    part_au_dessus_de_1000_bps: pct(n1000),
+    part_au_dessus_de_5000_bps: pct(n5000),
+    n_au_dessus_de_1000_bps: n1000,
+    n_au_dessus_de_5000_bps: n5000,
+    part_a_zero_bps: pct(nzero),
+    n_a_zero_bps: nzero,
+    n_negatives: nneg,
+    part_negatives: pct(nneg),
+    seuils: {
+      warn_bps: SEUILS.warnBps,
+      block_bps: SEUILS.blockBps,
+      source: SEUILS.source,
+      derives_de: SEUILS.derivesDe,
+    },
+    methode:
+      "lignes d'etiquette MEASURED portant une valeur ; centiles par rang tous[floor(n*q/100)] " +
+      "sur le tri croissant — la meme methode que packages/guard/scripts/build-table.mjs, pour " +
+      "que les centiles publies ici et ceux de la table soient les memes nombres",
+    block_number: TABLE.block_number,
+    chain_id: TABLE.chain_id,
+  };
+  return _distribution;
+}
+
+/** Le seul endroit ou l'on decide si un nom d'acte existe. */
+export function EST_ACTE(x: string): x is NomActe {
+  return x === "stop" || x === "substitution" || x === "queue";
 }
 
 export const ACTES: Record<NomActe, Acte> = {
   stop: construireStop(),
   substitution: construireSubstitution(),
+  queue: construireQueue(),
 };
+
+/** Les actes que la demo joue, dans l'ordre. `queue` n'y est pas : elle se demande. */
+export const ACTES_DE_LA_DEMO: readonly NomActe[] = ["stop", "substitution"];
 
 export const DIVERGENCES: readonly Divergence[] = divergences;
 

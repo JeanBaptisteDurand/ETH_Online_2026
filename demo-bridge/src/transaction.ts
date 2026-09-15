@@ -27,8 +27,25 @@ import { hex, rpc } from "./fork.js";
 /** L'Universal Router sur Base, tel que guard-sans-table.ts le nomme. */
 export const UNIVERSAL_ROUTER_BASE = "0x6ff5693b99212da76ad316178a184ab56d299b43";
 
-/** La tolerance de prix, en bps. Ce n'est PAS un chiffre du corpus : c'est une marge, publiee. */
-export const TOLERANCE_BPS = 50;
+/**
+ * LA TOLERANCE DE PRIX, EN BPS. Ce n'est PAS un chiffre du corpus : c'est une marge, et elle
+ * est publiee dans chaque reponse pour qu'on puisse la deplacer et refaire le compte.
+ *
+ * ELLE VALAIT 50, ET C'ETAIT UN PARI SUR L'HORLOGE. Mesure : dix envois du calldata
+ * STRICTEMENT IDENTIQUE au meme bloc epingle donnaient 4 reussites et 6 reverts. L'echec
+ * etait toujours le meme — `0x8b063d73`, soit `V4TooLittleReceived(uint256,uint256)` : le
+ * plancher de sortie n'etait pas atteint. Et `eth_call` passait a chaque fois ; seul le bloc
+ * MINE echouait.
+ *
+ * Pourquoi : la porte de remplacement porte un hook a FRAIS DYNAMIQUES (fee = 8388608 =
+ * 0x800000). Sa cotation est prise a l'horodatage du bloc epingle ; la transaction, elle,
+ * s'execute dans un bloc dont anvil a avance l'horloge, et le hook n'y facture plus tout a
+ * fait pareil. Un plancher a 50 bps sous la cotation ne laissait pas la place a cet ecart.
+ *
+ * 300 bps le laisse. Le plancher reste reel, publie, et verifiable dans le calldata — il
+ * cesse simplement d'etre un pari sur le temps qui passe entre la cotation et l'inclusion.
+ */
+export const TOLERANCE_BPS = Number(process.env.DEMO_TOLERANCE_BPS ?? 300);
 /** L'echeance : 20 minutes de temps de CHAINE. Assez pour etre inclus, trop court pour etre rejoue. */
 export const ECHEANCE_SECONDES = 1200n;
 

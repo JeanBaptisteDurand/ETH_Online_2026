@@ -16,24 +16,35 @@
 import { buildGuardTypedData, type Eip712TypedData } from "../vendor/guard/src/ledger.js";
 import { TARE_GUARD_TYPES, TARE_GUARD_PRIMARY_TYPE } from "../vendor/guard/src/ledger.js";
 import { keccak256, toHex } from "../vendor/guard/src/keccak.js";
-import { ACTES, CORPUS, TABLE, type Acte, type NomActe, type Porte } from "./corpus.js";
+import { ACTES, CORPUS, EST_ACTE, TABLE, type Acte, type NomActe, type Porte } from "./corpus.js";
 
 const utf8 = (s: string) => new TextEncoder().encode(s);
 
 const ADRESSE = /^0x[0-9a-fA-F]{40}$/;
 const MOT32 = /^0x[0-9a-fA-F]{64}$/;
 
+/**
+ * TOUT CE QUE L'APPAREIL AFFICHE EST EN ANGLAIS.
+ *
+ * C'est l'objet que le jury fixe pendant trente secondes, sur un site entierement en anglais.
+ * Les commentaires de ce depot restent en francais ; les CHAINES rendues a l'ecran, non.
+ *
+ * La regle de fond ne change pas d'une langue a l'autre : une etiquette non numerique ne rend
+ * jamais un nombre. « not measured — this is not zero » est la traduction exacte de
+ * takeField() de packages/guard/src/ledger.ts, et elle dit la meme chose.
+ */
+
 /** Ce qui a produit les nombres, cite depuis la table elle-meme et non ecrit en dur. */
 export function champDataset(): string {
   return (
-    `${CORPUS.n_measurements} mesures, ${CORPUS.n_hooks} hooks, ${CORPUS.n_pools} pools, ` +
-    `chaine ${CORPUS.chain_id}, moteur ${CORPUS.engine_ver ?? "inconnu"}, stub ${CORPUS.stub_hash ?? "inconnu"}`
+    `${CORPUS.n_measurements} measurements, ${CORPUS.n_hooks} hooks, ${CORPUS.n_pools} pools, ` +
+    `chain ${CORPUS.chain_id}, engine ${CORPUS.engine_ver ?? "unknown"}, stub ${CORPUS.stub_hash ?? "unknown"}`
   );
 }
 
 /** Le prelevement, ou son absence. Meme regle que takeField() de packages/guard/src/ledger.ts. */
 export function champTake(p: Porte): string {
-  if (p.bps === null) return "non mesure — ce n'est pas zero";
+  if (p.bps === null) return "not measured — this is not zero";
   return `${p.bps.toFixed(2)} bps`;
 }
 
@@ -47,7 +58,7 @@ function swapDe(p: Porte) {
     poolId: p.pool_id,
     take: champTake(p),
     label: champLabel(p),
-    size: `${p.taille_wei} en entree`,
+    size: `${p.taille_wei} in`,
     direction: p.sens,
   };
 }
@@ -70,6 +81,15 @@ function estRapport(v: unknown): v is { findings: unknown[]; table: unknown } {
   );
 }
 
+/**
+ * LE TEXTE DONT promptDigest PORTE LE KECCAK.
+ *
+ * Il est en anglais comme le reste, et c'est PLUS qu'une question de langue : l'empreinte
+ * scelle le texte montre a l'humain. Traduire le texte SANS recalculer l'empreinte laisserait
+ * l'appareil attester une phrase que plus personne n'affiche. Il est donc rendu tel quel par
+ * /demo/preparer et /demo/message, pour que la page puisse afficher la MEME empreinte que
+ * l'appareil, et qu'on puisse le verifier a la main.
+ */
 function texteDe(acte: Acte): string {
   const p = acte.porte;
   return [
@@ -77,16 +97,23 @@ function texteDe(acte: Acte): string {
     acte.phrase,
     `pool ${p.pool_id}`,
     `hook ${p.hook}`,
-    `prelevement ${champTake(p)} [${p.etiquette}]`,
-    `taille ${p.taille_wei} en entree, sens ${p.sens}`,
-    `mesures au bloc ${CORPUS.block_number}, chaine ${CORPUS.chain_id}`,
-    `rejeu : ${p.rejeu}`,
+    `take ${champTake(p)} [${p.etiquette}]`,
+    `size ${p.taille_wei} in, direction ${p.sens}`,
+    `measured at block ${CORPUS.block_number}, chain ${CORPUS.chain_id}`,
+    `replay: ${p.rejeu}`,
   ].join("\n");
 }
 
+/**
+ * Le verdict affiche sur l'appareil vient du CORPUS, pas du nom de l'acte.
+ *
+ * `acte.verdict` est gradue par verdict.ts avec les centiles de la table — warn au 90e,
+ * block au 99e. Ecrire « BLOCK » parce que l'acte s'appelle « stop » serait inventer une
+ * gravite que la mesure ne porte pas : la porte d'ouverture prend 4,09 bps, soit moins que
+ * 90 % du corpus, et l'appareil doit le dire.
+ */
 function verdictDe(acte: Acte): string {
-  if (acte.nom === "stop") return "BLOCK";
-  return acte.etat === "MEILLEURE_PORTE" ? "WARN" : "OK";
+  return acte.verdict.toUpperCase();
 }
 
 /** Le message construit depuis le corpus, pour un acte. */
@@ -108,8 +135,8 @@ export function messageDeActe(nom: NomActe): MessageConstruit {
         swaps,
         dataset: champDataset(),
         measuredAtBlock: CORPUS.block_number,
-        freshness: `mesures au bloc ${CORPUS.block_number} ; le fork de la demo est epingle au meme bloc, retard nul`,
-        warnings: "aucun",
+        freshness: `measured at block ${CORPUS.block_number}; the demo fork is pinned to the same block, zero lag`,
+        warnings: "none",
         promptDigest: toHex(keccak256(utf8(texte))),
       },
     },
@@ -134,12 +161,12 @@ export function construireMessage(brut: unknown, acteParDefaut: NomActe = "stop"
   if (brut === undefined || brut === null) return messageDeActe(acteParDefaut);
   if (typeof brut === "string") {
     const n = brut.toLowerCase();
-    if (n === "stop" || n === "substitution") return messageDeActe(n);
+    if (EST_ACTE(n)) return messageDeActe(n);
     return messageDeActe(acteParDefaut);
   }
   if (typeof brut !== "object") return messageDeActe(acteParDefaut);
   const o = brut as Record<string, unknown>;
-  if (typeof o.acte === "string" && (o.acte === "stop" || o.acte === "substitution")) {
+  if (typeof o.acte === "string" && EST_ACTE(o.acte)) {
     return messageDeActe(o.acte);
   }
 
@@ -159,9 +186,9 @@ export function construireMessage(brut: unknown, acteParDefaut: NomActe = "stop"
       return {
         hook: hook.toLowerCase(),
         poolId: pool.toLowerCase(),
-        take: String(s.take ?? "non mesure — ce n'est pas zero"),
+        take: String(s.take ?? "not measured — this is not zero"),
         label: String(s.label ?? "NOT_MEASURABLE"),
-        size: String(s.size ?? s.taille ?? "taille absente du calldata : non lue — pas zero"),
+        size: String(s.size ?? s.taille ?? "size absent from the calldata: not read — not zero"),
         direction: String(s.direction ?? s.sens ?? "0->1"),
       };
     });
@@ -171,8 +198,8 @@ export function construireMessage(brut: unknown, acteParDefaut: NomActe = "stop"
       swaps,
       dataset: String(o.dataset ?? champDataset()),
       measuredAtBlock: Number(o.measuredAtBlock ?? TABLE.block_number),
-      freshness: String(o.freshness ?? `mesures au bloc ${CORPUS.block_number}`),
-      warnings: String(o.warnings ?? "aucun"),
+      freshness: String(o.freshness ?? `measured at block ${CORPUS.block_number}`),
+      warnings: String(o.warnings ?? "none"),
       promptDigest: "",
     };
     const digest = typeof o.promptDigest === "string" && MOT32.test(o.promptDigest) ? o.promptDigest : null;

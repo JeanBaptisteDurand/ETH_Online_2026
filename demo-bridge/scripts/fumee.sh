@@ -31,6 +31,7 @@ if [ "${DEMO_BASE:-}" = "https://demo.tare-hooks.tech" ]; then
 fi
 ADRESSE="${ADRESSE:-0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D}"
 AUTO="${FUMEE_AUTO:-1}"
+DERNIER_DIGEST=""
 
 # Viser le sous-domaine sans son DNS : on presente le certificat de tare-hooks.tech (qui, lui,
 # resout) et on met demo.tare-hooks.tech dans l'en-tete Host. Caddy route sur le Host, pas sur
@@ -115,7 +116,7 @@ for d in json.load(sys.stdin).get("divergences",[]):
 fi
 
 # ---------------------------------------------------------------- 2. preparer
-for ACTE in stop substitution; do
+for ACTE in stop substitution queue; do
 titre "2. POST /demo/preparer {\"acte\":\"$ACTE\"} — credit, snapshot, calldata"
 P="$(curl -sS -m 40 -X POST -H 'content-type: application/json' \
       -d "{\"adresse\":\"$ADRESSE\",\"acte\":\"$ACTE\"}" "$BASE/demo/preparer" 2>&1)"
@@ -191,8 +192,14 @@ BIDON="$(curl -sS -m 15 "$BASE/demo/soldes?adresse=pasuneadresse" 2>&1 | champ e
 titre "5. POST /demo/revenir — revenir au snapshot pour rejouer a l'identique"
 R1="$(curl -sS -m 30 -X POST "$BASE/demo/revenir" 2>&1)"
 [ "$(printf '%s' "$R1" | champ ok)" = "True" ] || [ "$(printf '%s' "$R1" | champ ok)" = "true" ] \
-  && ok "retour au snapshot effectue, fork au bloc $(printf '%s' "$R1" | champ block_number)" \
+  && ok "retour a l etat de base effectue, fork au bloc $(printf '%s' "$R1" | champ block_number)" \
   || ko "le retour a echoue : $(printf '%s' "$R1" | champ motif)"
+B1="$(printf '%s' "$R1" | champ block_number)"; C1="$(printf '%s' "$R1" | champ conforme)"
+if [ "$B1" = "50614000" ] && { [ "$C1" = "True" ] || [ "$C1" = "true" ]; }; then
+  ok "le fork est bien revenu au BLOC EPINGLE 50614000 — le bandeau ne mentira pas"
+else
+  ko "le rembobinage a rendu le bloc « $B1 » (conforme=$C1) : ce n est pas le bloc du corpus, et les chiffres montres ne seraient plus ceux qui ont ete mesures"
+fi
 R2="$(curl -sS -m 30 -X POST "$BASE/demo/revenir" 2>&1)"
 [ "$(printf '%s' "$R2" | champ ok)" = "True" ] || [ "$(printf '%s' "$R2" | champ ok)" = "true" ] \
   && ok "un SECOND retour marche aussi : la demo se rejoue autant de fois qu'il faut" \
@@ -244,6 +251,27 @@ else
   esac
 fi
 
+# ------------------------------- 6bis. la langue de l ecran, et l empreinte partagee
+titre "6bis. Ce que l appareil AFFICHE : la langue, et l empreinte que la page montre aussi"
+MSG="$(curl -sS -m 20 "$BASE/demo/message?acte=stop" 2>&1)"
+DIGP="$(printf '%s' "$MSG" | champ prompt_digest)"
+case "$DIGP" in
+  0x????????????????????????????????????????????????????????????????) ok "la page recevra l empreinte $DIGP";;
+  *) ko "aucune empreinte rendue par /demo/message (recu « $DIGP »)";;
+esac
+# Le francais qui trainait sur l ecran de l appareil, mot pour mot. Le controle vit dans
+# scripts/verifier-langue.py : une expression reguliere de cette taille ne survit pas a une
+# imbrication de guillemets dans un script shell — essaye et relis, c'est illisible.
+FR="$("$ICI/verifier-langue.py" <<< "$MSG")"
+[ -z "$FR" ] && ok "tout ce que l appareil affiche est en anglais" \
+              || ko "du francais subsiste sur l ecran de l appareil, champs : $FR"
+# l empreinte rendue a la page est-elle bien le keccak du texte scelle ?
+if [ -x "$RACINE/node_modules/.bin/tsx" ] && [ -n "$DERNIER_DIGEST" ]; then
+  [ "$DERNIER_DIGEST" = "$DIGP" ] \
+    && ok "l appareil a affiche la MEME empreinte que celle rendue a la page" \
+    || ko "l appareil a affiche $DERNIER_DIGEST et la page recevra $DIGP — les deux doivent etre le meme nombre"
+fi
+
 # ------------------------------------------------- 7. les surfaces publiques
 titre "7. Les surfaces publiques — celles que la page et MetaMask vont utiliser"
 RPCU="$(printf '%s' "$ETAT" | champ fork.rpc)"
@@ -281,10 +309,23 @@ SC="$(curl -sS -m 20 -o /dev/null -w '%{http_code}' "$ECRU/screenshot" 2>/dev/nu
 # le type de contenu, sinon le script hurlerait a chaque execution pour une page web.
 FUITE=0; NORMALISES=0
 for CHEMIN in /apdu /automation /finger "/events/../apdu" "/button/left/../../apdu" "/%2e%2e/apdu" "/%2E%2E%2Fapdu"; do
-  LIGNE="$(curl -sS -m 15 -D - -o /dev/null -X POST -H 'content-type: application/json' \
-        -d '{"data":"e0020000"}' "$ECRU$CHEMIN" 2>/dev/null)"
-  HC="$(printf '%s' "$LIGNE" | head -1 | tr -d '\r' | awk '{print $2}')"
-  CT="$(printf '%s' "$LIGNE" | grep -i '^content-type:' | head -1 | tr -d '\r')"
+  # Une requete qui n aboutit pas rend un statut VIDE, et ce n est pas une fuite : c est du
+  # reseau. On reessaie une fois avant de conclure — un script de verification qui crie au
+  # loup sur un aleas de connexion finit par ne plus etre lu.
+  HC=""; CT=""
+  for _essai in 1 2 3; do
+    LIGNE="$(curl -sS -m 15 -D - -o /dev/null -X POST -H 'content-type: application/json' \
+          -d '{"data":"e0020000"}' "$ECRU$CHEMIN" 2>/dev/null)"
+    HC="$(printf '%s' "$LIGNE" | head -1 | tr -d '\r' | awk '{print $2}')"
+    CT="$(printf '%s' "$LIGNE" | grep -i '^content-type:' | head -1 | tr -d '\r')"
+    [ -n "$HC" ] && break
+    sleep 1
+  done
+  if [ -z "$HC" ]; then
+    ko "injoignable (trois essais) : $ECRU$CHEMIN — probleme de reseau, pas une fuite"
+    FUITE=1
+    continue
+  fi
   case "$HC/$CT" in
     200/*application/json*) ko "FUITE : POST $ECRU$CHEMIN rend 200 + JSON — c est la signature de Speculos"; FUITE=1;;
     200/*text/html*)        NORMALISES=$((NORMALISES+1));;
@@ -300,6 +341,37 @@ for V in "GET /button/left" "POST /screenshot" "POST /button/enter"; do
   H="$(curl -sS -m 15 -o /dev/null -w '%{http_code}' -X "$M" "$ECRU$C" 2>/dev/null)"
   [ "$H" = "404" ] && ok "refuse comme prevu : $M $C -> 404" || ko "$M $C rend $H au lieu de 404"
 done
+
+# ------------------------------------------------------- 8. la forme du corpus
+titre "8. La distribution — pour qu'aucun chiffre montre ne passe pour le milieu"
+MED="$(printf '%s' "$ETAT" | champ distribution.mediane_bps)"
+MOY="$(printf '%s' "$ETAT" | champ distribution.moyenne_bps)"
+MAX="$(printf '%s' "$ETAT" | champ distribution.max_bps)"
+NN="$(printf '%s' "$ETAT" | champ distribution.n)"
+N5K="$(printf '%s' "$ETAT" | champ distribution.n_au_dessus_de_5000_bps)"
+P5K="$(printf '%s' "$ETAT" | champ distribution.part_au_dessus_de_5000_bps)"
+P100="$(printf '%s' "$ETAT" | champ distribution.part_au_dessus_de_100_bps)"
+SRC="$(printf '%s' "$ETAT" | champ distribution.seuils.source)"
+if [ "$NN" = "63156" ]; then
+  ok "calculee sur les $NN lignes MESUREES portant une valeur (sur 125072 mesures)"
+else
+  ko "la distribution porte sur « $NN » lignes au lieu de 63156"
+fi
+[ "$MED" != "__ABSENT__" ] && ok "mediane $MED bps · moyenne $MOY bps (la moyenne est SOUS la mediane : des lignes negatives existent)" \
+                            || ko "la distribution n est pas publiee par /demo/etat"
+[ "$P100" != "__ABSENT__" ] && ok "part au-dessus de 100 bps : $P100 %" || ko "part au-dessus de 100 bps absente"
+if [ "$N5K" = "54" ]; then
+  ok "le chiffre qui remet l extreme a sa place : $N5K lignes seulement depassent 5 000 bps ($P5K %), max $MAX"
+else
+  ko "le compte au-dessus de 5 000 bps vaut « $N5K » au lieu de 54"
+fi
+[ "$SRC" = "table" ] && ok "les seuils publies viennent de la table (centiles), pas de valeurs ecrites en dur" \
+                      || ko "les seuils viennent de « $SRC » : la table ne porte pas ses centiles"
+ADEMO="$(printf '%s' "$ETAT" | champ actes_de_la_demo)"
+case "$ADEMO" in
+  *'"stop"'*'"substitution"*'|'["stop", "substitution"]') ok "la demo joue stop puis substitution ; « queue » reste accessible mais n ouvre plus";;
+  *) case "$ADEMO" in *queue*) ko "« queue » figure dans les actes de la demo : l exception ne doit pas ouvrir";; *) ok "actes de la demo : $ADEMO (« queue » reste accessible sur demande)";; esac;;
+esac
 
 # -------------------------------------------------------------------- verdict
 echo

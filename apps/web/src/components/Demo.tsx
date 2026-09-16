@@ -779,6 +779,8 @@ export function DemoPage() {
   const planApprouve = useRef<string | null>(null)
   /** La transaction de remplacement, vue par l'approbateur : Approve sur l'appareil vaut « le plan ». */
   const remplacementRef = useRef<TransactionPrete | null>(null)
+  /** Le pool que cette transaction vise vraiment, tel que le pont l'a relu. */
+  const poolRemplacementRef = useRef<string | null>(null)
 
   const dire = useCallback((quoi: string, texte: string, dur = false) => {
     setJournal((j) => [{ quoi, texte, dur }, ...j].slice(0, 3))
@@ -928,6 +930,10 @@ export function DemoPage() {
   const remplacement: TransactionPrete | null =
     preparationOk?.transaction_remplacement ?? envoi?.transaction ?? null
   remplacementRef.current = remplacement
+  // LE POOL REELLEMENT VISE par la transaction de remplacement, relu par le pont dans son calldata.
+  // C'est lui qui fait reconnaitre le plan deja approuve sur l'appareil ; sans lui, la garde
+  // reposerait la question une seconde fois des que ce pool n'est pas celui du corpus.
+  poolRemplacementRef.current = preparationOk?.pool_id_remplacement ?? null
 
   /* ------------------------------------------- LA GARDE, POSEE POUR DE VRAI */
 
@@ -969,7 +975,7 @@ export function DemoPage() {
         setDecision({ by: 'the device', reason: rep.raison, attestation: rep.signature })
         // « take the cheaper gate » refuse la transaction d'origine : lancerLeSwap
         // envoie le remplacement en SECOND appel — la garde ne reecrit jamais ce qu'on lui a donne.
-        if (c === 'substituer') planApprouve.current = paire?.proposee?.poolId ?? null
+        if (c === 'substituer') planApprouve.current = poolRemplacementRef.current ?? paire?.proposee?.poolId ?? null
         return { approved: c === 'passer', by: 'the device', reason: rep.raison, attestation: rep.signature }
       }
       // 2. L'APPAREIL N'A PAS TRANCHE — injoignable, occupe, en panne. La decision ne revient PAS a
@@ -1119,6 +1125,23 @@ export function DemoPage() {
     setSoldesApres(null)
     setOccupe('bridge')
     const de = (await comptesDu()) ?? adresse
+    // LE PORTEFEUILLE DOIT ETRE SUR LE FORK, sinon rien ne part. Constate le 15 septembre 2026 : le
+    // fork portait le meme chainId que Base (8453), MetaMask envoyait sur le VRAI Base, et la route
+    // principale partait en vrai swap. Le fork a desormais sa propre chaine ; la page lit celle du
+    // portefeuille AVANT tout envoi.
+    if (fournisseurBrut && fork?.chain_id != null) {
+      const lu = await fournisseurBrut.request({ method: 'eth_chainId' }).catch(() => null)
+      const chaine = typeof lu === 'string' ? Number.parseInt(lu, 16) : null
+      if (chaine !== fork.chain_id) {
+        setOccupe(null)
+        enVol.current = false
+        return dire(
+          'network',
+          `your wallet is on ${chaine === null ? 'an unknown chain' : chainName(chaine)}, not the demo fork (chain ${fork.chain_id}) — click “add the fork network”. Nothing was sent.`,
+          true,
+        )
+      }
+    }
     const p = await preparer1(de)
     setOccupe(null)
     const tx = p?.transaction ?? (acteAffiche ? { to: acteAffiche.routeur, data: acteAffiche.calldata, value: acteAffiche.value } : null)

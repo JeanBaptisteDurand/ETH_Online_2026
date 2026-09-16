@@ -214,6 +214,9 @@ export interface Preparation {
   etat_alternative?: string
   /** LA TRANSACTION DE REMPLACEMENT : construite, rendue, jamais envoyee */
   transaction_remplacement?: TransactionPrete | null
+  /** le pool que cette transaction vise VRAIMENT, relu dans son calldata par le pont */
+  pool_id_remplacement?: string | null
+  remplacement_sans_hook?: boolean
   /**
    * LE MESSAGE QUE L'APPAREIL AFFICHERA, rendu AVANT la signature — et son empreinte.
    *

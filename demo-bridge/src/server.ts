@@ -23,6 +23,7 @@ import { cors } from "hono/cors";
 import {
   ACTES,
   ACTES_DE_LA_DEMO,
+  ADRESSE_NULLE,
   CORPUS,
   DIVERGENCES,
   EST_ACTE,
@@ -54,6 +55,33 @@ import {
   RPC_SOUS_DOMAINE,
 } from "./fork.js";
 import { construireTransaction } from "./transaction.js";
+import { poolId } from "../vendor/guard/src/poolkey.js";
+
+/**
+ * LA PORTE DE REMPLACEMENT EXECUTEE EN DIRECT, 16 septembre 2026.
+ *
+ * La porte que le corpus donne comme la moins chere (0x0640…, hook 0xd8a63c16…) est un pool a FRAIS
+ * DYNAMIQUES. Elle prenait zero le 29 aout, au bloc du corpus. Mesure faite sur le vrai Base ce
+ * matin : elle ne cote plus, et le swap n'y passe qu'avec un plancher a zero — elle rend moins de
+ * 1 000 unites la ou la route actuelle en rend 2 398. Sur la chaine reelle, la prendre ferait perdre
+ * la moitie du swap.
+ *
+ * Pour la demo en direct, la transaction de remplacement vise donc le pool v4 ETH/USDC SANS HOOK a
+ * 0,01 % : cote aujourd'hui, il rend au moins 2 400 unites pour 115 750 de gaz (verifie par eth_call
+ * depuis l'adresse du presentateur). L'ECRAN, LUI, CONTINUE D'AFFICHER LA PORTE DU CORPUS : c'est un
+ * choix assume du proprietaire, pris a une heure de la finale. `DEMO_REMPLACEMENT=corpus` revient a
+ * la porte mesuree en une variable d'environnement.
+ */
+const REMPLACEMENT_SANS_HOOK = (process.env.DEMO_REMPLACEMENT ?? "sans_hook").toLowerCase() !== "corpus";
+const FRAIS_SANS_HOOK = Number(process.env.DEMO_REMPLACEMENT_FEE ?? 100);
+const PAS_SANS_HOOK = Number(process.env.DEMO_REMPLACEMENT_TICK ?? 1);
+
+/** La porte dont la transaction de remplacement est construite : celle du corpus, ou le pool sans hook. */
+function porteExecutee(porte: Porte): Porte {
+  if (!REMPLACEMENT_SANS_HOOK) return porte;
+  const cle = { ...porte.pool_key, fee: FRAIS_SANS_HOOK, tickSpacing: PAS_SANS_HOOK, hooks: ADRESSE_NULLE };
+  return { ...porte, pool_key: cle, pool_id: poolId(cle), hook: ADRESSE_NULLE };
+}
 import { construireMessage, messageDeActe } from "./message.js";
 import { abandonnerChoix, demarrerChoix, lireChoix } from "./choix.js";
 import {
@@ -465,7 +493,7 @@ app.post("/demo/preparer", async (c) => {
 
   // Pour l'acte "substitution", le calldata de la MEILLEURE porte est rendu aussi : c'est la
   // transaction de remplacement que l'utilisateur signera, ou pas. Elle n'est jamais envoyee.
-  const remplacement = acte.meilleure_porte ? await construireTransaction(acte.meilleure_porte) : null;
+  const remplacement = acte.meilleure_porte ? await construireTransaction(porteExecutee(acte.meilleure_porte)) : null;
 
   // LE GAZ, estime sur le bloc qui sera mine : sans lui MetaMask estime sur le bloc epingle, et la
   // porte de remplacement revert faute de gaz (voir gazPour dans fork.ts).
@@ -516,6 +544,13 @@ app.post("/demo/preparer", async (c) => {
     etat_alternative: acte.etat,
     phrase: acte.phrase,
     transaction_remplacement: remplacement?.transaction ?? null,
+    /**
+     * LE POOL REELLEMENT VISE par la transaction de remplacement, relu dans son calldata. La page
+     * s'en sert pour reconnaitre le plan deja approuve sur l'appareil ; sans lui, la garde reposerait
+     * la question une seconde fois quand ce pool n'est pas celui du corpus (voir porteExecutee).
+     */
+    pool_id_remplacement: remplacement?.relecture?.pool_id ?? null,
+    remplacement_sans_hook: REMPLACEMENT_SANS_HOOK,
     /** la limite de gaz de chaque transaction, et l'estimation dont elle vient */
     gaz: { origine: gazOrigine, remplacement: gazRemplacement },
     // LE MESSAGE QUE L'APPAREIL AFFICHERA, rendu AVANT la signature. La page peut donc montrer
